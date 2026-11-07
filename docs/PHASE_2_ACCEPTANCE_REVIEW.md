@@ -1,4 +1,7 @@
-# Phase 2 acceptance review (PR #5, `phase-2-collectors` @ 0f4651d)
+# Phase 2 acceptance review (PR #5)
+
+**Update 2026-11-07: fixes F1–F5 applied on the PR #5 branch, approved by the owner, in commit
+`eda1a47`.** See §6. The original review of commit `0f4651d` follows unchanged.
 
 Reviewed 2026-11-07 against spec §14 Phase 2, §16 collector tests, §19 News MVP and the owner's
 Phase 2 instructions. This is a read-only review: PR #5 was not modified. Findings that need a
@@ -76,3 +79,26 @@ LICENCE REQUIRED 2 · IMPLEMENTED 1 · ACTIVE 0.
    documented RSS-headline-and-link-only policy for specific publishers.
 3. EIA Open Data API key (free) if EIA data is wanted.
 4. Turso production: approve applying 0006, and later 0007, and adding the GitHub repository secrets.
+
+## 6. Re-review after fixes (PR #5 @ eda1a47)
+| # | Resolution | Evidence |
+|---|---|---|
+| F1 | One `authorise()` gate in `collectors/engine.py` is used by `collect`, `collect_document` and `fetch_pages`. Dry runs are allowed only for REVIEWED, APPROVED, IMPLEMENTED or TESTED sources with no access, terms or licensing prohibition. robots.txt enforcement is unchanged and still applies on top. | `test_prohibited_sources_are_refused_before_any_network_request` (every prohibited registry source, all three entry points, zero transport calls including robots.txt), `test_restricted_source_with_feed_is_refused_even_if_robots_would_allow`, `test_any_single_prohibition_blocks_a_dry_run`; live: `test_robots_restriction_is_honoured_live` |
+| F2 | `main` was merged into the PR #5 branch (no history rewritten). Investify → RESTRICTED (`prohibits_automation`, `permission_required`). SCS Trade → REVIEWED (`not_found`; reuse rights need written clarification). Reasons and evidence references are kept in the review notes. | `test_registry_records_provider_findings_without_activation` |
+| F3 | PUCARS (REVIEWED, TLS expired), Capital Stake (LICENCE REQUIRED) and Sarmaaya (RESTRICTED) are registered as potential access routes, with no adapter, no feed and `enabled = 0`. Mettis licensing → `licence_required`. PSX notes add reCAPTCHA and the data-request contact. The register states that registration is not permission. | same test; `docs/SOURCE_ACCESS_REGISTER.md` |
+| F4 | New fields: `last_test_at_utc`, `last_test_result`, `newest_item_at_utc` and `freshness_status`, separate from lifecycle and shown in `source_health` and the register. The News is IMPLEMENTED, its test passed, and it is marked **stale** (newest item 2026-05-29). Validation refuses TESTED or ACTIVE for a stale feed. | `test_stale_feed_is_shown_as_stale_not_as_working`, `test_validation_refuses_tested_status_for_a_stale_feed` |
+| F5 | The CLI docstring now uses `dawn`. The backfill example no longer names the restricted EIA source. | — |
+| F6 | Unchanged by design: production Turso is still at 0005 and no GitHub secrets are set. The F4 columns were added to the unapplied migration 0006, which production has never run. | owner decision pending |
+
+Registry v3: 67 sources. NOT REVIEWED 37 · REVIEWED 11 · RESTRICTED 6 · BLOCKED 5 · TESTED 4 ·
+LICENCE REQUIRED 3 · IMPLEMENTED 1 · **ACTIVE 0**.
+
+Local checks on `eda1a47`:
+- independence guard: pass;
+- ruff: pass;
+- pytest: 132 passed, 11 skipped;
+- pip-audit: no known vulnerabilities;
+- opt-in live dry-run tests (PBS, Dawn, Business Recorder, Tribune, and the EIA robots check): 5 passed.
+
+**Updated verdict:** ready for owner merge approval. Operational activation is still blocked on publisher
+terms (D8) and the production decisions in F6.

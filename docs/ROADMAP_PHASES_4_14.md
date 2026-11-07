@@ -10,13 +10,14 @@ Stake or Mettis, under written agreement) into provider adapters when available.
   - **Free** = works on lawful public/official sources and owner-entered data;
   - **Provider** = needs licensed PSX market or disclosure data;
   - **Partial** = core works without PSX; specific features wait for a provider.
-- **Status of inputs:** Phase 2 (PR #5) and Phase 3 (PR #11) are unmerged; the live LLM is NOT
+- **Status of inputs:** Phase 2 (PR #5, review fixes F1–F5 applied) and Phase 3 (PR #11) are unmerged; the live LLM is NOT
   CONNECTED; no source is ACTIVE. Every phase below inherits these blockers until they are resolved.
 
 ## 1. Scope preservation: 24 modules and 15 pages
 The master specification lists 23 modules (§3) and 14 dashboard pages (§12). Owner instruction adds
-**Module 24, Global Energy & Oil Shock Monitor**, and a **15th page** for it. *Decision D1:
-record both in `docs/SPECIFICATION.md` / ADR-0003 so traceability tests cover them.*
+**Module 24, Global Energy & Oil Shock Monitor**, and **Page 15, Global Oil & Energy
+Intelligence**. D1 was approved and is recorded in the specification, ADR-0003 C8 and traceability
+in PR #13 (unmerged).
 
 | # | Module | Phase(s) | Data |
 |---|---|---|---|
@@ -61,7 +62,7 @@ record both in `docs/SPECIFICATION.md` / ADR-0003 so traceability tests cover th
 | 12 | Social & Media Intelligence | 11 | Free (YouTube) / paid (X) |
 | 13 | Alerts & Backtesting | 14 | Partial |
 | 14 | Data Quality & Operations | 6–7 | Free |
-| 15 | Global Energy & Oil Shock Monitor | 9 | Free |
+| 15 | Global Oil & Energy Intelligence | 9 | Free |
 
 Rule for every page (CLAUDE.md, spec §12): a page is built only when its module is implemented;
 empty states, never placeholder numbers.
@@ -199,7 +200,7 @@ interface with an offline fixture implementation. A licensed provider is a new a
 ## 5. Owner decisions needed
 | ID | Decision | Needed by |
 |---|---|---|
-| D1 | Record Module 24 and page 15 in the specification | Before Phase 9 (recommended now) |
+| D1 | Record Module 24 and Page 15 in the specification | **Approved**; PR #13 awaiting merge |
 | D2 | LLM go-live: `anthropic` SDK dependency, `PSXNI_ANTHROPIC_API_KEY`, daily budget | Before live Phase 3 runs, and Phases 4–5 LLM use |
 | D3 | EIA Open Data API key (free) | Phase 9 |
 | D4 | Company-master licensing question (PSX profile pages read once in Phase 1) | Before production use |
