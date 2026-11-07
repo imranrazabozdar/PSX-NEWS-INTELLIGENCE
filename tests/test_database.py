@@ -107,7 +107,7 @@ def test_changed_applied_migration_is_refused(db, tmp_path):
 def test_destructive_migration_is_refused(tmp_path):
     d = tmp_path / "m"
     shutil.copytree(MIGRATIONS_DIR, d)
-    (d / "0005_bad.sql").write_text("DROP TABLE companies;\n")
+    (d / "0006_bad.sql").write_text("DROP TABLE companies;\n")
     with pytest.raises(MigrationError, match="destructive"):
         discover(d)
 
@@ -115,13 +115,13 @@ def test_destructive_migration_is_refused(tmp_path):
 def test_failed_migration_applies_nothing(tmp_path):
     d = tmp_path / "m"
     shutil.copytree(MIGRATIONS_DIR, d)
-    (d / "0005_broken.sql").write_text("CREATE TABLE ok_one (x INTEGER);\nCREATE TABLE broken (;\n")
+    (d / "0006_broken.sql").write_text("CREATE TABLE ok_one (x INTEGER);\nCREATE TABLE broken (;\n")
     db = SQLiteDatabase()
     with pytest.raises(DatabaseError):
         migrate(db, directory=d)
     names = {r["name"] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
     assert "ok_one" not in names
-    assert db.execute("SELECT MAX(version) v FROM schema_migrations")[0]["v"] == 4
+    assert db.execute("SELECT MAX(version) v FROM schema_migrations")[0]["v"] == len(discover())
 
 
 def test_splitter_keeps_triggers_whole():
@@ -136,6 +136,22 @@ def test_expected_indexes_exist(db):
                  "ux_identifiers_current", "ix_aliases_normalized", "ix_events_date",
                  "ix_events_stage", "ix_evidence_event", "ux_media_accounts_handle"):
         assert name in idx
+
+
+@pytest.mark.parametrize(("sql", "params"), [
+    ("SELECT c.* FROM company_identifiers i JOIN companies c USING(company_id) "
+     "WHERE i.id_type='psx_ticker' AND i.value=? AND i.valid_to IS NULL", ("OGDC",)),
+    ("SELECT company_id FROM company_aliases WHERE alias_normalized = ?", ("hbl",)),
+    ("SELECT source_item_id FROM source_items WHERE source_id = ? AND canonical_url = ?",
+     ("psx", "https://psx.com.pk/x")),
+    ("SELECT MIN(source_item_id) FROM source_items WHERE content_sha256 = ?", ("a" * 64,)),
+    ("SELECT * FROM event_evidence WHERE event_id = ?", (1,)),
+    ("SELECT sha256 FROM dataset_loads WHERE dataset = 'reference_data'", ()),
+])
+def test_hot_lookups_use_indexes(seeded, sql, params):
+    """Frequent lookups must never scan a whole table (protects Turso rows-read quota)."""
+    plan = " ".join(r["detail"] for r in seeded.execute("EXPLAIN QUERY PLAN " + sql, params))
+    assert "USING" in plan and not plan.startswith("SCAN"), plan
 
 
 # ---------------------------------------------------------------- constraints
@@ -283,7 +299,9 @@ def test_alias_resolution(seeded):
 
 def test_seed_load_is_idempotent(seeded):
     before = seed_loader.counts(seeded)
-    assert seed_loader.load(seeded) == before
+    assert seed_loader.load(seeded) == "unchanged"  # skipped with one read
+    assert seed_loader.load(seeded, force=True) == "loaded"  # full re-run writes nothing new
+    assert seed_loader.counts(seeded) == before
 
 
 def test_watchlist_handles_preserved_exactly(seeded):
@@ -322,3 +340,52 @@ def test_watchlist_validation_rejects_guessed_handles():
     wl = {"accounts": [{"platform": "x", "handle": None, "display_name": "Reuters",
                         "supplied_url": "https://x.com/Reuters"}]}
     assert validate_media_watchlist(wl)
+
+
+# ---------------------------------------------------------------- free-tier protection
+def _fake_turso(monkeypatch, rows_read=10, rows_written=0):
+    from database.connection import TursoHTTPDatabase
+
+    def send(self, body):
+        n = len(body["requests"]) - 1
+        res = {"type": "ok", "response": {"type": "execute", "result": {
+            "cols": [{"name": "ok"}], "rows": [[{"type": "integer", "value": "1"}]],
+            "rows_read": rows_read, "rows_written": rows_written}}}
+        return {"results": [res] * n + [{"type": "ok", "response": {"type": "close"}}]}
+
+    monkeypatch.setattr(TursoHTTPDatabase, "_send", send)
+    return TursoHTTPDatabase("libsql://example.turso.io", "placeholder")
+
+
+def test_turso_usage_is_metered(monkeypatch):
+    db = _fake_turso(monkeypatch, rows_read=7, rows_written=2)
+    db.execute("SELECT 1 AS ok")
+    assert db.usage() == {"requests": 1, "rows_read": 14, "rows_written": 4}  # PRAGMA + statement
+
+
+def test_turso_budget_stops_further_requests(monkeypatch):
+    from database.connection import DatabaseBudgetError
+
+    monkeypatch.setenv("PSXNI_DB_MAX_ROWS_READ", "25")
+    db = _fake_turso(monkeypatch, rows_read=10)
+    db.execute("SELECT 1 AS ok")
+    db.execute("SELECT 1 AS ok")
+    with pytest.raises(DatabaseBudgetError, match="budget exhausted"):
+        db.execute("SELECT 1 AS ok")
+
+
+def test_kill_switch_blocks_database_requests(monkeypatch):
+    from database.connection import DatabaseBudgetError
+
+    monkeypatch.setenv("PSXNI_KILL_SWITCH", "true")
+    db = _fake_turso(monkeypatch)
+    with pytest.raises(DatabaseBudgetError, match="KILL_SWITCH"):
+        db.execute("SELECT 1 AS ok")
+
+
+def test_unchanged_source_registry_writes_nothing(seeded):
+    src = seed_loader.load_json("sources.json")["sources"][0]
+    before = seeded.execute("SELECT updated_at_utc FROM sources WHERE source_id=?", (src["source_id"],))
+    repo.upsert_source(seeded, src)
+    after = seeded.execute("SELECT updated_at_utc FROM sources WHERE source_id=?", (src["source_id"],))
+    assert before == after

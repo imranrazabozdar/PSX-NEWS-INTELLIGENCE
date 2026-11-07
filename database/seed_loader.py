@@ -9,6 +9,7 @@ Usage: python -m database.seed_loader [--dry-run]
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -38,17 +39,39 @@ def sector_id(name: str) -> str:
     return "psx-" + re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
 
+SEED_FILES = ("sources.json", "companies.json", "media_watchlist.json")
+LOADER_VERSION = "1"
+
+
+def dataset_sha256() -> str:
+    h = hashlib.sha256(LOADER_VERSION.encode())
+    for name in SEED_FILES:
+        h.update((SEED_DIR / name).read_bytes())
+    return h.hexdigest()
+
+
 def validate_all() -> list[str]:
     return (validate_source_registry(load_json("sources.json"))
             + validate_company_seed(load_json("companies.json"))
             + validate_media_watchlist(load_json("media_watchlist.json")))
 
 
-def load(db: Database) -> dict[str, int]:
+def load(db: Database, *, force: bool = False) -> str:
+    """Load reference data. Returns 'loaded' or 'unchanged'.
+
+    An unchanged dataset (same file hashes) is skipped with one indexed read, so repeated runs
+    don't spend the database's read/write quota.
+    """
     errors = validate_all()
     if errors:
         raise ValueError("reference data failed validation:\n  " + "\n  ".join(errors))
+    digest = dataset_sha256()
+    if not force:
+        row = db.execute("SELECT sha256 FROM dataset_loads WHERE dataset = 'reference_data'")
+        if row and row[0]["sha256"] == digest:
+            return "unchanged"
     now = now_utc()
+    pending: list = []
     for src in load_json("sources.json")["sources"]:
         upsert_source(db, src)
 
@@ -109,7 +132,12 @@ def load(db: Database) -> dict[str, int]:
                 "VALUES ('KSE30', ?, ?, ?) ON CONFLICT DO NOTHING",
                 (cid, k["fetched_at_utc"] + ("T00:00:00Z" if len(k["fetched_at_utc"]) == 10 else ""),
                  kse_item.source_item_id)))
-        db.batch(stmts)
+        pending.extend(stmts)
+        if len(pending) >= 60:  # fewer round-trips: one atomic request per ~10 companies
+            db.batch(pending)
+            pending = []
+    if pending:
+        db.batch(pending)
 
     # Delisting / merger history: append once, never edited.
     if "FFBL" in tickers and "FFC" in tickers:
@@ -144,7 +172,12 @@ def load(db: Database) -> dict[str, int]:
                        handle IS NULL AND display_name = ?)""",
                 (a["platform"], a["display_name"], a["monitoring_purpose"], source_id,
                  a.get("notes"), now, a["platform"], a["display_name"]))
-    return counts(db)
+    n = len(seed["companies"])
+    db.execute("INSERT INTO dataset_loads(dataset, sha256, loaded_at_utc, record_count) "
+               "VALUES ('reference_data', ?, ?, ?) ON CONFLICT(dataset) DO UPDATE SET "
+               "sha256 = excluded.sha256, loaded_at_utc = excluded.loaded_at_utc, "
+               "record_count = excluded.record_count", (digest, now, n))
+    return "loaded"
 
 
 def counts(db: Database) -> dict[str, int]:
@@ -158,6 +191,7 @@ def counts(db: Database) -> dict[str, int]:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Load reference data")
     ap.add_argument("--dry-run", action="store_true", help="validate only; write nothing")
+    ap.add_argument("--force", action="store_true", help="reload even if the dataset is unchanged")
     args = ap.parse_args(argv)
     errors = validate_all()
     if errors:
@@ -166,7 +200,8 @@ def main(argv: list[str] | None = None) -> int:
     print("Reference data validation passed.")
     if args.dry_run:
         return 0
-    print(load(connect()))
+    db = connect()
+    print(load(db, force=args.force), db.usage())
     return 0
 
 

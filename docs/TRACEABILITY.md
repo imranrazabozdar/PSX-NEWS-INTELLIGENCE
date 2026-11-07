@@ -126,8 +126,8 @@ Owner decisions recorded in [`docs/adr/0003-owner-decisions-future-phases.md`](a
 | R-17-1 | 17 | Start small (30–50 companies, 3–5 sources) | 1–2 | ADR-0003 | | NOT STARTED |
 | R-17-2 | 17 | RSS / official feeds; ETag / Last-Modified incremental fetch | 2 | | | NOT STARTED |
 | R-17-3 | 17 | Filter before LLM; cache by content hash + prompt/model version | 3 | | | NOT STARTED |
-| R-17-4 | 17 | Usage tracking (X, YouTube, LLM, Actions, Turso, failures) | 7 | | | NOT STARTED |
-| R-17-5 | 17 | Per-source polling, daily budgets, kill switch, source enable/disable | 0, 2, 7 | `PSXNI_KILL_SWITCH` setting | `test_kill_switch` | IN PROGRESS (setting only; not yet wired to jobs) |
+| R-17-4 | 17 | Usage tracking (X, YouTube, LLM, Actions, Turso, failures) | 1, 7 | Turso rows read/written + requests metered per run (`Database.usage`) | `tests/test_database.py::test_turso_usage_is_metered` | IN PROGRESS (Turso done; others Phase 7+) |
+| R-17-5 | 17 | Per-source polling, daily budgets, kill switch, source enable/disable | 0, 1, 2, 7 | `PSXNI_KILL_SWITCH` blocks Turso; per-run DB budgets; `sources.enabled` CHECK | `tests/test_database.py::test_kill_switch_blocks_database_requests`, `::test_turso_budget_stops_further_requests` | IN PROGRESS (DB budgets done; polling budgets Phase 2/7) |
 | R-17-6 | 17 | Large documents kept outside the database | 1–2 | | | NOT STARTED |
 | R-18-1 | 18 | Source registry entries with terms, tier, cadence, enabled state | 1 | `sources` registry (38 entries) with terms, tier, access method/status, enabled; CHECK blocks enabling unverified sources | tests/test_database.py::test_source_cannot_be_enabled_before_verification | TESTED |
 | R-18-2 | 18 | Every conclusion labelled by evidence type | 3+ | | | NOT STARTED |

@@ -20,7 +20,9 @@ def upsert_source(db: Database, src: dict[str, Any]) -> None:
                created_at_utc, updated_at_utc)
            VALUES (?,?,?,?,?,?,?,?,?,?,?,0,?,?,?)
            ON CONFLICT(source_id) DO UPDATE SET name=excluded.name, domain=excluded.domain,
-               platform=excluded.platform, notes=excluded.notes, updated_at_utc=excluded.updated_at_utc""",
+               platform=excluded.platform, notes=excluded.notes, updated_at_utc=excluded.updated_at_utc
+           WHERE sources.name IS NOT excluded.name OR sources.domain IS NOT excluded.domain
+              OR sources.platform IS NOT excluded.platform OR sources.notes IS NOT excluded.notes""",
         (src["source_id"], src["name"], src["source_type"], src.get("domain"), src.get("platform"),
          src.get("owner"), src.get("reliability_tier", "unrated"),
          src.get("access_method", "pending_review"), src.get("access_status", "unverified"),

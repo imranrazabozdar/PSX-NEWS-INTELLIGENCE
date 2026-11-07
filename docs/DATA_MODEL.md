@@ -90,6 +90,17 @@ python -m database.seed_loader --dry-run  # validate reference data only
 python -m database.seed_loader            # load reference data (idempotent)
 ```
 
+## Free-tier quota protection
+Turso's free plan caps rows read, rows written and storage. Check the current limits on Turso's site before increasing collection.
+* **Usage meter:** every Turso response reports `rows_read` / `rows_written`. `db.usage()` totals them per run, and the loader prints them.
+* **Per-run budget:** a run stops with `DatabaseBudgetError` before exceeding `PSXNI_DB_MAX_ROWS_READ` (default 50,000), `PSXNI_DB_MAX_ROWS_WRITTEN` (default 5,000) or `PSXNI_DB_MAX_REQUESTS` (default 2,000).
+* **Kill switch:** `PSXNI_KILL_SWITCH=true` blocks all Turso requests.
+* **Unchanged data is skipped:** `dataset_loads` stores a hash of the seed files. Re-loading the same reference data costs 1 request, 1 row read and 0 writes (measured on Turso). Before this change it cost 226 requests, 1,085 reads and 38 writes.
+* **No-op upserts:** an unchanged source registry entry is not rewritten.
+* **Batched writes:** the seed is written as one atomic request per ~10 companies.
+* **Indexed lookups:** a test checks that ticker, alias, URL, content-hash, evidence and dataset lookups use indexes, not table scans.
+* **Integration tests:** they use rolled-back batches and small queries, so they leave no data and write nothing permanent.
+
 ## Backup and restore (plan)
 Turso has point-in-time restore on its own platform. Check the current plan limits on Turso's site.
 For an independent copy, use `turso db shell <db> .dump > backup.sql`, kept in **private** storage and never in this public repo (ADR-0003 D6 is still open). A tested restore procedure is a Phase 14 deliverable (spec section 11.1).

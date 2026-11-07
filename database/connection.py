@@ -34,6 +34,22 @@ class DatabaseConfigError(DatabaseError):
     """The database is not configured, or configured incorrectly."""
 
 
+class DatabaseBudgetError(DatabaseError):
+    """The per-run usage budget or the kill switch stopped further database requests."""
+
+
+# Per-process budgets protect the Turso free-tier quota (spec section 17). Override with
+# PSXNI_DB_MAX_ROWS_READ / PSXNI_DB_MAX_ROWS_WRITTEN / PSXNI_DB_MAX_REQUESTS.
+DEFAULT_MAX_ROWS_READ = 50_000
+DEFAULT_MAX_ROWS_WRITTEN = 5_000
+DEFAULT_MAX_REQUESTS = 2_000
+
+
+def _env_int(name: str, default: int) -> int:
+    value = os.environ.get(name, "").strip()
+    return int(value) if value else default
+
+
 class Database:
     backend = "abstract"
 
@@ -62,6 +78,9 @@ class Database:
             raise DatabaseError("foreign key enforcement is not active")
         return {"backend": self.backend, "sqlite_version": rows[0][0]["sqlite_version"],
                 "foreign_keys": fk}
+
+    def usage(self) -> dict[str, int]:
+        return {"requests": 0, "rows_read": 0, "rows_written": 0}
 
     def close(self) -> None:  # pragma: no cover - default no-op
         pass
@@ -139,6 +158,9 @@ class TursoHTTPDatabase(Database):
     timeout: float = 30.0
     max_attempts: int = 3
     backend = "turso"
+    requests: int = 0
+    rows_read: int = 0
+    rows_written: int = 0
 
     def __post_init__(self) -> None:
         if self.url.startswith("libsql://"):
@@ -148,8 +170,40 @@ class TursoHTTPDatabase(Database):
         if not self.auth_token:
             raise DatabaseConfigError("PSXNI_TURSO_AUTH_TOKEN is not set")
         self.url = self.url.rstrip("/")
+        self.max_rows_read = _env_int("PSXNI_DB_MAX_ROWS_READ", DEFAULT_MAX_ROWS_READ)
+        self.max_rows_written = _env_int("PSXNI_DB_MAX_ROWS_WRITTEN", DEFAULT_MAX_ROWS_WRITTEN)
+        self.max_requests = _env_int("PSXNI_DB_MAX_REQUESTS", DEFAULT_MAX_REQUESTS)
+
+    def usage(self) -> dict[str, int]:
+        return {"requests": self.requests, "rows_read": self.rows_read,
+                "rows_written": self.rows_written}
+
+    def _check_budget(self) -> None:
+        if os.environ.get("PSXNI_KILL_SWITCH", "").strip().lower() in {"1", "true", "yes", "on"}:
+            raise DatabaseBudgetError("PSXNI_KILL_SWITCH is on: database requests are disabled")
+        if (self.requests >= self.max_requests or self.rows_read >= self.max_rows_read
+                or self.rows_written >= self.max_rows_written):
+            raise DatabaseBudgetError(f"per-run database budget exhausted: {self.usage()}")
+
+    def _meter(self, payload: Any) -> None:
+        if isinstance(payload, dict):
+            if "rows_read" in payload or "rows_written" in payload:
+                self.rows_read += int(payload.get("rows_read") or 0)
+                self.rows_written += int(payload.get("rows_written") or 0)
+            for v in payload.values():
+                self._meter(v)
+        elif isinstance(payload, list):
+            for v in payload:
+                self._meter(v)
 
     def _post(self, body: dict[str, Any]) -> dict[str, Any]:
+        self._check_budget()
+        self.requests += 1
+        out = self._send(body)
+        self._meter(out)
+        return out
+
+    def _send(self, body: dict[str, Any]) -> dict[str, Any]:
         data = json.dumps(body).encode()
         last_error: Exception | None = None
         for attempt in range(1, self.max_attempts + 1):
