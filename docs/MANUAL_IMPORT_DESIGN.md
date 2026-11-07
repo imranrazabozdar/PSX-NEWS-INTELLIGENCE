@@ -4,10 +4,19 @@ Status: **design proposal; not implemented.** It is for sources whose automated 
 prohibited or unconfirmed: PSX documents and daily files, SBP/SECP/Commerce publications blocked
 to automation, OGRA/NEPRA PDFs, OPEC reports, and company annual reports.
 
-**Precondition:** the owner downloads files personally, through normal browser use. Before any PSX
-document is imported, written confirmation is needed that private storage and LLM extraction are
-covered (UNCONFIRMED; see `DATA_AVAILABILITY_ASSESSMENT.md` A2). Other publishers follow their own
-terms.
+**Precondition:** the owner downloads files personally, through normal browser use.
+
+**PSX documents: a personal-use download does not automatically authorise any of these:**
+1. persistent storage in a private database;
+2. bulk retention of documents;
+3. historical backfilling;
+4. LLM extraction (sending text to an external model);
+5. reuse in an intelligence product.
+
+**Written clarification from PSX is required before any manually downloaded PSX document enters
+the persistent intelligence database or is sent to an external LLM.** Until then this workflow must
+not be used for PSX documents. Other publishers follow their own terms, right by right (UNCONFIRMED
+unless documented).
 
 ## Flow
 1. **Drop.** The owner places files in a local import folder, or uploads them through a private,

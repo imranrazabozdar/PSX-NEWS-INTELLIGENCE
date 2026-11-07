@@ -8,8 +8,14 @@ Design proposal only (2026-11-07). Nothing is scheduled or activated by this doc
 - a comprehensive after-close batch;
 - overnight reconciliation.
 
-**This is a goal, not an SLA.** Each source runs only at its permitted interval and only once
-approved (lifecycle ACTIVE).
+**This is a goal, not an SLA.**
+- **Default:** 15-minute batches during market hours.
+- **5-minute intervals:** only for a source where that is independently justified, permitted by its
+  terms, and operationally reliable.
+- Each source runs only at its permitted interval and only once approved (lifecycle ACTIVE). **No
+  source is approved or ACTIVE today.**
+- GitHub Actions start times are **not** processing or publication latency. **No 5–15 minute SLA is
+  offered.**
 
 ## 1. Windows (Pakistan time, PKT = UTC+5)
 PSX trading hours must be confirmed from PSX's official calendar before scheduling. They are
@@ -20,7 +26,7 @@ PSX trading hours must be confirmed from PSX's official calendar before scheduli
 | Market hours | trading session (e.g. ~09:15–15:30 Mon–Fri; Friday break; **confirm**) | 15-minute incremental batch |
 | After close | ~1 hour after the session ends | Comprehensive daily batch |
 | Overnight | ~01:00–05:00 | Reconciliation and maintenance |
-| Weekends and holidays | — | Hourly or daily low-frequency checks only |
+| Weekends and holidays | — | No routine polling. One daily check only for a source or event that justifies it (for example, a scheduled policy announcement). |
 
 ## 2. Run steps
 **Market-hours batch (every 15 minutes):**
@@ -52,6 +58,17 @@ PSX trading hours must be confirmed from PSX's official calendar before scheduli
 - Pending extraction jobs, within the LLM budget.
 - Turso quota summary from the usage meter.
 
+## 2b. Scheduling reliability and recovery
+| Concern | Behaviour | Mitigation |
+|---|---|---|
+| Delayed workflow starts | GitHub documents that scheduled runs may be delayed under high load, especially at the top of the hour | Off-peak minute offsets; publication time and retrieval time are stored separately, so the delay is measured, not hidden |
+| Failed or skipped runs | A scheduled run can be dropped or fail (network, provider 5xx, runner) | Each run is idempotent; the next run picks up via checkpoints and conditional requests; failures are counted per source |
+| Overlapping runs | A slow run could overlap the next schedule | One `concurrency` group per window with `cancel-in-progress: false`; a new run waits or is skipped, never runs twice in parallel |
+| Recovery | Items missed during the day | The after-close batch rescans from session open (`since_utc`); the overnight batch reconciles across days |
+| Source-specific intervals | Sources differ in update cadence and permission | `collection_frequency_minutes` per source; `due_sources()` selects only the due ones; there is no universal interval |
+| Inactivity | Public-repository schedules are disabled after 60 days without repository activity | Owner-visible health report; re-enable procedure documented in operations (Phase 7) |
+| Measured latency | The time from publication to processing | Reported per source from stored timestamps; this is an observation, not a guarantee |
+
 ## 3. Infrastructure fit (existing components)
 | Component | Fit | Notes |
 |---|---|---|
@@ -62,9 +79,12 @@ PSX trading hours must be confirmed from PSX's official calendar before scheduli
 | Phase 3 extraction | Yes | Pre-filter and cache; live LLM **not connected** (needs the D2 decision). Until then, extraction can only be recorded as `llm_unavailable`. |
 | Phase 4 exposure mapping | Yes | Idempotent re-runs; `exposure_candidates_current` view for consumers |
 
-**Cost:** no new paid infrastructure. Runs per day at a 15-minute market cadence are about
-25 market + 1 after-close + 1 overnight + weekend hourly checks. Each run stays well inside public
-runner limits; the minutes are free for public repositories.
+**Cost:** no new paid infrastructure. At a 15-minute market cadence a trading day has about
+25 market runs, 1 after-close run and 1 overnight run. There is no routine weekend polling. Each run
+is short, and standard runner minutes are free for public repositories.
+
+**Production readiness:** migrations 0006–0008 are blocked in production until they are verified on
+a disposable Turso database and separately approved.
 
 ## 4. Efficiency rules
 - No continuous polling: only scheduled, short-lived jobs.
@@ -78,11 +98,12 @@ runner limits; the minutes are free for public repositories.
 ## 5. Proposed per-source schedule (after approval only)
 | Group | Market hours | After close | Overnight |
 |---|---|---|---|
-| Pakistani news RSS (Dawn, BR, Tribune) | every 15 min | full rescan | dedup and reconcile |
-| PBS RSS | every 60 min | daily | — |
+| Pakistani news RSS (Dawn, BR, Tribune) — **if rights are confirmed** | every 15 min | full rescan | dedup and reconcile |
+| PBS RSS — if rights are confirmed | every 60 min | daily | — |
 | EIA API | — | daily | weekly series refresh |
 | World Bank / IMF APIs | — | — | weekly or monthly |
 | Official PDFs (OGRA, NEPRA, FBR) where permitted | — | daily metadata check | — |
 | YouTube Data API (7 channels) | hourly (quota) | daily | — |
 | Manual imports | — | processed in this batch | retries |
 | Licensed provider webhook (if contracted) | push (no polling) | REST reconciliation | — |
+| Licensed market data, EOD (if contracted) | — | daily EOD pull | adjusted-price reconciliation |
