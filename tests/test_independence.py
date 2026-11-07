@@ -103,3 +103,66 @@ def test_prefixed_secret_is_allowed(tmp_path):
 def test_submodules_are_rejected(tmp_path):
     root = _make(tmp_path, {".gitmodules": "[submodule \"x\"]\n"})
     assert "submodule" in _rules(root)
+
+
+def test_dynamic_and_path_based_imports_are_rejected(tmp_path):
+    root = _make(tmp_path, {"x.py": (
+        "import importlib\nimport runpy\n"
+        "importlib.import_module('fire_engine')\n"
+        "name = 'x'\nimportlib.import_module(name)\n"
+        "__import__('backend')\n"
+        "runpy.run_path('/somewhere/else.py')\n"
+        "from importlib.util import spec_from_file_location\n"
+        "spec_from_file_location('m', '/other/m.py')\n"
+    )})
+    rules = [v.rule for v in ci.run(root)]
+    assert rules.count("dynamic-import") == 3
+    assert rules.count("path-loading") == 2
+
+
+def test_cloning_or_fetching_other_repos_is_rejected(tmp_path):
+    root = _make(tmp_path, {
+        "scripts/sync.sh": "git clone https://example.com/other.git\n",
+        "x.py": "URL = 'https://raw.githubusercontent.com/someone/other/main/a.py'\n",
+        ".github/workflows/w.yml": "jobs:\n  a:\n    steps:\n      - run: gh repo clone a/b\n",
+    })
+    assert sum(v.rule == "external-code-fetch" for v in ci.run(root)) == 3
+
+
+def test_own_repository_url_is_allowed(tmp_path):
+    root = _make(tmp_path, {"x.py": "URL = 'https://github.com/imranrazabozdar/psx-news-intelligence'\n"})
+    assert ci.run(root) == []
+
+
+def test_workflow_pip_install_outside_requirements_is_rejected(tmp_path):
+    root = _make(tmp_path, {".github/workflows/w.yml": (
+        "jobs:\n  a:\n    steps:\n"
+        "      - run: pip install -r requirements-dev.txt\n"
+        "      - run: pip install some-package\n"
+        "      - run: pip install git+https://example.com/x.git\n"
+    )})
+    assert sum(v.rule == "workflow-pip" for v in ci.run(root)) == 2
+
+
+def test_only_github_owned_actions_are_allowed(tmp_path):
+    root = _make(tmp_path, {".github/workflows/w.yml": (
+        "jobs:\n  a:\n    steps:\n      - uses: actions/setup-python@v5\n"
+        "      - uses: gitleaks/gitleaks-action@v2\n"
+    )})
+    assert [v.rule for v in ci.run(root)] == ["workflow-action"]
+
+
+def test_policy_floor_cannot_be_silently_weakened():
+    """Minimum policy. Weakening it fails here AND in CI's base-branch guard run."""
+    assert {"psxintelligencenew2026"} <= set(ci.FORBIDDEN_PROJECT_TOKENS)
+    assert {"fire_engine", "backend", "analysis", "android", "streamlit_app",
+            "wyckoff2_ui", "vol_engine_ui"} <= ci.FORBIDDEN_MODULES
+    assert ci.ALLOWED_ACTION_OWNERS == {"actions"}
+    assert ci.SECRET_PREFIX == "PSXNI_"  # noqa: S105
+    assert ci.NAME_ALLOWLIST == {
+        "README.md",
+        "docs/adr/0001-independence-from-technical-engine.md",
+        "scripts/check_independence.py",
+        "tests/test_independence.py",
+    }
+    assert len(ci.ALL_CHECKS) >= 6

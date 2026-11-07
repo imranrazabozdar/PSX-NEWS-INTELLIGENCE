@@ -50,6 +50,25 @@ and as a test (`tests/test_independence.py`). The build fails if any of these ar
 5. Workflows that check out another repository, use a non-allowlisted action owner, or read
    a secret without the `PSXNI_` prefix.
 6. Git submodules.
+7. Dynamic imports (`importlib.import_module`, `__import__`) of non-allowed modules, or with
+   non-literal names; loading code from file paths (`runpy.run_path`, `spec_from_file_location`,
+   `SourceFileLoader`, `site.addsitedir`); cloning or fetching code from other repositories
+   (`git clone`, `gh repo clone`, other repos' GitHub URLs) in code, scripts or workflows; and
+   workflow `pip install` commands that don't install from `requirements*.txt`.
+
+### Protection against weakening the guard
+
+* **Base-branch guard:** on every pull request, CI also runs the copy of
+  `scripts/check_independence.py` from the target (base) branch against the PR's files. A PR
+  that edits the rules to let a violation through still fails under the unmodified rules.
+* **Policy floor test:** `tests/test_independence.py::test_policy_floor_cannot_be_silently_weakened`
+  pins the minimum forbidden tokens, modules, allowed action owners, secret prefix and allowlist.
+* **CODEOWNERS:** the guard, CI, ADRs and dependency files belong to the owner. To make this
+  binding, enable branch protection on `main` with "Require status checks (CI)" and
+  "Require review from Code Owners". That's a repository setting only the owner can turn on.
+* **Installed environment check:** `scripts/check_installed_sources.py` fails CI if any installed
+  package came from a VCS, URL, local directory or editable checkout, or if a declared dependency
+  is missing. `pip-audit` audits the installed environment as well as `requirements.txt`.
 
 Adding a new third-party dependency requires adding it to `THIRD_PARTY_IMPORTS` in the
 check script. That forces a deliberate review of each one.

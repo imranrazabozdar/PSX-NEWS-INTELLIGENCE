@@ -19,6 +19,8 @@ It has its own repository, its own Turso database, its own Streamlit deployment 
 
 * Decision record: [`docs/adr/0001-independence-from-technical-engine.md`](docs/adr/0001-independence-from-technical-engine.md)
 * Automated enforcement: [`scripts/check_independence.py`](scripts/check_independence.py), which runs in CI on every push and pull request.
+  On pull requests, CI also runs the **base branch's** copy of the guard, so a PR can't weaken the rules and pass with them.
+  `.github/CODEOWNERS` assigns guard, CI and ADR files to the owner.
 
 Any future integration needs the owner's explicit authorisation and a new ADR.
 
@@ -26,7 +28,9 @@ Any future integration needs the owner's explicit authorisation and a new ADR.
 
 **Phase 0 (repository bootstrap) is implemented and awaiting review.** No database is connected
 and no data is collected yet. See [`docs/STATUS.md`](docs/STATUS.md) for the status register
-and traceability matrix.
+and [`docs/TRACEABILITY.md`](docs/TRACEABILITY.md) for the full requirements traceability matrix.
+The sanitised specification is in [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md). Owner decisions for later phases
+(guidance only, not approval to start them) are in [`docs/adr/0003-owner-decisions-future-phases.md`](docs/adr/0003-owner-decisions-future-phases.md).
 
 ## Architecture (target)
 
@@ -59,7 +63,8 @@ streamlit run app.py                   # app skeleton
 ```
 app.py                      Streamlit entry point (status only, no data)
 config/settings.py          PSXNI_-prefixed settings, kill switch
-scripts/check_independence.py
+scripts/check_independence.py   cross-project guard
+scripts/check_installed_sources.py  installed packages must come from the index
 tests/                      independence + app skeleton tests
 docs/adr/                   architecture decision records
 docs/STATUS.md              status register and traceability

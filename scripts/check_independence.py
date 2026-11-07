@@ -11,6 +11,12 @@ The check fails (exit code 1) if the repository contains any of these:
   5. A GitHub Actions workflow that checks out another repository, uses an action from a
      non-allowlisted owner, or reads a secret without the PSXNI_ prefix.
   6. Git submodules.
+  7. Dynamic imports / loading code from file paths, and cloning or fetching code from
+     other repositories in scripts or workflows; workflow pip installs other than
+     requirements*.txt.
+
+In pull requests, CI also runs the copy of this script from the *base* branch, so a PR
+cannot weaken the rules and pass the check with the weakened copy at the same time.
 
 Run it with:  python scripts/check_independence.py [repo_root]
 """
@@ -62,7 +68,7 @@ THIRD_PARTY_IMPORTS = {
 # Local top-level packages/modules of THIS project.
 LOCAL_MODULES = {"app", "config", "scripts", "tests"}
 
-ALLOWED_ACTION_OWNERS = {"actions", "gitleaks", "pypa"}
+ALLOWED_ACTION_OWNERS = {"actions"}
 ALLOWED_SECRETS = {"GITHUB_TOKEN"}
 SECRET_PREFIX = "PSXNI_"  # noqa: S105 - a name prefix, not a secret
 
@@ -176,6 +182,25 @@ def check_python_imports(root: Path, files: list[str]) -> list[Violation]:
                 elif name not in allowed:
                     out.append(Violation(rel, node.lineno, "undeclared-import",
                                          f"'{name}' is not stdlib, local or a declared dependency"))
+            # Dynamic imports and loading code from file paths
+            if isinstance(node, ast.Call):
+                fname = _call_name(node.func)
+                if fname in {"importlib.import_module", "import_module", "__import__"}:
+                    arg = node.args[0] if node.args else None
+                    if isinstance(arg, ast.Constant) and isinstance(arg.value, str):
+                        mod = arg.value.split(".")[0]
+                        if mod in FORBIDDEN_MODULES or mod not in allowed:
+                            out.append(Violation(rel, node.lineno, "dynamic-import",
+                                                 f"dynamic import of '{mod}' is not allowed"))
+                    else:
+                        out.append(Violation(rel, node.lineno, "dynamic-import",
+                                             "non-literal dynamic import is forbidden"))
+                elif fname in {"runpy.run_path", "run_path", "spec_from_file_location",
+                               "importlib.util.spec_from_file_location", "SourceFileLoader",
+                               "importlib.machinery.SourceFileLoader", "site.addsitedir",
+                               "addsitedir"}:
+                    out.append(Violation(rel, node.lineno, "path-loading",
+                                         f"'{fname}' loads code from a path and is forbidden"))
             # sys.path manipulation
             if isinstance(node, ast.Attribute) and node.attr in {"insert", "append", "extend"}:
                 v = node.value
@@ -186,7 +211,17 @@ def check_python_imports(root: Path, files: list[str]) -> list[Violation]:
     return out
 
 
-_REQ_BAD = re.compile(r"(://|^\s*-e\s|^\s*--(extra-)?index-url|^\s*--find-links|^\s*\.{0,2}/|\s@\s)")
+def _call_name(func: ast.expr) -> str:
+    parts = []
+    while isinstance(func, ast.Attribute):
+        parts.append(func.attr)
+        func = func.value
+    if isinstance(func, ast.Name):
+        parts.append(func.id)
+    return ".".join(reversed(parts))
+
+
+_REQ_BAD =re.compile(r"(://|^\s*-e\s|^\s*--(extra-)?index-url|^\s*--find-links|^\s*\.{0,2}/|\s@\s)")
 
 
 def check_dependencies(root: Path, files: list[str]) -> list[Violation]:
@@ -255,6 +290,38 @@ def check_workflows(root: Path, files: list[str]) -> list[Violation]:
                                          f"secret '{secret}' must use the {SECRET_PREFIX} prefix"))
             if _PYTHONPATH.search(line):
                 out.append(Violation(rel, i, "pythonpath", "setting PYTHONPATH is forbidden"))
+            if _PIP_INSTALL.search(line) and not _PIP_ALLOWED.search(line):
+                out.append(Violation(rel, i, "workflow-pip",
+                                     "workflows may only pip install from requirements*.txt"))
+    return out
+
+
+_PIP_INSTALL = re.compile(r"\bpip3?\s+install\b")
+_PIP_ALLOWED = re.compile(
+    r"\bpip3?\s+install\s+(-q\s+)?(--upgrade\s+pip\s*$|-r\s+requirements(-[a-z]+)?\.txt\s*$)"
+)
+_FETCH_CODE = re.compile(
+    r"(\bgit\s+(clone|submodule|subtree|remote\s+add|fetch\s+https?://)|\bgh\s+repo\s+clone\b"
+    r"|https?://(raw\.)?github(usercontent)?\.com/(?!imranrazabozdar/psx-news-intelligence\b)"
+    r"[\w.-]+/[\w.-]+)",
+    re.IGNORECASE,
+)
+_FETCH_ALLOWLIST = NAME_ALLOWLIST | {"README.md", "docs/SPECIFICATION.md"}
+
+
+def check_external_code_fetch(root: Path, files: list[str]) -> list[Violation]:
+    """No cloning/fetching other repositories in scripts, workflows or code."""
+    out = []
+    for rel in files:
+        if rel in _FETCH_ALLOWLIST or Path(rel).suffix.lower() not in TEXT_SUFFIXES:
+            continue
+        if rel.endswith(".md"):
+            continue  # prose may cite URLs; executable files may not fetch code
+        text = _read(root, rel) or ""
+        for i, line in enumerate(text.splitlines(), 1):
+            if _FETCH_CODE.search(line):
+                out.append(Violation(rel, i, "external-code-fetch",
+                                     "fetching code from another repository is forbidden"))
     return out
 
 
@@ -270,6 +337,7 @@ ALL_CHECKS = (
     check_dependencies,
     check_workflows,
     check_submodules,
+    check_external_code_fetch,
 )
 
 
