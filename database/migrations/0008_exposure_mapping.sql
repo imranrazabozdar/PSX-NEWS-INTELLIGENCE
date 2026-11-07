@@ -15,6 +15,27 @@
 -- Synthetic marker for sources (additive). Synthetic evidence can only support synthetic mappings.
 ALTER TABLE sources ADD COLUMN is_synthetic INTEGER NOT NULL DEFAULT 0 CHECK (is_synthetic IN (0,1));
 
+-- Evidence found to be incorrect is retracted by an append-only record; it is never deleted.
+CREATE TABLE evidence_retractions (
+    retraction_id      INTEGER PRIMARY KEY,
+    record_table       TEXT NOT NULL CHECK (record_table IN ('event_evidence','company_exposures')),
+    record_id          INTEGER NOT NULL,
+    reason             TEXT NOT NULL CHECK (length(trim(reason)) > 0),
+    retracted_by       TEXT NOT NULL CHECK (length(trim(retracted_by)) >= 2),
+    retracted_at_utc   TEXT NOT NULL,
+    UNIQUE (record_table, record_id)
+);
+CREATE TRIGGER trg_retractions_target_exists BEFORE INSERT ON evidence_retractions
+WHEN (NEW.record_table = 'event_evidence'
+      AND NOT EXISTS (SELECT 1 FROM event_evidence WHERE evidence_id = NEW.record_id))
+  OR (NEW.record_table = 'company_exposures'
+      AND NOT EXISTS (SELECT 1 FROM company_exposures WHERE exposure_id = NEW.record_id))
+BEGIN SELECT RAISE(ABORT, 'retraction must refer to an existing evidence record'); END;
+CREATE TRIGGER trg_retractions_no_update BEFORE UPDATE ON evidence_retractions
+BEGIN SELECT RAISE(ABORT, 'evidence_retractions are append-only'); END;
+CREATE TRIGGER trg_retractions_no_delete BEFORE DELETE ON evidence_retractions
+BEGIN SELECT RAISE(ABORT, 'evidence_retractions are append-only'); END;
+
 -- ---------------------------------------------------------------- company relationships
 CREATE TABLE company_relationships (
     relationship_id    INTEGER PRIMARY KEY,
@@ -74,7 +95,8 @@ BEGIN
     SELECT RAISE(ABORT, 'relationship evidence must come from an approved (ACTIVE) source')
     WHERE NEW.evidence_status IN ('confirmed','strongly_supported') AND NOT EXISTS (
         SELECT 1 FROM source_items i JOIN sources s USING(source_id)
-        WHERE i.source_item_id = NEW.source_item_id AND s.lifecycle_status = 'ACTIVE' AND s.terms_status = 'approved');
+        WHERE i.source_item_id = NEW.source_item_id AND s.lifecycle_status = 'ACTIVE' AND s.terms_status = 'approved'
+          AND s.access_status = 'verified_permitted' AND s.enabled = 1);
     SELECT RAISE(ABORT, 'synthetic evidence can only support a synthetic relationship')
     WHERE NEW.is_synthetic = 0 AND EXISTS (
         SELECT 1 FROM source_items i JOIN sources s USING(source_id)
@@ -168,10 +190,34 @@ BEGIN
     WHERE EXISTS (SELECT 1 FROM source_items i JOIN sources s USING(source_id)
                   JOIN exposure_candidates c ON c.candidate_id = NEW.candidate_id
                   WHERE i.source_item_id = NEW.source_item_id AND s.is_synthetic = 1 AND c.is_synthetic = 0);
+    SELECT RAISE(ABORT, 'a synthetic relationship can only support a synthetic candidate')
+    WHERE NEW.relationship_id IS NOT NULL AND EXISTS (
+        SELECT 1 FROM company_relationships r JOIN exposure_candidates c ON c.candidate_id = NEW.candidate_id
+        WHERE r.relationship_id = NEW.relationship_id AND r.is_synthetic = 1 AND c.is_synthetic = 0);
     SELECT RAISE(ABORT, 'evidence cannot be added to a confirmed or rejected candidate')
     WHERE EXISTS (SELECT 1 FROM exposure_candidates c WHERE c.candidate_id = NEW.candidate_id
                   AND c.evidence_status IN ('confirmed','rejected'));
 END;
+
+-- A company-specific link is currently invalid when its source is no longer approved (ACTIVE, approved
+-- terms, verified access, enabled), when the record was retracted, or when a relationship was
+-- superseded or rejected. Triggers and the read view below use this definition.
+CREATE VIEW invalid_candidate_evidence AS
+SELECT l.candidate_id, l.role, l.event_evidence_id, l.company_exposure_id, l.relationship_id, l.source_item_id
+FROM exposure_candidate_evidence l
+JOIN source_items i ON i.source_item_id = l.source_item_id
+JOIN sources s ON s.source_id = i.source_id
+WHERE l.role = 'company_specific' AND (
+       NOT (s.lifecycle_status = 'ACTIVE' AND s.terms_status = 'approved'
+            AND s.access_status = 'verified_permitted' AND s.enabled = 1)
+    OR EXISTS (SELECT 1 FROM evidence_retractions x WHERE x.record_table = 'event_evidence'
+               AND x.record_id = l.event_evidence_id)
+    OR EXISTS (SELECT 1 FROM evidence_retractions x WHERE x.record_table = 'company_exposures'
+               AND x.record_id = l.company_exposure_id)
+    OR (l.relationship_id IS NOT NULL AND (
+            EXISTS (SELECT 1 FROM company_relationships r WHERE r.supersedes_relationship_id = l.relationship_id)
+         OR EXISTS (SELECT 1 FROM company_relationships r WHERE r.relationship_id = l.relationship_id
+                    AND r.evidence_status = 'rejected'))));
 
 CREATE TABLE exposure_candidate_revisions (
     candidate_id       INTEGER NOT NULL REFERENCES exposure_candidates(candidate_id),
@@ -234,12 +280,9 @@ BEGIN
     WHERE NEW.evidence_status IN ('potential','strongly_supported','confirmed') AND NOT EXISTS (
         SELECT 1 FROM exposure_candidate_evidence l WHERE l.candidate_id = NEW.candidate_id
           AND l.role = 'company_specific');
-    SELECT RAISE(ABORT, 'potential or stronger status requires every company-specific source to be approved')
+    SELECT RAISE(ABORT, 'potential or stronger status requires all company-specific evidence to be currently valid (approved source, not retracted, relationship current)')
     WHERE NEW.evidence_status IN ('potential','strongly_supported','confirmed') AND EXISTS (
-        SELECT 1 FROM exposure_candidate_evidence l JOIN source_items i USING(source_item_id)
-        JOIN sources s USING(source_id)
-        WHERE l.candidate_id = NEW.candidate_id AND l.role = 'company_specific'
-          AND NOT (s.lifecycle_status = 'ACTIVE' AND s.terms_status = 'approved'));
+        SELECT 1 FROM invalid_candidate_evidence v WHERE v.candidate_id = NEW.candidate_id);
     -- strongly supported: the event itself must be corroborated or primary-confirmed
     SELECT RAISE(ABORT, 'strongly supported requires a corroborated or primary-confirmed event')
     WHERE NEW.evidence_status IN ('strongly_supported','confirmed') AND NOT EXISTS (
@@ -282,7 +325,7 @@ BEGIN SELECT RAISE(ABORT, 'exposure candidates cannot be deleted; record a rejec
 CREATE TABLE exposure_reviews (
     review_id          INTEGER PRIMARY KEY,
     candidate_id       INTEGER NOT NULL REFERENCES exposure_candidates(candidate_id),
-    decision           TEXT NOT NULL CHECK (decision IN ('accept','reject','needs_more_evidence')),
+    decision           TEXT NOT NULL CHECK (decision IN ('accept','reject','needs_more_evidence','evidence_revoked')),
     reviewer           TEXT NOT NULL CHECK (length(trim(reviewer)) >= 2),
     notes              TEXT NOT NULL CHECK (length(trim(notes)) > 0),
     decided_at_utc     TEXT NOT NULL CHECK (decided_at_utc GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9]Z'),
@@ -296,11 +339,26 @@ BEGIN
                       AND c.evidence_status = NEW.evidence_status_at_decision);
     SELECT RAISE(ABORT, 'only a strongly supported candidate can be accepted')
     WHERE NEW.decision = 'accept' AND NEW.evidence_status_at_decision <> 'strongly_supported';
+    SELECT RAISE(ABORT, 'evidence can only be revoked when a linked company-specific record is invalid')
+    WHERE NEW.decision = 'evidence_revoked' AND NOT EXISTS (
+        SELECT 1 FROM invalid_candidate_evidence v WHERE v.candidate_id = NEW.candidate_id);
 END;
 CREATE TRIGGER trg_exposure_reviews_no_update BEFORE UPDATE ON exposure_reviews
 BEGIN SELECT RAISE(ABORT, 'exposure_reviews are append-only'); END;
 CREATE TRIGGER trg_exposure_reviews_no_delete BEFORE DELETE ON exposure_reviews
 BEGIN SELECT RAISE(ABORT, 'exposure_reviews are append-only'); END;
+
+-- Read view for consumers (Phase 5, dashboards): a stored strong or confirmed status counts only
+-- while every company-specific link is still valid; synthetic rows are labelled.
+CREATE VIEW exposure_candidates_current AS
+SELECT c.*,
+       CASE WHEN EXISTS (SELECT 1 FROM invalid_candidate_evidence v WHERE v.candidate_id = c.candidate_id)
+            THEN 0 ELSE 1 END AS evidence_currently_valid,
+       CASE WHEN c.evidence_status IN ('potential','strongly_supported','confirmed')
+             AND EXISTS (SELECT 1 FROM invalid_candidate_evidence v WHERE v.candidate_id = c.candidate_id)
+            THEN 'needs_revalidation' ELSE c.evidence_status END AS effective_status,
+       CASE WHEN c.is_synthetic = 1 THEN 'SYNTHETIC TEST DATA' ELSE 'real' END AS data_label
+FROM exposure_candidates c;
 
 -- Reviewed links in the existing event_companies table must come from a confirmed candidate.
 CREATE TRIGGER trg_event_companies_accepted_requires_confirmed BEFORE INSERT ON event_companies

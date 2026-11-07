@@ -630,3 +630,168 @@ def test_invalid_llm_output_is_rejected(db):
 def test_psx_profile_text_is_never_used_as_exposure_evidence():
     for mod in (exposure_mapping, entity_resolution, exposure_rules):
         assert "business_summary" not in inspect.getsource(mod)
+
+
+# ------------------------------------------------------------------ final acceptance audit
+def _ids(db, *tickers):
+    return [repo.company_by_ticker(db, t)["company_id"] for t in tickers]
+
+
+def test_three_and_longer_cycles_are_rejected_and_acyclic_chains_accepted(db):
+    a, b, c, d, e = _ids(db, "ENGROH", "EFERT", "EPCL", "LUCK", "OGDC")
+    _rel(db, parent_company_id=a, child_company_id=b, child_name="B")
+    _rel(db, parent_company_id=b, child_company_id=c, child_name="C")
+    with pytest.raises(ValueError, match="cycle"):            # A -> B -> C -> A
+        _rel(db, parent_company_id=c, child_company_id=a, child_name="A")
+    _rel(db, parent_company_id=c, child_company_id=d, child_name="D")
+    _rel(db, parent_company_id=d, child_company_id=e, child_name="E")   # acyclic chain of 5 accepted
+    with pytest.raises(ValueError, match="cycle"):            # A -> B -> C -> D -> E -> A
+        _rel(db, parent_company_id=e, child_company_id=a, child_name="A")
+    _rel(db, parent_company_id=a, child_company_id=e, child_name="E2")  # extra edge without a cycle is fine
+    assert db.execute("SELECT COUNT(*) n FROM current_company_relationships")[0]["n"] == 5
+
+
+def test_corrections_cannot_introduce_a_cycle(db):
+    a, b, c = _ids(db, "ENGROH", "EFERT", "EPCL")
+    _rel(db, parent_company_id=a, child_company_id=b, child_name="B")
+    _rel(db, parent_company_id=b, child_company_id=c, child_name="C")
+    rejected = _rel(db, parent_company_id=c, child_company_id=a, child_name="A", evidence_status="rejected")
+    with pytest.raises(ValueError, match="cycle"):   # reviving the rejected back-edge would close the cycle
+        _rel(db, parent_company_id=c, child_company_id=a, child_name="A", supersedes=rejected,
+             change_reason="SYNTHETIC attempted revival")
+
+
+def test_only_one_application_path_writes_relationships():
+    import pathlib
+    root = pathlib.Path(__file__).resolve().parents[1]
+    writers = [p for p in list((root / "engines").glob("*.py")) + list((root / "database").glob("*.py"))
+               + list((root / "collectors").glob("*.py"))
+               if "INSERT INTO company_relationships" in p.read_text(encoding="utf-8")]
+    assert [p.name for p in writers] == ["exposure_mapping.py"]
+    src = (root / "engines" / "exposure_mapping.py").read_text(encoding="utf-8")
+    assert src.count("INSERT INTO company_relationships") == 1
+    assert "_would_cycle(db, parent_company_id, child_company_id)" in src
+
+
+def _confirmed(db):
+    eid, row = _strong_candidate(db)
+    review(db, row["candidate_id"], "accept", reviewer="owner", notes="SYNTHETIC fixture check")
+    return eid, row["candidate_id"]
+
+
+def _status(db, cid):
+    return db.execute("SELECT c.evidence_status, c.review_status, v.effective_status, "
+                      "v.evidence_currently_valid FROM exposure_candidates c "
+                      "JOIN exposure_candidates_current v USING(candidate_id) "
+                      "WHERE c.candidate_id = ?", (cid,))[0]
+
+
+@pytest.mark.parametrize("change", [
+    "UPDATE sources SET lifecycle_status='DISABLED', enabled=0 WHERE source_id='fxapproved'",
+    "UPDATE sources SET terms_status='restricted' WHERE source_id='fxapproved'",
+    "UPDATE sources SET enabled=0, access_status='restricted' WHERE source_id='fxapproved'",
+])
+def test_source_changes_revoke_confirmed_mappings_without_deleting_history(db, change):
+    eid, cid = _confirmed(db)
+    assert _status(db, cid)["effective_status"] == "confirmed"
+    db.execute(change)
+    st = _status(db, cid)   # read-time guard works even before revalidation runs
+    assert st["evidence_status"] == "confirmed" and st["effective_status"] == "needs_revalidation"
+    assert st["evidence_currently_valid"] == 0
+    reviews_before = db.execute("SELECT COUNT(*) n FROM exposure_reviews")[0]["n"]
+    out = exposure_mapping.revalidate(db)
+    assert out["downgraded"] >= 1
+    st = _status(db, cid)
+    assert st["evidence_status"] == "unverified" and st["review_status"] == "needs_review"
+    assert db.execute("SELECT reviewer_status FROM event_companies WHERE event_id=?", (eid,))[0][
+        "reviewer_status"] == "pending"
+    reviews = db.execute("SELECT decision, reviewer FROM exposure_reviews WHERE candidate_id=? "
+                         "ORDER BY review_id", (cid,))
+    assert [r["decision"] for r in reviews] == ["accept", "evidence_revoked"]
+    assert db.execute("SELECT COUNT(*) n FROM exposure_reviews")[0]["n"] > reviews_before
+    hist = db.execute("SELECT evidence_status FROM exposure_candidate_revisions WHERE candidate_id=? "
+                      "ORDER BY revision_no", (cid,))
+    expected = ["unverified", "strongly_supported", "confirmed", "unverified"]
+    assert [h["evidence_status"] for h in hist] == expected
+    with pytest.raises(DatabaseError):   # cannot be raised again while the evidence is invalid
+        db.execute("UPDATE exposure_candidates SET evidence_status='potential', review_status='pending', "
+                   "current_revision=current_revision+1, change_reason='x', changed_by='x', updated_at_utc=? "
+                   "WHERE candidate_id=?", (NOW, cid))
+
+
+def test_retracted_evidence_revokes_and_is_kept(db):
+    eid, cid = _confirmed(db)
+    link = db.execute("SELECT company_exposure_id FROM exposure_candidate_evidence WHERE candidate_id=? "
+                      "AND company_exposure_id IS NOT NULL", (cid,))[0]["company_exposure_id"]
+    with pytest.raises(DatabaseError):   # retraction must name a real record
+        db.execute("INSERT INTO evidence_retractions(record_table, record_id, reason, retracted_by, "
+                   "retracted_at_utc) VALUES ('company_exposures', 99999, 'x', 'owner', ?)", (NOW,))
+    exposure_mapping.retract_evidence(db, "company_exposures", link, reason="SYNTHETIC: excerpt misread",
+                                      retracted_by="owner")
+    assert _status(db, cid)["evidence_status"] == "unverified"
+    assert db.execute("SELECT COUNT(*) n FROM company_exposures WHERE exposure_id=?", (link,))[0]["n"] == 1
+    with pytest.raises(DatabaseError):
+        db.execute("DELETE FROM evidence_retractions")
+    rerun = map_event(db, eid, synthetic=True)     # retracted exposure no longer produces the mapping
+    assert not [c for c in rerun.candidates if c.exposure_evidence ==
+                [{"table": "company_exposures", "id": link}]]
+    with pytest.raises(DatabaseError, match="invalid"):   # revocation needs genuinely invalid evidence
+        weak = db.execute("SELECT candidate_id, evidence_status FROM exposure_candidates "
+                          "WHERE psx_symbol='OGDC' LIMIT 1")
+        target = weak[0] if weak else db.execute(
+            "SELECT candidate_id, evidence_status FROM exposure_candidates WHERE candidate_id<>? LIMIT 1",
+            (cid,))[0]
+        db.execute("INSERT INTO exposure_reviews(candidate_id, decision, reviewer, notes, decided_at_utc, "
+                   "evidence_status_at_decision) VALUES (?,?,?,?,?,?)",
+                   (target["candidate_id"], "evidence_revoked", "attacker", "x", NOW,
+                    target["evidence_status"]))
+
+
+def test_superseded_or_rejected_relationship_revokes_parent_mapping(db):
+    parent, child = _ids(db, "ENGROH", "EFERT")
+    sid = item(db, "fxapproved", "rel-proof", "SYNTHETIC FIXTURE: Engro Holdings owns Engro Fertilizers")
+    rid = _rel(db, parent_company_id=parent, child_company_id=child, child_name="Engro Fertilizers",
+               evidence_status="strongly_supported", source_item_id=sid, evidence_excerpt="SYNTHETIC FIXTURE")
+    exposure(db, "EFERT", "input", "natural gas")
+    map_event(db, event(db, "OGRA raises natural gas price", event_type="energy_policy"), synthetic=True)
+    p = db.execute("SELECT candidate_id, evidence_status FROM exposure_candidates WHERE psx_symbol='ENGROH' "
+                   "AND rule_id='R-REL-1'")[0]
+    assert p["evidence_status"] == "strongly_supported"
+    _rel(db, parent_company_id=parent, child_company_id=child, child_name="Engro Fertilizers",
+         evidence_status="rejected", supersedes=rid, change_reason="SYNTHETIC: relationship disproved")
+    assert _status(db, p["candidate_id"])["effective_status"] == "needs_revalidation"
+    exposure_mapping.revalidate(db)
+    assert _status(db, p["candidate_id"])["evidence_status"] == "unverified"
+    assert len(exposure_mapping.relationship_history(db, rid)) == 2   # both rows kept
+
+
+def test_synthetic_relationship_cannot_support_a_real_candidate(db):
+    parent, child = _ids(db, "ENGROH", "EFERT")
+    rid = _rel(db, parent_company_id=parent, child_company_id=child, child_name="Engro Fertilizers")
+    # a real (non-synthetic) run ignores synthetic relationships entirely
+    real_src = "fxreal"
+    db.execute("INSERT INTO sources(source_id, name, source_type, created_at_utc, updated_at_utc) "
+               "VALUES (?,?,?,?,?)", (real_src, "non-synthetic test source", "other", NOW, NOW))
+    eid = event(db, "OGRA raises natural gas price", event_type="energy_policy", source=real_src,
+                entities=("Engro Fertilizers",))
+    r = map_event(db, eid, synthetic=False)
+    assert not [c for c in r.candidates if c.rule_id == "R-REL-1"]
+    # and the database refuses the link if attempted directly
+    cand = db.execute("SELECT candidate_id FROM exposure_candidates "
+                      "WHERE psx_symbol='EFERT'")[0]["candidate_id"]
+    sid = item(db, real_src, "rel-real", "plain text")
+    rid2 = _rel(db, parent_company_id=parent, child_company_id=child, child_name="Engro Fertilizers (2)",
+                source_item_id=sid, evidence_excerpt="x", evidence_status="unverified", is_synthetic=True)
+    assert rid2 != rid
+    with pytest.raises(DatabaseError):
+        db.execute("INSERT INTO exposure_candidate_evidence(candidate_id, role, relationship_id, "
+                   "source_item_id, added_at_utc) VALUES (?,?,?,?,?)",
+                   (cand, "company_specific", rid2, sid, NOW))
+
+
+def test_synthetic_results_are_visibly_labelled(db):
+    _strong_candidate(db)
+    rows = db.execute("SELECT data_label, explanation, is_synthetic FROM exposure_candidates_current")
+    assert rows and all(r["data_label"] == "SYNTHETIC TEST DATA" and r["is_synthetic"] == 1 for r in rows)
+    assert all(r["explanation"].startswith("[SYNTHETIC TEST DATA]") for r in rows)
+    assert db.execute("SELECT COUNT(*) n FROM sources WHERE is_synthetic = 1")[0]["n"] == 2

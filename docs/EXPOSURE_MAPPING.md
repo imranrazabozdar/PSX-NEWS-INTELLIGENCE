@@ -161,10 +161,11 @@ Other behaviour:
    until a reviewed `misspelling` alias is added.
 6. Ambiguous and unresolved mentions are returned in `MappingResult.unresolved_mentions` but not
    stored, because there is no company to attach them to.
-7. Cycles deeper than a direct A↔B reversal are checked in application code, not in a trigger. A
-   recursive CTE inside a trigger works on local SQLite 3.53, but it is unverified on Turso (SQLite 3.47).
-8. Evidence links are append-only. If documented evidence stops being valid, the old link stays, and
-   the status is re-assessed and downgraded on the next run. The database re-checks source approval
-   whenever the status is `potential` or above.
-9. The triggers are tested on SQLite only. Migration 0008 has not been run against Turso, deliberately:
-   no production change.
+7. Cycles deeper than a direct A↔B reversal are refused only in application code
+   (`record_relationship`). A direct SQL insert could still create one.
+8. Evidence links are append-only. When evidence becomes invalid (source no longer approved, record
+   retracted, relationship superseded or rejected), the `exposure_candidates_current` view shows
+   `needs_revalidation` immediately. `revalidate()` downgrades the stored status, with an
+   `evidence_revoked` review. Consumers must read the view, not the raw table.
+9. Turso compatibility is **not verified on a Turso server**. The migration and triggers pass on SQLite
+   3.47.0 (Turso's version) and on the libSQL embedded engine (see the acceptance report).

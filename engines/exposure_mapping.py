@@ -107,10 +107,12 @@ def _approved_sources(db, source_item_ids: list[int]) -> bool:
     if not source_item_ids:
         return False
     marks = ",".join("?" * len(source_item_ids))
-    rows = db.execute(f"SELECT DISTINCT s.lifecycle_status, s.terms_status FROM source_items i "  # noqa: S608
+    rows = db.execute(f"SELECT DISTINCT s.lifecycle_status, s.terms_status, s.access_status, s.enabled "  # noqa: S608
+                      f"FROM source_items i "
                       f"JOIN sources s USING(source_id) WHERE i.source_item_id IN ({marks})",
                       tuple(source_item_ids))
     return bool(rows) and all(r["lifecycle_status"] == "ACTIVE" and r["terms_status"] == "approved"
+                              and r["access_status"] == "verified_permitted" and r["enabled"] == 1
                               for r in rows)
 
 
@@ -167,7 +169,9 @@ def _rule_candidates(db, ev: dict) -> list[Candidate]:
     out = []
     as_of = (ev.get("event_date") or "")[:10] or None
     text = rules.scope_terms(ev)
-    exposures = [r for r in db.execute("SELECT * FROM company_exposures") if _valid_at(r, as_of)]
+    exposures = [r for r in db.execute(
+        "SELECT * FROM company_exposures x WHERE NOT EXISTS (SELECT 1 FROM evidence_retractions r "
+        "WHERE r.record_table = 'company_exposures' AND r.record_id = x.exposure_id)") if _valid_at(r, as_of)]
     for rule, change in rules.matching_rules(ev):
         covered = set()
         for link in rule.links:
@@ -217,7 +221,7 @@ def _rule_candidates(db, ev: dict) -> list[Candidate]:
     return out
 
 
-def _relationship_candidates(db, ev: dict, base: list[Candidate]) -> list[Candidate]:
+def _relationship_candidates(db, ev: dict, base: list[Candidate], synthetic: bool) -> list[Candidate]:
     out = []
     as_of = (ev.get("event_date") or "")[:10] or None
     mapped = {c.company["company_id"]: c for c in base}
@@ -225,6 +229,8 @@ def _relationship_candidates(db, ev: dict, base: list[Candidate]) -> list[Candid
     for rel in db.execute("SELECT * FROM current_company_relationships"):
         if not _valid_at(rel, as_of) or rel["evidence_status"] == "rejected":
             continue
+        if rel["is_synthetic"] and not synthetic:
+            continue   # synthetic relationships never feed a real mapping
         via = mapped.get(rel["child_company_id"]) if rel["child_company_id"] else None
         if via is None and normalise_for_match(rel["child_name"]) not in mentioned:
             continue
@@ -320,7 +326,8 @@ def _row(ev_id: int, c: Candidate, synthetic: bool) -> dict:
         "event_id": ev_id, "company_id": c.company["company_id"], "psx_symbol": c.company.get("psx_symbol"),
         "exposure_category": c.category, "exposure_subtype": c.subtype, "exposure_level": c.level,
         "impact_direction": c.direction, "segment_id": c.segment_id, "mechanism": c.mechanism,
-        "explanation": c.explanation, "missing_evidence_json": json.dumps(sorted(set(c.missing))),
+        "explanation": ("[SYNTHETIC TEST DATA] " if synthetic else "") + c.explanation,
+        "missing_evidence_json": json.dumps(sorted(set(c.missing))),
         "confidence": c.confidence, "evidence_status": c.evidence_status,
         "review_status": "rejected" if c.evidence_status == "rejected"
         else ("needs_review" if c.review_reasons or c.evidence_status == "unverified" else "pending"),
@@ -418,7 +425,7 @@ def map_event(db, event_id: int, *, synthetic: bool = False, persist: bool = Tru
     result = MappingResult(event_id)
     cands = _named_companies(db, ev, result)
     cands += _rule_candidates(db, ev)
-    cands += _relationship_candidates(db, ev, cands)
+    cands += _relationship_candidates(db, ev, cands, synthetic)
     contradictory = _contradictions(cands)
     for c in cands:
         _assess(db, ev, c, contradictory)
@@ -617,3 +624,43 @@ def relationship_history(db, relationship_id: int) -> list[dict]:
                          "WHERE supersedes_relationship_id = ?", (rid,))
         rid = nxt[0]["relationship_id"] if nxt else None
     return chain
+
+
+SYSTEM_REVIEWER = "system:revalidation"
+
+
+def retract_evidence(db, record_table: str, record_id: int, *, reason: str, retracted_by: str) -> dict:
+    """Record that an evidence record is incorrect (append-only), then revalidate affected mappings."""
+    db.execute("INSERT INTO evidence_retractions(record_table, record_id, reason, retracted_by, "
+               "retracted_at_utc) VALUES (?,?,?,?,?)",
+               (record_table, record_id, reason, retracted_by, now_utc()))
+    return revalidate(db)
+
+
+def revalidate(db, *, reviewer: str = SYSTEM_REVIEWER) -> dict:
+    """Downgrade every potential/strong/confirmed candidate whose company-specific evidence is no longer
+    valid (source no longer approved, record retracted, relationship superseded or rejected).
+
+    Each downgrade is an append-only 'evidence_revoked' review plus a new revision; an accepted
+    event_companies link is set back to pending. Nothing is deleted.
+    """
+    stale = db.execute("SELECT DISTINCT c.* FROM exposure_candidates c JOIN invalid_candidate_evidence v "
+                       "USING(candidate_id) "
+                       "WHERE c.evidence_status IN ('potential','strongly_supported','confirmed')")
+    now = now_utc()
+    for cur in stale:
+        reasons = sorted(set(json.loads(cur["review_reasons_json"]))
+                         | {"evidence revoked: revalidation required"})
+        stmts = [("INSERT INTO exposure_reviews(candidate_id, decision, reviewer, notes, decided_at_utc, "
+                  "evidence_status_at_decision) VALUES (?,?,?,?,?,?)",
+                  (cur["candidate_id"], "evidence_revoked", reviewer,
+                   "linked company-specific evidence is no longer valid", now, cur["evidence_status"])),
+                 _revise_stmt(cur, {"evidence_status": "unverified", "review_status": "needs_review",
+                                    "review_reasons_json": json.dumps(reasons)},
+                              "evidence revoked by revalidation", reviewer, now, review_sql="yes")]
+        if cur["evidence_status"] == "confirmed":
+            stmts.append(("UPDATE event_companies SET reviewer_status = 'pending' "
+                          "WHERE event_id = ? AND company_id = ? AND reviewer_status = 'accepted'",
+                          (cur["event_id"], cur["company_id"])))
+        db.batch(stmts)
+    return {"downgraded": len(stale)}
