@@ -1,0 +1,27 @@
+# Skeleton for scheduled collector/analysis jobs (spec section 2.2, Phase 7).
+# Phase 0: manual trigger only, no schedule, no secrets, nothing is collected.
+# Each source family will get its own job when it is implemented and approved.
+name: Scheduled jobs (skeleton)
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (no writes)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scheduled-jobs
+  cancel-in-progress: false
+
+jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: No collectors implemented yet
+        run: echo "No collectors are implemented (Phase 2). Nothing was collected or written."

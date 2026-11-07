@@ -1,0 +1,5 @@
+# Runtime dependencies (used by Streamlit Community Cloud). Keep in sync with pyproject.toml.
+# Every dependency must come from PyPI. VCS/URL/path dependencies are forbidden
+# (see docs/adr/0001-independence-from-technical-engine.md); scripts/check_independence.py enforces this.
+streamlit>=1.40,<2
+python-dotenv>=1.0,<2
