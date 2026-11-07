@@ -348,3 +348,44 @@ def test_fixture_payload_not_mutated_by_extraction():
     snapshot = copy.deepcopy(p)
     extract(item(SBP_TEXT), gw({"Monetary": p}))
     assert p == snapshot
+
+
+# ------------------------------------------------------------ pre-merge verification additions
+def test_low_confidence_and_high_importance_single_source_need_review():
+    weak = event(claims=[{"claim": "Rate may be cut", "claim_type": "personal_opinion",
+                          "quote": "The committee said inflation had eased"}],
+                 status_stage="discussion", magnitude="low")
+    c = extract(item(SBP_TEXT, tier="commentary"), gw({"Monetary": payload(weak)})).candidates[0]
+    assert c.confidence < 0.55 and any("below" in r for r in c.review_reasons)
+    strong = extract(item(DAWN_TEXT, tier="established_media", title="Rate cut"),
+                     gw({"according to a statement": payload(event(claims=[
+                         {"claim": "Rate cut", "claim_type": "news_report",
+                          "quote": "cut its policy rate by 100 basis points to 10.5 percent"}]))}))
+    strong = strong.candidates[0]
+    assert strong.importance >= 0.75
+    assert any("non-primary source" in r for r in strong.review_reasons)
+
+
+def test_pipeline_never_processes_restricted_blocked_or_licensed_sources(db):
+    _fixture_sources(db)
+    blocked = (("fxrestricted", "restricted"), ("fxblocked", "blocked"), ("fxlicence", "licence_required"))
+    for sid, status in blocked:
+        db.execute("INSERT INTO sources(source_id, name, source_type, access_status, created_at_utc, "
+                   "updated_at_utc) VALUES (?,?,?,?,?,?)",
+                   (sid, sid, "news_media", status, "2026-11-07T00:00:00Z", "2026-11-07T00:00:00Z"))
+        _store(db, sid, f"https://{sid}.example/a", "SBP cuts policy rate", SBP_TEXT, "2026-11-05T12:00:00Z")
+    g = gw({"Monetary": payload(event())}, db=db)
+    s = run(db, g)
+    assert s.processed == 0 and g.provider.calls == 0
+    assert db.execute("SELECT COUNT(*) n FROM event_extractions")[0]["n"] == 0
+
+
+def test_unconfigured_provider_makes_no_network_call(monkeypatch):
+    import urllib.request
+
+    def boom(*a, **k):
+        raise AssertionError("network used")
+
+    monkeypatch.setattr(urllib.request, "urlopen", boom)
+    out = LLMGateway(ClaudeProvider(), PRICE).complete(load_prompt("event_extraction_v1"), "x", {})
+    assert out.outcome == "not_connected" and out.cost_usd == 0

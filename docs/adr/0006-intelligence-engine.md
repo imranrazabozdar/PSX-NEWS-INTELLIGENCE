@@ -1,7 +1,7 @@
 # ADR-0006: Phase 3 intelligence engine (event extraction and verification)
 
 Status: Proposed (Phase 3, awaiting owner review)
-Depends on: Phase 2 (PR #5, unmerged). This branch is stacked on `phase-2-collectors`.
+Depends on: Phase 2 (PR #5, merged in 992e4b0).
 
 ## Context
 Spec §14 Phase 3 requires a strict, structured LLM schema with evidence excerpts, source

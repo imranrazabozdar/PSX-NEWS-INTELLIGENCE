@@ -1,6 +1,6 @@
 # Phase 3 acceptance report: event extraction and verification
 
-Branch `phase-3-intelligence`, stacked on `phase-2-collectors` (PR #5). Status: **IMPLEMENTED,
+Branch `phase-3-intelligence` (PR #11), based on `main` after the PR #5 merge (992e4b0). Status: **IMPLEMENTED,
 TESTED offline. Live LLM NOT CONNECTED.** Awaiting owner review.
 
 ## Spec acceptance (§14 Phase 3, §16 event tests, §19 Event MVP)
@@ -26,7 +26,7 @@ and labelled `SYNTHETIC FIXTURE`.
 ## Remaining / blockers
 1. Owner approval for the live provider: add the official `anthropic` SDK dependency, issue
    `PSXNI_ANTHROPIC_API_KEY` via the secret store, and confirm the daily budget.
-2. Phase 2 must merge first (this PR is stacked on it). After that, apply migrations 0006 and 0007
+2. Phase 2 is merged (PR #5). Migrations 0006 and 0007 must still be applied
    to production Turso. Neither has been applied by this branch.
 3. No source is ACTIVE yet, so there are no real items to extract (Phase 2 terms reviews).
 4. Calibrate thresholds on owner-reviewed real items. Build the human-review queue UI (Phase 6).

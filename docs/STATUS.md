@@ -9,8 +9,8 @@ A feature is complete only when code **and** tests prove it. A page or placehold
 |---|---|---|---|
 | 0 | Specification and repository bootstrap | TESTED, approved and merged (PR #1) | See Phase 0 checklist below |
 | 1 | Data foundation (Turso, migrations, company master) | TESTED, approved and merged (PR #2, merge commit 108cdd6) | See Phase 1 checklist below |
-| 2 | Source collection engine | IMPLEMENTED, awaiting owner review | See Phase 2 checklist below |
-| 3 | Event extraction and verification | IMPLEMENTED and TESTED offline (stacked on Phase 2); live LLM NOT CONNECTED; awaiting owner review | See Phase 3 checklist below and `docs/PHASE_3_ACCEPTANCE.md` |
+| 2 | Source collection engine | TESTED, approved and merged (PR #5, merge commit 992e4b0); no source ACTIVE; 0006 not yet applied to production | See Phase 2 checklist below |
+| 3 | Event extraction and verification | IMPLEMENTED and TESTED offline (PR #11, based on main after the PR #5 merge); live LLM NOT CONNECTED; awaiting owner review | See Phase 3 checklist below and `docs/PHASE_3_ACCEPTANCE.md` |
 | 4 | Company exposure graph | NOT STARTED | |
 | 5 | Impact analysis and Python calculations | NOT STARTED | |
 | 6 | Streamlit MVP | NOT STARTED | |
