@@ -1,8 +1,16 @@
 # Phase 4 acceptance report: company exposure mapping
 
-Branch `phase-4-exposure-mapping`, based on `main` @ `211760e`. Status: **IMPLEMENTED and TESTED with
-synthetic fixtures. Not ACCEPTED (awaiting owner review). Not OPERATIONAL** (no approved
-company-evidence source, no ACTIVE source, migration 0008 not applied to production).
+PR #15 was **ACCEPTED by the owner and merged** on 2026-11-07 (merge commit `0bdfb1a08de7dae9ea37899f4d93c10892b32e59`; final PR head
+`7099f08`). Main CI on the merge commit: test pass, secret-scan pass, CodeQL Python pass, CodeQL
+Actions pass.
+
+Status: **TESTED with synthetic fixtures and ACCEPTED. NOT OPERATIONAL.**
+- No approved company-evidence source exists and no source is ACTIVE.
+- Real company exposure mappings remain unverified.
+- Migration 0008 is not applied to production.
+- Turso compatibility is unverified on a real Turso server.
+- Deeper cycle protection is application-level only.
+- Downstream consumers must use `exposure_candidates_current`.
 
 Labels used in this report:
 - **IMPLEMENTED:** the code exists.

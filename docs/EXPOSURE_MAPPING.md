@@ -3,7 +3,7 @@
 How a stored, verified event becomes evidence-backed exposure candidates for PSX-listed companies.
 Code: `engines/entity_resolution.py`, `engines/exposure_taxonomy.py`, `engines/exposure_rules.py`
 and `engines/exposure_mapping.py`. Schema: migration `0008_exposure_mapping.sql`.
-Decision record: ADR-0007.
+Decision record: ADR-0007. Merged in PR #15 (`0bdfb1a`); not operational with real evidence.
 
 **Important:** no source is ACTIVE, and no company-specific evidence source (annual reports, company
 websites, filings) has been approved. Every real-world mapping this engine produces today is
