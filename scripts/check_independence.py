@@ -65,8 +65,11 @@ THIRD_PARTY_IMPORTS = {
     "pip-audit": set(),
 }
 
-# Local top-level packages/modules of THIS project.
-LOCAL_MODULES = {"app", "config", "database", "scripts", "tests"}
+# Local top-level packages/modules of THIS project (spec section 13 layout). Adding a new
+# top-level package requires changing this list in its own PR, because CI also runs the
+# base branch's copy of this guard.
+LOCAL_MODULES = {"app", "config", "scripts", "tests",
+                 "database", "collectors", "engines", "models", "prompts", "pages"}
 
 ALLOWED_ACTION_OWNERS = {"actions"}
 ALLOWED_SECRETS = {"GITHUB_TOKEN"}
