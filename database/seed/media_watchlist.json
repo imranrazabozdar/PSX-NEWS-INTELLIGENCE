@@ -1,0 +1,239 @@
+{
+ "dataset": "media_watchlist",
+ "version": 1,
+ "source": "docs/SPECIFICATION.md section 4 (owner-supplied)",
+ "accounts": [
+  {
+   "platform": "x",
+   "handle": "MarioNawfal",
+   "supplied_url": "https://x.com/MarioNawfal",
+   "display_name": null,
+   "monitoring_purpose": "Geopolitics / breaking developments",
+   "notes": null
+  },
+  {
+   "platform": "x",
+   "handle": "AJEnglish",
+   "supplied_url": "https://x.com/AJEnglish",
+   "display_name": null,
+   "monitoring_purpose": "International news",
+   "notes": null
+  },
+  {
+   "platform": "x",
+   "handle": "imemon15",
+   "supplied_url": "https://x.com/imemon15",
+   "display_name": null,
+   "monitoring_purpose": "Pakistan / current affairs",
+   "notes": "validate identity"
+  },
+  {
+   "platform": "x",
+   "handle": "clashreport",
+   "supplied_url": "https://x.com/clashreport",
+   "display_name": null,
+   "monitoring_purpose": "Conflict and geopolitical developments",
+   "notes": null
+  },
+  {
+   "platform": "x",
+   "handle": "AlphaWireHQ",
+   "supplied_url": "https://x.com/AlphaWireHQ",
+   "display_name": null,
+   "monitoring_purpose": "Breaking news / markets",
+   "notes": "validate source profile"
+  },
+  {
+   "platform": "x",
+   "handle": "Conflict_Matrix",
+   "supplied_url": "https://x.com/Conflict_Matrix",
+   "display_name": null,
+   "monitoring_purpose": "Conflict / security monitoring",
+   "notes": "validate identity"
+  },
+  {
+   "platform": "x",
+   "handle": "AlArabiya_Eng",
+   "supplied_url": "https://x.com/AlArabiya_Eng",
+   "display_name": null,
+   "monitoring_purpose": "Middle East / oil / regional news",
+   "notes": null
+  },
+  {
+   "platform": "x",
+   "handle": "CENTCOM",
+   "supplied_url": "https://x.com/CENTCOM",
+   "display_name": null,
+   "monitoring_purpose": "US military / regional official statements",
+   "notes": null
+  },
+  {
+   "platform": "x",
+   "handle": "MeherJazibAli",
+   "supplied_url": "https://x.com/MeherJazibAli",
+   "display_name": null,
+   "monitoring_purpose": "Pakistan commentary",
+   "notes": "validate identity"
+  },
+  {
+   "platform": "x",
+   "handle": "Asad_Ashah",
+   "supplied_url": "https://x.com/Asad_Ashah",
+   "display_name": null,
+   "monitoring_purpose": "Business / financial commentary",
+   "notes": "validate identity"
+  },
+  {
+   "platform": "x",
+   "handle": "AsadAToor",
+   "supplied_url": "https://x.com/AsadAToor",
+   "display_name": null,
+   "monitoring_purpose": "Pakistan politics / current affairs",
+   "notes": null
+  },
+  {
+   "platform": "x",
+   "handle": "CNN",
+   "supplied_url": "https://x.com/CNN",
+   "display_name": null,
+   "monitoring_purpose": "International news",
+   "notes": null
+  },
+  {
+   "platform": "x",
+   "handle": "TehranTimes79",
+   "supplied_url": "https://x.com/TehranTimes79",
+   "display_name": null,
+   "monitoring_purpose": "Iran / regional developments",
+   "notes": null
+  },
+  {
+   "platform": "x",
+   "handle": "ARNOfficiall",
+   "supplied_url": "https://x.com/ARNOfficiall",
+   "display_name": null,
+   "monitoring_purpose": "Possible Abdul Rehman Najam X identity",
+   "notes": "confirm before linking to the YouTube channel"
+  },
+  {
+   "platform": "x",
+   "handle": "trtworld",
+   "supplied_url": "https://x.com/trtworld",
+   "display_name": null,
+   "monitoring_purpose": "International / geopolitical news",
+   "notes": null
+  },
+  {
+   "platform": "x",
+   "handle": "LodhiMaleeha",
+   "supplied_url": "https://x.com/LodhiMaleeha",
+   "display_name": null,
+   "monitoring_purpose": "Diplomacy / foreign policy",
+   "notes": null
+  },
+  {
+   "platform": "x",
+   "handle": "Portfolio360App",
+   "supplied_url": "https://x.com/Portfolio360App",
+   "display_name": null,
+   "monitoring_purpose": "Investment / market analysis",
+   "notes": null
+  },
+  {
+   "platform": "x",
+   "handle": "RT_com",
+   "supplied_url": "https://x.com/RT_com",
+   "display_name": null,
+   "monitoring_purpose": "International / geopolitical news",
+   "notes": null
+  },
+  {
+   "platform": "x",
+   "handle": "BullTheoryio",
+   "supplied_url": "https://x.com/BullTheoryio",
+   "display_name": null,
+   "monitoring_purpose": "Financial markets / investment commentary",
+   "notes": null
+  },
+  {
+   "platform": "x",
+   "handle": "iihtishamm",
+   "supplied_url": "https://x.com/iihtishamm",
+   "display_name": null,
+   "monitoring_purpose": "Pakistan politics / current affairs",
+   "notes": null
+  },
+  {
+   "platform": "youtube",
+   "handle": "stockifyyltd",
+   "supplied_url": "https://youtube.com/@stockifyyltd",
+   "display_name": "Stockify Ltd",
+   "monitoring_purpose": "Stock-specific analysis, sector themes, market opportunities",
+   "notes": null
+  },
+  {
+   "platform": "youtube",
+   "handle": "nuktabusiness",
+   "supplied_url": "https://youtube.com/@nuktabusiness",
+   "display_name": "Nukta Business",
+   "monitoring_purpose": "Economic policy, business developments, market outlook",
+   "notes": null
+  },
+  {
+   "platform": "youtube",
+   "handle": "nuktapakistan",
+   "supplied_url": "https://youtube.com/@nuktapakistan",
+   "display_name": "Nukta Pakistan",
+   "monitoring_purpose": "National/political developments only when economically material",
+   "notes": null
+  },
+  {
+   "platform": "youtube",
+   "handle": "abdulrehmannajamofficial",
+   "supplied_url": "https://youtube.com/@abdulrehmannajamofficial",
+   "display_name": "Abdul Rehman Najam Official",
+   "monitoring_purpose": "PSX analysis, stock ideas, market sentiment",
+   "notes": null
+  },
+  {
+   "platform": "youtube",
+   "handle": "sarmaayapk",
+   "supplied_url": "https://youtube.com/@sarmaayapk",
+   "display_name": "Sarmaaya Pakistan",
+   "monitoring_purpose": "Stock analysis, valuation, financial and market trends",
+   "notes": null
+  },
+  {
+   "platform": "youtube",
+   "handle": "scstradepk",
+   "supplied_url": "https://youtube.com/@scstradepk",
+   "display_name": "Standard Capital Securities",
+   "monitoring_purpose": "Brokerage research, market outlook, stock/sector analysis",
+   "notes": null
+  },
+  {
+   "platform": "youtube",
+   "handle": "youngscapital",
+   "supplied_url": "https://youtube.com/@youngscapital",
+   "display_name": "Young's Capital",
+   "monitoring_purpose": "Investment commentary, stock ideas and market developments",
+   "notes": null
+  },
+  {
+   "platform": "x",
+   "handle": null,
+   "supplied_url": null,
+   "display_name": "Donald Trump",
+   "monitoring_purpose": "Requested by name; exact handle not supplied",
+   "notes": "pending_accounts: do not guess the handle (spec 4.1, Appendix A)"
+  },
+  {
+   "platform": "x",
+   "handle": null,
+   "supplied_url": null,
+   "display_name": "Reuters",
+   "monitoring_purpose": "Requested by name; exact handle not supplied",
+   "notes": "pending_accounts: do not guess the handle (spec 4.1, Appendix A)"
+  }
+ ]
+}
