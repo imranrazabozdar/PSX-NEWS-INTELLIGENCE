@@ -28,7 +28,7 @@ Owner decisions recorded in [`docs/adr/0003-owner-decisions-future-phases.md`](a
 | R-1.2-5 | 1.2 | No merging with the technical engine or shared database | 0 (permanent) | ADR-0001, `scripts/check_independence.py`, base-branch guard in CI | `tests/test_independence.py` | TESTED |
 | R-1.2-6 | 1.2 | No circumvention of paywalls, logins, API limits, robots, copyright | 2+ | ADR-0003 (verify terms before each collector) | | NOT STARTED |
 | R-1.3-1 | 1.3 | New public GitHub repository, code + non-sensitive docs only | 0 | this repo; `.gitignore` | `test_no_secrets_files_committed`, gitleaks CI | TESTED |
-| R-1.3-2 | 1.3 | Separate Turso account/database, credentials, backups | 1 | Dedicated Turso DB `psx-news-intelligence`; `database/connection.py`; ADR-0004; backup plan in `docs/DATA_MODEL.md` | tests/test_turso_integration.py::test_connection_and_foreign_keys | TESTED (restore test: Phase 14) |
+| R-1.3-2 | 1.3 | Separate Turso account/database, credentials, backups | 1 | Dedicated Turso DB `psx-news-intelligence`; `database/connection.py`; ADR-0004; backup plan in `docs/DATA_MODEL.md` | tests/test_turso_integration.py::test_connection_and_foreign_keys | TESTED against live Turso from the dev session; skipped in CI until secrets are added (restore test: Phase 14) |
 | R-1.3-3 | 1.3 | Separate Streamlit deployment, private / authenticated (ADR-0003) | 6 | `app.py` skeleton only | | NOT STARTED |
 | R-1.3-4 | 1.3 | Scheduled processing via GitHub Actions | 7 | `.github/workflows/scheduled-jobs.yml` (manual-only skeleton) | | IN PROGRESS (skeleton) |
 | R-1.3-5 | 1.3 | Python for collection, calculations, scoring, backtesting | 0+ | `pyproject.toml` | CI | IMPLEMENTED |
@@ -99,7 +99,7 @@ Owner decisions recorded in [`docs/adr/0003-owner-decisions-future-phases.md`](a
 | R-10.1-1 | 10.1 | Separate score dimensions; versioned formula; no hidden composite | 12 | | | NOT STARTED |
 | R-10.2-1 | 10.2 | Opportunity categories | 12 | | | NOT STARTED |
 | R-10.3-1 | 10.3 | Valuation rules (methods, peers, scenarios, diluted shares, staleness flags) | 12 | | | NOT STARTED |
-| R-11-1 | 11 | 28-table event-centred schema | 1 | `database/migrations/0001–0004` (34 tables incl. all 28 spec tables) | tests/test_database.py::test_all_spec_tables_exist, tests/test_turso_integration.py::test_all_migrations_applied_with_matching_checksums | TESTED |
+| R-11-1 | 11 | 28-table event-centred schema | 1 | `database/migrations/0001–0005` (35 tables incl. all 28 spec tables; applied on Turso, checksums match) | tests/test_database.py::test_all_spec_tables_exist, tests/test_turso_integration.py::test_all_migrations_applied_with_matching_checksums | TESTED |
 | R-11.1-1 | 11.1 | UTC internally, original timestamp/offset preserved | 1 | `database/canonical.py::to_utc` (UTC + raw + offset; no zone guessing) | tests/test_canonical.py::test_timestamps_to_utc | TESTED |
 | R-11.1-2 | 11.1 | Dedup by canonical URL / external ID / hash; revisions not overwrites | 1–2 | Canonical URL, content hash, unique keys, versions, duplicate links | tests/test_database.py::test_source_item_dedup_and_versioning, tests/test_database.py::test_syndicated_copy_is_flagged_duplicate | TESTED |
 | R-11.1-3 | 11.1 | Indexes on listed fields | 1 | Indexes on ticker/alias, dates, source, URL, hash, status, platform/external_id | tests/test_database.py::test_expected_indexes_exist | TESTED |
@@ -135,7 +135,7 @@ Owner decisions recorded in [`docs/adr/0003-owner-decisions-future-phases.md`](a
 | R-18-4 | 18 | Virality isn't truth; promotion / amplification flagged as signals | 11 | | | NOT STARTED |
 | R-18-5 | 18 | Schema-validated LLM output; never sole calculator / verifier / ticker master | 3 | | | NOT STARTED |
 | R-19-1 | 19 | Independent repository DoD | 0 | this repo, CI | CI | TESTED |
-| R-19-2 | 19 | Independent database DoD | 1 | Dedicated Turso DB, migrations, `PSXNI_` secrets, connection tests, backup plan | tests/test_turso_integration.py | TESTED |
+| R-19-2 | 19 | Independent database DoD | 1 | Dedicated Turso DB, migrations, `PSXNI_` secrets, connection tests, backup plan | tests/test_turso_integration.py | TESTED against live Turso from the dev session; skipped in CI until secrets are added |
 | R-19-3 | 19 | Company seed DoD | 1 | 51 company records, validated ticker/name/sector, PSX-sourced summary | tests/test_database.py::test_seed_validation_passes | TESTED |
 | R-19-4 | 19 | News MVP DoD | 2, 7 | | | NOT STARTED |
 | R-19-5 | 19 | Event MVP DoD | 3 | | | NOT STARTED |

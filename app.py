@@ -12,7 +12,7 @@ from config.settings import load_settings
 
 PHASES = [
     ("Phase 0", "Specification and repository bootstrap", "TESTED"),
-    ("Phase 1", "Data foundation (Turso, migrations, company master)", "IN REVIEW"),
+    ("Phase 1", "Data foundation (Turso, migrations, company master)", "TESTED"),
     ("Phase 2", "First source collectors", "NOT STARTED"),
     ("Phase 3", "Event extraction and verification", "NOT STARTED"),
     ("Phase 4", "Company exposure graph", "NOT STARTED"),
