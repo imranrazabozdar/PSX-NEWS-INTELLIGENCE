@@ -10,7 +10,7 @@ A feature is complete only when code **and** tests prove it. A page or placehold
 | 0 | Specification and repository bootstrap | TESTED, approved and merged (PR #1) | See Phase 0 checklist below |
 | 1 | Data foundation (Turso, migrations, company master) | TESTED, approved and merged (PR #2, merge commit 108cdd6) | See Phase 1 checklist below |
 | 2 | Source collection engine | IMPLEMENTED, awaiting owner review | See Phase 2 checklist below |
-| 3 | Event extraction and verification | NOT STARTED | |
+| 3 | Event extraction and verification | IMPLEMENTED and TESTED offline (stacked on Phase 2); live LLM NOT CONNECTED; awaiting owner review | See Phase 3 checklist below and `docs/PHASE_3_ACCEPTANCE.md` |
 | 4 | Company exposure graph | NOT STARTED | |
 | 5 | Impact analysis and Python calculations | NOT STARTED | |
 | 6 | Streamlit MVP | NOT STARTED | |
@@ -87,6 +87,21 @@ A feature is complete only when code **and** tests prove it. A page or placehold
 | PSX disclosures collector | none | PSX terms prohibit automated retrieval without permission | BLOCKED |
 | SBP / SECP / Commerce / IMF / OPEC | none | HTTP 403 to automated requests | BLOCKED |
 | Energy prices (EIA) | none | robots.txt disallows /rss; API key needed | BLOCKED |
+
+## Phase 3 checklist
+
+| Deliverable | Location | Test / evidence | Status |
+|---|---|---|---|
+| Strict extraction schema + validator (no repair) | `engines/schema.py` | `test_schema_*`, `test_dates_*`, `test_json_schema_is_strict` | TESTED |
+| Versioned prompt (no invention, verbatim quotes) | `prompts/event_extraction_v1.txt` | `test_prompt_is_versioned_and_forbids_invention` | TESTED |
+| Provider-independent gateway: retries, cache, token/cost limits, kill switch, ledger | `engines/llm.py`, `llm_calls` | `test_gateway_*`, `test_daily_cost_limit_*`, `test_kill_switch_blocks_llm`, `test_llm_ledger_is_append_only` | TESTED |
+| Claude provider | `engines/llm.py::ClaudeProvider` | `test_claude_provider_is_not_connected_and_never_fakes_output` | BLOCKED (needs owner approval: SDK dependency, key, budget) |
+| Relevance pre-filter, quote and number verification, entity/company resolution | `engines/extraction.py` | `test_extraction_*`, `test_invented_claim_*`, `test_irrelevant_items_*`, `test_rumour_*` | TESTED |
+| Importance and confidence with explanations; human-review flags | `engines/extraction.py` | `test_extraction_keeps_only_quoted_facts_and_explains_confidence` | TESTED |
+| Duplicate / near-duplicate detection, clustering across publications | `engines/similarity.py` | `test_near_duplicate_and_same_story_clustering` | TESTED |
+| Credibility, corroboration, contradiction, timeline | `engines/verification.py` | `test_primary_confirmation_*`, `test_syndicated_*`, `test_contradictions_*`, `test_timeline_*` | TESTED |
+| Persistence with provenance (migration 0007, append-only) | `engines/pipeline.py`, `0007_intelligence_engine.sql` | `test_pipeline_*` (local SQLite) | TESTED (not applied to production Turso) |
+| Live extraction on real items | | needs live provider and ACTIVE sources | BLOCKED |
 
 ## Requirements traceability
 
