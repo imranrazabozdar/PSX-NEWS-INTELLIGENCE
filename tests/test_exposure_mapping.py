@@ -19,7 +19,7 @@ from database.migrate import migrate
 from engines import entity_resolution, exposure_mapping, exposure_rules
 from engines import exposure_taxonomy as tax
 from engines.entity_resolution import resolve
-from engines.exposure_mapping import map_event, review, suggest_with_llm
+from engines.exposure_mapping import map_event, record_relationship, review, suggest_with_llm
 from engines.llm import ClaudeProvider, FixtureProvider, LLMGateway, Pricing
 
 NOW = "2026-11-07T00:00:00Z"
@@ -34,13 +34,15 @@ def db():
     for sid, approved in (("fxapproved", True), ("fxunapproved", False)):
         if approved:   # test-only source satisfying the ACTIVE rules; exists only in this throwaway DB
             d.execute("INSERT INTO sources(source_id, name, source_type, reliability_tier, access_status, "
-                      "terms_status, lifecycle_status, enabled, created_at_utc, updated_at_utc) "
-                      "VALUES (?,?,?,?,?,?,?,?,?,?)",
+                      "terms_status, lifecycle_status, enabled, is_synthetic, created_at_utc, "
+                      "updated_at_utc) "
+                      "VALUES (?,?,?,?,?,?,?,?,1,?,?)",
                       (sid, "SYNTHETIC approved fixture", "other", "primary_official", "verified_permitted",
                        "approved", "ACTIVE", 1, NOW, NOW))
         else:
-            d.execute("INSERT INTO sources(source_id, name, source_type, created_at_utc, updated_at_utc) "
-                      "VALUES (?,?,?,?,?)", (sid, "SYNTHETIC unapproved fixture", "other", NOW, NOW))
+            d.execute("INSERT INTO sources(source_id, name, source_type, is_synthetic, created_at_utc, "
+                      "updated_at_utc) VALUES (?,?,?,1,?,?)", (sid, "SYNTHETIC unapproved fixture", "other",
+                                                               NOW, NOW))
     yield d
     d.close()
 
@@ -168,9 +170,9 @@ def test_oil_rise_maps_by_documented_exposure_not_by_sector(db):
 
 def test_oil_fall_reverses_and_unclear_change_stays_unknown(db):
     exposure(db, "ATRL", "input", "crude oil")
-    down = map_event(db, event(db, "Brent crude oil price falls"), persist=False)
+    down = map_event(db, event(db, "Brent crude oil price falls"), synthetic=True)
     assert by_symbol(down, "ATRL")[0].direction == "positive"
-    unclear = map_event(db, event(db, "Brent crude oil price outlook reviewed"), persist=False)
+    unclear = map_event(db, event(db, "Brent crude oil price outlook reviewed"), synthetic=True)
     c = by_symbol(unclear, "ATRL")[0]
     assert c.direction == "unknown" and any("does not state the direction" in m for m in c.missing)
 
@@ -179,7 +181,7 @@ def test_rate_rise_does_not_assume_every_bank_benefits(db):
     exposure(db, "HBL", "product", "lending")
     exposure(db, "LUCK", "debt", "KIBOR-linked borrowings")
     eid = event(db, "SBP raises policy rate by 100 basis points", event_type="monetary_policy")
-    r = map_event(db, eid, persist=False)
+    r = map_event(db, eid, synthetic=True)
     assert by_symbol(r, "HBL")[0].direction == "unknown"
     assert by_symbol(r, "LUCK")[0].direction == "negative"
     other_banks = [c for c in r.candidates if c.basis == "sector_only"]
@@ -190,7 +192,7 @@ def test_pkr_depreciation_splits_exporters_and_importers(db):
     exposure(db, "SYS", "market", "export sales")
     exposure(db, "PSO", "input", "imported petroleum products")
     eid = event(db, "Rupee depreciates against the US dollar", event_type="economic_indicator")
-    r = map_event(db, eid, persist=False)
+    r = map_event(db, eid, synthetic=True)
     assert by_symbol(r, "SYS")[0].direction == "positive"
     assert by_symbol(r, "PSO")[0].direction == "negative"
     assert not [c for c in r.candidates if c.basis == "sector_only"]   # no sector blanket for PKR
@@ -203,14 +205,14 @@ def test_duty_rule_maps_only_companies_in_scope(db):
     exposure(db, "LUCK", "product", "cement")
     exposure(db, "EFERT", "product", "urea")
     eid = event(db, "Government raises federal excise duty on cement", event_type="tax_policy")
-    r = map_event(db, eid, persist=False)
+    r = map_event(db, eid, synthetic=True)
     assert by_symbol(r, "LUCK") and not by_symbol(r, "EFERT")
 
 
 def test_contradictory_exposure_evidence_is_flagged(db):
     exposure(db, "PPL", "input", "crude oil")
     exposure(db, "PPL", "product", "crude oil")
-    r = map_event(db, event(db, "Brent crude oil price rises"), persist=False)
+    r = map_event(db, event(db, "Brent crude oil price rises"), synthetic=True)
     ppl = by_symbol(r, "PPL")
     assert {c.direction for c in ppl} == {"positive", "negative"}
     assert all(any("contradictory" in x for x in c.review_reasons) for c in ppl)
@@ -220,7 +222,7 @@ def test_contradictory_exposure_evidence_is_flagged(db):
 # ------------------------------------------------------------------ evidence status
 def test_unapproved_evidence_stays_unverified(db):
     exposure(db, "ATRL", "input", "crude oil", source="fxunapproved")
-    r = map_event(db, event(db, "Brent crude oil price rises", source="fxunapproved"), persist=False)
+    r = map_event(db, event(db, "Brent crude oil price rises", source="fxunapproved"), synthetic=True)
     c = by_symbol(r, "ATRL")[0]
     assert c.evidence_status == "unverified" and any("not approved" in m for m in c.missing)
     assert any("material (direct) mapping" in x for x in c.review_reasons)
@@ -228,10 +230,10 @@ def test_unapproved_evidence_stays_unverified(db):
 
 def test_strong_and_potential_depend_on_event_verification(db):
     exposure(db, "ATRL", "input", "crude oil")
-    strong = map_event(db, event(db, "Brent crude oil price rises"), persist=False)
+    strong = map_event(db, event(db, "Brent crude oil price rises"), synthetic=True)
     assert by_symbol(strong, "ATRL")[0].evidence_status == "strongly_supported"
     single = map_event(db, event(db, "Brent crude oil price jumps", verification="single_source",
-                                 magnitude="high"), persist=False)
+                                 magnitude="high"), synthetic=True)
     c = by_symbol(single, "ATRL")[0]
     assert c.evidence_status == "potential"
     assert any("single or unverified source" in x for x in c.review_reasons)
@@ -240,14 +242,14 @@ def test_strong_and_potential_depend_on_event_verification(db):
 def test_rumour_and_disputed_events_need_review(db):
     exposure(db, "ATRL", "input", "crude oil")
     r = map_event(db, event(db, "Crude oil price may rise, sources said", stage="rumour", claim_type="rumour",
-                            verification="disputed"), persist=False)
+                            verification="disputed"), synthetic=True)
     c = by_symbol(r, "ATRL")[0]
     assert c.evidence_status == "potential"
     assert any("rumour" in x for x in c.review_reasons) and any("disputed" in x for x in c.review_reasons)
 
 
 def test_confidence_is_not_proof(db):
-    r = map_event(db, event(db, "Brent crude oil price rises"), persist=False)
+    r = map_event(db, event(db, "Brent crude oil price rises"), synthetic=True)
     for c in r.candidates:   # no company exposure documented: nothing may be stronger than unverified
         assert c.evidence_status == "unverified" and "Confidence is not proof" in c.explanation
 
@@ -268,30 +270,86 @@ def test_named_companies_resolve_or_are_reported_unresolved(db):
 def test_unverified_subsidiary_maps_parent_indirectly_with_review(db):
     parent = repo.company_by_ticker(db, "ENGROH")["company_id"]
     child = repo.company_by_ticker(db, "EFERT")["company_id"]
-    db.execute("INSERT INTO company_relationships(parent_company_id, child_company_id, child_name, "
-               "relationship_type, evidence_status, is_synthetic, recorded_by, recorded_at_utc) "
-               "VALUES (?,?,?,?,?,?,?,?)", (parent, child, "Engro Fertilizers", "subsidiary", "unverified", 1,
-                                            "test", NOW))
+    record_relationship(db, parent_company_id=parent, child_company_id=child, child_name="Engro Fertilizers",
+                        relationship_type="subsidiary", evidence_status="unverified", recorded_by="test",
+                        change_reason="SYNTHETIC FIXTURE", is_synthetic=True)
     exposure(db, "EFERT", "input", "natural gas")
     r = map_event(db, event(db, "OGRA raises natural gas price for fertiliser plants",
-                            event_type="energy_policy"), persist=False)
+                            event_type="energy_policy"), synthetic=True)
     assert by_symbol(r, "EFERT")[0].direction == "negative"
     p = [c for c in by_symbol(r, "ENGROH") if c.rule_id == "R-REL-1"][0]
-    assert p.level == "indirect" and p.evidence_status == "potential"
+    assert p.level == "indirect" and p.evidence_status == "unverified"
+    assert any("no cited source" in m for m in p.missing)
+    stored = db.execute("SELECT evidence_status FROM exposure_candidates WHERE psx_symbol='ENGROH' "
+                        "AND rule_id='R-REL-1'")[0]
+    assert stored["evidence_status"] == "unverified"
     assert any("relationship is unverified" in x for x in p.review_reasons)
     assert any("ownership percentage" in m for m in p.missing)
+
+
+def _rel(db, **kw):
+    base = {"parent_company_id": repo.company_by_ticker(db, "ENGROH")["company_id"], "child_name": "Child Co",
+            "relationship_type": "subsidiary", "evidence_status": "unverified", "recorded_by": "test",
+            "change_reason": "SYNTHETIC FIXTURE", "is_synthetic": True}
+    base.update(kw)
+    return record_relationship(db, **base)
 
 
 def test_relationship_constraints(db):
     a = repo.company_by_ticker(db, "ENGROH")["company_id"]
     with pytest.raises(DatabaseError):   # confirmed needs cited evidence
-        db.execute("INSERT INTO company_relationships(parent_company_id, child_name, relationship_type, "
-                   "evidence_status, recorded_by, recorded_at_utc) VALUES (?,?,?,?,?,?)",
-                   (a, "X", "subsidiary", "confirmed", "t", NOW))
-    with pytest.raises(DatabaseError):   # a company cannot be its own subsidiary
+        _rel(db, evidence_status="confirmed")
+    with pytest.raises(ValueError, match="cycle"):   # refused by the application first
+        _rel(db, child_company_id=a, child_name="self")
+    with pytest.raises(DatabaseError):   # and by the database for direct SQL
         db.execute("INSERT INTO company_relationships(parent_company_id, child_company_id, child_name, "
-                   "relationship_type, evidence_status, recorded_by, recorded_at_utc) VALUES (?,?,?,?,?,?,?)",
-                   (a, a, "self", "subsidiary", "unverified", "t", NOW))
+                   "relationship_type, evidence_status, change_reason, recorded_by, recorded_at_utc) "
+                   "VALUES (?,?,?,?,?,?,?,?)", (a, a, "self", "subsidiary", "unverified", "x", "test", NOW))
+    unapproved = item(db, "fxunapproved", "rel-u", "SYNTHETIC FIXTURE relationship")
+    with pytest.raises(DatabaseError, match="approved"):   # strong status needs an approved source
+        _rel(db, evidence_status="strongly_supported", source_item_id=unapproved, evidence_excerpt="x")
+    with pytest.raises(DatabaseError, match="synthetic"):  # synthetic evidence on a non-synthetic row
+        _rel(db, source_item_id=unapproved, evidence_excerpt="x", evidence_status="potential",
+             is_synthetic=False)
+    with pytest.raises(DatabaseError):   # invalid company reference
+        _rel(db, parent_company_id="cmp-doesnotexist")
+
+
+def test_relationships_are_append_only_with_correction_history(db):
+    child = repo.company_by_ticker(db, "EFERT")["company_id"]
+    rid = _rel(db, child_company_id=child, child_name="Engro Fertilizers", ownership_pct=50.0)
+    with pytest.raises(DatabaseError):
+        db.execute("UPDATE company_relationships SET ownership_pct = 60 WHERE relationship_id = ?", (rid,))
+    with pytest.raises(DatabaseError):
+        db.execute("DELETE FROM company_relationships")
+    with pytest.raises(DatabaseError, match="supersede"):   # duplicate current relationship
+        _rel(db, child_company_id=child, child_name="Engro Fertilizers")
+    fixed = _rel(db, child_company_id=child, child_name="Engro Fertilizers", ownership_pct=56.0,
+                 supersedes=rid, change_reason="SYNTHETIC correction")
+    gone = _rel(db, child_company_id=child, child_name="Engro Fertilizers", evidence_status="rejected",
+                supersedes=fixed, change_reason="SYNTHETIC rejection")
+    with pytest.raises(DatabaseError):   # a row can be superseded only once
+        _rel(db, child_company_id=child, child_name="Engro Fertilizers", supersedes=rid)
+    with pytest.raises(DatabaseError, match="same parent and child"):
+        _rel(db, child_name="Someone Else", supersedes=gone)
+    hist = exposure_mapping.relationship_history(db, rid)
+    assert [h["relationship_id"] for h in hist] == [rid, fixed, gone]
+    assert [h["ownership_pct"] for h in hist][:2] == [50.0, 56.0]
+    assert hist[-1]["evidence_status"] == "rejected"
+    current = db.execute("SELECT relationship_id FROM current_company_relationships")
+    assert [r["relationship_id"] for r in current] == [gone]   # rejected stays traceable as the current row
+
+
+def test_relationship_cycles_are_refused(db):
+    a, b, c = (repo.company_by_ticker(db, t)["company_id"] for t in ("ENGROH", "EFERT", "EPCL"))
+    _rel(db, parent_company_id=a, child_company_id=b, child_name="B")
+    _rel(db, parent_company_id=b, child_company_id=c, child_name="C")
+    with pytest.raises(DatabaseError, match="cycle"):      # direct reversal: refused by the database
+        db.execute("INSERT INTO company_relationships(parent_company_id, child_company_id, child_name, "
+                   "relationship_type, evidence_status, change_reason, recorded_by, recorded_at_utc) "
+                   "VALUES (?,?,?,?,?,?,?,?)", (b, a, "A", "subsidiary", "unverified", "x", "test", NOW))
+    with pytest.raises(ValueError, match="cycle"):         # deeper cycle: refused by the application
+        _rel(db, parent_company_id=c, child_company_id=a, child_name="A")
 
 
 # ------------------------------------------------------------------ persistence, revisions, review
@@ -306,11 +364,12 @@ def test_persistence_is_idempotent_and_revisions_are_kept(db):
     third = map_event(db, eid, synthetic=True)
     assert third.stored["revised"] >= 1
     row = db.execute("SELECT * FROM exposure_candidates WHERE psx_symbol='ATRL' AND rule_id='R-OIL-1'")[0]
-    assert row["evidence_status"] == "unverified" and row["current_revision"] == 2
+    assert row["evidence_status"] == "unverified" and row["current_revision"] == 3
     assert row["is_synthetic"] == 1
     hist = db.execute("SELECT revision_no, evidence_status FROM exposure_candidate_revisions "
                       "WHERE candidate_id=? ORDER BY revision_no", (row["candidate_id"],))
-    assert [h["evidence_status"] for h in hist] == ["strongly_supported", "unverified"]
+    assert [h["evidence_status"] for h in hist] == ["unverified", "strongly_supported", "unverified"]
+    assert [h["revision_no"] for h in hist] == [1, 2, 3]
     assert row["ruleset_version"] == exposure_rules.RULESET_VERSION and row["schema_version"]
 
 
@@ -330,8 +389,19 @@ def test_review_accepts_only_strong_evidence_and_promotes_to_event_companies(db)
     assert done["evidence_status"] == "confirmed" and done["review_status"] == "accepted"
     link = db.execute("SELECT * FROM event_companies WHERE event_id=?", (eid,))[0]
     assert link["reviewer_status"] == "accepted" and link["impact_direction"] == "negative"
+    revs = db.execute("SELECT review_status, last_review_id FROM exposure_candidate_revisions "
+                      "WHERE candidate_id=? ORDER BY revision_no DESC LIMIT 1", (strong,))[0]
+    rv = db.execute("SELECT * FROM exposure_reviews WHERE review_id=?", (done["last_review_id"],))[0]
+    assert revs["review_status"] == "accepted" and revs["last_review_id"] == rv["review_id"]
+    assert rv["decision"] == "accept" and rv["reviewer"] == "owner" and rv["evidence_status_at_decision"] == \
+        "strongly_supported"
     rejected = review(db, weak, "reject", reviewer="owner", notes="sector membership only")
     assert rejected["evidence_status"] == "rejected"
+    with pytest.raises(DatabaseError):   # a decided candidate cannot be flipped without a new review
+        db.execute("UPDATE exposure_candidates SET review_status='pending', evidence_status='unverified', "
+                   "current_revision=?, change_reason='x', changed_by='x', updated_at_utc=? "
+                   "WHERE candidate_id=?",
+                   (rejected["current_revision"] + 1, NOW, weak))
     assert map_event(db, eid, synthetic=True).stored["revised"] == 0   # human decisions are not overwritten
     with pytest.raises(DatabaseError):
         db.execute("DELETE FROM exposure_reviews")
@@ -339,28 +409,169 @@ def test_review_accepts_only_strong_evidence_and_promotes_to_event_companies(db)
         db.execute("UPDATE exposure_reviews SET decision='accept'")
 
 
-def test_candidate_table_constraints(db):
+def _candidate_cols(row):
+    skip = {"candidate_id"}
+    return [k for k in row if k not in skip]
+
+
+def _raw_insert(db, row, **over):
+    vals = dict(row, **over)
+    cols = _candidate_cols(row)
+    db.execute(f"INSERT INTO exposure_candidates({', '.join(cols)}) "  # noqa: S608 - fixed column names
+               f"VALUES ({', '.join('?' * len(cols))})", [vals[k] for k in cols])
+
+
+def _strong_candidate(db):
+    exposure(db, "ATRL", "input", "crude oil")
     eid = event(db, "Brent crude oil price rises")
-    map_event(db, eid)
-    row = db.execute("SELECT * FROM exposure_candidates LIMIT 1")[0]
+    map_event(db, eid, synthetic=True)
+    return eid, db.execute("SELECT * FROM exposure_candidates "
+                           "WHERE psx_symbol='ATRL' AND rule_id='R-OIL-1'")[0]
+
+
+def test_every_candidate_has_revision_one_written_by_the_database(db):
+    eid, row = _strong_candidate(db)
+    for c in db.execute("SELECT candidate_id FROM exposure_candidates"):
+        revs = db.execute("SELECT revision_no FROM exposure_candidate_revisions WHERE candidate_id=? "
+                          "ORDER BY revision_no", (c["candidate_id"],))
+        assert revs and revs[0]["revision_no"] == 1
+    _raw_insert(db, row, mechanism="raw SQL insert", current_revision=1, evidence_status="unverified",
+                review_status="needs_review", last_review_id=None)
+    new = db.execute("SELECT candidate_id FROM exposure_candidates WHERE mechanism='raw SQL insert'")[0]
+    assert db.execute("SELECT revision_no FROM exposure_candidate_revisions WHERE candidate_id=?",
+                      (new["candidate_id"],))[0]["revision_no"] == 1   # even raw inserts get revision 1
+    with pytest.raises(DatabaseError, match="revision 1"):
+        _raw_insert(db, row, mechanism="starts at 5", current_revision=5, evidence_status="unverified",
+                    review_status="needs_review", last_review_id=None)
+
+
+def test_direct_sql_cannot_create_strong_or_confirmed_candidates(db):
+    eid, row = _strong_candidate(db)
+    for status, review_status in (("strongly_supported", "pending"), ("potential", "pending"),
+                                  ("confirmed", "accepted")):
+        with pytest.raises(DatabaseError):
+            _raw_insert(db, row, mechanism=f"forged {status}", current_revision=1, evidence_status=status,
+                        review_status=review_status, last_review_id=None)
+
+
+def test_status_cannot_be_raised_or_confirmed_without_real_evidence_and_review(db):
+    eid, row = _strong_candidate(db)
+    cid, rev = row["candidate_id"], row["current_revision"]
+    upd = ("UPDATE exposure_candidates SET evidence_status=?, review_status=?, current_revision=?, "
+           "change_reason='forged', changed_by='attacker', updated_at_utc=? WHERE candidate_id=?")
+    with pytest.raises(DatabaseError, match="acceptance review"):     # confirmed by flipping fields
+        db.execute(upd, ("confirmed", "accepted", rev + 1, NOW, cid))
+    with pytest.raises(DatabaseError, match="next revision"):         # skipping the revision
+        db.execute("UPDATE exposure_candidates SET confidence=0.9 WHERE candidate_id=?", (cid,))
+    sector = db.execute("SELECT * FROM exposure_candidates WHERE evidence_status='unverified' "
+                        "AND exposure_level='indirect' LIMIT 1")[0]
+    with pytest.raises(DatabaseError, match="company-specific evidence"):   # no evidence linked
+        db.execute(upd, ("strongly_supported", "pending", sector["current_revision"] + 1, NOW,
+                         sector["candidate_id"]))
+    with pytest.raises(DatabaseError):   # a forged review: accept of a non-strong candidate
+        db.execute("INSERT INTO exposure_reviews(candidate_id, decision, reviewer, notes, decided_at_utc, "
+                   "evidence_status_at_decision) VALUES (?,?,?,?,?,?)",
+                   (sector["candidate_id"], "accept", "attacker", "x", NOW, "unverified"))
+    with pytest.raises(DatabaseError):   # review must state the true current status
+        db.execute("INSERT INTO exposure_reviews(candidate_id, decision, reviewer, notes, decided_at_utc, "
+                   "evidence_status_at_decision) VALUES (?,?,?,?,?,?)",
+                   (sector["candidate_id"], "accept", "attacker", "x", NOW, "strongly_supported"))
+    for bad in (("", NOW), ("owner", "yesterday")):     # reviewer identity and timestamp are required
+        with pytest.raises(DatabaseError):
+            db.execute("INSERT INTO exposure_reviews(candidate_id, decision, reviewer, notes, "
+                       "decided_at_utc, evidence_status_at_decision) VALUES (?,?,?,?,?,?)",
+                       (cid, "reject", bad[0], "x", bad[1], "strongly_supported"))
+    with pytest.raises(DatabaseError, match="confirmed exposure candidate"):   # event_companies shortcut
+        db.execute("INSERT INTO event_companies(event_id, company_id, exposure_type, rationale, "
+                   "reviewer_status, created_at_utc) VALUES (?,?,?,?,?,?)",
+                   (eid, row["company_id"], "direct", "forged", "accepted", NOW))
+
+
+def test_downgraded_evidence_blocks_strong_status(db):
+    eid, row = _strong_candidate(db)
+    db.execute("UPDATE sources SET lifecycle_status='DISABLED', enabled=0 WHERE source_id='fxapproved'")
+    with pytest.raises(DatabaseError, match="approved"):
+        db.execute("UPDATE exposure_candidates SET explanation='x', current_revision=?, change_reason='t', "
+                   "changed_by='t', updated_at_utc=? WHERE candidate_id=?",
+                   (row["current_revision"] + 1, NOW, row["candidate_id"]))
+
+
+def test_fabricated_and_foreign_evidence_links_are_refused(db):
+    eid, row = _strong_candidate(db)
+    other_eid = event(db, "Unrelated synthetic event about cement", event_type="other")
+    other_ev = db.execute("SELECT evidence_id, source_item_id FROM event_evidence WHERE event_id=?",
+                          (other_eid,))[0]
+    ins = ("INSERT INTO exposure_candidate_evidence(candidate_id, role, event_evidence_id, "
+           "company_exposure_id, relationship_id, source_item_id, added_at_utc) VALUES (?,?,?,?,?,?,?)")
+    cid = row["candidate_id"]
+    with pytest.raises(DatabaseError):          # fabricated id (foreign key / trigger)
+        db.execute(ins, (cid, "company_specific", 99999, None, None, other_ev["source_item_id"], NOW))
+    with pytest.raises(DatabaseError, match="candidate's event"):     # evidence from another event
+        db.execute(ins, (cid, "claim", other_ev["evidence_id"], None, None, other_ev["source_item_id"], NOW))
+    other_x = exposure(db, "LUCK", "input", "coal")
+    sid = db.execute("SELECT source_item_id FROM company_exposures WHERE exposure_id=?", (other_x,))[0]
+    with pytest.raises(DatabaseError, match="candidate's company"):   # another company's exposure
+        db.execute(ins, (cid, "company_specific", None, other_x, None, sid["source_item_id"], NOW))
+    with pytest.raises(DatabaseError):          # two targets in one link
+        db.execute(ins, (cid, "company_specific", other_ev["evidence_id"], other_x, None, 1, NOW))
+    with pytest.raises(DatabaseError):          # evidence links are append-only
+        db.execute("DELETE FROM exposure_candidate_evidence")
+
+
+def test_synthetic_evidence_cannot_support_a_real_mapping(db):
+    exposure(db, "ATRL", "input", "crude oil")
+    eid = event(db, "Brent crude oil price rises")
+    with pytest.raises(DatabaseError, match="synthetic"):
+        map_event(db, eid, synthetic=False)
+    assert db.execute("SELECT COUNT(*) n FROM exposure_candidates")[0]["n"] == 0   # whole batch rolled back
+    assert db.execute("SELECT COUNT(*) n FROM exposure_candidate_revisions")[0]["n"] == 0
+
+
+def test_revisions_are_immutable_and_cannot_be_forged(db):
+    eid, row = _strong_candidate(db)
+    with pytest.raises(DatabaseError):
+        db.execute("UPDATE exposure_candidate_revisions SET evidence_status='confirmed'")
+    with pytest.raises(DatabaseError):
+        db.execute("DELETE FROM exposure_candidate_revisions")
+    with pytest.raises(DatabaseError, match="current revision only"):
+        db.execute("INSERT INTO exposure_candidate_revisions(candidate_id, revision_no, recorded_at_utc, "
+                   "evidence_status, review_status, snapshot_json, change_reason, changed_by) "
+                   "VALUES (?,?,?,?,?,?,?,?)", (row["candidate_id"], row["current_revision"] + 1, NOW,
+                                                "confirmed", "accepted", "{}", "forged", "attacker"))
     with pytest.raises(DatabaseError):
         db.execute("DELETE FROM exposure_candidates")
-    with pytest.raises(DatabaseError):   # direct edits without a recorded revision are refused
-        db.execute("UPDATE exposure_candidates SET evidence_status='potential' WHERE candidate_id=?",
-                   (row["candidate_id"],))
-    cols = [k for k in row if k != "candidate_id"]
-    insert = (f"INSERT INTO exposure_candidates({', '.join(cols)}) "  # noqa: S608 - fixed column names
-              f"VALUES ({', '.join('?' * len(cols))})")
-    vals = dict(row, evidence_status="strongly_supported", exposure_evidence_ids_json="[]",
-                mechanism="different mechanism")
-    with pytest.raises(DatabaseError):   # strong status without company-specific evidence
-        db.execute(insert, [vals[k] for k in cols])
-    vals = dict(row, evidence_status="confirmed", exposure_evidence_ids_json='[{"id": 1}]',
-                review_status="pending", mechanism="another mechanism")
-    with pytest.raises(DatabaseError):   # confirmed without human acceptance
-        db.execute(insert, [vals[k] for k in cols])
+
+
+def test_candidate_identity_and_duplicates(db):
+    eid, row = _strong_candidate(db)
+    with pytest.raises(DatabaseError, match="identity"):
+        db.execute("UPDATE exposure_candidates SET company_id='cmp-luck', current_revision=?, "
+                   "change_reason='x', changed_by='x', updated_at_utc=? WHERE candidate_id=?",
+                   (row["current_revision"] + 1, NOW, row["candidate_id"]))
     with pytest.raises(DatabaseError):   # duplicate mapping
-        db.execute(insert, [row[k] for k in cols])
+        _raw_insert(db, row, current_revision=1, evidence_status="unverified", review_status="needs_review",
+                    last_review_id=None)
+    with pytest.raises(DatabaseError):   # invalid company reference
+        _raw_insert(db, row, company_id="cmp-nope", mechanism="m2", current_revision=1,
+                    evidence_status="unverified", review_status="needs_review", last_review_id=None)
+
+
+def test_failed_batch_leaves_no_candidate_or_revision(db):
+    eid, row = _strong_candidate(db)
+    before = (db.execute("SELECT COUNT(*) n FROM exposure_candidates")[0]["n"],
+              db.execute("SELECT COUNT(*) n FROM exposure_candidate_revisions")[0]["n"])
+    cols = _candidate_cols(row)
+    good = dict(row, mechanism="batch test", current_revision=1, evidence_status="unverified",
+                review_status="needs_review", last_review_id=None)
+    with pytest.raises(DatabaseError):
+        db.batch([(f"INSERT INTO exposure_candidates({', '.join(cols)}) "  # noqa: S608 - fixed column names
+                   f"VALUES ({', '.join('?' * len(cols))})", [good[k] for k in cols]),
+                  ("INSERT INTO exposure_candidate_evidence(candidate_id, role, event_evidence_id, "
+                   "source_item_id, added_at_utc) SELECT candidate_id, 'claim', 99999, 1, ? "
+                   "FROM exposure_candidates WHERE mechanism = 'batch test'", (NOW,))])
+    after = (db.execute("SELECT COUNT(*) n FROM exposure_candidates")[0]["n"],
+             db.execute("SELECT COUNT(*) n FROM exposure_candidate_revisions")[0]["n"])
+    assert after == before
 
 
 # ------------------------------------------------------------------ LLM suggestions (fixture provider only)

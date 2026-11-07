@@ -102,14 +102,17 @@ python -m database.seed_loader            # load reference data (idempotent)
 ## Phase 3 and Phase 4 additions (migrations 0007, 0008)
 * 0007: `llm_calls` (append-only ledger), `event_extractions` (append-only), `story_clusters`,
   `story_cluster_members`.
-* 0008:
-  * `company_relationships`: parent, subsidiary, associate, JV and holding links with ownership,
-    effective dates, evidence status, source and synthetic flag.
-  * `exposure_candidates`: one per event, company, category, subtype, mechanism and ruleset version;
-    revisions only, no delete.
-  * `exposure_candidate_revisions` and `exposure_reviews`: append-only.
-* CHECK constraints stop `strongly_supported` or `confirmed` without company evidence, and `confirmed`
-  without human acceptance.
+* 0008 tables and columns:
+  * `sources.is_synthetic`.
+  * `company_relationships`: append-only, with corrections superseding earlier rows; view
+    `current_company_relationships`.
+  * `exposure_candidates`: revisions only, no delete.
+  * `exposure_candidate_evidence`: normalised foreign-key evidence links, append-only.
+  * `exposure_candidate_revisions`: written by triggers.
+  * `exposure_reviews`: append-only.
+* Triggers verify that evidence belongs to the right event or company, that sources are approved for
+  `potential` and above, that the event is corroborated for `strongly_supported`, and that a real
+  acceptance review exists for `confirmed`.
 * Applied to local and CI databases only. Production Turso is still at 0005.
 * See `docs/EXPOSURE_MAPPING.md`.
 

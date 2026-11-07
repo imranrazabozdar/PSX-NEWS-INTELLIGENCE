@@ -30,3 +30,16 @@ exposure from sector membership. No company-specific evidence source is approved
 ## Consequences
 - Phase 5 can consume confirmed `event_companies` links and candidates with explicit missing evidence.
 - Until approved company-evidence sources exist, no real mapping is confirmed or strongly supported.
+
+## Amendment: database-integrity review (2026-11-07, before merge)
+Migration 0008 had run only on throwaway local and CI databases, so it was revised in place. Production
+is still at 0005. Changes:
+- JSON evidence-id lists are replaced by `exposure_candidate_evidence`, with foreign keys and ownership
+  triggers.
+- Revisions are written by triggers.
+- Status upgrades are re-checked against the linked evidence, approved sources and event verification.
+- `confirmed` requires an immutable acceptance review referenced by `last_review_id`.
+- `company_relationships` is append-only, with correction chains and cycle checks.
+- A synthetic-source flag has been added.
+
+Full list: `docs/EXPOSURE_MAPPING.md` §6.

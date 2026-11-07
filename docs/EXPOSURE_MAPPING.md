@@ -123,13 +123,29 @@ establish a direction.
 - **No live LLM is connected:** with the Claude provider not connected, the call returns `not_connected`
   and produces nothing.
 
-## 6. Persistence and audit
-- `exposure_candidates` has one row per (event, company, category, subtype, mechanism, ruleset version).
-  It can't be deleted, and it changes only through an `exposure_candidate_revisions` row (append-only).
-- Re-running the same event is idempotent. If evidence or rules change, a new revision is written.
-- A human `accept` or `reject` is never overwritten by a re-run.
-- `exposure_reviews` is append-only. An accepted, confirmed candidate is written to the existing
-  `event_companies` table for Phase 5.
+## 6. Persistence, integrity and audit (database-enforced)
+Migration 0008 was revised before merge after the owner's database-integrity review. It had only ever
+run on throwaway local and CI databases; production is still at 0005.
+
+| Guarantee | Mechanism |
+|---|---|
+| Every candidate has revision 1 | an `AFTER INSERT` trigger writes it in the same statement; inserts must start at revision 1 |
+| Every change is a new revision | updates must set `current_revision = old + 1` and carry `change_reason` and `changed_by`; an `AFTER UPDATE` trigger writes the revision |
+| Revisions can't be forged or edited | a hand-inserted revision is refused unless it is the candidate's current one (which already exists); no update or delete |
+| Identity is fixed | event, company, category, subtype, mechanism, origin, ruleset version, synthetic flag and creation time can't change |
+| Evidence is real | `exposure_candidate_evidence` links use foreign keys to `event_evidence`, `company_exposures` or `company_relationships` (exactly one per row) plus the source item. Triggers check that the evidence belongs to the candidate's event, or to its company as owner or parent, and matches the source item. Links are append-only. |
+| No status shortcut | candidates are inserted only as `unverified` or `rejected`. Moving to `potential` or higher needs at least one company-specific link, and every company-specific source must be ACTIVE with approved terms. `strongly_supported` also needs a corroborated or primary-confirmed event. |
+| Human acceptance is real | `confirmed` is reachable only from `strongly_supported`, with `last_review_id` pointing to an `accept` review of this candidate. CHECK: confirmed ⇔ accepted. |
+| Reviews are valid and immutable | reviewer (2 or more characters), notes and a UTC timestamp are required. The review records the candidate's actual status at the time, and only a strongly supported candidate can be accepted. No update or delete. |
+| Decisions stick | an accepted or rejected candidate can only change through a new review; re-runs skip it |
+| Synthetic data stays synthetic | `sources.is_synthetic` (additive column). Synthetic evidence can't be linked to a non-synthetic candidate or relationship. |
+| `event_companies` can't be shortcut | an accepted link there requires a confirmed candidate |
+| Atomicity | candidate, links and status assessment are written in one batch; a failure rolls back everything |
+| Relationships keep history | `company_relationships` is append-only. Corrections are new rows with `supersedes_relationship_id` (each row superseded at most once, same parent and child). `current_company_relationships` shows the latest row. Rejected rows stay traceable. Self-links and direct A↔B cycles are refused by the database; deeper cycles are refused by `record_relationship`. |
+
+Other behaviour:
+- Re-running the same event is idempotent.
+- Accepted, confirmed candidates are written to `event_companies` for Phase 5.
 - No impact size, percentage or share-price effect is estimated. That is Phase 5.
 
 ## 7. Limitations
@@ -145,3 +161,10 @@ establish a direction.
    until a reviewed `misspelling` alias is added.
 6. Ambiguous and unresolved mentions are returned in `MappingResult.unresolved_mentions` but not
    stored, because there is no company to attach them to.
+7. Cycles deeper than a direct A↔B reversal are checked in application code, not in a trigger. A
+   recursive CTE inside a trigger works on local SQLite 3.53, but it is unverified on Turso (SQLite 3.47).
+8. Evidence links are append-only. If documented evidence stops being valid, the old link stays, and
+   the status is re-assessed and downgraded on the next run. The database re-checks source approval
+   whenever the status is `potential` or above.
+9. The triggers are tested on SQLite only. Migration 0008 has not been run against Turso, deliberately:
+   no production change.

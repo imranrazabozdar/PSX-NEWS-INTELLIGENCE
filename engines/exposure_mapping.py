@@ -222,7 +222,7 @@ def _relationship_candidates(db, ev: dict, base: list[Candidate]) -> list[Candid
     as_of = (ev.get("event_date") or "")[:10] or None
     mapped = {c.company["company_id"]: c for c in base}
     mentioned = {normalise_for_match(e["name"]) for e in ev.get("entities", [])}
-    for rel in db.execute("SELECT * FROM company_relationships"):
+    for rel in db.execute("SELECT * FROM current_company_relationships"):
         if not _valid_at(rel, as_of) or rel["evidence_status"] == "rejected":
             continue
         via = mapped.get(rel["child_company_id"]) if rel["child_company_id"] else None
@@ -234,13 +234,17 @@ def _relationship_candidates(db, ev: dict, base: list[Candidate]) -> list[Candid
                       via.direction if via and rel["relationship_type"] == "subsidiary" else "unknown",
                       f"through its {rel['relationship_type']} {rel['child_name']}", "relationship",
                       claim_evidence_ids=[e["evidence_id"] for e in ev["evidence"]],
-                      exposure_evidence=[{"table": "company_relationships", "id": rel["relationship_id"]}]
-                      + (via.exposure_evidence if via else []),
+                      # only the relationship itself is the parent's company-specific evidence; the
+                      # child's own exposure rows belong to the child and are cited in the mechanism
+                      exposure_evidence=[{"table": "company_relationships", "id": rel["relationship_id"]}],
                       source_item_ids=sorted(({rel["source_item_id"]} if rel["source_item_id"] else set())
                                              | set(via.source_item_ids if via else [])),
                       rule_id="R-REL-1", relationship_status=rel["evidence_status"])
         if rel["evidence_status"] not in ("confirmed", "strongly_supported"):
             c.review_reasons.append(f"{rel['relationship_type']} relationship is {rel['evidence_status']}")
+        if not rel["source_item_id"]:
+            c.exposure_evidence = []
+            c.missing.append("relationship has no cited source")
         if rel["ownership_pct"] is None:
             c.missing.append("ownership percentage not documented")
         out.append(c)
@@ -302,9 +306,13 @@ def _contradictions(cands: list[Candidate]) -> set[str]:
 
 
 # ---------------------------------------------------------------- persistence
+# Evidence is stored as rows in exposure_candidate_evidence (real foreign keys, checked by triggers),
+# revisions are written by database triggers, and status changes above 'unverified' are re-checked
+# by the database against the linked evidence and approved sources.
 _MATERIAL = ("impact_direction", "exposure_level", "evidence_status", "review_status", "confidence",
-             "explanation", "exposure_evidence_ids_json", "claim_evidence_ids_json", "missing_evidence_json",
-             "review_reasons_json", "segment_id", "source_item_ids_json")
+             "explanation", "missing_evidence_json", "review_reasons_json", "segment_id")
+_KEY = ("event_id", "company_id", "exposure_category", "exposure_subtype", "mechanism", "ruleset_version")
+_WHERE_KEY = " AND ".join(f"{k} = ?" for k in _KEY)   # fixed column names only
 
 
 def _row(ev_id: int, c: Candidate, synthetic: bool) -> dict:
@@ -312,11 +320,7 @@ def _row(ev_id: int, c: Candidate, synthetic: bool) -> dict:
         "event_id": ev_id, "company_id": c.company["company_id"], "psx_symbol": c.company.get("psx_symbol"),
         "exposure_category": c.category, "exposure_subtype": c.subtype, "exposure_level": c.level,
         "impact_direction": c.direction, "segment_id": c.segment_id, "mechanism": c.mechanism,
-        "explanation": c.explanation,
-        "claim_evidence_ids_json": json.dumps(sorted(set(c.claim_evidence_ids))),
-        "exposure_evidence_ids_json": json.dumps(c.exposure_evidence, sort_keys=True),
-        "source_item_ids_json": json.dumps(sorted(set(c.source_item_ids))),
-        "missing_evidence_json": json.dumps(sorted(set(c.missing))),
+        "explanation": c.explanation, "missing_evidence_json": json.dumps(sorted(set(c.missing))),
         "confidence": c.confidence, "evidence_status": c.evidence_status,
         "review_status": "rejected" if c.evidence_status == "rejected"
         else ("needs_review" if c.review_reasons or c.evidence_status == "unverified" else "pending"),
@@ -326,47 +330,85 @@ def _row(ev_id: int, c: Candidate, synthetic: bool) -> dict:
     }
 
 
-def _store(db, row: dict, changed_by: str) -> str:
+def _links(db, ev: dict, c: Candidate) -> list[tuple]:
+    """(role, event_evidence_id, company_exposure_id, relationship_id, source_item_id) rows to link."""
+    out = []
+    by_ev = {r["evidence_id"]: r["source_item_id"] for r in ev["evidence"]}
+    for eid in sorted(set(c.claim_evidence_ids)):
+        if eid in by_ev:
+            out.append(("claim", eid, None, None, by_ev[eid]))
+    for ref in c.exposure_evidence:
+        if ref["table"] == "event_evidence" and ref["id"] in by_ev:
+            out.append(("company_specific", ref["id"], None, None, by_ev[ref["id"]]))
+        elif ref["table"] == "company_exposures":
+            row = db.execute("SELECT source_item_id FROM company_exposures WHERE exposure_id = ?",
+                             (ref["id"],))
+            if row:
+                out.append(("company_specific", None, ref["id"], None, row[0]["source_item_id"]))
+        elif ref["table"] == "company_relationships":
+            row = db.execute("SELECT source_item_id FROM company_relationships WHERE relationship_id = ?",
+                             (ref["id"],))
+            if row and row[0]["source_item_id"] is not None:
+                out.append(("company_specific", None, None, ref["id"], row[0]["source_item_id"]))
+    return sorted(set(out), key=lambda t: tuple(-1 if v is None else v for v in t[1:]) + (t[0],))
+
+
+def _link_stmt(key_vals: tuple, link: tuple, now: str):
+    sql = ("INSERT INTO exposure_candidate_evidence(candidate_id, role, event_evidence_id, "  # noqa: S608
+           "company_exposure_id, relationship_id, source_item_id, added_at_utc) "
+           "SELECT candidate_id, ?, ?, ?, ?, ?, ? FROM exposure_candidates WHERE " + _WHERE_KEY)
+    return sql, (*link, now, *key_vals)
+
+
+def _store(db, row: dict, links: list[tuple], changed_by: str) -> str:
     now = now_utc()
-    key = ("event_id", "company_id", "exposure_category", "exposure_subtype", "mechanism", "ruleset_version")
-    where = " AND ".join(f"{k} = ?" for k in key)   # column names are fixed constants
-    existing = db.execute(f"SELECT * FROM exposure_candidates WHERE {where}",  # noqa: S608
-                          tuple(row[k] for k in key))
+    key_vals = tuple(row[k] for k in _KEY)
+    existing = db.execute(f"SELECT * FROM exposure_candidates WHERE {_WHERE_KEY}", key_vals)  # noqa: S608
+    stmts = []
     if not existing:
-        cols = list(row) + ["current_revision", "created_at_utc", "updated_at_utc"]
-        vals = list(row.values()) + [1, now, now]
-        db.batch([
-            (f"INSERT INTO exposure_candidates({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})",  # noqa: S608
-             vals),
-            ("INSERT INTO exposure_candidate_revisions(candidate_id, revision_no, recorded_at_utc, "
-             "evidence_status, review_status, snapshot_json, change_reason, changed_by) "
-             "SELECT candidate_id, 1, ?, evidence_status, review_status, ?, 'created', ? "
-             "FROM exposure_candidates WHERE rowid = last_insert_rowid()",
-             (now, json.dumps(row, sort_keys=True), changed_by)),
-        ])
+        first = "rejected" if row["evidence_status"] == "rejected" else "unverified"
+        start = dict(row, evidence_status=first)
+        cols = list(start) + ["current_revision", "change_reason", "changed_by", "created_at_utc",
+                              "updated_at_utc"]
+        vals = list(start.values()) + [1, "created", changed_by, now, now]
+        stmts.append((f"INSERT INTO exposure_candidates({', '.join(cols)}) "  # noqa: S608 - fixed columns
+                      f"VALUES ({', '.join('?' * len(cols))})", vals))
+        stmts += [_link_stmt(key_vals, link, now) for link in links]
+        if row["evidence_status"] != start["evidence_status"]:
+            stmts.append((f"UPDATE exposure_candidates SET evidence_status = ?, current_revision = 2, "  # noqa: S608
+                          f"change_reason = 'evidence linked; status assessed', changed_by = ?, "
+                          f"updated_at_utc = ? WHERE {_WHERE_KEY}",
+                          (row["evidence_status"], changed_by, now, *key_vals)))
+        db.batch(stmts)
         return "created"
     cur = existing[0]
-    if cur["review_status"] in ("accepted", "rejected") and cur["origin"] == row["origin"]:
-        return "unchanged"   # a human decision is not overwritten by a re-run
+    if cur["review_status"] in ("accepted", "rejected"):
+        return "unchanged"   # a human or validation decision is not overwritten by a re-run
+    have = {(r["role"], r["event_evidence_id"], r["company_exposure_id"], r["relationship_id"],
+             r["source_item_id"])
+            for r in db.execute("SELECT * FROM exposure_candidate_evidence WHERE candidate_id = ?",
+                                (cur["candidate_id"],))}
+    new_links = [lk for lk in links if lk not in have]
     changes = {k: row[k] for k in _MATERIAL if cur[k] != row[k]}
-    if not changes:
+    if not changes and not new_links:
         return "unchanged"
-    _revise(db, cur, changes, "re-run with changed evidence or rules", changed_by)
+    stmts += [_link_stmt(key_vals, link, now) for link in new_links]
+    changes = changes or {"explanation": row["explanation"]}
+    stmts.append(_revise_stmt(cur, changes, "re-run with changed evidence or rules", changed_by, now))
+    db.batch(stmts)
     return "revised"
 
 
-def _revise(db, cur: dict, changes: dict, reason: str, changed_by: str) -> None:
-    now = now_utc()
-    rev = cur["current_revision"] + 1
-    snap = {k: cur[k] for k in cur if k not in ("candidate_id", "current_revision")} | changes
+def _revise_stmt(cur: dict, changes: dict, reason: str, changed_by: str, now: str, review_sql: str = ""):
     sets = ", ".join(f"{k} = ?" for k in changes)
-    db.batch([
-        ("INSERT INTO exposure_candidate_revisions VALUES (?,?,?,?,?,?,?,?)",
-         (cur["candidate_id"], rev, now, snap["evidence_status"], snap["review_status"],
-          json.dumps(snap, sort_keys=True, default=str), reason, changed_by)),
-        (f"UPDATE exposure_candidates SET {sets}, current_revision = ?, updated_at_utc = ? "  # noqa: S608
-         "WHERE candidate_id = ?", [*changes.values(), rev, now, cur["candidate_id"]]),
-    ])
+    extra = ", last_review_id = (SELECT MAX(review_id) FROM exposure_reviews WHERE candidate_id = ?)" \
+        if review_sql else ""
+    params = [*changes.values(), cur["current_revision"] + 1, reason, changed_by, now]
+    if review_sql:
+        params.append(cur["candidate_id"])
+    params.append(cur["candidate_id"])
+    return (f"UPDATE exposure_candidates SET {sets}, current_revision = ?, change_reason = ?, "  # noqa: S608
+            f"changed_by = ?, updated_at_utc = ?{extra} WHERE candidate_id = ?", params)
 
 
 # ---------------------------------------------------------------- public API
@@ -383,7 +425,7 @@ def map_event(db, event_id: int, *, synthetic: bool = False, persist: bool = Tru
     result.candidates = cands
     if persist:
         for c in cands:
-            result.stored[_store(db, _row(event_id, c, synthetic), changed_by)] += 1
+            result.stored[_store(db, _row(event_id, c, synthetic), _links(db, ev, c), changed_by)] += 1
     return result
 
 
@@ -481,21 +523,27 @@ def suggest_with_llm(db, event_id: int, gateway, *, synthetic: bool = False) -> 
                 rej.evidence_status, rej.confidence = "rejected", 0.0
                 rej.explanation = f"Rejected LLM suggestion: {why}."
                 rej.model, rej.prompt_version = out.model, prompt.version
-                result.stored[_store(db, _row(event_id, rej, synthetic), "phase4-llm")] += 1
+                result.stored[_store(db, _row(event_id, rej, synthetic), [], "phase4-llm")] += 1
             continue
         cand.model, cand.prompt_version = out.model, prompt.version
         _assess(db, ev, cand, contradictory)
         result.candidates.append(cand)
-        result.stored[_store(db, _row(event_id, cand, synthetic), "phase4-llm")] += 1
+        result.stored[_store(db, _row(event_id, cand, synthetic), _links(db, ev, cand), "phase4-llm")] += 1
     return result
 
 
 def review(db, candidate_id: int, decision: str, *, reviewer: str, notes: str) -> dict:
-    """Record a human decision. Only strongly supported candidates can be accepted (-> confirmed)."""
+    """Record a human decision. Only strongly supported candidates can be accepted (-> confirmed).
+
+    The review row, the candidate's new revision and (on acceptance) the event_companies link are
+    written in one atomic batch; the database re-checks every rule.
+    """
     if decision not in ("accept", "reject", "needs_more_evidence"):
         raise ValueError("decision must be accept, reject or needs_more_evidence")
     if not notes.strip():
         raise ValueError("review notes are required")
+    if len(reviewer.strip()) < 2:
+        raise ValueError("a reviewer identity is required")
     rows = db.execute("SELECT * FROM exposure_candidates WHERE candidate_id = ?", (candidate_id,))
     if not rows:
         raise ValueError(f"candidate {candidate_id} not found")
@@ -503,18 +551,69 @@ def review(db, candidate_id: int, decision: str, *, reviewer: str, notes: str) -
     if decision == "accept" and cur["evidence_status"] != "strongly_supported":
         raise ValueError(f"cannot accept a candidate whose evidence is '{cur['evidence_status']}'; "
                          "approved company-specific evidence and a corroborated event are required")
-    db.execute("INSERT INTO exposure_reviews(candidate_id, decision, reviewer, notes, decided_at_utc) "
-               "VALUES (?,?,?,?,?)", (candidate_id, decision, reviewer, notes, now_utc()))
+    now = now_utc()
     changes = {"accept": {"evidence_status": "confirmed", "review_status": "accepted"},
                "reject": {"evidence_status": "rejected", "review_status": "rejected"},
                "needs_more_evidence": {"review_status": "needs_review"}}[decision]
-    _revise(db, cur, changes, f"review: {decision} by {reviewer}", reviewer)
+    stmts = [("INSERT INTO exposure_reviews(candidate_id, decision, reviewer, notes, decided_at_utc, "
+              "evidence_status_at_decision) VALUES (?,?,?,?,?,?)",
+              (candidate_id, decision, reviewer.strip(), notes, now, cur["evidence_status"])),
+             _revise_stmt(cur, changes, f"review: {decision} by {reviewer.strip()}", reviewer.strip(), now,
+                          review_sql="yes")]
     if decision == "accept":
-        db.execute("INSERT INTO event_companies(event_id, company_id, exposure_type, impact_direction, "
-                   "channel, rationale, confidence, reviewer_status, created_at_utc) "
-                   "VALUES (?,?,?,?,?,?,?,?,?) "
-                   "ON CONFLICT(event_id, company_id) DO NOTHING",
-                   (cur["event_id"], cur["company_id"], cur["exposure_level"], cur["impact_direction"],
-                    f"{cur['exposure_category']}/{cur['exposure_subtype']}", cur["explanation"],
-                    cur["confidence"], "accepted", now_utc()))
+        stmts.append(("INSERT INTO event_companies(event_id, company_id, exposure_type, impact_direction, "
+                      "channel, rationale, confidence, reviewer_status, created_at_utc) "
+                      "VALUES (?,?,?,?,?,?,?,?,?) ON CONFLICT(event_id, company_id) DO NOTHING",
+                      (cur["event_id"], cur["company_id"], cur["exposure_level"], cur["impact_direction"],
+                       f"{cur['exposure_category']}/{cur['exposure_subtype']}", cur["explanation"],
+                       cur["confidence"], "accepted", now)))
+    db.batch(stmts)
     return db.execute("SELECT * FROM exposure_candidates WHERE candidate_id = ?", (candidate_id,))[0]
+
+
+def _would_cycle(db, parent_id: str, child_id: str | None) -> bool:
+    if child_id is None:
+        return False
+    rows = db.execute(
+        "WITH RECURSIVE down(cid) AS (SELECT ? UNION SELECT r.child_company_id "
+        "FROM current_company_relationships r JOIN down ON r.parent_company_id = down.cid "
+        "WHERE r.child_company_id IS NOT NULL AND r.evidence_status <> 'rejected') "
+        "SELECT 1 FROM down WHERE cid = ? LIMIT 1", (child_id, parent_id))
+    return bool(rows)
+
+
+def record_relationship(db, *, parent_company_id: str, child_name: str, relationship_type: str,
+                        evidence_status: str, recorded_by: str, change_reason: str,
+                        child_company_id: str | None = None, ownership_pct: float | None = None,
+                        valid_from: str | None = None, valid_to: str | None = None,
+                        source_item_id: int | None = None, evidence_excerpt: str | None = None,
+                        is_synthetic: bool = False, supersedes: int | None = None) -> int:
+    """Append a relationship, or a correction that supersedes an earlier row. Never edits or deletes."""
+    if evidence_status != "rejected" and _would_cycle(db, parent_company_id, child_company_id):
+        raise ValueError("relationship would create an ownership cycle")
+    db.execute("INSERT INTO company_relationships(supersedes_relationship_id, parent_company_id, "
+               "child_company_id, child_name, relationship_type, ownership_pct, valid_from, valid_to, "
+               "evidence_status, source_item_id, evidence_excerpt, is_synthetic, change_reason, recorded_by, "
+               "recorded_at_utc) "
+               "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+               (supersedes, parent_company_id, child_company_id, child_name, relationship_type, ownership_pct,
+                valid_from, valid_to, evidence_status, source_item_id, evidence_excerpt, int(is_synthetic),
+                change_reason, recorded_by, now_utc()))
+    return db.execute("SELECT MAX(relationship_id) i FROM company_relationships")[0]["i"]
+
+
+def relationship_history(db, relationship_id: int) -> list[dict]:
+    """The full correction chain containing this relationship, oldest first."""
+    chain, rid = [], relationship_id
+    while True:   # walk back to the original
+        row = db.execute("SELECT * FROM company_relationships WHERE relationship_id = ?", (rid,))[0]
+        if row["supersedes_relationship_id"] is None:
+            break
+        rid = row["supersedes_relationship_id"]
+    while rid is not None:
+        row = db.execute("SELECT * FROM company_relationships WHERE relationship_id = ?", (rid,))[0]
+        chain.append(row)
+        nxt = db.execute("SELECT relationship_id FROM company_relationships "
+                         "WHERE supersedes_relationship_id = ?", (rid,))
+        rid = nxt[0]["relationship_id"] if nxt else None
+    return chain

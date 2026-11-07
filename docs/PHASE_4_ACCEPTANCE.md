@@ -48,8 +48,23 @@ Labels used in this report:
 | Check | Result |
 |---|---|
 | Independence guard, ruff | pass |
-| pytest | 188 passed, 11 skipped (5 opt-in live-source, 6 Turso: not configured by design) |
+| pytest | 198 passed, 11 skipped (5 opt-in live-source, 6 Turso: not configured by design) |
 | pip-audit | no known vulnerabilities |
+
+## Database-integrity review (owner, 2026-11-07)
+| Finding in the first version of 0008 | Correction | Tests |
+|---|---|---|
+| A candidate could be inserted without revision 1, because the application wrote it | `AFTER INSERT` trigger writes revision 1; inserts must start at 1 | `test_every_candidate_has_revision_one_written_by_the_database`, `test_failed_batch_leaves_no_candidate_or_revision` |
+| Evidence was a JSON id list: any non-empty array passed | normalised `exposure_candidate_evidence` with foreign keys and ownership triggers | `test_fabricated_and_foreign_evidence_links_are_refused` |
+| `strongly_supported` could be inserted or updated by direct SQL | inserts only `unverified`/`rejected`; upgrades re-checked against links, approved sources and event verification | `test_direct_sql_cannot_create_strong_or_confirmed_candidates`, `test_status_cannot_be_raised_or_confirmed_without_real_evidence_and_review`, `test_downgraded_evidence_blocks_strong_status` |
+| `confirmed` needed only `review_status = 'accepted'`, a field anyone could set | `confirmed` needs a prior strongly supported status and `last_review_id` pointing to an immutable `accept` review with reviewer, timestamp and status at decision; `event_companies` acceptance requires a confirmed candidate | same, plus `test_review_accepts_only_strong_evidence_and_promotes_to_event_companies` |
+| Revisions could be hand-inserted out of order | only the current revision can be inserted (by trigger); no update or delete | `test_revisions_are_immutable_and_cannot_be_forged` |
+| Relationships could be edited or deleted silently; no cycle checks | append-only with superseding corrections, view of current rows, self, direct and deep cycle checks | `test_relationships_are_append_only_with_correction_history`, `test_relationship_cycles_are_refused`, `test_relationship_constraints` |
+| Synthetic data could support a real mapping | `sources.is_synthetic`; triggers refuse synthetic evidence on non-synthetic rows; the whole batch rolls back | `test_synthetic_evidence_cannot_support_a_real_mapping` |
+| Parent-company candidates reused the child's exposure rows | the parent's evidence is only the relationship row; without a cited source the candidate stays unverified | `test_unverified_subsidiary_maps_parent_indirectly_with_review` (now persisted) |
+
+All tests now persist through the database, so every status the application assigns is re-checked by
+the triggers.
 
 ## Not done (by instruction)
 - Phase 5 (impact sizing, share-price effects), valuation and dashboards.
