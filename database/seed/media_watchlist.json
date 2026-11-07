@@ -1,6 +1,6 @@
 {
  "dataset": "media_watchlist",
- "version": 1,
+ "version": 2,
  "source": "docs/SPECIFICATION.md section 4 (owner-supplied)",
  "accounts": [
   {
@@ -9,7 +9,8 @@
    "supplied_url": "https://x.com/MarioNawfal",
    "display_name": null,
    "monitoring_purpose": "Geopolitics / breaking developments",
-   "notes": null
+   "notes": null,
+   "category": "international_geopolitics"
   },
   {
    "platform": "x",
@@ -17,7 +18,8 @@
    "supplied_url": "https://x.com/AJEnglish",
    "display_name": null,
    "monitoring_purpose": "International news",
-   "notes": null
+   "notes": null,
+   "category": "international_geopolitics"
   },
   {
    "platform": "x",
@@ -25,7 +27,8 @@
    "supplied_url": "https://x.com/imemon15",
    "display_name": null,
    "monitoring_purpose": "Pakistan / current affairs",
-   "notes": "validate identity"
+   "notes": "validate identity",
+   "category": "pakistan_politics_geopolitics"
   },
   {
    "platform": "x",
@@ -33,7 +36,8 @@
    "supplied_url": "https://x.com/clashreport",
    "display_name": null,
    "monitoring_purpose": "Conflict and geopolitical developments",
-   "notes": null
+   "notes": null,
+   "category": "international_geopolitics"
   },
   {
    "platform": "x",
@@ -41,7 +45,8 @@
    "supplied_url": "https://x.com/AlphaWireHQ",
    "display_name": null,
    "monitoring_purpose": "Breaking news / markets",
-   "notes": "validate source profile"
+   "notes": "validate source profile",
+   "category": "international_geopolitics"
   },
   {
    "platform": "x",
@@ -49,7 +54,8 @@
    "supplied_url": "https://x.com/Conflict_Matrix",
    "display_name": null,
    "monitoring_purpose": "Conflict / security monitoring",
-   "notes": "validate identity"
+   "notes": "validate identity",
+   "category": "international_geopolitics"
   },
   {
    "platform": "x",
@@ -57,7 +63,8 @@
    "supplied_url": "https://x.com/AlArabiya_Eng",
    "display_name": null,
    "monitoring_purpose": "Middle East / oil / regional news",
-   "notes": null
+   "notes": null,
+   "category": "international_geopolitics"
   },
   {
    "platform": "x",
@@ -65,7 +72,8 @@
    "supplied_url": "https://x.com/CENTCOM",
    "display_name": null,
    "monitoring_purpose": "US military / regional official statements",
-   "notes": null
+   "notes": null,
+   "category": "international_geopolitics"
   },
   {
    "platform": "x",
@@ -73,7 +81,8 @@
    "supplied_url": "https://x.com/MeherJazibAli",
    "display_name": null,
    "monitoring_purpose": "Pakistan commentary",
-   "notes": "validate identity"
+   "notes": "validate identity",
+   "category": "pakistan_politics_geopolitics"
   },
   {
    "platform": "x",
@@ -81,7 +90,8 @@
    "supplied_url": "https://x.com/Asad_Ashah",
    "display_name": null,
    "monitoring_purpose": "Business / financial commentary",
-   "notes": "validate identity"
+   "notes": "validate identity",
+   "category": "pakistan_politics_geopolitics"
   },
   {
    "platform": "x",
@@ -89,7 +99,8 @@
    "supplied_url": "https://x.com/AsadAToor",
    "display_name": null,
    "monitoring_purpose": "Pakistan politics / current affairs",
-   "notes": null
+   "notes": null,
+   "category": "pakistan_politics_geopolitics"
   },
   {
    "platform": "x",
@@ -97,7 +108,8 @@
    "supplied_url": "https://x.com/CNN",
    "display_name": null,
    "monitoring_purpose": "International news",
-   "notes": null
+   "notes": null,
+   "category": "international_geopolitics"
   },
   {
    "platform": "x",
@@ -105,7 +117,8 @@
    "supplied_url": "https://x.com/TehranTimes79",
    "display_name": null,
    "monitoring_purpose": "Iran / regional developments",
-   "notes": null
+   "notes": null,
+   "category": "pakistan_politics_geopolitics"
   },
   {
    "platform": "x",
@@ -113,7 +126,8 @@
    "supplied_url": "https://x.com/ARNOfficiall",
    "display_name": null,
    "monitoring_purpose": "Possible Abdul Rehman Najam X identity",
-   "notes": "confirm before linking to the YouTube channel"
+   "notes": "confirm before linking to the YouTube channel",
+   "category": "pakistan_politics_geopolitics"
   },
   {
    "platform": "x",
@@ -121,7 +135,8 @@
    "supplied_url": "https://x.com/trtworld",
    "display_name": null,
    "monitoring_purpose": "International / geopolitical news",
-   "notes": null
+   "notes": null,
+   "category": "international_geopolitics"
   },
   {
    "platform": "x",
@@ -129,7 +144,8 @@
    "supplied_url": "https://x.com/LodhiMaleeha",
    "display_name": null,
    "monitoring_purpose": "Diplomacy / foreign policy",
-   "notes": null
+   "notes": null,
+   "category": "pakistan_politics_geopolitics"
   },
   {
    "platform": "x",
@@ -137,7 +153,8 @@
    "supplied_url": "https://x.com/Portfolio360App",
    "display_name": null,
    "monitoring_purpose": "Investment / market analysis",
-   "notes": null
+   "notes": null,
+   "category": "pakistan_economy_psx"
   },
   {
    "platform": "x",
@@ -145,7 +162,8 @@
    "supplied_url": "https://x.com/RT_com",
    "display_name": null,
    "monitoring_purpose": "International / geopolitical news",
-   "notes": null
+   "notes": null,
+   "category": "international_geopolitics"
   },
   {
    "platform": "x",
@@ -153,7 +171,8 @@
    "supplied_url": "https://x.com/BullTheoryio",
    "display_name": null,
    "monitoring_purpose": "Financial markets / investment commentary",
-   "notes": null
+   "notes": null,
+   "category": "pakistan_economy_psx"
   },
   {
    "platform": "x",
@@ -161,7 +180,8 @@
    "supplied_url": "https://x.com/iihtishamm",
    "display_name": null,
    "monitoring_purpose": "Pakistan politics / current affairs",
-   "notes": null
+   "notes": null,
+   "category": "pakistan_politics_geopolitics"
   },
   {
    "platform": "youtube",
@@ -169,7 +189,8 @@
    "supplied_url": "https://youtube.com/@stockifyyltd",
    "display_name": "Stockify Ltd",
    "monitoring_purpose": "Stock-specific analysis, sector themes, market opportunities",
-   "notes": null
+   "notes": null,
+   "category": "youtube_market_commentary"
   },
   {
    "platform": "youtube",
@@ -177,7 +198,8 @@
    "supplied_url": "https://youtube.com/@nuktabusiness",
    "display_name": "Nukta Business",
    "monitoring_purpose": "Economic policy, business developments, market outlook",
-   "notes": null
+   "notes": null,
+   "category": "youtube_market_commentary"
   },
   {
    "platform": "youtube",
@@ -185,7 +207,8 @@
    "supplied_url": "https://youtube.com/@nuktapakistan",
    "display_name": "Nukta Pakistan",
    "monitoring_purpose": "National/political developments only when economically material",
-   "notes": null
+   "notes": null,
+   "category": "youtube_market_commentary"
   },
   {
    "platform": "youtube",
@@ -193,7 +216,8 @@
    "supplied_url": "https://youtube.com/@abdulrehmannajamofficial",
    "display_name": "Abdul Rehman Najam Official",
    "monitoring_purpose": "PSX analysis, stock ideas, market sentiment",
-   "notes": null
+   "notes": null,
+   "category": "youtube_market_commentary"
   },
   {
    "platform": "youtube",
@@ -201,7 +225,8 @@
    "supplied_url": "https://youtube.com/@sarmaayapk",
    "display_name": "Sarmaaya Pakistan",
    "monitoring_purpose": "Stock analysis, valuation, financial and market trends",
-   "notes": null
+   "notes": null,
+   "category": "youtube_market_commentary"
   },
   {
    "platform": "youtube",
@@ -209,7 +234,8 @@
    "supplied_url": "https://youtube.com/@scstradepk",
    "display_name": "Standard Capital Securities",
    "monitoring_purpose": "Brokerage research, market outlook, stock/sector analysis",
-   "notes": null
+   "notes": null,
+   "category": "youtube_market_commentary"
   },
   {
    "platform": "youtube",
@@ -217,7 +243,8 @@
    "supplied_url": "https://youtube.com/@youngscapital",
    "display_name": "Young's Capital",
    "monitoring_purpose": "Investment commentary, stock ideas and market developments",
-   "notes": null
+   "notes": null,
+   "category": "youtube_market_commentary"
   },
   {
    "platform": "x",
@@ -225,7 +252,8 @@
    "supplied_url": null,
    "display_name": "Donald Trump",
    "monitoring_purpose": "Requested by name; exact handle not supplied",
-   "notes": "pending_accounts: do not guess the handle (spec 4.1, Appendix A)"
+   "notes": "pending_accounts: do not guess the handle (spec 4.1, Appendix A)",
+   "category": "pending_verification"
   },
   {
    "platform": "x",
@@ -233,7 +261,35 @@
    "supplied_url": null,
    "display_name": "Reuters",
    "monitoring_purpose": "Requested by name; exact handle not supplied",
-   "notes": "pending_accounts: do not guess the handle (spec 4.1, Appendix A)"
+   "notes": "pending_accounts: do not guess the handle (spec 4.1, Appendix A)",
+   "category": "pending_verification"
+  },
+  {
+   "platform": "x",
+   "handle": "KhaqanNajeeb",
+   "supplied_url": "https://x.com/KhaqanNajeeb",
+   "display_name": null,
+   "monitoring_purpose": "Pakistan economy / PSX commentary",
+   "notes": "Added by owner (Phase 2 instruction); identity to be verified",
+   "category": "pakistan_economy_psx"
+  },
+  {
+   "platform": "x",
+   "handle": "iabdullah278",
+   "supplied_url": "https://x.com/iabdullah278",
+   "display_name": null,
+   "monitoring_purpose": "Pakistan economy / PSX commentary",
+   "notes": "Added by owner (Phase 2 instruction); identity to be verified",
+   "category": "pakistan_economy_psx"
+  },
+  {
+   "platform": "x",
+   "handle": "4xpakistan",
+   "supplied_url": "https://x.com/4xpakistan",
+   "display_name": null,
+   "monitoring_purpose": "Pakistan economy / PSX commentary",
+   "notes": "Added by owner (Phase 2 instruction); identity to be verified",
+   "category": "pakistan_economy_psx"
   }
  ]
 }

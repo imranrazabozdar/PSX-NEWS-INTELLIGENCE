@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel>
+ <title>Synthetic business feed</title>
+ <item>
+  <title>Synthetic headline one &amp; more</title>
+  <link>https://news.example.com/story/1/?utm_source=rss</link>
+  <guid>https://news.example.com/story/1</guid>
+  <pubDate>Sat, 07 Nov 2026 20:26:16 +0500</pubDate>
+  <description><![CDATA[<p>Synthetic summary <b>one</b>.</p>]]></description>
+  <category>Business</category>
+ </item>
+ <item>
+  <title>Synthetic headline two</title>
+  <link>https://news.example.com/story/2</link>
+  <pubDate>Sat, 07 Nov 26 12:58:41 +0500</pubDate>
+  <description>Synthetic summary two.</description>
+ </item>
+ <item>
+  <title>Synthetic headline three (US zone name)</title>
+  <link>https://news.example.com/story/3</link>
+  <pubDate><![CDATA[Fri, 6 Nov 2026  09:00:00 EST]]></pubDate>
+ </item>
+ <item>
+  <title>Synthetic headline without a date</title>
+  <link>https://news.example.com/story/4</link>
+ </item>
+</channel>
+</rss>

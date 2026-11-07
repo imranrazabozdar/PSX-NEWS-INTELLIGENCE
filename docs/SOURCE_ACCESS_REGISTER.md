@@ -1,0 +1,136 @@
+# Source access and licensing register
+
+Generated from `database/seed/sources.json` and `database/seed/media_watchlist.json` by
+`scripts/build_source_register.py`. Do not edit by hand. Access review date: 2026-11-07.
+
+**No source is ACTIVE.** A source can only become ACTIVE through a reviewed change to the
+registry seed, once its terms are `approved` and access is `verified_permitted`. The database
+enforces this with a trigger. Registering a provider or access route records how data could
+be obtained lawfully; it is **not** permission to collect or store data.
+
+Collector status (lifecycle) and feed freshness are separate: a collector can be implemented
+and its last test can pass while the feed itself is stale.
+
+## Status summary
+
+| Lifecycle status | Sources |
+|---|---|
+| BLOCKED | 5 |
+| IMPLEMENTED | 1 |
+| LICENCE REQUIRED | 3 |
+| NOT REVIEWED | 37 |
+| RESTRICTED | 6 |
+| REVIEWED | 11 |
+| TESTED | 4 |
+
+## Sources
+
+| Priority | Source ID | Name | Official URL | Category | Format / adapter | Terms | Licensing | Access | Lifecycle | Last test | Newest item | Freshness | Review notes |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | commerce | Ministry of Commerce | https://www.commerce.gov.pk/ | trade_policy | unknown | not_reviewed | unknown | blocked | BLOCKED | not_tested |  | unknown | High-priority official source (owner instruction). Home page and robots.txt returned HTTP 403. Automated requests from the collection environment were refused (HTTP 403) on 2026-11-07. Not collected; needs an alternative permitted channel (official API, data request or allow-listing). |
+| 1 | ecc_cabinet | Economic Coordination Committee / Federal Cabinet decisions |  | government_decisions | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Official publication channel to be identified. |
+| 1 | energy | Ministry of Energy (Petroleum and Power Divisions) | https://mopng.gov.pk/ | government_energy | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Official addresses for the Petroleum and Power Divisions to be verified; host not yet reviewed. |
+| 1 | fbr | Federal Board of Revenue | https://www.fbr.gov.pk/ | tax_authority | html | restricted | permission_required | unverified | REVIEWED | not_tested |  | unknown | Terms of Use permit residents/citizens to copy and print single pages, unaltered, to share information without cost; automated collection is not addressed. No feed found. Metadata-only collection needs owner confirmation. |
+| 1 | mof | Finance Division (Ministry of Finance) | https://www.finance.gov.pk/ | government_fiscal | pdf | not_found | unknown | unverified | REVIEWED | not_tested |  | unknown | robots.txt allows; no feed found; no terms page found. No terms-of-use page located at the usual addresses on 2026-11-07. robots.txt allows the site. Owner review of terms required before activation. |
+| 1 | nepra | National Electric Power Regulatory Authority | https://nepra.org.pk/ | power_regulator | pdf | not_found | unknown | unverified | REVIEWED | not_tested |  | unknown | robots.txt allows; sitemaps published. No feed. Determinations are PDFs; document-metadata collection possible once terms confirmed. |
+| 1 | ogra | Oil and Gas Regulatory Authority | https://www.ogra.org.pk/ | energy_regulator | html | not_found | unknown | unverified | REVIEWED | not_tested |  | unknown | robots.txt allows. '/rss' is an HTML page, not a feed. Disclaimer page has no reuse terms. HTML/PDF notification pages to be assessed. |
+| 1 | pbs | Pakistan Bureau of Statistics | https://www.pbs.gov.pk/ | statistics | rss / rss | not_found | unknown | unverified | TESTED | passed 2026-11-07 | 2026-11-06T08:00:06Z | fresh | Publishes a public RSS feed (WordPress); robots.txt allows. No terms page found. Live dry-run passed 2026-11-07 (see acceptance report). Activation needs owner approval of terms. Live dry-run 2026-11-07: HTTP 200, 10 items parsed, 10 with publication time, newest 2026-11-06T08:00:06Z. |
+| 1 | privatisation | Privatisation Commission | https://privatisation.gov.pk/ | government_policy | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Official address to be verified; not yet reviewed. |
+| 1 | psx | Pakistan Stock Exchange - announcements and notices | https://www.psx.com.pk/ | exchange | mixed | prohibits_automation | permission_required | restricted | RESTRICTED | not_tested |  | unknown | Same PSX Terms of Use apply (www.psx.com.pk/psx/terms-of-use): automated navigation and systematic retrieval prohibited without prior written permission; PSX legal notice also prohibits commercial use of market data without a licence. Collector not implemented until permission is obtained. PR #7 findings: announcement pages are protected by reCAPTCHA; PSX directs data requests to marketdatarequest@psx.com.pk (Data Services & Vending). Registration of provider routes does not permit collection. |
+| 1 | psx_dps | Pakistan Stock Exchange - Data Portal | https://dps.psx.com.pk/ | exchange | html | prohibits_automation | permission_required | restricted | RESTRICTED | not_tested |  | unknown | PSX Terms of Use (reviewed 2026-11-07) prohibit robots/spiders and 'systematic retrieval to create collections, compilations, databases or directories' without PSX's prior written permission. Announcements are loaded by JavaScript; no public feed. Requires written permission or a PSX data licence (Data Services & Vending). The Phase 1 company master was compiled from 51 profile pages read once on 2026-11-07; see docs/SOURCE_ACCESS_REGISTER.md. PR #7 findings: announcement pages are protected by reCAPTCHA; PSX directs data requests to marketdatarequest@psx.com.pk (Data Services & Vending). Registration of provider routes does not permit collection. |
+| 1 | sbp | State Bank of Pakistan | https://www.sbp.org.pk/ | central_bank | mixed | not_found | unknown | blocked | BLOCKED | not_tested |  | unknown | robots.txt returned HTTP 403 to automated requests (2026-11-07); disclaimer page has no reuse terms. Automated requests from the collection environment were refused (HTTP 403) on 2026-11-07. Not collected; needs an alternative permitted channel (official API, data request or allow-listing). |
+| 1 | secp | Securities and Exchange Commission of Pakistan | https://www.secp.gov.pk/ | securities_regulator | unknown | not_reviewed | unknown | blocked | BLOCKED | not_tested |  | unknown | Home page returned HTTP 403 to automated requests (robots.txt allows). Automated requests from the collection environment were refused (HTTP 403) on 2026-11-07. Not collected; needs an alternative permitted channel (official API, data request or allow-listing). |
+| 2 | brecorder | Business Recorder | https://www.brecorder.com/ | pakistan_media | rss / rss | not_found | unknown | unverified | TESTED | passed 2026-11-07 | 2026-11-07T15:18:12Z | fresh | Public RSS feeds (latest-news, business-finance); robots.txt allows. Terms page not found. Metadata-only retention. Live dry-run 2026-11-07: HTTP 200, 30 items parsed, 30 with publication time, newest 2026-11-07T15:18:12Z. |
+| 2 | capitalstake | Capital Stake (PSX-authorised data redistributor) | https://csapis.com/ | data_provider | api | not_found | licence_required | licence_required | LICENCE REQUIRED | not_tested |  | not_applicable | PR #7/#8 findings: documented REST, WebSocket and webhook APIs (EOD prices, financials, announcements incl. a 'pucars' channel, payouts). PSX-authorised redistributor. Terms not readable without JavaScript. Potential provider route only: requires a written agreement, pricing and owner approval; no collection or storage until then. |
+| 2 | ccp | Competition Commission of Pakistan | https://www.cc.gov.pk/ | competition_regulator | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Not yet reviewed. |
+| 2 | dawn | Dawn (business section) | https://www.dawn.com/ | pakistan_media | rss / rss | not_found | unknown | unverified | TESTED | passed 2026-11-07 | 2026-11-07T14:26:30Z | fresh | Public RSS feed; robots.txt allows (disallows only print/author pages). Terms page not found at https://www.dawn.com/terms. Metadata-only retention. Activation needs owner approval of terms. Live dry-run 2026-11-07: HTTP 200, 30 items parsed, 30 with publication time, newest 2026-11-07T14:26:30Z. |
+| 2 | ead | Economic Affairs Division | https://www.ead.gov.pk/ | government_finance | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Not yet reviewed. |
+| 2 | investify | Investify |  | pakistan_media | unknown | prohibits_automation | permission_required | restricted | RESTRICTED | not_tested |  | unknown | Terms reviewed 2026-11-07 (docs/INVESTIFY_SCS_TRADE_ASSESSMENT.md, PR #6): automated access, scraping and reuse of site content are prohibited without Investify's prior written permission. Not collected. Requires written permission or an authorised data agreement. |
+| 2 | mettis | Mettis Global | https://mettisglobal.news/ | pakistan_media | html | not_found | licence_required | unverified | REVIEWED | not_tested |  | unknown | No feed at /feed/ (HTTP 404); sitemap published; robots.txt allows. Terms page not found. PR #7 finding (docs/PSX_ANNOUNCEMENT_ACCESS_INVESTIGATION.md): Mettis Global is a PSX-authorised data redistributor offering the MG Link API for internal or redistribution use under licence. Registered as a potential authorised provider route only; no data may be collected or stored without a written agreement. |
+| 2 | nukta | Nukta (Business / Pakistan) | https://www.nukta.com/ | pakistan_media | unknown | not_reviewed | unknown | unverified | REVIEWED | not_tested |  | unknown | www.nukta.com did not respond from the collection environment (2026-11-07). Official domain to be confirmed. |
+| 2 | planning | Planning Commission | https://www.pc.gov.pk/ | government_policy | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Not yet reviewed. |
+| 2 | profit | Profit (Pakistan Today) | https://profit.pakistantoday.com.pk/ | pakistan_media | html | not_found | unknown | unverified | REVIEWED | not_tested |  | unknown | No feed at /feed/ (HTTP 404); sitemap published; robots.txt allows. Terms page not found. |
+| 2 | pta | Pakistan Telecommunication Authority | https://www.pta.gov.pk/ | telecom_regulator | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Not yet reviewed. |
+| 2 | pucars | PSX PUCARS (corporate announcements system) | https://pucars.psx.com.pk/ | exchange | html | not_reviewed | unknown | unverified | REVIEWED | not_tested |  | not_applicable | PR #7 finding: PSX's corporate announcement submission system. Its TLS certificate had expired when checked on 2026-11-07, so the site could not be verified. Registered for reference only; not collected. Any access requires PSX permission or a licensed provider. |
+| 2 | sarmaaya | Sarmaaya (PSX-authorised data redistributor) | https://sarmaaya.pk/ | data_provider | api | prohibits_automation | personal_non_commercial | restricted | RESTRICTED | not_tested |  | not_applicable | PR #7 finding: PSX-authorised redistributor; terms limit use to personal non-commercial purposes and prohibit automated access. No API documented. Registered for reference only; not collected. |
+| 2 | scstrade | SCS Trade (Standard Capital Securities) |  | brokerage | unknown | not_found | permission_required | unverified | REVIEWED | not_tested |  | unknown | Reviewed 2026-11-07 (docs/INVESTIFY_SCS_TRADE_ASSESSMENT.md, PR #6): no published terms of use or reuse licence found. Absence of terms is not permission: reuse rights require written clarification from SCS Trade before any collection. Not collected. |
+| 2 | thenews | The News International (business) | https://www.thenews.com.pk/ | pakistan_media | rss / rss | not_found | unknown | unverified | IMPLEMENTED | passed 2026-11-07 | 2026-05-29T20:23:00Z | stale | Collector implemented: the RSS feed tried (/rss/1/8) parses (live dry-run 2026-11-07: HTTP 200, 30 items, all with publication time) but its newest item is 2026-05-29T20:23:00Z. FRESHNESS: STALE - the feed has produced no new business content since May 2026, so it is not a functioning business-news source. The correct current business feed must be identified and dry-run tested before this source can be marked TESTED. Terms page not found. |
+| 2 | tribune | The Express Tribune (business) | https://tribune.com.pk/ | pakistan_media | rss / rss | not_found | unknown | unverified | TESTED | passed 2026-11-07 | 2026-11-07T07:58:41Z | fresh | Public RSS feed includes full article text; this project stores metadata only. robots.txt allows. Terms page not found. Live dry-run 2026-11-07: HTTP 200, 25 items parsed, 25 with publication time, newest 2026-11-07T07:58:41Z. |
+| 3 | adb | Asian Development Bank | https://www.adb.org/ | international_institution | html | reviewed_ok | free_with_attribution | unverified | REVIEWED | not_tested |  | unknown | Terms: project data reusable for commercial and non-commercial purposes; articles may be republished with attribution. Feed address to be located. |
+| 3 | eia | U.S. Energy Information Administration - Today in Energy | https://www.eia.gov/ | energy | rss / rss | approved | public_domain | restricted | RESTRICTED | not_tested |  | unknown | EIA content is U.S. government work in the public domain (reuse permitted with acknowledgement). However, www.eia.gov/robots.txt has 'Disallow: /rss', so automated reading of the RSS feed is not permitted; the collector correctly refused it during the live run on 2026-11-07. Permitted route: the official EIA Open Data API (api.eia.gov), which requires a free API key from the owner. |
+| 3 | eia_press | U.S. Energy Information Administration - press releases | https://www.eia.gov/ | energy | rss / rss | approved | public_domain | restricted | RESTRICTED | not_tested |  | unknown | EIA content is U.S. government work in the public domain (reuse permitted with acknowledgement). However, www.eia.gov/robots.txt has 'Disallow: /rss', so automated reading of the RSS feed is not permitted; the collector correctly refused it during the live run on 2026-11-07. Permitted route: the official EIA Open Data API (api.eia.gov), which requires a free API key from the owner. |
+| 3 | iea | International Energy Agency | https://www.iea.org/ | energy | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Not yet reviewed; much IEA data is licensed. |
+| 3 | imf | International Monetary Fund | https://www.imf.org/ | international_institution | unknown | not_reviewed | unknown | blocked | BLOCKED | not_tested |  | unknown | Home page and robots.txt returned HTTP 403 to automated requests. Automated requests from the collection environment were refused (HTTP 403) on 2026-11-07. Not collected; needs an alternative permitted channel (official API, data request or allow-listing). Must distinguish SLA, Board approval, review completion and disbursement (spec 2.6). |
+| 3 | mufap | Mutual Funds Association of Pakistan | https://www.mufap.com.pk/ | institutional | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Not yet reviewed (Phase 10). |
+| 3 | oecd | OECD | https://www.oecd.org/ | international_institution | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Not yet reviewed. |
+| 3 | opec | OPEC | https://www.opec.org/ | energy | unknown | not_reviewed | unknown | blocked | BLOCKED | not_tested |  | unknown | Automated requests from the collection environment were refused (HTTP 403) on 2026-11-07. Not collected; needs an alternative permitted channel (official API, data request or allow-listing). |
+| 3 | reuters | Reuters | https://www.reuters.com/ | international_media | unknown | licence_required | licence_required | licence_required | LICENCE REQUIRED | not_tested |  | unknown | Not to be activated until licensed or authorised access exists (ADR-0003 C6). |
+| 3 | worldbank | World Bank | https://www.worldbank.org/ | international_institution | html | restricted | personal_non_commercial | unverified | REVIEWED | not_tested |  | unknown | Terms: site use for lawful, personal and non-commercial purposes; attribution required. No feed located. |
+| 3 | wto | World Trade Organization | https://www.wto.org/ | international_institution | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Not yet reviewed. |
+| 4 | alarabiya | Al Arabiya English | https://english.alarabiya.net/ | international_media | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Not yet reviewed. |
+| 4 | aljazeera | Al Jazeera English | https://www.aljazeera.com/ | international_media | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Not yet reviewed. |
+| 4 | ap | Associated Press | https://apnews.com/ | international_media | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Not yet reviewed. |
+| 4 | bbc | BBC News | https://www.bbc.com/news | international_media | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Not yet reviewed. |
+| 4 | centcom | U.S. Central Command (official) | https://www.centcom.mil/ | official_military | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Official military source; classified separately from media reporting. Not yet reviewed. |
+| 4 | cnn | CNN | https://www.cnn.com/ | international_media | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Not yet reviewed. |
+| 4 | ndma | National Disaster Management Authority | https://www.ndma.gov.pk/ | domestic_risk | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Not yet reviewed. |
+| 4 | rt | RT | https://www.rt.com/ | international_media | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Not yet reviewed. |
+| 4 | trtworld | TRT World | https://www.trtworld.com/ | international_media | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Not yet reviewed. |
+| 5 | amc_akd | AKD Investment Management |  | institutional | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Official website to be verified (Phase 10). |
+| 5 | amc_almeezan | Al Meezan Investments |  | institutional | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Official website to be verified (Phase 10). |
+| 5 | amc_hbl | HBL Asset Management |  | institutional | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Official website to be verified (Phase 10). |
+| 5 | amc_mcb | MCB Investment Management |  | institutional | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Official website to be verified (Phase 10). |
+| 5 | amc_nbp | NBP Funds |  | institutional | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Official website to be verified (Phase 10). |
+| 5 | amc_ubl | UBL Funds |  | institutional | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Official website to be verified (Phase 10). |
+| 5 | br_akd | AKD Securities |  | brokerage | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Public or authorised reports only; never bypass access restrictions (Phase 10). |
+| 5 | br_arifhabib | Arif Habib |  | brokerage | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Public or authorised reports only; never bypass access restrictions (Phase 10). |
+| 5 | br_bma | BMA Capital |  | brokerage | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Public or authorised reports only; never bypass access restrictions (Phase 10). |
+| 5 | br_foundation | Foundation Securities |  | brokerage | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Public or authorised reports only; never bypass access restrictions (Phase 10). |
+| 5 | br_insight | Insight Securities |  | brokerage | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Public or authorised reports only; never bypass access restrictions (Phase 10). |
+| 5 | br_intermarket | Intermarket Securities |  | brokerage | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Public or authorised reports only; never bypass access restrictions (Phase 10). |
+| 5 | br_ismailiqbal | Ismail Iqbal Securities |  | brokerage | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Public or authorised reports only; never bypass access restrictions (Phase 10). |
+| 5 | br_jsglobal | JS Global |  | brokerage | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Public or authorised reports only; never bypass access restrictions (Phase 10). |
+| 5 | br_taurus | Taurus Securities |  | brokerage | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Public or authorised reports only; never bypass access restrictions (Phase 10). |
+| 5 | br_topline | Topline Securities |  | brokerage | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Public or authorised reports only; never bypass access restrictions (Phase 10). |
+| 5 | x_platform | X (Twitter) - supplied watchlist | https://x.com/ | social_media | social | licence_required | paid_api | licence_required | LICENCE REQUIRED | not_tested |  | unknown | Official X API or an authorised provider required; plan and cost to be presented before any purchase (Phase 11). No scraping. |
+| 5 | youtube_platform | YouTube - supplied watchlist | https://www.youtube.com/ | social_media | video | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | YouTube Data API within quota (key required); transcripts not guaranteed (Phase 11). |
+
+## Social and media watchlist (collection: Phase 11)
+
+Handles and URLs are exactly as supplied by the owner. All accounts are `disabled`, have no
+authorised access yet, and their identity is unverified.
+
+| Platform | Handle | Supplied URL | Category | Purpose | Notes |
+|---|---|---|---|---|---|
+| x | MarioNawfal | https://x.com/MarioNawfal | international_geopolitics | Geopolitics / breaking developments |  |
+| x | AJEnglish | https://x.com/AJEnglish | international_geopolitics | International news |  |
+| x | imemon15 | https://x.com/imemon15 | pakistan_politics_geopolitics | Pakistan / current affairs | validate identity |
+| x | clashreport | https://x.com/clashreport | international_geopolitics | Conflict and geopolitical developments |  |
+| x | AlphaWireHQ | https://x.com/AlphaWireHQ | international_geopolitics | Breaking news / markets | validate source profile |
+| x | Conflict_Matrix | https://x.com/Conflict_Matrix | international_geopolitics | Conflict / security monitoring | validate identity |
+| x | AlArabiya_Eng | https://x.com/AlArabiya_Eng | international_geopolitics | Middle East / oil / regional news |  |
+| x | CENTCOM | https://x.com/CENTCOM | international_geopolitics | US military / regional official statements |  |
+| x | MeherJazibAli | https://x.com/MeherJazibAli | pakistan_politics_geopolitics | Pakistan commentary | validate identity |
+| x | Asad_Ashah | https://x.com/Asad_Ashah | pakistan_politics_geopolitics | Business / financial commentary | validate identity |
+| x | AsadAToor | https://x.com/AsadAToor | pakistan_politics_geopolitics | Pakistan politics / current affairs |  |
+| x | CNN | https://x.com/CNN | international_geopolitics | International news |  |
+| x | TehranTimes79 | https://x.com/TehranTimes79 | pakistan_politics_geopolitics | Iran / regional developments |  |
+| x | ARNOfficiall | https://x.com/ARNOfficiall | pakistan_politics_geopolitics | Possible Abdul Rehman Najam X identity | confirm before linking to the YouTube channel |
+| x | trtworld | https://x.com/trtworld | international_geopolitics | International / geopolitical news |  |
+| x | LodhiMaleeha | https://x.com/LodhiMaleeha | pakistan_politics_geopolitics | Diplomacy / foreign policy |  |
+| x | Portfolio360App | https://x.com/Portfolio360App | pakistan_economy_psx | Investment / market analysis |  |
+| x | RT_com | https://x.com/RT_com | international_geopolitics | International / geopolitical news |  |
+| x | BullTheoryio | https://x.com/BullTheoryio | pakistan_economy_psx | Financial markets / investment commentary |  |
+| x | iihtishamm | https://x.com/iihtishamm | pakistan_politics_geopolitics | Pakistan politics / current affairs |  |
+| youtube | stockifyyltd | https://youtube.com/@stockifyyltd | youtube_market_commentary | Stock-specific analysis, sector themes, market opportunities |  |
+| youtube | nuktabusiness | https://youtube.com/@nuktabusiness | youtube_market_commentary | Economic policy, business developments, market outlook |  |
+| youtube | nuktapakistan | https://youtube.com/@nuktapakistan | youtube_market_commentary | National/political developments only when economically material |  |
+| youtube | abdulrehmannajamofficial | https://youtube.com/@abdulrehmannajamofficial | youtube_market_commentary | PSX analysis, stock ideas, market sentiment |  |
+| youtube | sarmaayapk | https://youtube.com/@sarmaayapk | youtube_market_commentary | Stock analysis, valuation, financial and market trends |  |
+| youtube | scstradepk | https://youtube.com/@scstradepk | youtube_market_commentary | Brokerage research, market outlook, stock/sector analysis |  |
+| youtube | youngscapital | https://youtube.com/@youngscapital | youtube_market_commentary | Investment commentary, stock ideas and market developments |  |
+| x | (pending: Donald Trump) |  | pending_verification | Requested by name; exact handle not supplied | pending_accounts: do not guess the handle (spec 4.1, Appendix A) |
+| x | (pending: Reuters) |  | pending_verification | Requested by name; exact handle not supplied | pending_accounts: do not guess the handle (spec 4.1, Appendix A) |
+| x | KhaqanNajeeb | https://x.com/KhaqanNajeeb | pakistan_economy_psx | Pakistan economy / PSX commentary | Added by owner (Phase 2 instruction); identity to be verified |
+| x | iabdullah278 | https://x.com/iabdullah278 | pakistan_economy_psx | Pakistan economy / PSX commentary | Added by owner (Phase 2 instruction); identity to be verified |
+| x | 4xpakistan | https://x.com/4xpakistan | pakistan_economy_psx | Pakistan economy / PSX commentary | Added by owner (Phase 2 instruction); identity to be verified |

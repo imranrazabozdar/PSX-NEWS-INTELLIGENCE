@@ -4,7 +4,7 @@ Source: [`docs/SPECIFICATION.md`](SPECIFICATION.md) (Master Implementation Speci
 Every numbered section and sub-section of the specification has at least one row here.
 `tests/test_traceability.py` enforces this.
 
-Statuses: NOT STARTED · IN PROGRESS · BLOCKED · IMPLEMENTED · TESTED.
+Statuses: NOT STARTED · IN PROGRESS · PARTIAL · BLOCKED · IMPLEMENTED · TESTED.
 Something is **TESTED** only when code and an automated test (or a CI job) prove it.
 Owner decisions recorded in [`docs/adr/0003-owner-decisions-future-phases.md`](adr/0003-owner-decisions-future-phases.md) are cited as "ADR-0003".
 
@@ -26,7 +26,7 @@ Owner decisions recorded in [`docs/adr/0003-owner-decisions-future-phases.md`](a
 | R-1.2-3 | 1.2 | No identical-exposure assumption within a sector | 4 | | | NOT STARTED |
 | R-1.2-4 | 1.2 | No automatic trust in social media, brokers, headlines or LLM output | 3, 11 | | | NOT STARTED |
 | R-1.2-5 | 1.2 | No merging with the technical engine or shared database | 0 (permanent) | ADR-0001, `scripts/check_independence.py`, base-branch guard in CI | `tests/test_independence.py` | TESTED |
-| R-1.2-6 | 1.2 | No circumvention of paywalls, logins, API limits, robots, copyright | 2+ | ADR-0003 (verify terms before each collector) | | NOT STARTED |
+| R-1.2-6 | 1.2 | No circumvention of paywalls, logins, API limits, robots, copyright | 2+ | `collectors/http.py` obeys robots.txt (403 robots = disallow), rate limits; restricted/blocked sources never collected; PSX terms honoured | tests/test_collectors.py::test_robots_disallow_is_respected, tests/test_collectors.py::test_robots_forbidden_means_disallow, tests/test_live_sources.py::test_robots_restriction_is_honoured_live | TESTED |
 | R-1.3-1 | 1.3 | New public GitHub repository, code + non-sensitive docs only | 0 | this repo; `.gitignore` | `test_no_secrets_files_committed`, gitleaks CI | TESTED |
 | R-1.3-2 | 1.3 | Separate Turso account/database, credentials, backups | 1 | Dedicated Turso DB `psx-news-intelligence`; `database/connection.py`; ADR-0004; backup plan in `docs/DATA_MODEL.md` | tests/test_turso_integration.py::test_connection_and_foreign_keys | TESTED against live Turso from the dev session; skipped in CI until secrets are added (restore test: Phase 14) |
 | R-1.3-3 | 1.3 | Separate Streamlit deployment, private / authenticated (ADR-0003) | 6 | `app.py` skeleton only | | NOT STARTED |
@@ -37,7 +37,7 @@ Owner decisions recorded in [`docs/adr/0003-owner-decisions-future-phases.md`](a
 | R-1.3-8 | 1.3 | Compact storage; no large blobs in database | 1 | Excerpt length CHECKs (≤1000 chars); no blob columns for media/PDF | tests/test_database.py::test_source_item_dedup_and_versioning | IMPLEMENTED |
 | R-1.3-9 | 1.3 | Verify current free-tier limits before choosing polling | 1–2, 7 | | | NOT STARTED |
 | R-2-1 | 2 | End-to-end flow: sources → … → backtesting | 2–14 | README / ADR-0002 (design only) | | NOT STARTED |
-| R-2.1-1 | 2.1 | Collection layer persistence (identity, URL/ID, times, hash, access method) | 1–2 | `source_items`, `source_item_versions`, `database/repositories.py::record_source_item` | tests/test_database.py::test_source_item_dedup_and_versioning | TESTED (schema + storage; collectors: Phase 2) |
+| R-2.1-1 | 2.1 | Collection layer persistence (identity, URL/ID, times, hash, access method) | 1–2 | `collectors/engine.py` persists source identity, canonical URL/ID, published (UTC+raw+offset), collected time, hash, retrieval method, run ID, HTTP status | tests/test_collectors.py::test_collection_persists_items_with_provenance_and_audit | TESTED |
 | R-2.1-2 | 2.1 | Relevance layer (score, matched terms, inclusion/exclusion reason) | 2 | `source_items.relevance_score/relevance_reason` columns |  | IN PROGRESS (schema only) |
 | R-2.1-3 | 2.1 | Event intelligence layer persistence | 3 | `events`, `event_revisions`, `event_evidence` (model/prompt version columns) | tests/test_database.py::test_event_revisions_preserve_history | IN PROGRESS (schema tested; extraction: Phase 3) |
 | R-2.1-4 | 2.1 | Verification layer persistence | 3 | `events.verification_state`, `event_evidence.verification_state/is_independent` |  | IN PROGRESS (schema only) |
@@ -47,18 +47,18 @@ Owner decisions recorded in [`docs/adr/0003-owner-decisions-future-phases.md`](a
 | R-2.1-8 | 2.1 | Decision support layer (no auto-trade) | 12 | | | NOT STARTED |
 | R-2.1-9 | 2.1 | Learning layer (point-in-time snapshots) | 14 | `alerts_predictions` frozen by trigger, `market_outcomes` |  | IN PROGRESS (schema only) |
 | R-2.2-1 | 2.2 | Streamlit has no polling or long-running loops | 6 | ADR-0002 | | NOT STARTED |
-| R-2.2-2 | 2.2 | Scheduled, incremental, idempotent jobs with run logs | 2, 7 | | | NOT STARTED |
-| R-2.2-3 | 2.2 | Separate workflows per source family | 7 | | | NOT STARTED |
-| R-2.2-4 | 2.2 | Manual backfill with date range, rate limits, dry-run | 7 | `dry_run` input in skeleton workflow (no-op) | | NOT STARTED |
+| R-2.2-2 | 2.2 | Scheduled, incremental, idempotent jobs with run logs | 2, 7 | Incremental (ETag/Last-Modified checkpoints), idempotent writes, `collector_runs` audit; `.github/workflows/scheduled-jobs.yml` | tests/test_collectors.py::test_rerun_with_same_content_is_idempotent, tests/test_collectors.py::test_incremental_conditional_request_uses_checkpoint | PARTIAL (engine tested; scheduled workflow not yet run with Turso secrets and no source is ACTIVE) |
+| R-2.2-3 | 2.2 | Separate workflows per source family | 2, 7 | One workflow with per-source frequency via `due_sources` (ADR-0005 explains why not one workflow per family yet) | tests/test_collectors.py::test_scheduler_respects_frequency | PARTIAL |
+| R-2.2-4 | 2.2 | Manual backfill with date range, rate limits, dry-run | 2 | `collectors.run --since/--until --dry-run`; per-host rate limit | tests/test_collectors.py::test_backfill_window_filters_by_publication_time, tests/test_collectors.py::test_dry_run_writes_nothing, tests/test_collectors.py::test_per_host_rate_limit | TESTED |
 | R-3-0 | 3 | 23 modules share one core (company master, sources, evidence, events, exposure graph) | 1+ | Shared schema: company master, source registry, evidence, events, exposure tables | tests/test_database.py | IN PROGRESS (foundation tested) |
-| R-3.1 | 3.1 | News Intelligence (initial sources per ADR-0003) | 2–3 | | | NOT STARTED |
-| R-3.2 | 3.2 | Corporate Intelligence | 8 | | | NOT STARTED |
-| R-3.3 | 3.3 | Policy & Regulatory Intelligence | 8 | | | NOT STARTED |
+| R-3.1 | 3.1 | News Intelligence (initial sources per ADR-0003) | 2–3 | RSS collectors for Dawn, Business Recorder, Express Tribune (live-tested), The News (feed category unconfirmed); Profit/Mettis/Nukta reviewed, no feed | tests/test_live_sources.py::test_live_feed_dry_run | PARTIAL (collection only; no source ACTIVE until terms approved; extraction Phase 3) |
+| R-3.2 | 3.2 | Corporate Intelligence | 2, 8 | PSX disclosures: PSX Terms of Use prohibit automated/systematic retrieval without written permission |  | BLOCKED (needs PSX permission or data licence) |
+| R-3.3 | 3.3 | Policy & Regulatory Intelligence | 2, 8 | Official sources reviewed: PBS RSS live-tested; FBR/OGRA/NEPRA/MoF reviewed (no feed/terms); SBP, SECP, Commerce refuse automated access (403) | tests/test_live_sources.py::test_live_feed_dry_run | PARTIAL |
 | R-3.4 | 3.4 | Government Decision Tracker | 8 | | | NOT STARTED |
 | R-3.5 | 3.5 | Domestic Stability & Geopolitical Risk | 9 | | | NOT STARTED |
 | R-3.6 | 3.6 | International Contagion | 9 | | | NOT STARTED |
 | R-3.7 | 3.7 | Sector & Industry Intelligence | 9 | | | NOT STARTED |
-| R-3.8 | 3.8 | Commodity & Input-Cost Intelligence | 9 | | | NOT STARTED |
+| R-3.8 | 3.8 | Commodity & Input-Cost Intelligence | 2, 9 | EIA public-domain content, but robots.txt disallows /rss; official EIA API needs a free key. OPEC refuses automated access |  | BLOCKED (needs EIA API key) |
 | R-3.9 | 3.9 | Dedicated LPG Intelligence + landed-cost calculator | 9 | | | NOT STARTED |
 | R-3.10 | 3.10 | Mutual Fund & Institutional Intelligence | 10 | | | NOT STARTED |
 | R-3.11 | 3.11 | Broker Research Intelligence | 10 | | | NOT STARTED |
@@ -72,10 +72,10 @@ Owner decisions recorded in [`docs/adr/0003-owner-decisions-future-phases.md`](a
 | R-3.19 | 3.19 | Historical Event & Prediction Backtesting | 14 | | | NOT STARTED |
 | R-3.20 | 3.20 | Daily Briefing & Alerts | 14 | | | NOT STARTED |
 | R-3.21 | 3.21 | Company Financial Statement Intelligence | 8 | | | NOT STARTED |
-| R-3.22 | 3.22 | YouTube & Financial Media Intelligence (deferred, ADR-0003) | 11 | | | NOT STARTED |
-| R-3.23 | 3.23 | X (Twitter) Intelligence (deferred, ADR-0003) | 11 | | | NOT STARTED |
+| R-3.22 | 3.22 | YouTube & Financial Media Intelligence (deferred, ADR-0003) | 2, 11 | 7 channels registered exactly; collection deferred | tests/test_collectors.py::test_watchlist_includes_new_accounts_exactly | IN PROGRESS (watchlist registered; collection Phase 11) |
+| R-3.23 | 3.23 | X (Twitter) Intelligence (deferred, ADR-0003) | 2, 11 | 23 X handles + 2 pending registered exactly; official API required | tests/test_collectors.py::test_watchlist_includes_new_accounts_exactly | IN PROGRESS (watchlist registered; collection Phase 11) |
 | R-4-1 | 4 | Store supplied URLs/handles as watchlist identifiers; no silent substitution | 1, 11 | `media_accounts` seeded from `database/seed/media_watchlist.json` (exact handles, disabled) | tests/test_database.py::test_watchlist_handles_preserved_exactly | TESTED (identifiers stored; collection: Phase 11) |
-| R-4.1-1 | 4.1 | 20 supplied X accounts | 1, 11 | 20 X accounts stored verbatim, `identity_verification='unverified'` | tests/test_database.py::test_watchlist_handles_preserved_exactly | TESTED (identifiers stored) |
+| R-4.1-1 | 4.1 | 20 supplied X accounts | 1, 2, 11 | 23 X accounts stored verbatim (3 added in Phase 2), categorised, disabled, `identity_verification='unverified'` | tests/test_collectors.py::test_watchlist_includes_new_accounts_exactly | TESTED (identifiers stored) |
 | R-4.1-2 | 4.1 | Donald Trump and Reuters kept in `pending_accounts`; no guessed handles | 1, 11 | Trump / Reuters stored as `pending_handle`, no URL; validation rejects guessed URLs | tests/test_database.py::test_watchlist_validation_rejects_guessed_handles | TESTED |
 | R-4.2-1 | 4.2 | 7 supplied YouTube channels | 1, 11 | 7 YouTube channels stored verbatim, disabled | tests/test_database.py::test_watchlist_handles_preserved_exactly | TESTED (identifiers stored) |
 | R-4.3-1 | 4.3 | Staged relevance filter (high / conditional / low) before LLM | 11 | | | NOT STARTED |
@@ -112,9 +112,10 @@ Owner decisions recorded in [`docs/adr/0003-owner-decisions-future-phases.md`](a
 | R-13-1 | 13 | Repository structure per spec (directories added when implemented) | 0+ | ADR-0002 | | IN PROGRESS |
 | R-14-0 | 14 | Phase 0: README, ADR, .gitignore, config example, pyproject, lint/test, workflow skeleton, no link to existing project; app starts; secrets absent; CI runs | 0 | see `docs/STATUS.md` Phase 0 checklist | CI on PR #1 | TESTED (approved and merged, PR #1) |
 | R-14-P1 | 14 | Phase 1 data foundation and acceptance gate | 1 | `database/`, `docs/DATA_MODEL.md`, ADR-0004 | `tests/test_database.py`, `tests/test_turso_integration.py`, CI | TESTED (approved and merged, PR #2) |
-| R-14-2…14 | 14 | Phases 2–14 and their acceptance gates | 2–14 | | | NOT STARTED |
+| R-14-P2 | 14 | Phase 2 source collection engine and acceptance gate | 2 | `collectors/`, migration 0006, ADR-0005, `docs/COLLECTORS.md`, `docs/SOURCE_ACCESS_REGISTER.md` | `tests/test_collectors.py`, `tests/test_live_sources.py`, `tests/test_turso_integration.py` | IMPLEMENTED (awaiting owner review) |
+| R-14-3…14 | 14 | Phases 3–14 and their acceptance gates | 3–14 | | | NOT STARTED |
 | R-15-1 | 15 | Operating prompts 1–8 followed per phase (Prompt 1 audit delivered; Prompt 8 audit at end) | all | Step 1 audit report (delivered in session) | | IN PROGRESS |
-| R-16-1 | 16 | Collector tests | 2 | | | NOT STARTED |
+| R-16-1 | 16 | Collector tests | 2 | Collector tests: reachability (live), permitted access, canonical URL, timestamps, pagination, rate limit, retry, dedup, repeat runs | tests/test_collectors.py, tests/test_live_sources.py | TESTED |
 | R-16-2 | 16 | Event tests | 3 | | | NOT STARTED |
 | R-16-3 | 16 | Exposure tests | 4 | | | NOT STARTED |
 | R-16-4 | 16 | Calculation tests | 5 | | | NOT STARTED |
@@ -124,20 +125,20 @@ Owner decisions recorded in [`docs/adr/0003-owner-decisions-future-phases.md`](a
 | R-16-8 | 16 | Operations tests | 7 | | | NOT STARTED |
 | R-16-9 | 16 | Backtest tests | 14 | | | NOT STARTED |
 | R-17-1 | 17 | Start small (30–50 companies, 3–5 sources) | 1–2 | ADR-0003 | | NOT STARTED |
-| R-17-2 | 17 | RSS / official feeds; ETag / Last-Modified incremental fetch | 2 | | | NOT STARTED |
+| R-17-2 | 17 | RSS / official feeds; ETag / Last-Modified incremental fetch | 2 | RSS first; conditional requests with ETag/Last-Modified checkpoints | tests/test_collectors.py::test_conditional_request_headers_and_304, tests/test_collectors.py::test_incremental_conditional_request_uses_checkpoint | TESTED |
 | R-17-3 | 17 | Filter before LLM; cache by content hash + prompt/model version | 3 | | | NOT STARTED |
-| R-17-4 | 17 | Usage tracking (X, YouTube, LLM, Actions, Turso, failures) | 1, 7 | Turso rows read/written + requests metered per run (`Database.usage`) | `tests/test_database.py::test_turso_usage_is_metered` | IN PROGRESS (Turso done; others Phase 7+) |
-| R-17-5 | 17 | Per-source polling, daily budgets, kill switch, source enable/disable | 0, 1, 2, 7 | `PSXNI_KILL_SWITCH` blocks Turso; per-run DB budgets; `sources.enabled` CHECK | `tests/test_database.py::test_kill_switch_blocks_database_requests`, `::test_turso_budget_stops_further_requests` | IN PROGRESS (DB budgets done; polling budgets Phase 2/7) |
-| R-17-6 | 17 | Large documents kept outside the database | 1–2 | | | NOT STARTED |
-| R-18-1 | 18 | Source registry entries with terms, tier, cadence, enabled state | 1 | `sources` registry (38 entries) with terms, tier, access method/status, enabled; CHECK blocks enabling unverified sources | tests/test_database.py::test_source_cannot_be_enabled_before_verification | TESTED |
+| R-17-4 | 17 | Usage tracking (X, YouTube, LLM, Actions, Turso, failures) | 1, 2, 7 | Turso usage meter; `collector_runs` counts, durations, HTTP requests; `source_health` view. GitHub minutes / LLM tracking later | tests/test_collectors.py::test_source_failure_is_visible_in_health | PARTIAL |
+| R-17-5 | 17 | Per-source polling, daily budgets, kill switch, source enable/disable | 0–2, 7 | Per-source `collection_frequency_minutes`, kill switch (engine + workflow variable), lifecycle/enabled gates, DB budgets | tests/test_collectors.py::test_kill_switch_stops_collection, tests/test_collectors.py::test_scheduler_respects_frequency, tests/test_collectors.py::test_non_active_sources_are_never_collected_for_real | TESTED |
+| R-17-6 | 17 | Large documents kept outside the database | 1–2 | Documents: only URL, size, type, SHA-256 and dates stored; bodies never stored | tests/test_collectors.py::test_document_versions | TESTED |
+| R-18-1 | 18 | Source registry entries with terms, tier, cadence, enabled state | 1–2 | Registry v2: 64 sources with URL, category, terms, licensing, verification, lifecycle (10 statuses), frequency, health; ACTIVE gated by trigger | tests/test_collectors.py::test_active_requires_approved_terms_in_database, tests/test_collectors.py::test_registry_keeps_all_phase1_sources_and_adds_universe | TESTED |
 | R-18-2 | 18 | Every conclusion labelled by evidence type | 3+ | | | NOT STARTED |
-| R-18-3 | 18 | Reliability is context, not truth; short excerpts only (copyright) | 2–3 | | | NOT STARTED |
+| R-18-3 | 18 | Reliability is context, not truth; short excerpts only (copyright) | 2 | Retention modes: metadata only unless terms approved; excerpts capped | tests/test_collectors.py::test_excerpt_only_when_retention_permits | TESTED |
 | R-18-4 | 18 | Virality isn't truth; promotion / amplification flagged as signals | 11 | | | NOT STARTED |
 | R-18-5 | 18 | Schema-validated LLM output; never sole calculator / verifier / ticker master | 3 | | | NOT STARTED |
 | R-19-1 | 19 | Independent repository DoD | 0 | this repo, CI | CI | TESTED |
 | R-19-2 | 19 | Independent database DoD | 1 | Dedicated Turso DB, migrations, `PSXNI_` secrets, connection tests, backup plan | tests/test_turso_integration.py | TESTED against live Turso from the dev session; skipped in CI until secrets are added |
 | R-19-3 | 19 | Company seed DoD | 1 | 51 company records, validated ticker/name/sector, PSX-sourced summary | tests/test_database.py::test_seed_validation_passes | TESTED |
-| R-19-4 | 19 | News MVP DoD | 2, 7 | | | NOT STARTED |
+| R-19-4 | 19 | News MVP DoD | 2, 7 | 4 publications live-tested, deduplicated, timestamped, traceable; none ACTIVE (terms not located); schedule not yet exercised | tests/test_live_sources.py::test_live_feed_dry_run | PARTIAL |
 | R-19-5 | 19 | Event MVP DoD | 3 | | | NOT STARTED |
 | R-19-6 | 19 | Impact MVP DoD | 4–5 | | | NOT STARTED |
 | R-19-7 | 19 | Dashboard MVP DoD | 6 | | | NOT STARTED |

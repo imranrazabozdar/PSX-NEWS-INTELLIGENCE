@@ -1,0 +1,5 @@
+{"data": {"results": [
+  {"id": "A-1", "headline": "Synthetic API record one", "link": "https://api.example.org/r/1", "date": "2026-11-01T08:00:00Z"},
+  {"id": "A-2", "headline": "Synthetic API record two", "link": "https://api.example.org/r/2", "date": null},
+  "not-an-object"
+]}}

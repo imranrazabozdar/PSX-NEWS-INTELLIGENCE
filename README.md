@@ -26,10 +26,11 @@ Any future integration needs the owner's explicit authorisation and a new ADR.
 
 ## Current status
 
-**Phases 0 and 1 are complete and merged.** Phase 1 added the data foundation: a dedicated Turso
-database, migrations, the source registry and a PSX-sourced company master (see
-[`docs/DATA_MODEL.md`](docs/DATA_MODEL.md)). No data source is enabled and nothing is collected yet;
-Phase 2 has not started. See [`docs/STATUS.md`](docs/STATUS.md) for the status register
+**Phases 0 and 1 are complete and merged. Phase 2 (source collection engine) is implemented and
+awaiting review.** Phase 2 adds a reusable, policy-enforcing collector (see
+[`docs/COLLECTORS.md`](docs/COLLECTORS.md)) and a 64-source access and licensing register
+([`docs/SOURCE_ACCESS_REGISTER.md`](docs/SOURCE_ACCESS_REGISTER.md)). **No source is ACTIVE yet**:
+each needs the owner's approval of its terms. See [`docs/STATUS.md`](docs/STATUS.md) for the status register
 and [`docs/TRACEABILITY.md`](docs/TRACEABILITY.md) for the full requirements traceability matrix.
 The sanitised specification is in [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md). Owner decisions for later phases
 (guidance only, not approval to start them) are in [`docs/adr/0003-owner-decisions-future-phases.md`](docs/adr/0003-owner-decisions-future-phases.md).
@@ -67,6 +68,8 @@ app.py                      Streamlit entry point (status only, no data)
 config/settings.py          PSXNI_-prefixed settings, kill switch
 scripts/check_independence.py   cross-project guard
 scripts/check_installed_sources.py  installed packages must come from the index
+collectors/                 Phase 2 collection engine (HTTP, parsers, pipeline, CLI)
+database/                   Phase 1 data foundation (migrations, repositories, seed)
 tests/                      independence + app skeleton tests
 docs/adr/                   architecture decision records
 docs/STATUS.md              status register and traceability

@@ -32,9 +32,23 @@ def test_connection_and_foreign_keys(db):
 
 
 def test_all_migrations_applied_with_matching_checksums(db):
-    rows = {r["version"]: r["checksum"] for r in db.execute(
+    """Applied migrations match the repository. Migrations added by an unmerged branch are
+    verified on Turso inside a rolled-back batch, so production is never migrated early."""
+    applied = {r["version"]: r["checksum"] for r in db.execute(
         "SELECT version, checksum FROM schema_migrations")}
-    assert rows == {m.version: m.checksum for m in discover()}
+    repo = {m.version: m for m in discover()}
+    assert applied, "no migrations applied"
+    assert set(applied) <= set(repo), "database has migrations unknown to this branch"
+    assert all(applied[v] == repo[v].checksum for v in applied)
+    assert sorted(applied) == list(range(1, len(applied) + 1))
+    pending = [repo[v] for v in sorted(repo) if v not in applied]
+    if pending:
+        stmts = [(s, ()) for m in pending for s in m.statements()]
+        stmts.append(("SELECT COUNT(*) AS n FROM sqlite_master WHERE name = 'collector_checkpoints'", ()))
+        rows = db.batch(stmts, rollback=True)
+        assert rows[-1][0]["n"] == 1
+        left = db.execute("SELECT COUNT(*) AS n FROM sqlite_master WHERE name = 'collector_checkpoints'")
+        assert left[0]["n"] == 0  # rolled back: production schema unchanged
 
 
 def test_reference_data_present(db):

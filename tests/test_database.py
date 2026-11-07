@@ -107,7 +107,7 @@ def test_changed_applied_migration_is_refused(db, tmp_path):
 def test_destructive_migration_is_refused(tmp_path):
     d = tmp_path / "m"
     shutil.copytree(MIGRATIONS_DIR, d)
-    (d / "0006_bad.sql").write_text("DROP TABLE companies;\n")
+    (d / f"{len(discover()) + 1:04d}_bad.sql").write_text("DROP TABLE companies;\n")
     with pytest.raises(MigrationError, match="destructive"):
         discover(d)
 
@@ -115,7 +115,8 @@ def test_destructive_migration_is_refused(tmp_path):
 def test_failed_migration_applies_nothing(tmp_path):
     d = tmp_path / "m"
     shutil.copytree(MIGRATIONS_DIR, d)
-    (d / "0006_broken.sql").write_text("CREATE TABLE ok_one (x INTEGER);\nCREATE TABLE broken (;\n")
+    (d / f"{len(discover()) + 1:04d}_broken.sql").write_text(
+        "CREATE TABLE ok_one (x INTEGER);\nCREATE TABLE broken (;\n")
     db = SQLiteDatabase()
     with pytest.raises(DatabaseError):
         migrate(db, directory=d)
