@@ -1,0 +1,42 @@
+# Secrets: never commit
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# Local databases, dumps and backups: never commit (public repo)
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+backups/
+dumps/
+*.dump
+*.sql.gz
+
+# Large media / documents are not stored in the repo
+*.mp4
+*.mp3
+*.wav
+data/raw/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

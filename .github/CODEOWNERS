@@ -1,0 +1,9 @@
+# Changes to the independence guard, CI and decision records need the owner's review
+# (takes effect when branch protection "Require review from Code Owners" is enabled on main).
+/scripts/check_independence.py      @imranrazabozdar
+/scripts/check_installed_sources.py @imranrazabozdar
+/tests/test_independence.py         @imranrazabozdar
+/.github/                           @imranrazabozdar
+/docs/adr/                          @imranrazabozdar
+/pyproject.toml                     @imranrazabozdar
+/requirements*.txt                  @imranrazabozdar

@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Independence check (ADR-0001), this branch's rules
+        run: python scripts/check_independence.py .
+      - name: Independence check, base branch's rules (cannot be weakened by the PR itself)
+        if: github.event_name == 'pull_request'
+        run: |
+          if git cat-file -e "origin/${GITHUB_BASE_REF}:scripts/check_independence.py" 2>/dev/null; then
+            git show "origin/${GITHUB_BASE_REF}:scripts/check_independence.py" > "$RUNNER_TEMP/guard_base.py"
+            python "$RUNNER_TEMP/guard_base.py" .
+          else
+            echo "Base branch has no guard yet (bootstrap PR); this branch's rules were applied above."
+          fi
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+      - name: Dependency consistency
+        run: pip check
+      - name: Installed dependencies come only from the package index
+        run: python scripts/check_installed_sources.py
+      - name: Lint
+        run: ruff check .
+      - name: Tests
+        run: pytest
+      - name: Vulnerability audit of the installed environment
+        run: pip-audit --strict --progress-spinner off
+      - name: Vulnerability audit of declared runtime requirements
+        run: pip-audit -r requirements.txt --progress-spinner off
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GITLEAKS_IMAGE: zricethezav/gitleaks:v8.18.4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Canary - prove the scanner detects a planted secret
+        run: |
+          canary="$RUNNER_TEMP/canary"
+          mkdir -p "$canary" && cd "$canary"
+          git init -q && git config user.email ci@example.invalid && git config user.name ci
+          token="ghp_$(head -c 400 /dev/urandom | tr -dc 'A-Za-z0-9' | head -c 36)"
+          echo "token = \"$token\"" > leak.txt
+          git add leak.txt && git commit -qm canary
+          set +e
+          docker run --rm -u "$(id -u):$(id -g)" -v "$canary:/repo" "$GITLEAKS_IMAGE" \
+            detect --source=/repo --log-opts=--all --redact --no-banner
+          code=$?
+          set -e
+          if [ "$code" -ne 1 ]; then
+            echo "Canary NOT detected (exit $code): secret scanning is not working"; exit 1
+          fi
+          echo "Canary detected: scanner is working."
+      - name: Scan the full git history of this repository
+        run: |
+          docker run --rm -u "$(id -u):$(id -g)" -v "$GITHUB_WORKSPACE:/repo" "$GITLEAKS_IMAGE" \
+            detect --source=/repo --log-opts=--all --redact --verbose --no-banner
