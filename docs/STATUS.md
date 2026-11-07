@@ -10,7 +10,7 @@ A feature is complete only when code **and** tests prove it. A page or placehold
 | 0 | Specification and repository bootstrap | TESTED, approved and merged (PR #1) | See Phase 0 checklist below |
 | 1 | Data foundation (Turso, migrations, company master) | TESTED, approved and merged (PR #2, merge commit 108cdd6) | See Phase 1 checklist below |
 | 2 | Source collection engine | TESTED, approved and merged (PR #5, merge commit 992e4b0); no source ACTIVE; 0006 not yet applied to production | See Phase 2 checklist below |
-| 3 | Event extraction and verification | IMPLEMENTED and TESTED offline (PR #11, based on main after the PR #5 merge); live LLM NOT CONNECTED; awaiting owner review | See Phase 3 checklist below and `docs/PHASE_3_ACCEPTANCE.md` |
+| 3 | Event extraction and verification | TESTED, approved and merged (PR #11, merge commit 0491deec56adbd10c719eef3039bd7a546c521c6). Offline scope complete; live LLM NOT CONNECTED (BLOCKED, owner decision); 0007 not yet applied to production | See Phase 3 checklist below and `docs/PHASE_3_ACCEPTANCE.md` |
 | 4 | Company exposure graph | NOT STARTED | |
 | 5 | Impact analysis and Python calculations | NOT STARTED | |
 | 6 | Streamlit MVP | NOT STARTED | |
@@ -91,6 +91,10 @@ A feature is complete only when code **and** tests prove it. A page or placehold
 | Energy prices (EIA) | none | robots.txt disallows /rss; API key needed | BLOCKED |
 
 ## Phase 3 checklist
+
+Owner approved and merged on 2026-11-07 (PR #11, merge commit `0491deec56adbd10c719eef3039bd7a546c521c6`).
+Main CI on the merge commit: test, secret-scan and CodeQL (Python, Actions) passed. Offline acceptance
+criteria are met. The rows marked BLOCKED below remain open and are not part of the merged scope.
 
 | Deliverable | Location | Test / evidence | Status |
 |---|---|---|---|

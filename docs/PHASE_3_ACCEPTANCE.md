@@ -1,7 +1,12 @@
 # Phase 3 acceptance report: event extraction and verification
 
-Branch `phase-3-intelligence` (PR #11), based on `main` after the PR #5 merge (992e4b0). Status: **IMPLEMENTED,
-TESTED offline. Live LLM NOT CONNECTED.** Awaiting owner review.
+PR #11, **approved by the owner and merged** on 2026-11-07 (merge commit
+`0491deec56adbd10c719eef3039bd7a546c521c6`). Status: **TESTED offline, complete for the offline scope. Live LLM
+NOT CONNECTED.** Final checks on head `9b9324c`:
+- local: independence guard and ruff pass; pytest 160 passed, 11 skipped (5 opt-in live-source, 6 Turso);
+  pip-audit clean;
+- GitHub: test, secret-scan and CodeQL pass ("No new alerts in code changed by this pull request");
+- main CI on the merge commit passes.
 
 ## Spec acceptance (§14 Phase 3, §16 event tests, §19 Event MVP)
 
