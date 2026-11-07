@@ -50,7 +50,7 @@ Owner decisions recorded in [`docs/adr/0003-owner-decisions-future-phases.md`](a
 | R-2.2-2 | 2.2 | Scheduled, incremental, idempotent jobs with run logs | 2, 7 | | | NOT STARTED |
 | R-2.2-3 | 2.2 | Separate workflows per source family | 7 | | | NOT STARTED |
 | R-2.2-4 | 2.2 | Manual backfill with date range, rate limits, dry-run | 7 | `dry_run` input in skeleton workflow (no-op) | | NOT STARTED |
-| R-3-0 | 3 | 23 modules share one core (company master, sources, evidence, events, exposure graph) | 1+ | Shared schema: company master, source registry, evidence, events, exposure tables | tests/test_database.py | IN PROGRESS (foundation tested) |
+| R-3-0 | 3 | 24 modules (23 original + Module 24, ADR-0003 C8) share one core (company master, sources, evidence, events, exposure graph) | 1+ | Shared schema: company master, source registry, evidence, events, exposure tables | tests/test_database.py | IN PROGRESS (foundation tested) |
 | R-3.1 | 3.1 | News Intelligence (initial sources per ADR-0003) | 2–3 | | | NOT STARTED |
 | R-3.2 | 3.2 | Corporate Intelligence | 8 | | | NOT STARTED |
 | R-3.3 | 3.3 | Policy & Regulatory Intelligence | 8 | | | NOT STARTED |
@@ -74,6 +74,8 @@ Owner decisions recorded in [`docs/adr/0003-owner-decisions-future-phases.md`](a
 | R-3.21 | 3.21 | Company Financial Statement Intelligence | 8 | | | NOT STARTED |
 | R-3.22 | 3.22 | YouTube & Financial Media Intelligence (deferred, ADR-0003) | 11 | | | NOT STARTED |
 | R-3.23 | 3.23 | X (Twitter) Intelligence (deferred, ADR-0003) | 11 | | | NOT STARTED |
+| R-3.24 | 3.24 | Global Energy & Oil Shock Monitor (Module 24, ADR-0003 C8): benchmarks, supply/chokepoint shocks, Pakistan transmission, company exposure | 3, 5, 9 | | | NOT STARTED |
+| R-3.24-2 | 3.24 | Oil shocks carry type, severity, duration, verification state, cited sources and documented transmission; no invented prices | 9 | | | NOT STARTED |
 | R-4-1 | 4 | Store supplied URLs/handles as watchlist identifiers; no silent substitution | 1, 11 | `media_accounts` seeded from `database/seed/media_watchlist.json` (exact handles, disabled) | tests/test_database.py::test_watchlist_handles_preserved_exactly | TESTED (identifiers stored; collection: Phase 11) |
 | R-4.1-1 | 4.1 | 20 supplied X accounts | 1, 11 | 20 X accounts stored verbatim, `identity_verification='unverified'` | tests/test_database.py::test_watchlist_handles_preserved_exactly | TESTED (identifiers stored) |
 | R-4.1-2 | 4.1 | Donald Trump and Reuters kept in `pending_accounts`; no guessed handles | 1, 11 | Trump / Reuters stored as `pending_handle`, no URL; validation rejects guessed URLs | tests/test_database.py::test_watchlist_validation_rejects_guessed_handles | TESTED |
@@ -107,7 +109,8 @@ Owner decisions recorded in [`docs/adr/0003-owner-decisions-future-phases.md`](a
 | R-11.1-5 | 11.1 | Retention policies, compact storage | 1, 7 | Excerpt limits; no blobs. Retention policy: Phase 7 |  | IN PROGRESS |
 | R-11.1-6 | 11.1 | Provenance for every AI claim and calculation | 1, 3, 5 | Provenance columns (`source_item_id`, model/prompt/calculation versions) in schema | tests/test_database.py::test_evidence_links_claims_to_sources | IN PROGRESS (schema tested) |
 | R-11.1-7 | 11.1 | Backup/export + tested restore; no destructive migration without approval | 1, 14 | Destructive migrations refused; backup plan documented; restore test Phase 14 | tests/test_database.py::test_destructive_migration_is_refused | IN PROGRESS |
-| R-12-1 | 12 | 14 dashboard pages, built only for implemented modules | 6+ | `app.py` status page only | | NOT STARTED |
+| R-12-1 | 12 | 15 dashboard pages (14 original + Page 15), built only for implemented modules | 6+ | `app.py` status page only | | NOT STARTED |
+| R-12-15 | 12 | Page 15 Global Oil & Energy Intelligence (Module 24) | 9 | | | NOT STARTED |
 | R-12-2 | 12 | UI standard: facts vs. AI interpretation, sources, states, mobile, no fake numbers | 6+ | `app.py` shows no data or placeholder figures | `test_app_starts_without_errors` | IN PROGRESS |
 | R-13-1 | 13 | Repository structure per spec (directories added when implemented) | 0+ | ADR-0002 | | IN PROGRESS |
 | R-14-0 | 14 | Phase 0: README, ADR, .gitignore, config example, pyproject, lint/test, workflow skeleton, no link to existing project; app starts; secrets absent; CI runs | 0 | see `docs/STATUS.md` Phase 0 checklist | CI on PR #1 | TESTED (approved and merged, PR #1) |

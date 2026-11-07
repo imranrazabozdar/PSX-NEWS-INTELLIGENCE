@@ -236,8 +236,10 @@ controls.
 
 # 3. Full intelligence module catalogue
 
-The following 23 modules are capabilities of one shared event-centred
-platform, not 23 disconnected applications. Each module must reuse the
+The following 24 modules are capabilities of one shared event-centred
+platform, not 24 disconnected applications. Modules 1–23 are the
+original catalogue; Module 24 was added by owner decision on 2026-11-07
+(ADR-0003, decision C8) without removing or reducing any original module. Each module must reuse the
 company master, source registry, evidence model, event records and
 exposure graph.
 
@@ -430,6 +432,25 @@ Detect breaking geopolitical, policy, Pakistan, company and market
 developments; measure mention velocity and engagement; identify rumour,
 promotional hype, source diversity, conflicting claims and
 market-sentiment divergence. Social posts are leads, not proof.
+
+## 24. Global Energy & Oil Shock Monitor
+
+Track global oil, LNG, LPG, coal and refined-product benchmarks,
+supply disruptions (OPEC+ decisions, sanctions, shipping-lane and
+chokepoint incidents such as the Strait of Hormuz and Red Sea, refinery
+and pipeline outages), inventory and production releases, and
+geopolitical events that move energy prices. Classify each shock by
+type, severity, duration and verification state, and transmit it to
+Pakistan through documented channels: import bill and current account,
+PKR, petroleum-product price notifications, OGRA/NEPRA tariff and
+circular-debt effects, inflation and policy-rate expectations, and
+company-specific exposure (refiners, OMCs, E&P, power, fertiliser,
+cement, textiles, airlines, LPG). Use only permitted sources (for
+example the EIA Open Data API, official OPEC/IEA publications where
+their terms allow, official Pakistani notifications and Phase 3
+verified events). Never invent prices or forecasts; label estimates and
+missing inputs. Reuses the commodity library (§7), lifecycle (§8),
+impact engine (§9) and exposure graph.
 
 # 4. User-supplied social and media watchlists
 
@@ -1289,6 +1310,18 @@ can mention many tickers/events.
                                       failed jobs, quota use, database
                                       size, duplicate rates, LLM spend,
                                       unresolved review queue.
+
+  15\. Global Oil & Energy            Module 24: benchmark dashboard
+  Intelligence                        (crude, LNG, LPG, coal, products)
+                                      with source and unit metadata,
+                                      active shock timeline with
+                                      severity and verification, supply
+                                      and chokepoint risk, Pakistan
+                                      transmission (import bill, PKR,
+                                      petroleum prices, tariffs) and
+                                      company-specific exposure.
+                                      Facts, AI interpretation and
+                                      estimates visually separated.
   -----------------------------------------------------------------------
 
 UI standard: professional research-terminal presentation; calm
@@ -1411,8 +1444,17 @@ usability; no placeholder numbers that resemble real data.
   and domestic/geopolitical risk      indicator collectors, geographic
                                       incident tracking, LPG calculator
                                       and company-specific transmission.
+                                      Global Energy & Oil Shock Monitor
+                                      (Module 24, Page 15): shock
+                                      classification, chokepoint and
+                                      supply-disruption tracking and
+                                      Pakistan transmission.
                                       Acceptance: units, locations, lags
-                                      and source provenance tested.
+                                      and source provenance tested; each
+                                      oil shock has type, severity,
+                                      verification state, cited sources
+                                      and a documented transmission
+                                      path; no invented prices.
 
   Phase 10 --- Institutional and      MUFAP/AMC holdings, reports and
   broker research                     authorised broker research. Include

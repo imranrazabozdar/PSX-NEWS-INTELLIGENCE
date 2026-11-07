@@ -46,7 +46,7 @@ def matrix_rows() -> list[list[str]]:
 def test_spec_parsing_finds_all_major_sections():
     ids = spec_section_ids()
     assert {str(n) for n in range(1, 21)} <= ids
-    assert {f"3.{n}" for n in range(1, 24)} <= ids
+    assert {f"3.{n}" for n in range(1, 25)} <= ids  # 23 original modules + Module 24
     assert {"A", "B", "11.1", "4.6", "10.3"} <= ids
 
 
@@ -70,3 +70,12 @@ def test_tested_rows_cite_a_test():
     for row in matrix_rows():
         if row[6].startswith("TESTED"):
             assert row[5], f"{row[0]} is TESTED but cites no test"
+
+
+def test_all_15_dashboard_pages_are_specified_and_traced():
+    spec = SPEC.read_text(encoding="utf-8")
+    for n in range(1, 16):
+        assert re.search(rf"^  {n}\\\. ", spec, re.M), f"dashboard page {n} missing from spec section 12"
+    assert "Global Oil & Energy" in spec
+    ids = {row[0] for row in matrix_rows()}
+    assert {"R-3.24", "R-12-1", "R-12-15"} <= ids
