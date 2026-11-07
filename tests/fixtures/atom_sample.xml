@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+ <title>Synthetic Atom feed</title>
+ <entry>
+  <title>Synthetic atom entry</title>
+  <link rel="alternate" href="https://official.example.org/notice/10"/>
+  <id>tag:official.example.org,2026:notice-10</id>
+  <published>2026-11-05T10:00:00+05:00</published>
+  <updated>2026-11-06T09:00:00Z</updated>
+  <summary>Synthetic notice summary.</summary>
+ </entry>
+ <entry>
+  <title>Synthetic atom entry, updated only</title>
+  <link href="https://official.example.org/notice/11"/>
+  <id>tag:official.example.org,2026:notice-11</id>
+  <updated>2026-11-06T12:00:00Z</updated>
+ </entry>
+</feed>

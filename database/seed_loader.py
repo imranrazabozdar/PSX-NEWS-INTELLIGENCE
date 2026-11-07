@@ -40,7 +40,7 @@ def sector_id(name: str) -> str:
 
 
 SEED_FILES = ("sources.json", "companies.json", "media_watchlist.json")
-LOADER_VERSION = "1"
+LOADER_VERSION = "2"
 
 
 def dataset_sha256() -> str:
@@ -159,19 +159,26 @@ def load(db: Database, *, force: bool = False) -> str:
             db.execute(
                 """INSERT INTO media_accounts(platform, handle, supplied_url, display_name,
                        monitoring_purpose, identity_verification, monitoring_status, source_id, notes,
-                       created_at_utc) VALUES (?,?,?,?,?,'unverified','disabled',?,?,?)
-                   ON CONFLICT DO NOTHING""",
+                       created_at_utc, category, access_status)
+                   VALUES (?,?,?,?,?,'unverified','disabled',?,?,?,?,?)
+                   ON CONFLICT DO UPDATE SET category = excluded.category,
+                       access_status = excluded.access_status
+                   WHERE media_accounts.category IS NOT excluded.category
+                      OR media_accounts.access_status IS NOT excluded.access_status""",
                 (a["platform"], a["handle"], a["supplied_url"], a.get("display_name"),
-                 a["monitoring_purpose"], source_id, a.get("notes"), now))
+                 a["monitoring_purpose"], source_id, a.get("notes"), now, a.get("category"),
+                 "official_api_required"))
         else:
             db.execute(
                 """INSERT INTO media_accounts(platform, handle, display_name, monitoring_purpose,
-                       identity_verification, monitoring_status, source_id, notes, created_at_utc)
-                   SELECT ?, NULL, ?, ?, 'pending_confirmation', 'pending_handle', ?, ?, ?
+                       identity_verification, monitoring_status, source_id, notes, created_at_utc,
+                       category, access_status)
+                   SELECT ?, NULL, ?, ?, 'pending_confirmation', 'pending_handle', ?, ?, ?, ?,
+                       'official_api_required'
                    WHERE NOT EXISTS (SELECT 1 FROM media_accounts WHERE platform = ? AND
                        handle IS NULL AND display_name = ?)""",
                 (a["platform"], a["display_name"], a["monitoring_purpose"], source_id,
-                 a.get("notes"), now, a["platform"], a["display_name"]))
+                 a.get("notes"), now, a.get("category"), a["platform"], a["display_name"]))
     n = len(seed["companies"])
     db.execute("INSERT INTO dataset_loads(dataset, sha256, loaded_at_utc, record_count) "
                "VALUES ('reference_data', ?, ?, ?) ON CONFLICT(dataset) DO UPDATE SET "

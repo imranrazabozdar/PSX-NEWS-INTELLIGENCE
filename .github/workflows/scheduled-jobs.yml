@@ -1,27 +1,78 @@
-# Skeleton for scheduled collector/analysis jobs (spec section 2.2, Phase 7).
-# Phase 0: manual trigger only, no schedule, no secrets, nothing is collected.
-# Each source family will get its own job when it is implemented and approved.
-name: Scheduled jobs (skeleton)
+# Scheduled source collection (spec section 2.2, Phase 2, ADR-0005).
+# * Collects only sources whose registry status is ACTIVE (none are ACTIVE until the owner
+#   approves each source's terms). Everything else is refused by the engine and the database.
+# * Kill switch: set the repository variable PSXNI_KILL_SWITCH to "true" to stop all runs.
+# * Needs the repository secrets PSXNI_TURSO_DATABASE_URL and PSXNI_TURSO_AUTH_TOKEN; without
+#   them the job reports that it is not configured and exits without doing anything.
+# * Per-run database budgets (rows read/written, requests) are enforced by database/connection.py.
+name: Scheduled collection
 
 on:
+  schedule:
+    - cron: "17 */6 * * *"   # every 6 hours; per-source frequency is applied by the scheduler
   workflow_dispatch:
     inputs:
+      source:
+        description: "Collect one source_id (empty = all ACTIVE sources that are due)"
+        required: false
+        default: ""
       dry_run:
-        description: "Dry run (no writes)"
+        description: "Dry run: fetch and parse only, write nothing"
         type: boolean
         default: true
+      since:
+        description: "Backfill: only items published at/after this UTC time (YYYY-MM-DDTHH:MM:SSZ)"
+        required: false
+        default: ""
+      until:
+        description: "Backfill: only items published at/before this UTC time"
+        required: false
+        default: ""
 
 permissions:
   contents: read
 
 concurrency:
-  group: scheduled-jobs
+  group: scheduled-collection
   cancel-in-progress: false
 
 jobs:
-  placeholder:
+  collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 20
+    env:
+      PSXNI_KILL_SWITCH: ${{ vars.PSXNI_KILL_SWITCH }}
+      PSXNI_TURSO_DATABASE_URL: ${{ secrets.PSXNI_TURSO_DATABASE_URL }}
+      PSXNI_TURSO_AUTH_TOKEN: ${{ secrets.PSXNI_TURSO_AUTH_TOKEN }}
+      INPUT_SOURCE: ${{ inputs.source }}
+      INPUT_DRY_RUN: ${{ inputs.dry_run }}
+      INPUT_SINCE: ${{ inputs.since }}
+      INPUT_UNTIL: ${{ inputs.until }}
     steps:
-      - name: No collectors implemented yet
-        run: echo "No collectors are implemented (Phase 2). Nothing was collected or written."
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Check configuration
+        id: cfg
+        run: |
+          if [ "${PSXNI_KILL_SWITCH,,}" = "true" ]; then
+            echo "Kill switch is on: no collection."; echo "run=false" >> "$GITHUB_OUTPUT"
+          elif [ -z "$PSXNI_TURSO_DATABASE_URL" ] || [ -z "$PSXNI_TURSO_AUTH_TOKEN" ]; then
+            echo "Turso secrets are not configured: no collection."; echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Install dependencies
+        if: steps.cfg.outputs.run == 'true'
+        run: pip install -r requirements.txt
+      - name: Collect
+        if: steps.cfg.outputs.run == 'true'
+        run: |
+          args=()
+          if [ -n "$INPUT_SOURCE" ]; then args+=(--source "$INPUT_SOURCE"); else args+=(--due); fi
+          if [ "$INPUT_DRY_RUN" = "true" ]; then args+=(--dry-run); fi
+          if [ -n "$INPUT_SINCE" ]; then args+=(--since "$INPUT_SINCE"); fi
+          if [ -n "$INPUT_UNTIL" ]; then args+=(--until "$INPUT_UNTIL"); fi
+          python -m collectors.run "${args[@]}"

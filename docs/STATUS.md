@@ -9,7 +9,7 @@ A feature is complete only when code **and** tests prove it. A page or placehold
 |---|---|---|---|
 | 0 | Specification and repository bootstrap | TESTED, approved and merged (PR #1) | See Phase 0 checklist below |
 | 1 | Data foundation (Turso, migrations, company master) | TESTED, approved and merged (PR #2, merge commit 108cdd6) | See Phase 1 checklist below |
-| 2 | First source collectors | NOT STARTED | |
+| 2 | Source collection engine | IMPLEMENTED, awaiting owner review | See Phase 2 checklist below |
 | 3 | Event extraction and verification | NOT STARTED | |
 | 4 | Company exposure graph | NOT STARTED | |
 | 5 | Impact analysis and Python calculations | NOT STARTED | |
@@ -67,6 +67,26 @@ A feature is complete only when code **and** tests prove it. A page or placehold
 | Free-tier quota protection (meter, budget, kill switch, skip-unchanged, indexed lookups) | `database/connection.py`, `0005_dataset_loads.sql`, `seed_loader.py` | `test_turso_usage_is_metered`, `test_turso_budget_stops_further_requests`, `test_kill_switch_blocks_database_requests`, `test_hot_lookups_use_indexes`, `test_seed_load_is_idempotent` | TESTED |
 | Backup / restore | plan in `docs/DATA_MODEL.md` | restore test is Phase 14 | IN PROGRESS |
 | Turso tests in GitHub CI | `.github/workflows/ci.yml` reads `PSXNI_TURSO_*` secrets | skipped until the owner adds the two repository secrets | BLOCKED (needs owner) |
+
+## Phase 2 checklist
+
+| Deliverable | Location | Test / evidence | Status |
+|---|---|---|---|
+| Reusable collection pipeline | `collectors/engine.py`, ADR-0005 | `tests/test_collectors.py` | TESTED |
+| HTTP reliability: timeouts, retries, backoff, Retry-After, rate limit, robots, conditional requests, size cap | `collectors/http.py` | `test_retry_*`, `test_rate_limited_*`, `test_timeouts_*`, `test_robots_*`, `test_per_host_rate_limit`, `test_conditional_*` | TESTED |
+| Parsers: RSS, Atom, JSON API, HTML tables, PDF metadata, timestamps | `collectors/parsers.py` | parser tests (synthetic fixtures in `tests/fixtures/`) | TESTED |
+| Provenance, hashing, dedup, versioning, missing timestamps | migration 0006, `record_source_item` | persistence tests | TESTED |
+| Run audit, checkpoints, source health | `collector_runs`, `collector_checkpoints`, `source_health` | `test_source_failure_is_visible_in_health` | TESTED |
+| Pagination, incremental, backfill, dry run | `fetch_pages`, `collect(since/until)` | pagination / backfill / dry-run tests | TESTED |
+| Kill switch, DB budgets, ACTIVE gate | engine + trigger | `test_kill_switch_*`, `test_usage_budget_*`, `test_active_requires_*` | TESTED |
+| Source registry v2 (64 sources, 38 retained) | `database/seed/sources.json` | `test_registry_*` | TESTED |
+| Source access & licensing register | `docs/SOURCE_ACCESS_REGISTER.md` (generated) | `test_source_register_document_is_in_sync` | TESTED |
+| Live access: Dawn, Business Recorder, Express Tribune, PBS | dry runs against live feeds | `tests/test_live_sources.py` (opt-in) | TESTED (no source ACTIVE) |
+| X watchlist (23 + 2 pending) and YouTube (7) preserved | `database/seed/media_watchlist.json` | `test_watchlist_includes_new_accounts_exactly` | TESTED (collection Phase 11) |
+| Scheduled workflow | `.github/workflows/scheduled-jobs.yml` | not yet run with Turso secrets; nothing ACTIVE | IMPLEMENTED |
+| PSX disclosures collector | none | PSX terms prohibit automated retrieval without permission | BLOCKED |
+| SBP / SECP / Commerce / IMF / OPEC | none | HTTP 403 to automated requests | BLOCKED |
+| Energy prices (EIA) | none | robots.txt disallows /rss; API key needed | BLOCKED |
 
 ## Requirements traceability
 

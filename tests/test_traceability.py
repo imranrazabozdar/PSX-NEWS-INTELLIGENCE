@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SPEC = ROOT / "docs" / "SPECIFICATION.md"
 MATRIX = ROOT / "docs" / "TRACEABILITY.md"
-VALID_STATUSES = ("NOT STARTED", "IN PROGRESS", "BLOCKED", "IMPLEMENTED", "TESTED")
+VALID_STATUSES = ("NOT STARTED", "IN PROGRESS", "PARTIAL", "BLOCKED", "IMPLEMENTED", "TESTED")
 
 
 def spec_section_ids() -> set[str]:

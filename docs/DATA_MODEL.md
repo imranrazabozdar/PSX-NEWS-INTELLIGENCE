@@ -90,6 +90,15 @@ python -m database.seed_loader --dry-run  # validate reference data only
 python -m database.seed_loader            # load reference data (idempotent)
 ```
 
+## Phase 2 additions (migration 0006)
+* `sources`: official URL, category/subcategory, geography, industries, content format, feed URL, adapter, retention mode, terms/licensing/verification status, lifecycle status (NOT REVIEWED … ACTIVE / DISABLED), priority, frequency, review notes, plus health fields (last attempt/error, failure counts, last content time). A trigger refuses ACTIVE unless terms are approved and access is verified.
+* `source_items`: original URL, retrieval method, collection run, HTTP status, document type, publication-time status, source metadata. These are immutable once set.
+* `source_item_versions`: collection run and title per version.
+* `collector_runs`: duplicates, new versions, failed items, HTTP requests/status, duration, not-modified.
+* `collector_checkpoints`: ETag / Last-Modified / last seen item per source.
+* `media_accounts`: category and access status.
+* `source_health` view.
+
 ## Free-tier quota protection
 Turso's free plan caps rows read, rows written and storage. Check the current limits on Turso's site before increasing collection.
 * **Usage meter:** every Turso response reports `rows_read` / `rows_written`. `db.usage()` totals them per run, and the loader prints them.

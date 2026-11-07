@@ -9,24 +9,48 @@ from typing import Any
 from database.canonical import canonical_url, content_sha256, normalise_name, now_utc
 from database.connection import Database, DatabaseError
 
-
 # ---------------------------------------------------------------- sources & source items
+REGISTRY_FIELDS = ("name", "source_type", "domain", "platform", "owner", "reliability_tier",
+                   "access_method", "access_status", "terms_notes", "update_cadence", "notes",
+                   "official_url", "category", "subcategory", "geographic_coverage", "industries_json",
+                   "related_companies_json", "content_format", "feed_url", "adapter", "retention_mode",
+                   "terms_status", "licensing_status", "verification_status", "lifecycle_status",
+                   "priority", "collection_frequency_minutes", "review_notes", "reviewed_at_utc")
+
+
 def upsert_source(db: Database, src: dict[str, Any]) -> None:
-    """Insert a source or update its descriptive fields. Never enables collection."""
+    """Insert a source or update its registry fields from the reviewed seed.
+
+    Operational fields (last attempt/success/error, failure counts) are never touched here, and
+    nothing is written when the stored registry fields already match. Collection is enabled only
+    together with lifecycle ACTIVE, which the database refuses unless terms are approved and
+    access is verified.
+    """
     now = now_utc()
+    rec = dict(src)
+    rec["industries_json"] = json.dumps(src.get("industries") or [])
+    rec["related_companies_json"] = json.dumps(src.get("related_companies") or [])
+    rec.setdefault("reliability_tier", "unrated")
+    rec.setdefault("access_method", "pending_review")
+    rec.setdefault("access_status", "unverified")
+    rec.setdefault("content_format", "unknown")
+    rec.setdefault("retention_mode", "metadata_only")
+    rec.setdefault("terms_status", "not_reviewed")
+    rec.setdefault("licensing_status", "unknown")
+    rec.setdefault("verification_status", "unverified")
+    rec.setdefault("lifecycle_status", "NOT REVIEWED")
+    enabled = 1 if rec.get("lifecycle_status") == "ACTIVE" else 0
+    cols = ["source_id", *REGISTRY_FIELDS, "enabled", "created_at_utc", "updated_at_utc"]
+    vals = [rec["source_id"], *(rec.get(f) for f in REGISTRY_FIELDS), enabled, now, now]
+    sets = ", ".join(f"{f} = excluded.{f}" for f in (*REGISTRY_FIELDS, "enabled", "updated_at_utc"))
+    changed = " OR ".join(f"sources.{f} IS NOT excluded.{f}" for f in (*REGISTRY_FIELDS, "enabled"))
     db.execute(
-        """INSERT INTO sources(source_id, name, source_type, domain, platform, owner, reliability_tier,
-               access_method, access_status, terms_notes, update_cadence, enabled, notes,
-               created_at_utc, updated_at_utc)
-           VALUES (?,?,?,?,?,?,?,?,?,?,?,0,?,?,?)
-           ON CONFLICT(source_id) DO UPDATE SET name=excluded.name, domain=excluded.domain,
-               platform=excluded.platform, notes=excluded.notes, updated_at_utc=excluded.updated_at_utc
-           WHERE sources.name IS NOT excluded.name OR sources.domain IS NOT excluded.domain
-              OR sources.platform IS NOT excluded.platform OR sources.notes IS NOT excluded.notes""",
-        (src["source_id"], src["name"], src["source_type"], src.get("domain"), src.get("platform"),
-         src.get("owner"), src.get("reliability_tier", "unrated"),
-         src.get("access_method", "pending_review"), src.get("access_status", "unverified"),
-         src.get("terms_notes"), src.get("update_cadence"), src.get("notes"), now, now))
+        f"INSERT INTO sources({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))}) "  # noqa: S608
+        f"ON CONFLICT(source_id) DO UPDATE SET {sets} WHERE {changed}", vals)
+
+
+_PROVENANCE_FIELDS = ("original_url", "retrieval_method", "collection_run_id", "http_status",
+                      "document_type", "publication_time_status", "source_metadata_json")
 
 
 @dataclass(frozen=True)
@@ -41,7 +65,8 @@ def record_source_item(db: Database, *, source_id: str, collected_at_utc: str,
                        title: str | None = None, published_at_utc: str | None = None,
                        published_at_raw: str | None = None, published_tz_offset: str | None = None,
                        event_date: str | None = None, language: str | None = None,
-                       excerpt: str | None = None, access_status: str = "public") -> ItemResult:
+                       excerpt: str | None = None, access_status: str = "public",
+                       provenance: dict[str, Any] | None = None) -> ItemResult:
     """Store a source item with deduplication and version history.
 
     * Same canonical URL / external ID and same content hash -> 'unchanged' (no write).
@@ -49,7 +74,12 @@ def record_source_item(db: Database, *, source_id: str, collected_at_utc: str,
       row is never overwritten.
     * New URL but content identical to an existing item from any source -> stored, and linked
       with duplicate_of_item_id so it isn't counted as independent corroboration.
+
+    `provenance` (migration 0006) adds: original_url, retrieval_method, collection_run_id,
+    http_status, document_type, publication_time_status, source_metadata_json.
     """
+    prov = {k: v for k, v in (provenance or {}).items() if k in _PROVENANCE_FIELDS}
+    run_id = prov.get("collection_run_id")
     if content_hash is None:
         if content is None:
             raise ValueError("content or content_hash is required")
@@ -68,29 +98,42 @@ def record_source_item(db: Database, *, source_id: str, collected_at_utc: str,
         known = {existing[0]["content_sha256"]} | {v["content_sha256"] for v in versions}
         if content_hash in known:
             return ItemResult(item_id, "unchanged")
-        db.execute(
-            "INSERT INTO source_item_versions(source_item_id, version_no, content_sha256, "
-            "collected_at_utc, permitted_excerpt) VALUES (?, (SELECT COALESCE(MAX(version_no),1)+1 "
-            "FROM source_item_versions WHERE source_item_id = ?), ?, ?, ?)",
-            (item_id, item_id, content_hash, collected_at_utc, excerpt))
+        if provenance is None:
+            db.execute(
+                "INSERT INTO source_item_versions(source_item_id, version_no, content_sha256, "
+                "collected_at_utc, permitted_excerpt) VALUES (?, (SELECT COALESCE(MAX(version_no),1)+1 "
+                "FROM source_item_versions WHERE source_item_id = ?), ?, ?, ?)",
+                (item_id, item_id, content_hash, collected_at_utc, excerpt))
+        else:
+            db.execute(
+                "INSERT INTO source_item_versions(source_item_id, version_no, content_sha256, "
+                "collected_at_utc, permitted_excerpt, collection_run_id, title) VALUES (?, "
+                "(SELECT COALESCE(MAX(version_no),1)+1 FROM source_item_versions WHERE source_item_id = ?),"
+                " ?, ?, ?, ?, ?)",
+                (item_id, item_id, content_hash, collected_at_utc, excerpt, run_id, title))
         return ItemResult(item_id, "new_version")
     dup = db.execute("SELECT MIN(source_item_id) AS id FROM source_items WHERE content_sha256 = ?",
                      (content_hash,))
     dup_id = dup[0]["id"] if dup and dup[0]["id"] is not None else None
+    cols = ["source_id", "canonical_url", "external_id", "title", "language", "published_at_utc",
+            "published_at_raw", "published_tz_offset", "event_date", "collected_at_utc",
+            "content_sha256", "permitted_excerpt", "access_status", "duplicate_of_item_id", *prov]
+    vals = [source_id, curl, external_id, title, language, published_at_utc, published_at_raw,
+            published_tz_offset, event_date, collected_at_utc, content_hash, excerpt, access_status,
+            dup_id, *prov.values()]
+    version_cols = "source_item_id, version_no, content_sha256, collected_at_utc, permitted_excerpt"
+    version_vals: list[Any] = [content_hash, collected_at_utc, excerpt]
+    if provenance is not None:
+        version_cols += ", collection_run_id, title"
+        version_vals += [run_id, title]
     rows = db.batch([
-        ("""INSERT INTO source_items(source_id, canonical_url, external_id, title, language,
-               published_at_utc, published_at_raw, published_tz_offset, event_date, collected_at_utc,
-               content_sha256, permitted_excerpt, access_status, duplicate_of_item_id)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-         (source_id, curl, external_id, title, language, published_at_utc, published_at_raw,
-          published_tz_offset, event_date, collected_at_utc, content_hash, excerpt, access_status,
-          dup_id)),
+        (f"INSERT INTO source_items({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})",  # noqa: S608
+         vals),
         ("SELECT last_insert_rowid() AS id", ()),
+        (f"INSERT INTO source_item_versions({version_cols}) "  # noqa: S608 - fixed column names
+         f"VALUES (last_insert_rowid(), 1, {', '.join('?' * len(version_vals))})", version_vals),
     ])
     item_id = rows[1][0]["id"]
-    db.execute("INSERT INTO source_item_versions(source_item_id, version_no, content_sha256, "
-               "collected_at_utc, permitted_excerpt) VALUES (?, 1, ?, ?, ?)",
-               (item_id, content_hash, collected_at_utc, excerpt))
     return ItemResult(item_id, "duplicate_content" if dup_id else "inserted")
 
 

@@ -58,20 +58,49 @@ def validate_company_seed(seed: dict[str, Any]) -> list[str]:
     return errors
 
 
+LIFECYCLE = ("NOT REVIEWED", "REVIEWED", "APPROVED", "RESTRICTED", "LICENCE REQUIRED", "BLOCKED",
+             "IMPLEMENTED", "TESTED", "ACTIVE", "DISABLED")
+ADAPTERS = ("rss", "atom", "json_api")
+
+
 def validate_source_registry(reg: dict[str, Any]) -> list[str]:
     errors = []
     ids = [s.get("source_id") for s in reg.get("sources", [])]
     dupes = [i for i, n in Counter(ids).items() if n > 1]
     if dupes:
         errors.append(f"duplicate source ids: {dupes}")
+    urls = Counter((s.get("official_url"), s.get("feed_url")) for s in reg.get("sources", [])
+                   if s.get("official_url") and s.get("feed_url"))
+    for key, n in urls.items():
+        if n > 1:
+            errors.append(f"duplicate source endpoint {key}")
     for s in reg.get("sources", []):
         sid = s.get("source_id") or ""
         if not SOURCE_ID.match(sid):
             errors.append(f"{sid!r}: invalid source id")
-        if s.get("enabled"):
-            errors.append(f"{sid}: sources must not be enabled in Phase 1")
         if not s.get("name"):
             errors.append(f"{sid}: missing name")
+        life = s.get("lifecycle_status", "NOT REVIEWED")
+        if life not in LIFECYCLE:
+            errors.append(f"{sid}: invalid lifecycle status {life!r}")
+        if s.get("enabled") and life != "ACTIVE":
+            errors.append(f"{sid}: enabled without being ACTIVE")
+        if life == "ACTIVE" and (s.get("terms_status") != "approved"
+                                 or s.get("access_status") != "verified_permitted"):
+            errors.append(f"{sid}: ACTIVE requires approved terms and verified access")
+        if life in ("IMPLEMENTED", "TESTED", "ACTIVE") and (s.get("adapter") not in ADAPTERS
+                                                            or not s.get("feed_url")):
+            errors.append(f"{sid}: {life} requires an implemented adapter and endpoint")
+        if life != "NOT REVIEWED" and not s.get("reviewed_at_utc"):
+            errors.append(f"{sid}: reviewed status without review date")
+        if life != "NOT REVIEWED" and not s.get("review_notes"):
+            errors.append(f"{sid}: reviewed status without review notes")
+        for key in ("official_url", "feed_url"):
+            if s.get(key) and not str(s[key]).startswith("https://"):
+                errors.append(f"{sid}: {key} must be https")
+        retention = s.get("retention_mode", "metadata_only")
+        if retention != "metadata_only" and s.get("terms_status") != "approved":
+            errors.append(f"{sid}: retaining excerpts requires approved terms")
     return errors
 
 
