@@ -66,7 +66,7 @@ THIRD_PARTY_IMPORTS = {
 }
 
 # Local top-level packages/modules of THIS project.
-LOCAL_MODULES = {"app", "config", "scripts", "tests"}
+LOCAL_MODULES = {"app", "config", "database", "scripts", "tests"}
 
 ALLOWED_ACTION_OWNERS = {"actions"}
 ALLOWED_SECRETS = {"GITHUB_TOKEN"}

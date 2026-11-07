@@ -1,0 +1,778 @@
+{
+ "dataset": "psx_company_master",
+ "version": 1,
+ "compiled_at_utc": "2026-11-07",
+ "method": "Each record was read from the official PSX Data Portal company page (dps.psx.com.pk/company/<TICKER>). KSE-30 membership was read from https://dps.psx.com.pk/indices/KSE30 on the same day. 'XD' shown next to some symbols on PSX is an ex-dividend status marker, not part of the ticker. Only the official PSX sector is recorded; company-specific segments and exposures are Phase 4 work and require evidence.",
+ "kse30_source": {
+  "url": "https://dps.psx.com.pk/indices/KSE30",
+  "fetched_at_utc": "2026-11-07",
+  "page_sha256": "341924f3db3272216ce825d39abf13e62e3ad965d1f0fe469d157cdd4092c71b"
+ },
+ "companies": [
+  {
+   "ticker": "ATRL",
+   "legal_name": "Attock Refinery Limited",
+   "psx_sector": "REFINERY",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "Attock Refinery Limited was incorporated in Pakistan on November 8, 1978 as a private limited company and was converted into a public company on June 26, 1979. It is principally engaged in the refining of crude oil. The Company is subsidiary of The Attock Oil Company Limited, England and its",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/ATRL",
+    "fetched_at_utc": "2026-11-07T14:15:26+00:00",
+    "page_sha256": "a80ab6ee048b6adaf4e9e3d5429ce6cc1ad3720816aa0e25fe060cbfdde397ec",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:49 PM"
+   }
+  },
+  {
+   "ticker": "BAFL",
+   "legal_name": "Bank Alfalah Limited",
+   "psx_sector": "COMMERCIAL BANKS",
+   "fiscal_year_end_month": "December",
+   "listing_status": "listed",
+   "business_summary": "Bank Alfalah Limited is a banking company incorporated in Pakistan on June 21, 1992 as a public limited company. It commenced its banking operations on November 1, 1992. The Bank is engaged in banking services as described in the Banking Companies Ordinance, 1962.",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/BAFL",
+    "fetched_at_utc": "2026-11-07T14:15:29+00:00",
+    "page_sha256": "934bfb53e72ae2958906390969a7ca40bd79a5b6abc4c1a950229fb785e712cf",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:48 PM"
+   }
+  },
+  {
+   "ticker": "BOP",
+   "legal_name": "The Bank of Punjab",
+   "psx_sector": "COMMERCIAL BANKS",
+   "fiscal_year_end_month": "December",
+   "listing_status": "listed",
+   "business_summary": "The Bank of Punjab was constituted pursuant to The Bank of Punjab Act, 1989. It was given the status of a scheduled bank by the State Bank of Pakistan (SBP) on September 19, 1994. It is principally engaged in commercial banking and related services. The majority shares of the Bank are held by",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/BOP",
+    "fetched_at_utc": "2026-11-07T14:15:32+00:00",
+    "page_sha256": "f2d95072bd27f75e398548745d46e15ddec7f5c1cef8addbf192103458191ab3",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:47 PM"
+   }
+  },
+  {
+   "ticker": "DGKC",
+   "legal_name": "D.G. Khan Cement Company Limited",
+   "psx_sector": "CEMENT",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "D. G. Khan Cement Company Limited is a public company limited by shares incorporated in Pakistan in 1978 under the repealed Companies Act, 1913 (now Companies Act, 2017). The Company is principally engaged in production and sale of Clinker, Ordinary Portland and Sulphate Resistant Cement.",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/DGKC",
+    "fetched_at_utc": "2026-11-07T14:15:35+00:00",
+    "page_sha256": "13c071ddea099f739869ca5adf8bf83365d009fe883a9ad85d9f34b5b64e94e1",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:49 PM"
+   }
+  },
+  {
+   "ticker": "EFERT",
+   "legal_name": "Engro Fertilizers Limited",
+   "psx_sector": "FERTILIZER",
+   "fiscal_year_end_month": "December",
+   "listing_status": "listed",
+   "business_summary": "Engro Fertilizers Limited is a public company incorporated in Pakistan on June 29, 2009 as a wholly owned subsidiary of Engro Corporation Limited (the Holding Company), which is a subsidiary of Dawood Hercules Corporation Limited (the Ultimate Parent Company). The Company is engaged in the",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/EFERT",
+    "fetched_at_utc": "2026-11-07T14:15:38+00:00",
+    "page_sha256": "c6634a12cda238356fed6b753cdf2acd2991f9a6e6748436fb6dc94e60676335",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:49 PM"
+   }
+  },
+  {
+   "ticker": "ENGROH",
+   "legal_name": "Engro Holdings Limited",
+   "psx_sector": "INV. BANKS / INV. COS. / SECURITIES COS.",
+   "fiscal_year_end_month": "December",
+   "listing_status": "listed",
+   "business_summary": "Engro Holdings Limited, previously Dawood Hercules Corporation Limited, was incorporated in Pakistan on April 17, 1968 as a public limited company under the Companies Act, 1913 (now the Companies Act, 2017). The principal activity of the Company is to manage investments including in its",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/ENGROH",
+    "fetched_at_utc": "2026-11-07T14:15:41+00:00",
+    "page_sha256": "c02a9783e34524039fc5f3788a141d2bc91711c1bd9fd74e3910e7f8ace594eb",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:47 PM"
+   }
+  },
+  {
+   "ticker": "FATIMA",
+   "legal_name": "Fatima Fertilizer Company Limited",
+   "psx_sector": "FERTILIZER",
+   "fiscal_year_end_month": "December",
+   "listing_status": "listed",
+   "business_summary": "Fatima Fertilizer Company Limited was incorporated in Pakistan on December 24, 2003 as a public company under the repealed Companies Ordinance, 1984 (now Companies Act, 2017). The principal activity of the Company is manufacturing, producing, buying, selling, importing and exporting fertilizers and",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/FATIMA",
+    "fetched_at_utc": "2026-11-07T14:15:44+00:00",
+    "page_sha256": "84c3e5c81a45b70797d839a02de687db012c70d8390af016ff9395fff06437d4",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:49 PM"
+   }
+  },
+  {
+   "ticker": "FCCL",
+   "legal_name": "Fauji Cement Company Limited",
+   "psx_sector": "CEMENT",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "Fauji Cement Company Limited is a public limited company incorporated in Pakistan on 23 November 1992 under the Companies Ordinance, 1984 (Repealed with the enactment of the Companies Act, 2017 on May 30, 2017). The Company commenced its business with effect from 22 May 1993. The principal activity",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/FCCL",
+    "fetched_at_utc": "2026-11-07T14:15:47+00:00",
+    "page_sha256": "e37d16fc14c810fe97c20505f43e99c373a302838f9f4c59251e7e71e262ea00",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:49 PM"
+   }
+  },
+  {
+   "ticker": "FFC",
+   "legal_name": "Fauji Fertilizer Company Limited",
+   "psx_sector": "FERTILIZER",
+   "fiscal_year_end_month": "December",
+   "listing_status": "listed",
+   "business_summary": "Fauji Fertilizer Company Limited (the Company) is a public company incorporated in Pakistan under the Companies Act, 1913, (now the Companies Act, 2017) and its shares are quoted on the Pakistan Stock Exchange. The principal activity of the Company is manufacturing, purchasing and marketing of",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/FFC",
+    "fetched_at_utc": "2026-11-07T14:15:51+00:00",
+    "page_sha256": "baf4ea353b2b230b9a6eb15cb453a523e9fdb542485f3932b73f32dd730d74ec",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:49 PM"
+   }
+  },
+  {
+   "ticker": "HBL",
+   "legal_name": "Habib Bank Limited",
+   "psx_sector": "COMMERCIAL BANKS",
+   "fiscal_year_end_month": "December",
+   "listing_status": "listed",
+   "business_summary": "Habib Bank Limited is incorporated in Pakistan and is engaged in commercial banking related services in Pakistan and overseas. The Aga Khan Fund for Economic Development (AKFED), S.A. is the parent company of the Bank and its registered office is in Geneva, Switzerland.",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/HBL",
+    "fetched_at_utc": "2026-11-07T14:15:54+00:00",
+    "page_sha256": "9e686b49afaba14b80337a5b7c773d8941444aceb0fdc02ca9bd3d70c5be3c40",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:49 PM"
+   }
+  },
+  {
+   "ticker": "HUBC",
+   "legal_name": "The Hub Power Company Limited",
+   "psx_sector": "POWER GENERATION & DISTRIBUTION",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "The Hub Power Company Limited was incorporated in Pakistan on August 1, 1991 as a public limited company. The principal activities of the Company are to develop, own, operate and maintain power stations. The Company owns an oil-fired power station of 1,200 MW (net) in Balochistan (Hub plant).",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/HUBC",
+    "fetched_at_utc": "2026-11-07T14:15:58+00:00",
+    "page_sha256": "41dec8264c95b61b66824d48622539529002f79b564bcb4829d2c3ee711a5277",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:49 PM"
+   }
+  },
+  {
+   "ticker": "KEL",
+   "legal_name": "K-Electric Limited",
+   "psx_sector": "POWER GENERATION & DISTRIBUTION",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "K-Electric Limited was incorporated as a limited liability company on 13 September 1913 under the repealed Indian Companies Act,1882. The Company is principally engaged in the generation, transmission and distribution of electric energy to industrial and other consumers under the Electricity",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/KEL",
+    "fetched_at_utc": "2026-11-07T14:16:01+00:00",
+    "page_sha256": "2e9299837a1a071fdc6bdf1be34856c53a6a5f50284f96df2e52412ea5f81561",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:48 PM"
+   }
+  },
+  {
+   "ticker": "LUCK",
+   "legal_name": "Lucky Cement Limited",
+   "psx_sector": "CEMENT",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "Lucky Cement Limited was incorporated in Pakistan on September 18, 1993 under the Companies Ordinance, 1984 (now the Companies Act, 2017). The principal activity of the Company is manufacturing and marketing of cement.",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/LUCK",
+    "fetched_at_utc": "2026-11-07T14:16:04+00:00",
+    "page_sha256": "8dbe6e63644db1e96b9391ab12db261a163327a5dca0beadf8688464a8fbd18c",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:49 PM"
+   }
+  },
+  {
+   "ticker": "MARI",
+   "legal_name": "Mari Energies Limited",
+   "psx_sector": "OIL & GAS EXPLORATION COMPANIES",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "Mari Energies Limited (formerly, Mari Petroleum Company Limited) is a public limited company incorporated in Pakistan on December 4, 1984, under the Companies Ordinance, 1984 (now superseded by the Companies Act, 2017). The company is principally engaged in the exploration, production, and sale of",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/MARI",
+    "fetched_at_utc": "2026-11-07T14:16:07+00:00",
+    "page_sha256": "3c85c10ac1e69c6b4ad08ac0374e6dbaf62d48ccf7aaff30e945bf3d79a00b89",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:47 PM"
+   }
+  },
+  {
+   "ticker": "MCB",
+   "legal_name": "MCB Bank Limited",
+   "psx_sector": "COMMERCIAL BANKS",
+   "fiscal_year_end_month": "December",
+   "listing_status": "listed",
+   "business_summary": "MCB Bank Limited is a banking company incorporated in Pakistan and is engaged in commercial banking and related services.",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/MCB",
+    "fetched_at_utc": "2026-11-07T14:16:10+00:00",
+    "page_sha256": "bb1146032044c01d2df2092eab038d1cecb5861713221ca745ca7b68050b4532",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:44 PM"
+   }
+  },
+  {
+   "ticker": "MEBL",
+   "legal_name": "Meezan Bank Limited",
+   "psx_sector": "COMMERCIAL BANKS",
+   "fiscal_year_end_month": "December",
+   "listing_status": "listed",
+   "business_summary": "Meezan Bank Limited was incorporated in Pakistan on January 27, 1997, as a public limited company under the Companies Act, 2017 (previously Companies Ordinance, 1984). The Bank was granted a‘Scheduled Islamic Commercial Bank’ license on January 31, 2002 and formally commenced operations as a",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/MEBL",
+    "fetched_at_utc": "2026-11-07T14:16:13+00:00",
+    "page_sha256": "349fec296ae26a29f531f57563b76c94a4cf8790915442d203e85920ec647bc8",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:49 PM"
+   }
+  },
+  {
+   "ticker": "MLCF",
+   "legal_name": "Maple Leaf Cement Factory Limited",
+   "psx_sector": "CEMENT",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "Maple Leaf Cement Factory Limited (“the Company”) is a public company limited by shares incorporated in Pakistan on April 13, 1960 under the repealed Companies Act, 1913 (now, the Companies Act, 2017). The Company’s ordinary shares are listed on the Pakistan Stock Exchange Limited. The Company is",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/MLCF",
+    "fetched_at_utc": "2026-11-07T14:16:16+00:00",
+    "page_sha256": "f53dbc6e914a7ae4d910d28f73d364efa2504f8b8e2e5acb0a301bf8e4ea4a59",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:49 PM"
+   }
+  },
+  {
+   "ticker": "NBP",
+   "legal_name": "National Bank of Pakistan",
+   "psx_sector": "COMMERCIAL BANKS",
+   "fiscal_year_end_month": "December",
+   "listing_status": "listed",
+   "business_summary": "National Bank of Pakistan was incorporated in Pakistan under the National Bank of Pakistan Ordinance, 1949. The Bank is engaged in providing commercial banking and related services in Pakistan and Overseas. The Bank also handles treasury transactions for the Government of Pakistan (GoP) as an agent",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/NBP",
+    "fetched_at_utc": "2026-11-07T14:16:18+00:00",
+    "page_sha256": "464da152571eee8bdbd721739dfc072c72cd44bbabb6e154a7261059822f1d21",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:43 PM"
+   }
+  },
+  {
+   "ticker": "NRL",
+   "legal_name": "National Refinery Limited",
+   "psx_sector": "REFINERY",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "National Refinery Limited was incorporated in Pakistan on August 19, 1963 as a public limited company. The Company is engaged in the manufacturing, production and sale of a large range of petroleum products. The refinery complex of the Company comprises of three refineries, consisting of two lube",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/NRL",
+    "fetched_at_utc": "2026-11-07T14:16:22+00:00",
+    "page_sha256": "6ed00fc5cc933ac6a9ce05b5508ac27e9de5dff39cd339ac3e532fec6c626ba5",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:48 PM"
+   }
+  },
+  {
+   "ticker": "OGDC",
+   "legal_name": "Oil & Gas Development Company Limited",
+   "psx_sector": "OIL & GAS EXPLORATION COMPANIES",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "Oil and Gas Development Company Limited (OGDCL), was incorporated on 23 October 1997 under the Companies Ordinance, 1984 (now the Companies Act, 2017). The Company was established to undertake exploration and development of oil and gas resources, including production and sale of oil and gas and",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/OGDC",
+    "fetched_at_utc": "2026-11-07T14:16:24+00:00",
+    "page_sha256": "39070489d589ca3b98f62fabcc30237fe88078501926f6d7ded254867c10cf3c",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:49 PM"
+   }
+  },
+  {
+   "ticker": "PAEL",
+   "legal_name": "Pak Elektron Limited",
+   "psx_sector": "CABLE & ELECTRICAL GOODS",
+   "fiscal_year_end_month": "December",
+   "listing_status": "listed",
+   "business_summary": "Pak Elektron Ltd. was incorporated in Pakistan on March 3, 1956 as a public limited company under the Companies Act 1913 (now Companies Act 2017). The principal activity of the company is manufacturing and sale of electrical capital goods and domestic appliances. The company is organized in two",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/PAEL",
+    "fetched_at_utc": "2026-11-07T14:16:28+00:00",
+    "page_sha256": "6e4e06a41f4acd7e42c3001690d27083a051c2021d7a66eb69292c557c23d280",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:49 PM"
+   }
+  },
+  {
+   "ticker": "POL",
+   "legal_name": "Pakistan Oilfields Limited",
+   "psx_sector": "OIL & GAS EXPLORATION COMPANIES",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "Pakistan Oilfields Limited is incorporated in Pakistan as a public limited company. The Company is principally engaged in exploration, drilling and production of crude oil and gas in Pakistan. Its activities also include marketing of liquefied petroleum gas under the brand name POLGAS and",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/POL",
+    "fetched_at_utc": "2026-11-07T14:16:30+00:00",
+    "page_sha256": "ee607942b1be17fc097dbfffa228ab0e4871f7ebf354e4dfcc5ec2cf93b3122a",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:49 PM"
+   }
+  },
+  {
+   "ticker": "PPL",
+   "legal_name": "Pakistan Petroleum Limited",
+   "psx_sector": "OIL & GAS EXPLORATION COMPANIES",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "Pakistan Petroleum Limited (the Company) was incorporated in Pakistan in 1950. The Company's main objectives are conducting exploration, prospecting, development and production of hydrocarbons and mineral resources.",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/PPL",
+    "fetched_at_utc": "2026-11-07T14:16:34+00:00",
+    "page_sha256": "08a7e829873670bb8dca9f1bad9039b42eed3c39c5beb87a6c6878c5156500b9",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:48 PM"
+   }
+  },
+  {
+   "ticker": "PSO",
+   "legal_name": "Pakistan State Oil Company Limited",
+   "psx_sector": "OIL & GAS MARKETING COMPANIES",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "Pakistan State Oil Company Limited is a public company incorporated in Pakistan in 1976. The principal activities of the Company are procurement, storage and marketing of petroleum and related products. It also blends and markets various kinds of lubricating oils.",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/PSO",
+    "fetched_at_utc": "2026-11-07T14:16:36+00:00",
+    "page_sha256": "744474680d28d40b2f1d98c479c66d6f64b4d7b2a54add1ef9f2ed6499475f05",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:49 PM"
+   }
+  },
+  {
+   "ticker": "PTC",
+   "legal_name": "Pakistan Telecommunication Company Ltd",
+   "psx_sector": "TECHNOLOGY & COMMUNICATION",
+   "fiscal_year_end_month": "December",
+   "listing_status": "listed",
+   "business_summary": "Pakistan Telecommunication Company Limited was incorporated in Pakistan on December 31, 1995 and commenced business on January 01, 1996. The Company provides telecommunication services in Pakistan. It owns and operates telecommunication facilities and provides domestic and international telephone",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/PTC",
+    "fetched_at_utc": "2026-11-07T14:16:40+00:00",
+    "page_sha256": "24900f48f32fd3d560d647a9d6b166a73a17df81724a452420f1a7704b9def5d",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:46 PM"
+   }
+  },
+  {
+   "ticker": "SAZEW",
+   "legal_name": "Sazgar Engineering Works Limited",
+   "psx_sector": "AUTOMOBILE ASSEMBLER",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "Sazgar Engineering Works Limited was incorporated in Pakistan on September 21, 1991 as a Private Limited Company and converted into a Public Limited Company on November 21,1994. The Company is engaged in the manufacture and sale of automobiles, automotive parts and household electric appliances.",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/SAZEW",
+    "fetched_at_utc": "2026-11-07T14:16:43+00:00",
+    "page_sha256": "adb45e8ce857a7b8ae5c4b92eb6309614f88ede5d7c0d86a50da5f2bb4502472",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:47 PM"
+   }
+  },
+  {
+   "ticker": "SEARL",
+   "legal_name": "The Searle Company Limited",
+   "psx_sector": "PHARMACEUTICALS",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "The Searle Company Limited was incorporated in Pakistan as a private limited company in October 1965. In November 1993, the Company was converted into a public limited company under the repealed Companies Ordinance, 1984 (now Companies Act, 2017). The Company is principally engaged in the",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/SEARL",
+    "fetched_at_utc": "2026-11-07T14:16:46+00:00",
+    "page_sha256": "a9647a946bfb268d10b30d2320a099807227fdb83d80498ca03de0cab77290e9",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:45 PM"
+   }
+  },
+  {
+   "ticker": "SNGP",
+   "legal_name": "Sui Northern Gas Pipelines Limited",
+   "psx_sector": "OIL & GAS MARKETING COMPANIES",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "Sui Northern Gas Pipelines Limited (the 'Company') is a public company limited by shares incorporated in Pakistan on June 17, 1963 under the repealed Companies Act, 1913 (now, the Companies Act, 2017) and its shares are quoted on Pakistan Stock Exchange Limited. The principal activity of the",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/SNGP",
+    "fetched_at_utc": "2026-11-07T14:16:49+00:00",
+    "page_sha256": "63e52d58c657fcf3e651c278e2636fd7caf0c7d65ac0aa6404f4fb1171d5d824",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:49 PM"
+   }
+  },
+  {
+   "ticker": "SYS",
+   "legal_name": "Systems Limited",
+   "psx_sector": "TECHNOLOGY & COMMUNICATION",
+   "fiscal_year_end_month": "December",
+   "listing_status": "listed",
+   "business_summary": "Systems Limited is a public limited company incorporated in Pakistan under the Companies Act, 2017. The Company is principally engaged in the business of software development, trading of software and business process outsourcing services.",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/SYS",
+    "fetched_at_utc": "2026-11-07T14:16:51+00:00",
+    "page_sha256": "40b1113d750b371e92aa678491f668e78fe0133cd7a998c8fb95fbe226f2cdaf",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:48 PM"
+   }
+  },
+  {
+   "ticker": "UBL",
+   "legal_name": "United Bank Limited",
+   "psx_sector": "COMMERCIAL BANKS",
+   "fiscal_year_end_month": "December",
+   "listing_status": "listed",
+   "business_summary": "United Bank Limited is a banking company incorporated in Pakistan and is engaged in commercial banking and related services. The Bank is a subsidiary of Bestway International Holdings Limited which is a wholly owned subsidiary of Bestway Group Limited.",
+   "kse30_member_observed": true,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/UBL",
+    "fetched_at_utc": "2026-11-07T14:16:54+00:00",
+    "page_sha256": "3de31f4386a5f7ddd4ebd888a93546189036f705618dca2e2db663bc1da66ec3",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:47 PM"
+   }
+  },
+  {
+   "ticker": "ABL",
+   "legal_name": "Allied Bank Limited",
+   "psx_sector": "COMMERCIAL BANKS",
+   "fiscal_year_end_month": "December",
+   "listing_status": "listed",
+   "business_summary": "Allied Bank Limited, incorporated in Pakistan, is a scheduled Bank, engaged in commercial banking and related services. The long term credit rating of the Bank assigned by the Pakistan Credit Rating Agency Limited (PACRA) is ‘AAA’. Short term rating of the Bank is ‘A1+’. Ibrahim Holdings (Private)",
+   "kse30_member_observed": false,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/ABL",
+    "fetched_at_utc": "2026-11-07T14:16:58+00:00",
+    "page_sha256": "4aa2401fd4d7d6d5864d5d54e400600ddbc66726ca000c1d51f3581c5f88916f",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:35 PM"
+   }
+  },
+  {
+   "ticker": "BAHL",
+   "legal_name": "Bank AL Habib Limited",
+   "psx_sector": "COMMERCIAL BANKS",
+   "fiscal_year_end_month": "December",
+   "listing_status": "listed",
+   "business_summary": "Bank AL Habib Limited is a banking company incorporated in Pakistan on 15 October 1991 as a public limited company under repealed Companies Ordinance, 1984. It is a scheduled bank principally engaged in the business of commercial banking.",
+   "kse30_member_observed": false,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/BAHL",
+    "fetched_at_utc": "2026-11-07T14:17:01+00:00",
+    "page_sha256": "9ff001e4a2891474aeca36086b75ef6973f16dac78ff3a5f3716059715e0c104",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:46 PM"
+   }
+  },
+  {
+   "ticker": "AKBL",
+   "legal_name": "Askari Bank Limited",
+   "psx_sector": "COMMERCIAL BANKS",
+   "fiscal_year_end_month": "December",
+   "listing_status": "listed",
+   "business_summary": "Askari Bank Limited was incorporated in Pakistan on October 9, 1991 as a Public Limited Company. The Bank is a scheduled commercial bank and is principally engaged in the business of banking as defined in the Banking Companies Ordinance, 1962. The ultimate parent of the Bank is Fauji Foundation.",
+   "kse30_member_observed": false,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/AKBL",
+    "fetched_at_utc": "2026-11-07T14:17:04+00:00",
+    "page_sha256": "7950c3864cd840461a416527e9ed33d57f76c0b8973879304bd2368f9df8c520",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:45 PM"
+   }
+  },
+  {
+   "ticker": "FABL",
+   "legal_name": "Faysal Bank Limited",
+   "psx_sector": "COMMERCIAL BANKS",
+   "fiscal_year_end_month": "December",
+   "listing_status": "listed",
+   "business_summary": "Faysal Bank Limited was incorporated in Pakistan on October 3, 1994 as a public limited company under the provisions of the Companies Ordinance, 1984 (now companies Act, 2017). The Bank is engaged in Islamic Corporate, Commercial and Consumer banking activities.",
+   "kse30_member_observed": false,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/FABL",
+    "fetched_at_utc": "2026-11-07T14:17:07+00:00",
+    "page_sha256": "72338439e2ff224e9f651d0ff700484d9ca0b12d80f12cac31a51d9e554dbd3d",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:49 PM"
+   }
+  },
+  {
+   "ticker": "SSGC",
+   "legal_name": "Sui Southern Gas Company Limited",
+   "psx_sector": "OIL & GAS MARKETING COMPANIES",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "Sui Southern Gas Company Limited (\"the Company\") is a public limited Company incorporated in Pakistan under the Companies Act, 2017 (repealed Companies Ordinance, 1984) and is listed on Pakistan Stock Exchange. The Company came into being on March 30, 1989 after the amalgamation of Karachi Gas",
+   "kse30_member_observed": false,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/SSGC",
+    "fetched_at_utc": "2026-11-07T14:17:10+00:00",
+    "page_sha256": "cd700bca0a4c6b40f36b49d9308b60c8f13be1bb4556ac9531eb2f0b0e7b50dd",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:49 PM"
+   }
+  },
+  {
+   "ticker": "APL",
+   "legal_name": "Attock Petroleum Limited",
+   "psx_sector": "OIL & GAS MARKETING COMPANIES",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "Attock Petroleum Limited was incorporated in Pakistan as a public limited company on December 3, 1995 and it commenced its operations in 1998. The principal activity of the Company is procurement, storage and marketing of petroleum and related products.",
+   "kse30_member_observed": false,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/APL",
+    "fetched_at_utc": "2026-11-07T14:17:13+00:00",
+    "page_sha256": "79fe0720b41bb8a0c0319f3910c299c6c97d1bd3856e39723d197a6b0fbc8995",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:35 PM"
+   }
+  },
+  {
+   "ticker": "SHEL",
+   "legal_name": "Shell Pakistan Limited",
+   "psx_sector": "OIL & GAS MARKETING COMPANIES",
+   "fiscal_year_end_month": "December",
+   "listing_status": "listed",
+   "business_summary": "Shell Pakistan Limited is a limited liability Company incorporated in Pakistan. The Company is a subsidiary of Shell Petroleum Company Limited, United Kingdom which is a subsidiary of Royal Dutch Shell Plc. The Company markets petroleum products and compressed natural gas. It also blends and",
+   "kse30_member_observed": false,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/SHEL",
+    "fetched_at_utc": "2026-11-07T14:17:17+00:00",
+    "page_sha256": "f38f8ed62d9ec7194a940906a8f925589fb4112e62b51ec1551149527777a728",
+    "psx_quote_as_of_raw": "Fri, Feb 28, 2025 4:46 PM"
+   }
+  },
+  {
+   "ticker": "PRL",
+   "legal_name": "Pakistan Refinery Limited",
+   "psx_sector": "REFINERY",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "Pakistan Refinery Limited was incorporated in Pakistan as a public limited company in May 1960. The company is engaged in the production and sale of petroleum products. The Company is a subsidiary of Pakistan State Oil Company Limited (PSO).",
+   "kse30_member_observed": false,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/PRL",
+    "fetched_at_utc": "2026-11-07T14:17:21+00:00",
+    "page_sha256": "b98a89f19c6a791adbd40714eb2e08484b447bf1901e8c229fdea5f363143d16",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:49 PM"
+   }
+  },
+  {
+   "ticker": "CNERGY",
+   "legal_name": "Cnergyico PK  Limited",
+   "psx_sector": "REFINERY",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "Cnergyico Pk Ltd was incorporated in Pakistan as a public limited company on 09 January 1995 under the repealed Companies Ordinance, 1984 and was granted a certificate of commencement of business on 13 March 1995. The Company is a subsidiary of Bosicorco International Limited, Mauritius (the Parent",
+   "kse30_member_observed": false,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/CNERGY",
+    "fetched_at_utc": "2026-11-07T14:17:24+00:00",
+    "page_sha256": "c3dc926cc5678d2aff3f9811f128243300e7ce1648ae162d012975df5b003926",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:48 PM"
+   }
+  },
+  {
+   "ticker": "KAPCO",
+   "legal_name": "Kot Addu Power Company Limited",
+   "psx_sector": "POWER GENERATION & DISTRIBUTION",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "Kot Addu Power Company Limited was incorporated in Pakistan on April 25, 1996 as a public limited company under the Companies Ordinance, 1984 (now Companies Act, 2017). The principal activities of the Company are to own, operate and maintain a multi-fuel fired power station with fifteen generating",
+   "kse30_member_observed": false,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/KAPCO",
+    "fetched_at_utc": "2026-11-07T14:17:28+00:00",
+    "page_sha256": "538cba96942199f3da9b868ea9ee0007e8453df62410534f77bc1627e2201a42",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:48 PM"
+   }
+  },
+  {
+   "ticker": "NPL",
+   "legal_name": "Nishat Power Limited",
+   "psx_sector": "POWER GENERATION & DISTRIBUTION",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "Nishat Power Limited is a public company limited by shares incorporated in Pakistan on February 23, 2007 under the repealed Companies Ordinance, 1984 (now, the Companies Act, 2017). The company is a subsidiary of Nishat Mills Limited. The principal activity of the company is to build, own, operate",
+   "kse30_member_observed": false,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/NPL",
+    "fetched_at_utc": "2026-11-07T14:17:32+00:00",
+    "page_sha256": "018f291cf86793e8be835130a809520e88118eca74b26d76ef21f97919559d2d",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:49 PM"
+   }
+  },
+  {
+   "ticker": "CHCC",
+   "legal_name": "Cherat Cement Company Limited",
+   "psx_sector": "CEMENT",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "Cherat Cement Company Limited was incorporated in Pakistan as a public company limited by shares in the year 1981. Its main business activity is manufacturing, marketing and sale of cement.",
+   "kse30_member_observed": false,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/CHCC",
+    "fetched_at_utc": "2026-11-07T14:17:35+00:00",
+    "page_sha256": "f102e84b50d3b1e883dd92132a66031cbc9a6816c0b1b014e5e74abc9610062d",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:35 PM"
+   }
+  },
+  {
+   "ticker": "KOHC",
+   "legal_name": "Kohat Cement Company Limited",
+   "psx_sector": "CEMENT",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "Kohat Cement Company Limited is a public limited company incorporated in Pakistan under the Companies Act, 1913. The Company is engaged in the production and sale of cement. The Company is in the process of acquiring further land in District Khushab Punjab Pakistan, for installation of a grey",
+   "kse30_member_observed": false,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/KOHC",
+    "fetched_at_utc": "2026-11-07T14:17:38+00:00",
+    "page_sha256": "10f6d9a75f240948155a1c150c91479db98cb607c71a3d3134643411312493cb",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:47 PM"
+   }
+  },
+  {
+   "ticker": "ISL",
+   "legal_name": "International Steels Limited",
+   "psx_sector": "ENGINEERING",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "International Steels Limited ('the Company') was incorporated on September 03, 2007 as a public unlisted Company limited by shares under the repealed Companies Ordinance, 1984 (now Companies Act, 2017) and is domiciled in the province of Sindh. The Company was listed on the Pakistan Stock Exchange",
+   "kse30_member_observed": false,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/ISL",
+    "fetched_at_utc": "2026-11-07T14:17:44+00:00",
+    "page_sha256": "069103480b5e2d6e2ed0de3bfeda9b1aadcda1bef49be595fdafd68b2a4f27a0",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:48 PM"
+   }
+  },
+  {
+   "ticker": "ASTL",
+   "legal_name": "Amreli Steels Limited",
+   "psx_sector": "ENGINEERING",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "Amreli Steels Limited was incorporated in 1984 as a private limited company and converted into a public unquoted company in 2009. The Company is mainly engaged in manufacture and sale of steel bars and billets.",
+   "kse30_member_observed": false,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/ASTL",
+    "fetched_at_utc": "2026-11-07T14:17:47+00:00",
+    "page_sha256": "c00de8e33ead08ded7711fe89da4e1ea50473628dd26ab1303f84db4d1bc78f7",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:45 PM"
+   }
+  },
+  {
+   "ticker": "MUGHAL",
+   "legal_name": "Mughal Iron & Steel Industries Limited",
+   "psx_sector": "ENGINEERING",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "Mughal Iron & Steel Industries Limited was incorporated in Pakistan as a public limited company on February 16, 2010 under the repealed Companies Ordinance, 1984 (now the Companies Act, 2017). The Company’s operations comprise of ferrous and nonferrous business segments. However, the principal",
+   "kse30_member_observed": false,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/MUGHAL",
+    "fetched_at_utc": "2026-11-07T14:17:50+00:00",
+    "page_sha256": "cabcc4cf988fa28d61617f9aad9c4b6904d06117e81a0c2e9e31c4dd63ce69f1",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:42 PM"
+   }
+  },
+  {
+   "ticker": "TRG",
+   "legal_name": "TRG Pakistan Limited",
+   "psx_sector": "TECHNOLOGY & COMMUNICATION",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "TRG Pakistan Limited was incorporated in Pakistan as a public limited company on December 2, 2002 under the repealed Companies Ordinance, 1984. On May 14, 2003 the Company obtained a license from the Securities and Exchange Commission of Pakistan (\"SECP\") to undertake venture capital investment as",
+   "kse30_member_observed": false,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/TRG",
+    "fetched_at_utc": "2026-11-07T14:17:54+00:00",
+    "page_sha256": "faf3c9bad56d0541d4f8eccede059009f6f5c9b5e665524f918cd165bbd3e374",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:46 PM"
+   }
+  },
+  {
+   "ticker": "INDU",
+   "legal_name": "Indus Motor Company Limited",
+   "psx_sector": "AUTOMOBILE ASSEMBLER",
+   "fiscal_year_end_month": "June",
+   "listing_status": "listed",
+   "business_summary": "Indus Motor Company Limited was incorporated in Pakistan as a public limited company in December 1989 and started commercial production in May 1993. The Company was formed in accordance with the terms of a Joint Venture agreement concluded amongst certain House of Habib companies, Toyota Motor",
+   "kse30_member_observed": false,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/INDU",
+    "fetched_at_utc": "2026-11-07T14:18:01+00:00",
+    "page_sha256": "79e4070e73b72a953119614613daedb24b23900cacad3297f6cd004202955963",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:37 PM"
+   }
+  },
+  {
+   "ticker": "HCAR",
+   "legal_name": "Honda Atlas Cars (Pakistan) Limited",
+   "psx_sector": "AUTOMOBILE ASSEMBLER",
+   "fiscal_year_end_month": "March",
+   "listing_status": "listed",
+   "business_summary": "Honda Atlas Cars (Pakistan) Limited is a public company limited by shares incorporated in Pakistan on November 4, 1992 under the repealed Companies Ordinance, 1984 (now, the Companies Act, 2017). It is a subsidiary of Honda Motor Co., Ltd., Japan. The Company’s principal activities are assembling",
+   "kse30_member_observed": false,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/HCAR",
+    "fetched_at_utc": "2026-11-07T14:18:04+00:00",
+    "page_sha256": "a06e36f34c9dc89122f97ac86a5948b6bf933d1736f6f52fa23241e10280da19",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:49 PM"
+   }
+  },
+  {
+   "ticker": "EPCL",
+   "legal_name": "Engro Polymer & Chemicals Limited",
+   "psx_sector": "CHEMICAL",
+   "fiscal_year_end_month": "December",
+   "listing_status": "listed",
+   "business_summary": "Engro Polymer and Chemicals Limited was incorporated in Pakistan in 1997 under the repealed Companies Ordinance, 1984 (now the Companies Act, 2017). The Company is a subsidiary of Engro Corporation Limited, which is a subsidiary of Dawood Hercules Corporation Limited. The Company’s principal",
+   "kse30_member_observed": false,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/EPCL",
+    "fetched_at_utc": "2026-11-07T14:18:07+00:00",
+    "page_sha256": "6cc4217ecf02de3533fc7fa17df452cb8fb38f23b3e19da84920486257949c2e",
+    "psx_quote_as_of_raw": "Fri, Nov 6, 2026 4:49 PM"
+   }
+  },
+  {
+   "ticker": "FFBL",
+   "legal_name": "Fauji Fertilizer Bin Qasim Limited",
+   "psx_sector": "FERTILIZER",
+   "fiscal_year_end_month": "December",
+   "listing_status": "delisted",
+   "business_summary": "Fauji Fertilizer Bin Qasim Limited is a public limited company incorporated in Pakistan under the Companies Ordinance,1984 (now replaced by the Companies Act, 2017). The principal objective of the Company is manufacturing, purchasing and marketing of fertilizers.",
+   "kse30_member_observed": false,
+   "source": {
+    "url": "https://dps.psx.com.pk/company/FFBL",
+    "fetched_at_utc": "2026-11-07T14:18:14+00:00",
+    "page_sha256": "d50d3049178fd4ef84502333747d773a1f193c136c5f277ab98ea920c44d060a",
+    "psx_quote_as_of_raw": "Fri, Dec 20, 2024 4:42 PM"
+   }
+  }
+ ]
+}
