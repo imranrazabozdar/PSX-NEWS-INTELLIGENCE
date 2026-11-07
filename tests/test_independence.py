@@ -166,3 +166,11 @@ def test_policy_floor_cannot_be_silently_weakened():
         "tests/test_independence.py",
     }
     assert len(ci.ALL_CHECKS) >= 6
+
+
+def test_spec_local_packages_are_allowed_but_forbidden_names_are_not(tmp_path):
+    root = _make(tmp_path, {"x.py": "from database.connection import connect\nimport engines.x\n"})
+    assert ci.run(root) == []
+    root2 = _make(tmp_path / "b", {"x.py": "import backend\n"})
+    assert "forbidden-import" in _rules(root2)
+    assert not (ci.LOCAL_MODULES & ci.FORBIDDEN_MODULES)
