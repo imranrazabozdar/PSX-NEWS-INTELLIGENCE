@@ -36,6 +36,13 @@ ALTER TABLE sources ADD COLUMN last_error TEXT;
 ALTER TABLE sources ADD COLUMN failure_count INTEGER NOT NULL DEFAULT 0 CHECK (failure_count >= 0);
 ALTER TABLE sources ADD COLUMN consecutive_failures INTEGER NOT NULL DEFAULT 0 CHECK (consecutive_failures >= 0);
 ALTER TABLE sources ADD COLUMN last_content_at_utc TEXT;
+-- Collector implementation and feed freshness are recorded separately from lifecycle (F4).
+ALTER TABLE sources ADD COLUMN last_test_at_utc TEXT;
+ALTER TABLE sources ADD COLUMN last_test_result TEXT NOT NULL DEFAULT 'not_tested'
+    CHECK (last_test_result IN ('not_tested','passed','failed'));
+ALTER TABLE sources ADD COLUMN newest_item_at_utc TEXT;
+ALTER TABLE sources ADD COLUMN freshness_status TEXT NOT NULL DEFAULT 'unknown'
+    CHECK (freshness_status IN ('unknown','fresh','stale','not_applicable'));
 
 -- A source can only be ACTIVE once its terms are approved and its access verified.
 CREATE TRIGGER trg_sources_active_requires_approval BEFORE UPDATE OF lifecycle_status ON sources
@@ -107,6 +114,10 @@ SELECT s.source_id,
        s.consecutive_failures,
        s.failure_count,
        s.last_content_at_utc,
+       s.last_test_at_utc,
+       s.last_test_result,
+       s.newest_item_at_utc,
+       s.freshness_status,
        COUNT(r.run_id)                                          AS runs,
        SUM(CASE WHEN r.status = 'succeeded' THEN 1 ELSE 0 END)  AS runs_succeeded,
        SUM(CASE WHEN r.status = 'failed' THEN 1 ELSE 0 END)     AS runs_failed,

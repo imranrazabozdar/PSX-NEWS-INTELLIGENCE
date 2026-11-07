@@ -15,7 +15,8 @@ REGISTRY_FIELDS = ("name", "source_type", "domain", "platform", "owner", "reliab
                    "official_url", "category", "subcategory", "geographic_coverage", "industries_json",
                    "related_companies_json", "content_format", "feed_url", "adapter", "retention_mode",
                    "terms_status", "licensing_status", "verification_status", "lifecycle_status",
-                   "priority", "collection_frequency_minutes", "review_notes", "reviewed_at_utc")
+                   "priority", "collection_frequency_minutes", "review_notes", "reviewed_at_utc",
+                   "last_test_at_utc", "last_test_result", "newest_item_at_utc", "freshness_status")
 
 
 def upsert_source(db: Database, src: dict[str, Any]) -> None:
@@ -33,6 +34,8 @@ def upsert_source(db: Database, src: dict[str, Any]) -> None:
     rec.setdefault("reliability_tier", "unrated")
     rec.setdefault("access_method", "pending_review")
     rec.setdefault("access_status", "unverified")
+    rec["last_test_result"] = rec.get("last_test_result") or "not_tested"
+    rec["freshness_status"] = rec.get("freshness_status") or "unknown"
     rec.setdefault("content_format", "unknown")
     rec.setdefault("retention_mode", "metadata_only")
     rec.setdefault("terms_status", "not_reviewed")

@@ -28,6 +28,8 @@ FIX = Path(__file__).parent / "fixtures"
 RSS = (FIX / "rss_sample.xml").read_bytes()
 ATOM = (FIX / "atom_sample.xml").read_bytes()
 FEED_URL = "https://news.example.com/feed"
+REVIEWED_SOURCE = {"source_id": "fixture", "lifecycle_status": "TESTED", "access_status": "unverified",
+                   "terms_status": "not_found", "licensing_status": "unknown", "access_method": "rss"}
 
 
 # ---------------------------------------------------------------- helpers
@@ -244,10 +246,11 @@ def test_pagination_stops_on_empty_page_and_errors():
     base = "https://api.example.org/list?page="
     net = FakeNet({base + "1": [(200, {}, b"[1]")], base + "2": [(200, {}, b"[2]")],
                    base + "3": [(200, {}, b"  ")]})
-    pages = fetch_pages(client_for(net), base + "1", next_url=lambda r, n: f"{base}{n + 1}", max_pages=10)
+    pages = fetch_pages(client_for(net), base + "1", source=REVIEWED_SOURCE, dry_run=True,
+                        next_url=lambda r, n: f"{base}{n + 1}", max_pages=10)
     assert [p.body for p in pages] == [b"[1]", b"[2]"]
     net2 = FakeNet({base + "1": [(200, {}, b"[1]")], base + "2": [_http_error(500)]})
-    pages2 = fetch_pages(client_for(net2, max_attempts=1), base + "1",
+    pages2 = fetch_pages(client_for(net2, max_attempts=1), base + "1", source=REVIEWED_SOURCE, dry_run=True,
                          next_url=lambda r, n: f"{base}{n + 1}")
     assert len(pages2) == 1  # partial: earlier pages kept
 
@@ -256,8 +259,61 @@ def test_pagination_stops_on_empty_page_and_errors():
 def test_non_active_sources_are_never_collected_for_real(db):
     with pytest.raises(CollectionRefused, match="only ACTIVE"):
         collect(db, "dawn", client=client_for(FakeNet()))
-    with pytest.raises(CollectionRefused, match="no implemented adapter"):
+    with pytest.raises(CollectionRefused, match="dry runs are not permitted"):
         collect(db, "psx", client=client_for(FakeNet()), dry_run=True)
+
+
+def _prohibited(db):
+    rows = db.execute("SELECT * FROM sources ORDER BY source_id")
+    out = []
+    for r in rows:
+        try:
+            engine.authorise(r, dry_run=True)
+        except CollectionRefused:
+            out.append(r)
+    return out
+
+
+def test_prohibited_sources_are_refused_before_any_network_request(db):
+    prohibited = _prohibited(db)
+    ids = {r["source_id"] for r in prohibited}
+    # every restricted, blocked, licence-required or unreviewed source is in the refused set
+    for r in db.execute("SELECT source_id, lifecycle_status FROM sources"):
+        if r["lifecycle_status"] in ("RESTRICTED", "BLOCKED", "LICENCE REQUIRED", "NOT REVIEWED", "DISABLED"):
+            assert r["source_id"] in ids, r
+    assert {"psx", "psx_dps", "eia", "eia_press", "reuters", "x_platform", "sbp", "commerce"} <= ids
+    for r in prohibited:
+        net = FakeNet()
+        client = client_for(net)
+        with pytest.raises(CollectionRefused):
+            collect(db, r["source_id"], client=client, dry_run=True)
+        with pytest.raises(CollectionRefused):
+            collect_document(db, r["source_id"], "https://example.org/doc.pdf", client=client, dry_run=True)
+        with pytest.raises(CollectionRefused):
+            fetch_pages(client, "https://example.org/list?page=1", source=r, dry_run=True,
+                        next_url=lambda resp, n: None)
+        assert net.calls == [], (r["source_id"], net.calls)  # not even robots.txt was requested
+
+
+def test_restricted_source_with_feed_is_refused_even_if_robots_would_allow(db):
+    # EIA has a feed URL and an adapter; refusal must come from policy, not from robots.txt
+    net = FakeNet(robots=b"User-agent: *\nDisallow:\n")
+    with pytest.raises(CollectionRefused, match="dry runs are not permitted"):
+        collect(db, "eia", client=client_for(net), dry_run=True)
+    assert net.calls == []
+
+
+@pytest.mark.parametrize("field,value", [("access_status", "restricted"),
+                                         ("terms_status", "prohibits_automation"),
+                                         ("licensing_status", "licence_required"),
+                                         ("access_method", "not_permitted")])
+def test_any_single_prohibition_blocks_a_dry_run(field, value):
+    src = dict(REVIEWED_SOURCE, **{field: value})
+    with pytest.raises(CollectionRefused, match="may not be fetched"):
+        engine.authorise(src, dry_run=True)
+    engine.authorise(REVIEWED_SOURCE, dry_run=True)  # baseline allowed
+    with pytest.raises(CollectionRefused, match="only ACTIVE"):
+        engine.authorise(REVIEWED_SOURCE, dry_run=False)
 
 
 def test_dry_run_writes_nothing(db):
@@ -480,3 +536,37 @@ def test_source_register_document_is_in_sync():
     from scripts import build_source_register
 
     assert build_source_register.main(["x", "--check"]) == 0
+
+
+# ---------------------------------------------------------------- registry review findings (F2-F4)
+def test_registry_records_provider_findings_without_activation(db):
+    rows = {r["source_id"]: r for r in db.execute("SELECT * FROM sources")}
+    assert rows["investify"]["lifecycle_status"] == "RESTRICTED"
+    assert rows["investify"]["terms_status"] == "prohibits_automation"
+    assert rows["scstrade"]["lifecycle_status"] == "REVIEWED"
+    assert "written clarification" in rows["scstrade"]["review_notes"]
+    assert rows["mettis"]["licensing_status"] == "licence_required"
+    expected = (("pucars", "REVIEWED"), ("capitalstake", "LICENCE REQUIRED"), ("sarmaaya", "RESTRICTED"))
+    for sid, life in expected:
+        assert rows[sid]["lifecycle_status"] == life and rows[sid]["enabled"] == 0
+        assert rows[sid]["feed_url"] is None and rows[sid]["adapter"] is None
+    assert all(r["lifecycle_status"] != "ACTIVE" and r["enabled"] == 0 for r in rows.values())
+    assert "reCAPTCHA" in rows["psx"]["review_notes"]
+
+
+def test_stale_feed_is_shown_as_stale_not_as_working(db):
+    h = db.execute("SELECT * FROM source_health WHERE source_id='thenews'")[0]
+    assert h["lifecycle_status"] == "IMPLEMENTED" and h["freshness_status"] == "stale"
+    assert h["last_test_result"] == "passed" and h["newest_item_at_utc"].startswith("2026-05")
+    dawn = db.execute("SELECT freshness_status FROM sources WHERE source_id='dawn'")[0]
+    assert dawn["freshness_status"] == "fresh"
+
+
+def test_validation_refuses_tested_status_for_a_stale_feed():
+    from database.validation import validate_source_registry
+    src = {"source_id": "x1", "name": "X", "lifecycle_status": "TESTED", "adapter": "rss",
+           "feed_url": "https://x.example/feed", "reviewed_at_utc": "2026-11-07T00:00:00Z",
+           "review_notes": "n", "last_test_result": "passed", "last_test_at_utc": "2026-11-07T00:00:00Z",
+           "freshness_status": "stale"}
+    assert any("fresh feed" in e for e in validate_source_registry({"sources": [src]}))
+    assert not validate_source_registry({"sources": [dict(src, freshness_status="fresh")]})

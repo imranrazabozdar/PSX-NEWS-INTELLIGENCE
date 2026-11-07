@@ -79,7 +79,9 @@ A feature is complete only when code **and** tests prove it. A page or placehold
 | Run audit, checkpoints, source health | `collector_runs`, `collector_checkpoints`, `source_health` | `test_source_failure_is_visible_in_health` | TESTED |
 | Pagination, incremental, backfill, dry run | `fetch_pages`, `collect(since/until)` | pagination / backfill / dry-run tests | TESTED |
 | Kill switch, DB budgets, ACTIVE gate | engine + trigger | `test_kill_switch_*`, `test_usage_budget_*`, `test_active_requires_*` | TESTED |
-| Source registry v2 (64 sources, 38 retained) | `database/seed/sources.json` | `test_registry_*` | TESTED |
+| Single authorisation gate for all entry points: dry runs refused for NOT REVIEWED / RESTRICTED / BLOCKED / LICENCE REQUIRED / DISABLED or any prohibition, before any network request (review F1) | `collectors/engine.py::authorise` (`collect`, `collect_document`, `fetch_pages`) | `test_prohibited_sources_are_refused_before_any_network_request`, `test_restricted_source_with_feed_is_refused_even_if_robots_would_allow`, `test_any_single_prohibition_blocks_a_dry_run` | TESTED |
+| Collector status separate from feed freshness (review F4) | `sources.last_test_*`, `newest_item_at_utc`, `freshness_status`; `source_health` | `test_stale_feed_is_shown_as_stale_not_as_working`, `test_validation_refuses_tested_status_for_a_stale_feed` | TESTED |
+| Source registry v3 (67 sources; PR #6 and PR #7 findings recorded, none ACTIVE) | `database/seed/sources.json` | `test_registry_*` | TESTED |
 | Source access & licensing register | `docs/SOURCE_ACCESS_REGISTER.md` (generated) | `test_source_register_document_is_in_sync` | TESTED |
 | Live access: Dawn, Business Recorder, Express Tribune, PBS | dry runs against live feeds | `tests/test_live_sources.py` (opt-in) | TESTED (no source ACTIVE) |
 | X watchlist (23 + 2 pending) and YouTube (7) preserved | `database/seed/media_watchlist.json` | `test_watchlist_includes_new_accounts_exactly` | TESTED (collection Phase 11) |

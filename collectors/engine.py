@@ -4,8 +4,12 @@ registry -> policy checks -> conditional fetch -> parse -> canonicalise -> hash 
 dedupe / version -> persist (with provenance) -> run audit -> source health.
 
 Safety rules enforced here:
-* Only sources whose lifecycle_status is ACTIVE are collected for real. Any other source can
-  only be run with dry_run=True, which fetches and parses but never writes to the database.
+* Only sources whose lifecycle_status is ACTIVE are collected for real.
+* A dry run (fetch and parse, never write) is allowed only for sources under review that have no
+  known prohibition: lifecycle REVIEWED, APPROVED, IMPLEMENTED or TESTED, and access/terms/licensing
+  not restricted, blocked, licence-required or prohibiting automation. NOT REVIEWED, RESTRICTED,
+  BLOCKED, LICENCE REQUIRED and DISABLED sources are refused before any network request.
+  ``authorise`` is the single gate used by every entry point; robots.txt still applies on top.
 * PSXNI_KILL_SWITCH stops collection before any network or database work.
 * Database usage stays within the per-run budgets of database.connection.
 * Retention follows the source's retention_mode: metadata only (title, link, timestamps,
@@ -50,6 +54,35 @@ class RunResult:
     errors: list[str] = field(default_factory=list)
     run_id: int | None = None
     entries: list[dict] = field(default_factory=list)  # dry-run preview only
+
+
+DRY_RUN_LIFECYCLES = frozenset({"REVIEWED", "APPROVED", "IMPLEMENTED", "TESTED", "ACTIVE"})
+PROHIBITED_ACCESS = frozenset({"restricted", "blocked", "licence_required"})
+PROHIBITED_TERMS = frozenset({"prohibits_automation", "licence_required", "restricted"})
+PROHIBITED_LICENSING = frozenset({"licence_required", "paid_api", "permission_required"})
+
+
+def authorise(source: dict, *, dry_run: bool) -> None:
+    """Raise CollectionRefused unless this source may be fetched in this mode. No network use."""
+    sid, life = source["source_id"], source.get("lifecycle_status")
+    if not dry_run:
+        if life != "ACTIVE":
+            raise CollectionRefused(f"source '{sid}' is {life}; only ACTIVE sources are collected "
+                                    "(use dry_run to test a reviewed source without writing)")
+        return
+    if life not in DRY_RUN_LIFECYCLES:
+        raise CollectionRefused(f"source '{sid}' is {life}; dry runs are not permitted for it")
+    reasons = []
+    if source.get("access_status") in PROHIBITED_ACCESS:
+        reasons.append(f"access_status={source['access_status']}")
+    if source.get("terms_status") in PROHIBITED_TERMS:
+        reasons.append(f"terms_status={source['terms_status']}")
+    if source.get("licensing_status") in PROHIBITED_LICENSING:
+        reasons.append(f"licensing_status={source['licensing_status']}")
+    if source.get("access_method") == "not_permitted":
+        reasons.append("access_method=not_permitted")
+    if reasons:
+        raise CollectionRefused(f"source '{sid}' may not be fetched, even as a dry run: {', '.join(reasons)}")
 
 
 def _kill_switch_on() -> bool:
@@ -124,10 +157,7 @@ def collect(db: Database, source_id: str, *, client: HttpClient | None = None, d
     if _kill_switch_on():
         raise CollectionRefused("PSXNI_KILL_SWITCH is on")
     source = load_source(db, source_id)
-    if not dry_run and source["lifecycle_status"] != "ACTIVE":
-        raise CollectionRefused(
-            f"source '{source_id}' is {source['lifecycle_status']}; only ACTIVE sources are collected "
-            "(use dry_run to test without writing)")
+    authorise(source, dry_run=dry_run)
     if source.get("adapter") not in ADAPTERS or not source.get("feed_url"):
         raise CollectionRefused(f"source '{source_id}' has no implemented adapter or endpoint")
 
@@ -241,8 +271,7 @@ def collect_document(db: Database, source_id: str, url: str, *, client: HttpClie
     if _kill_switch_on():
         raise CollectionRefused("PSXNI_KILL_SWITCH is on")
     source = load_source(db, source_id)
-    if not dry_run and source["lifecycle_status"] != "ACTIVE":
-        raise CollectionRefused(f"source '{source_id}' is {source['lifecycle_status']}; not ACTIVE")
+    authorise(source, dry_run=dry_run)
     client = client or HttpClient()
     res = RunResult(source_id, dry_run=dry_run)
     started = datetime.now(UTC)
@@ -295,13 +324,15 @@ def due_sources(db: Database, now: str | None = None) -> list[str]:
     return [r["source_id"] for r in rows]
 
 
-def fetch_pages(client: HttpClient, first_url: str, *, next_url, max_pages: int = 5) -> list:
+def fetch_pages(client: HttpClient, first_url: str, *, source: dict, dry_run: bool, next_url,
+                max_pages: int = 5) -> list:
     """Fetch a paginated listing (archive pages or API pages).
 
     `next_url(response, page_no)` returns the next page URL or None. Stops at max_pages, on an
     empty page or on an error, and returns the responses fetched so far, so a later page failing
     still leaves the earlier pages usable (partial collection).
     """
+    authorise(source, dry_run=dry_run)
     pages, url, n = [], first_url, 1
     while url and n <= max_pages:
         try:
