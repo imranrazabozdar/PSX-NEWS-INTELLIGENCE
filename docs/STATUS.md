@@ -11,7 +11,7 @@ A feature is complete only when code **and** tests prove it. A page or placehold
 | 1 | Data foundation (Turso, migrations, company master) | TESTED, approved and merged (PR #2, merge commit 108cdd6) | See Phase 1 checklist below |
 | 2 | Source collection engine | TESTED, approved and merged (PR #5, merge commit 992e4b0); no source ACTIVE; 0006 not yet applied to production | See Phase 2 checklist below |
 | 3 | Event extraction and verification | TESTED, approved and merged (PR #11, merge commit 0491deec56adbd10c719eef3039bd7a546c521c6). Offline scope complete; live LLM NOT CONNECTED (BLOCKED, owner decision); 0007 not yet applied to production | See Phase 3 checklist below and `docs/PHASE_3_ACCEPTANCE.md` |
-| 4 | Company exposure graph | IMPLEMENTED and TESTED with synthetic fixtures (PR pending); not ACCEPTED; not OPERATIONAL (no approved company-evidence source; 0008 not applied to production) | See Phase 4 checklist below and `docs/PHASE_4_ACCEPTANCE.md` |
+| 4 | Company exposure graph | TESTED with synthetic fixtures, approved and merged (PR #15, merge commit 0bdfb1a08de7dae9ea37899f4d93c10892b32e59); NOT OPERATIONAL: no approved company-evidence source, real mappings unverified; 0008 not applied to production; Turso server compatibility unverified | See Phase 4 checklist below and `docs/PHASE_4_ACCEPTANCE.md` |
 | 5 | Impact analysis and Python calculations | NOT STARTED | |
 | 6 | Streamlit MVP | NOT STARTED | |
 | 7 | Scheduling and operations | NOT STARTED | |
@@ -110,6 +110,16 @@ criteria are met. The rows marked BLOCKED below remain open and are not part of 
 | Live extraction on real items | | needs live provider and ACTIVE sources | BLOCKED |
 
 ## Phase 4 checklist
+
+Owner approved and merged on 2026-11-07 (PR #15, merge commit `0bdfb1a08de7dae9ea37899f4d93c10892b32e59`). Main CI on the merge commit
+passed: test, secret-scan, and CodeQL for Python and Actions.
+
+Open limitations:
+- Turso compatibility is unverified on a real Turso server.
+- Migration 0008 is not applied to production.
+- No approved real company-evidence source exists, so real mappings remain unverified.
+- Protection against relationship cycles deeper than A↔B is application-level only.
+- Consumers must read `exposure_candidates_current`.
 
 | Deliverable | Location | Test / evidence | Status |
 |---|---|---|---|

@@ -1,6 +1,6 @@
 # ADR-0007: Phase 4 company exposure mapping
 
-Status: Proposed (Phase 4, awaiting owner review)
+Status: Accepted (owner, 2026-11-07; PR #15, merge commit 0bdfb1a)
 
 ## Context
 Spec §14 Phase 4 says: seed business segments and evidence-backed exposures, build candidate mapping
