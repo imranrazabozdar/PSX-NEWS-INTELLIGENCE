@@ -99,6 +99,20 @@ python -m database.seed_loader            # load reference data (idempotent)
 * `media_accounts`: category and access status.
 * `source_health` view.
 
+## Phase 3 and Phase 4 additions (migrations 0007, 0008)
+* 0007: `llm_calls` (append-only ledger), `event_extractions` (append-only), `story_clusters`,
+  `story_cluster_members`.
+* 0008:
+  * `company_relationships`: parent, subsidiary, associate, JV and holding links with ownership,
+    effective dates, evidence status, source and synthetic flag.
+  * `exposure_candidates`: one per event, company, category, subtype, mechanism and ruleset version;
+    revisions only, no delete.
+  * `exposure_candidate_revisions` and `exposure_reviews`: append-only.
+* CHECK constraints stop `strongly_supported` or `confirmed` without company evidence, and `confirmed`
+  without human acceptance.
+* Applied to local and CI databases only. Production Turso is still at 0005.
+* See `docs/EXPOSURE_MAPPING.md`.
+
 ## Free-tier quota protection
 Turso's free plan caps rows read, rows written and storage. Check the current limits on Turso's site before increasing collection.
 * **Usage meter:** every Turso response reports `rows_read` / `rows_written`. `db.usage()` totals them per run, and the loader prints them.

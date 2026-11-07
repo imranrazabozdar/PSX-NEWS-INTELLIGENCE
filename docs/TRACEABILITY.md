@@ -15,7 +15,7 @@ Owner decisions recorded in [`docs/adr/0003-owner-decisions-future-phases.md`](a
 | R-DS-3 | DS | Do not invent data, access, exposures, prices or estimates | all | `CLAUDE.md`; Phase 0 app shows status only | `test_app_starts_without_errors` | IMPLEMENTED (ongoing rule) |
 | R-1.1-1 | 1.1 | Answer what happened, when it happened, when the system learned of it | 2–3 | | | NOT STARTED |
 | R-1.1-2 | 1.1 | Classify fact / proposal / unverified / opinion / rumour | 3 | `engines/schema.py` claim_type and status_stage vocabularies | tests/test_intelligence.py::test_rumour_and_unresolved_company_need_review | TESTED (offline; live LLM not connected) |
-| R-1.1-3 | 1.1 | Evidence-proven direct/indirect exposure | 4 | | | NOT STARTED |
+| R-1.1-3 | 1.1 | Evidence-proven direct/indirect exposure | 4 | `engines/exposure_mapping.py`, `exposure_rules.py`; evidence-status rules; ADR-0007 | tests/test_exposure_mapping.py::test_oil_rise_maps_by_documented_exposure_not_by_sector | TESTED (synthetic; awaiting approved company-evidence sources) |
 | R-1.1-4 | 1.1 | Transmission pathway to financials | 5 | | | NOT STARTED |
 | R-1.1-5 | 1.1 | Quantify only from sourced inputs, otherwise qualitative + missing list | 5 | | | NOT STARTED |
 | R-1.1-6 | 1.1 | Horizon, confidence, downside, counter-evidence, invalidation | 5, 12 | | | NOT STARTED |
@@ -23,7 +23,7 @@ Owner decisions recorded in [`docs/adr/0003-owner-decisions-future-phases.md`](a
 | R-1.1-8 | 1.1 | Point-in-time belief and later accuracy | 14 | | | NOT STARTED |
 | R-1.2-1 | 1.2 | No automatic orders, buy/sell instructions or guaranteed predictions | all | README disclaimer; app caption | `test_app_starts_without_errors` | IMPLEMENTED (ongoing rule) |
 | R-1.2-2 | 1.2 | No assumption that positive news means attractive at any valuation | 12 | | | NOT STARTED |
-| R-1.2-3 | 1.2 | No identical-exposure assumption within a sector | 4 | | | NOT STARTED |
+| R-1.2-3 | 1.2 | No identical-exposure assumption within a sector | 4 | Signs from company-specific `company_exposures`; sector-only candidates unknown/unverified | tests/test_exposure_mapping.py::test_rate_rise_does_not_assume_every_bank_benefits | TESTED (synthetic) |
 | R-1.2-4 | 1.2 | No automatic trust in social media, brokers, headlines or LLM output | 3, 11 | LLM output validated, quote-checked and scored in Python; rumours flagged | tests/test_intelligence.py::test_invented_claim_and_number_are_removed_and_flagged | PARTIAL (LLM part tested offline; social/broker: Phases 10–11) |
 | R-1.2-5 | 1.2 | No merging with the technical engine or shared database | 0 (permanent) | ADR-0001, `scripts/check_independence.py`, base-branch guard in CI | `tests/test_independence.py` | TESTED |
 | R-1.2-6 | 1.2 | No circumvention of paywalls, logins, API limits, robots, copyright | 2+ | `collectors/http.py` obeys robots.txt (403 robots = disallow), rate limits; restricted/blocked sources never collected; PSX terms honoured | tests/test_collectors.py::test_robots_disallow_is_respected, tests/test_collectors.py::test_robots_forbidden_means_disallow, tests/test_live_sources.py::test_robots_restriction_is_honoured_live | TESTED |
@@ -41,7 +41,7 @@ Owner decisions recorded in [`docs/adr/0003-owner-decisions-future-phases.md`](a
 | R-2.1-2 | 2.1 | Relevance layer (score, matched terms, inclusion/exclusion reason) | 2 | `source_items.relevance_score/relevance_reason` columns |  | IN PROGRESS (schema only) |
 | R-2.1-3 | 2.1 | Event intelligence layer persistence | 3 | `engines/pipeline.py` creates events with revisions and evidence | tests/test_intelligence.py::test_pipeline_persists_events_evidence_provenance_and_cross_source_assessment | TESTED (offline) |
 | R-2.1-4 | 2.1 | Verification layer persistence | 3 | `engines/verification.py`; revision records cross-source assessment | tests/test_intelligence.py::test_primary_confirmation_and_media_corroboration | TESTED (offline) |
-| R-2.1-5 | 2.1 | Exposure mapping layer persistence | 4 | `event_companies`, `company_exposures` (evidence required) |  | IN PROGRESS (schema only) |
+| R-2.1-5 | 2.1 | Exposure mapping layer persistence | 4 | Migration 0008 (`exposure_candidates`, revisions, reviews, `company_relationships`); `event_companies` on acceptance | tests/test_exposure_mapping.py::test_review_accepts_only_strong_evidence_and_promotes_to_event_companies | TESTED (local/CI; not applied to production) |
 | R-2.1-6 | 2.1 | Economics layer persistence | 5 | `analyses` (versioned) |  | IN PROGRESS (schema only) |
 | R-2.1-7 | 2.1 | Market context layer | 12–13 | | | NOT STARTED |
 | R-2.1-8 | 2.1 | Decision support layer (no auto-trade) | 12 | | | NOT STARTED |
@@ -63,7 +63,7 @@ Owner decisions recorded in [`docs/adr/0003-owner-decisions-future-phases.md`](a
 | R-3.10 | 3.10 | Mutual Fund & Institutional Intelligence | 10 | | | NOT STARTED |
 | R-3.11 | 3.11 | Broker Research Intelligence | 10 | | | NOT STARTED |
 | R-3.12 | 3.12 | Market Event Investigator | 13 | | | NOT STARTED |
-| R-3.13 | 3.13 | Company Relationship & Exposure Map | 4 | | | NOT STARTED |
+| R-3.13 | 3.13 | Company Relationship & Exposure Map | 4 | `engines/entity_resolution.py`, `exposure_mapping.py`, `company_relationships`; `docs/EXPOSURE_MAPPING.md` | tests/test_exposure_mapping.py | PARTIAL (engine tested; no approved real exposure data) |
 | R-3.14 | 3.14 | Valuation & Fair Value | 12 | | | NOT STARTED |
 | R-3.15 | 3.15 | Investment Opportunity Radar | 12 | | | NOT STARTED |
 | R-3.16 | 3.16 | Early Warning & Catalyst Tracker | 8 | | | NOT STARTED |
@@ -88,7 +88,7 @@ Owner decisions recorded in [`docs/adr/0003-owner-decisions-future-phases.md`](a
 | R-5-1 | 5 | 30–50 company universe (KSE-30 + sector additions, expandable; ADR-0003) | 1 | `database/seed/companies.json`: 50 listed (KSE-30 + 20) + FFBL delisted, each from its PSX page with URL, time and SHA-256 | tests/test_database.py::test_company_master_loaded, tests/test_turso_integration.py::test_reference_data_present | TESTED |
 | R-5-2 | 5 | Canonical company ID; history of ticker/name changes, mergers, delistings | 1 | `company_identifiers` validity dates, `company_status_history` (FFBL merged into FFC) | tests/test_database.py::test_point_in_time_ticker_and_delisting | TESTED |
 | R-5-3 | 5 | Alias dictionary validated against active master | 1 | `company_aliases` + `resolve_alias`; PSX `XD` suffix handled by `base_ticker` | tests/test_database.py::test_alias_resolution, tests/test_canonical.py::test_names_and_tickers | TESTED |
-| R-5-4 | 5 | No exposure inferred from sector membership | 1, 4 | Only official PSX sector stored; segments/exposures require source + excerpt | tests/test_database.py::test_company_master_loaded | IMPLEMENTED |
+| R-5-4 | 5 | No exposure inferred from sector membership | 1, 4 | Sector membership yields only unverified, indirect, unknown candidates | tests/test_exposure_mapping.py::test_oil_rise_maps_by_documented_exposure_not_by_sector | TESTED |
 | R-6-1 | 6 | Sector indicator sets (cement … logistics) | 9 | | | NOT STARTED |
 | R-7-1 | 7 | Benchmark metadata (grade, location, currency, unit, dates, source, type) | 9 | | | NOT STARTED |
 | R-7.1-1 | 7.1 | Mandatory transmission logic (inventory lag, FX, rates, tariffs, logistics, mixed oil impact) | 5, 9 | | | NOT STARTED |
@@ -117,7 +117,7 @@ Owner decisions recorded in [`docs/adr/0003-owner-decisions-future-phases.md`](a
 | R-15-1 | 15 | Operating prompts 1–8 followed per phase (Prompt 1 audit delivered; Prompt 8 audit at end) | all | Step 1 audit report (delivered in session) | | IN PROGRESS |
 | R-16-1 | 16 | Collector tests | 2 | Collector tests: reachability (live), permitted access, canonical URL, timestamps, pagination, rate limit, retry, dedup, repeat runs | tests/test_collectors.py, tests/test_live_sources.py | TESTED |
 | R-16-2 | 16 | Event tests | 3 | `tests/test_intelligence.py` | tests/test_intelligence.py | TESTED (offline) |
-| R-16-3 | 16 | Exposure tests | 4 | | | NOT STARTED |
+| R-16-3 | 16 | Exposure tests | 4 | `tests/test_exposure_mapping.py` (28 tests) | tests/test_exposure_mapping.py | TESTED (synthetic) |
 | R-16-4 | 16 | Calculation tests | 5 | | | NOT STARTED |
 | R-16-5 | 16 | Social tests | 11 | | | NOT STARTED |
 | R-16-6 | 16 | Dashboard tests (links, filters, no fake values, states, access control, mobile) | 6 | Phase 0 smoke test only | `test_app_starts_without_errors` | IN PROGRESS |

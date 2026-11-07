@@ -11,7 +11,7 @@ A feature is complete only when code **and** tests prove it. A page or placehold
 | 1 | Data foundation (Turso, migrations, company master) | TESTED, approved and merged (PR #2, merge commit 108cdd6) | See Phase 1 checklist below |
 | 2 | Source collection engine | TESTED, approved and merged (PR #5, merge commit 992e4b0); no source ACTIVE; 0006 not yet applied to production | See Phase 2 checklist below |
 | 3 | Event extraction and verification | TESTED, approved and merged (PR #11, merge commit 0491deec56adbd10c719eef3039bd7a546c521c6). Offline scope complete; live LLM NOT CONNECTED (BLOCKED, owner decision); 0007 not yet applied to production | See Phase 3 checklist below and `docs/PHASE_3_ACCEPTANCE.md` |
-| 4 | Company exposure graph | NOT STARTED | |
+| 4 | Company exposure graph | IMPLEMENTED and TESTED with synthetic fixtures (PR pending); not ACCEPTED; not OPERATIONAL (no approved company-evidence source; 0008 not applied to production) | See Phase 4 checklist below and `docs/PHASE_4_ACCEPTANCE.md` |
 | 5 | Impact analysis and Python calculations | NOT STARTED | |
 | 6 | Streamlit MVP | NOT STARTED | |
 | 7 | Scheduling and operations | NOT STARTED | |
@@ -108,6 +108,18 @@ criteria are met. The rows marked BLOCKED below remain open and are not part of 
 | Credibility, corroboration, contradiction, timeline | `engines/verification.py` | `test_primary_confirmation_*`, `test_syndicated_*`, `test_contradictions_*`, `test_timeline_*` | TESTED |
 | Persistence with provenance (migration 0007, append-only) | `engines/pipeline.py`, `0007_intelligence_engine.sql` | `test_pipeline_*` (local SQLite) | TESTED (not applied to production Turso) |
 | Live extraction on real items | | needs live provider and ACTIVE sources | BLOCKED |
+
+## Phase 4 checklist
+
+| Deliverable | Location | Test / evidence | Status |
+|---|---|---|---|
+| Entity resolution (ticker, alias, former name, ambiguity, delisted/historical, no creation) | `engines/entity_resolution.py` | `test_exact_*`, `test_lowercase_*`, `test_ambiguous_*`, `test_similar_*`, `test_unknown_company_*`, `test_delisted_*`, `test_former_name_*` | TESTED |
+| Exposure taxonomy (6 categories, defined subtypes; UNCERTAIN → unknown) | `engines/exposure_taxonomy.py` | `test_direction_lookup_and_neutral_distinct_from_unknown` | TESTED |
+| Versioned deterministic rules (oil, rates, PKR, gas, duties, relationships) | `engines/exposure_rules.py` (`exposure-rules/1.0.0`) | rule tests | TESTED |
+| Evidence status and confidence with explanations; human-review flags | `engines/exposure_mapping.py` | evidence-status, rumour, contradiction, confidence tests | TESTED |
+| LLM suggestions via the Phase 3 gateway, validated and audited | `engines/exposure_mapping.py::suggest_with_llm`, `prompts/exposure_candidate_v1.txt` | LLM tests (fixture provider) | TESTED; live LLM BLOCKED |
+| Append-only candidates, revisions, reviews; relationships (migration 0008) | `0008_exposure_mapping.sql` | persistence, review and constraint tests | TESTED (local/CI only) |
+| Real company exposures, segments and relationships | needs approved sources (`docs/SOURCE_REVIEW_PROPOSAL_COMPANY_REPORTS.md`) | — | BLOCKED (awaiting sources) |
 
 ## Requirements traceability
 
