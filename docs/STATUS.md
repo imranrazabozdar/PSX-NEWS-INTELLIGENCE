@@ -8,7 +8,7 @@ A feature is complete only when code **and** tests prove it. A page or placehold
 | Phase | Scope | Status | Evidence |
 |---|---|---|---|
 | 0 | Specification and repository bootstrap | TESTED, approved and merged (PR #1) | See Phase 0 checklist below |
-| 1 | Data foundation (Turso, migrations, company master) | TESTED, awaiting owner review | See Phase 1 checklist below |
+| 1 | Data foundation (Turso, migrations, company master) | TESTED, approved and merged (PR #2, merge commit 108cdd6) | See Phase 1 checklist below |
 | 2 | First source collectors | NOT STARTED | |
 | 3 | Event extraction and verification | NOT STARTED | |
 | 4 | Company exposure graph | NOT STARTED | |

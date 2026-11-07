@@ -26,8 +26,10 @@ Any future integration needs the owner's explicit authorisation and a new ADR.
 
 ## Current status
 
-**Phase 0 (repository bootstrap) is implemented and awaiting review.** No database is connected
-and no data is collected yet. See [`docs/STATUS.md`](docs/STATUS.md) for the status register
+**Phases 0 and 1 are complete and merged.** Phase 1 added the data foundation: a dedicated Turso
+database, migrations, the source registry and a PSX-sourced company master (see
+[`docs/DATA_MODEL.md`](docs/DATA_MODEL.md)). No data source is enabled and nothing is collected yet;
+Phase 2 has not started. See [`docs/STATUS.md`](docs/STATUS.md) for the status register
 and [`docs/TRACEABILITY.md`](docs/TRACEABILITY.md) for the full requirements traceability matrix.
 The sanitised specification is in [`docs/SPECIFICATION.md`](docs/SPECIFICATION.md). Owner decisions for later phases
 (guidance only, not approval to start them) are in [`docs/adr/0003-owner-decisions-future-phases.md`](docs/adr/0003-owner-decisions-future-phases.md).

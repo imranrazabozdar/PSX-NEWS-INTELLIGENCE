@@ -110,8 +110,8 @@ Owner decisions recorded in [`docs/adr/0003-owner-decisions-future-phases.md`](a
 | R-12-1 | 12 | 14 dashboard pages, built only for implemented modules | 6+ | `app.py` status page only | | NOT STARTED |
 | R-12-2 | 12 | UI standard: facts vs. AI interpretation, sources, states, mobile, no fake numbers | 6+ | `app.py` shows no data or placeholder figures | `test_app_starts_without_errors` | IN PROGRESS |
 | R-13-1 | 13 | Repository structure per spec (directories added when implemented) | 0+ | ADR-0002 | | IN PROGRESS |
-| R-14-0 | 14 | Phase 0: README, ADR, .gitignore, config example, pyproject, lint/test, workflow skeleton, no link to existing project; app starts; secrets absent; CI runs | 0 | see `docs/STATUS.md` Phase 0 checklist | CI on PR #1 | TESTED (awaiting owner approval) |
-| R-14-P1 | 14 | Phase 1 data foundation and acceptance gate | 1 | `database/`, `docs/DATA_MODEL.md`, ADR-0004 | `tests/test_database.py`, `tests/test_turso_integration.py`, CI | TESTED (awaiting owner approval) |
+| R-14-0 | 14 | Phase 0: README, ADR, .gitignore, config example, pyproject, lint/test, workflow skeleton, no link to existing project; app starts; secrets absent; CI runs | 0 | see `docs/STATUS.md` Phase 0 checklist | CI on PR #1 | TESTED (approved and merged, PR #1) |
+| R-14-P1 | 14 | Phase 1 data foundation and acceptance gate | 1 | `database/`, `docs/DATA_MODEL.md`, ADR-0004 | `tests/test_database.py`, `tests/test_turso_integration.py`, CI | TESTED (approved and merged, PR #2) |
 | R-14-2…14 | 14 | Phases 2–14 and their acceptance gates | 2–14 | | | NOT STARTED |
 | R-15-1 | 15 | Operating prompts 1–8 followed per phase (Prompt 1 audit delivered; Prompt 8 audit at end) | all | Step 1 audit report (delivered in session) | | IN PROGRESS |
 | R-16-1 | 16 | Collector tests | 2 | | | NOT STARTED |
