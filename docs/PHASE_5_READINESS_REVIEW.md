@@ -51,7 +51,7 @@ real, evidence-backed conclusion until an approved source exists.
 | P4 | Lawful market data | Spec §9 step 8 (market check), observed reaction | **Missing**; licensed provider only (PR #17 §A6) |
 | P5 | Disposable Turso verification of 0006–0008 (and later 0009) | Any production migration | **Not done** |
 | P6 | Owner decision on Phase 5 scope vs Phase 12 (scenario simulator, valuation) | Scope boundary | **Recommendation in §6** |
-| P7 | PR #13 (Module 24, Page 15) merged | Oil-shock monitor alignment | Open; Phase 5 stays compatible |
+| P7 | *Optional alignment, not a prerequisite:* PR #13 (Module 24, Page 15) | later Module 24 integration only | Open. **Not required** for Phase 5 synthetic development: T1–T9 are built and tested without it. Integration with Module 24 is a separate later step. |
 
 ## 4. Inconsistencies found (spec vs implementation vs this design)
 1. **`analyses` table (0003):**
@@ -68,10 +68,17 @@ real, evidence-backed conclusion until an approved source exists.
    acceptance. Phase 5 must **not** read it as the exposure source; use `exposure_candidates_current`.
 3. **Market check:** spec §9 step 8 requires market data. No lawful source exists (PR #17 §A6), so
    Phase 5 outputs must record the market check as `not_evaluable`.
-4. **Scenario Simulator:** that is spec module §3.17, built in Phase 12. The owner asks for base,
-   optimistic and adverse scenarios in Phase 5. *Recommendation:* Phase 5 delivers **qualitative
-   scenario framing per assessment**; the editable simulator stays Phase 12. This is recorded as a
-   recommendation only; the spec is not changed.
+4. **Scenario Simulator:** that is spec module §3.17, built in Phase 12. **Owner decision
+   (approved):**
+
+   | Phase | Scope |
+   |---|---|
+   | Phase 5 | evidence-linked transmission chains; qualitative direction and magnitude; base, optimistic and adverse **qualitative** scenario framing; separate confidence dimensions; unit-aware calculators (initially synthetic inputs); company and sector aggregation with provenance; human review and correction |
+   | Phase 12 | the **editable scenario simulator**; valuation and opportunity ranking |
+   | Phase 13 | market reaction investigation |
+   | Phase 14 | backtesting and outcome validation |
+
+   The master specification is not changed.
 5. **Coverage gap:** Phase 4 has driver rules for oil, rates, PKR, gas and duties only. Spec §7.1 also
    requires input-cost and inventory lag, border/port disruption, and tariff or tax pass-through.
    Electricity, inflation, IMF and fiscal mechanisms have no rules yet. See
@@ -83,8 +90,7 @@ real, evidence-backed conclusion until an approved source exists.
 
 ## 5. Conditions before implementation and after it
 - **Before implementation:**
-  - owner approval of this design;
-  - the scope decision in §4 item 4;
+  - owner approval of this design (the scope in §4 item 4 is approved);
   - the migration-0009 design reviewed (still local and CI only).
 - **Before any real-data claim:** P1 and P2, each source approved right by right.
 - **Before production:** P5, plus separate approval.
@@ -109,7 +115,8 @@ real, evidence-backed conclusion until an approved source exists.
 ## 8. Risks
 | Risk | Mitigation |
 |---|---|
-| Synthetic outputs mistaken for real conclusions | `is_synthetic` propagated to every assessment; `data_label` in every view; synthetic sources only |
+| Synthetic outputs mistaken for real conclusions | fictional companies and synthetic tickers in fixtures; `syn`-prefixed synthetic sources; `is_synthetic` propagated through assessments and company/sector aggregates; `data_label` in every view and report; mixing refused by the database; no synthetic data in production Turso |
+| Refuted events treated as fact | no current assessment for refuted events; only labelled hypothetical or historical-test scenarios; history kept |
 | Stale evidence silently kept | eligibility is re-evaluated at read and at write; assessment status follows evidence (`PHASE_5_DATA_CONTRACT.md` §4) |
 | Unknown direction forced to a sign | contract rule: unknown stays unknown; tests assert it |
 | False precision from scores | ordinal levels by default; any numeric score versioned, labelled "uncalibrated" |

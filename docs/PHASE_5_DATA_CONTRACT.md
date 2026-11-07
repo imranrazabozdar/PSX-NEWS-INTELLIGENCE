@@ -16,6 +16,7 @@ Design only; nothing is implemented. All names are proposals for review.
 | Field | Values / meaning |
 |---|---|
 | `assessment_status` | `confirmed_conclusion` · `provisional` · `scenario_only` · `needs_review` · `needs_revalidation` · `withdrawn` |
+| `scenario_kind` | `current` (default) · `hypothetical` · `historical_test`. Only `current` may describe a present factual event; refuted events are restricted to `hypothetical` or `historical_test`. |
 | `direction` | positive · negative · mixed · neutral · unknown (Phase 4 vocabulary) |
 | `magnitude_level` | low · medium · high · not_assessable |
 | `magnitude_basis` | `qualitative` · `deterministic_model` · `financially_quantified` |
@@ -61,7 +62,18 @@ Rules:
    `unknown`, yields `direction = unknown`. No calculation may infer a sign to complete itself.
 5. **Contradiction.** Opposing documented exposures or a disputed event lower direction confidence one
    level, set `mixed` or `unknown`, and require review.
-6. **Event state.** `rumour` stage or `disputed`/`refuted` verification gives at most `scenario_only`.
+6. **Event verification state:**
+
+   | Event state | Treatment |
+   |---|---|
+   | `corroborated`, `primary_confirmed` | Normal evidence-eligible assessments, per the table above |
+   | `single_source`, `unverified` | At most `provisional`; human review required |
+   | `disputed` | At most `provisional` or explicitly `scenario_only`, per the evidence rules. Direction is forced to `mixed` or `unknown`, and human review is **mandatory**. |
+   | `refuted` | **No ordinary event-driven impact assessment is generated.** A refuted event may appear only in a separately labelled `hypothetical` or `historical_test` scenario (`scenario_kind`), never as a current factual event. Existing assessments built on an event that becomes refuted move to `withdrawn`, with a revision. |
+   | `rumour` stage (any verification) | At most `scenario_only`; review required |
+
+   **Refuted and disputed events are never deleted.** Their evidence, verification history and event
+   revisions are preserved (append-only, Phase 1–3).
 
 ## 4. Assessment lifecycle
 ```
@@ -108,7 +120,10 @@ withdrawn ◀── human rejection (terminal; record kept)
 - evidence and source item ids;
 - `ruleset_version` (Phase 4), `transmission_version`, `calculation_version` and formula ids;
 - schema version; model and prompt version (if an LLM wrote narrative);
-- `is_synthetic`;
+- `is_synthetic`. It propagates to company and sector aggregates. Any aggregate with a synthetic input
+  is synthetic. Every synthetic output carries `data_label = 'SYNTHETIC TEST DATA'` and must not be
+  presented as an actual company exposure, actual event or investment conclusion. The database must
+  refuse linking synthetic inputs to a non-synthetic assessment (Phase 4 pattern);
 - created and updated timestamps (UTC).
 
 **Re-processing the same inputs with the same versions must produce no new record.** Changing a

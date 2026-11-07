@@ -43,8 +43,15 @@ framework is compatible with it and does not depend on it.
 | high | direct exposure to a core input or revenue line, with a large stated change | ≥ B |
 | not_assessable | inputs missing | — |
 
-Thresholds A and B are a **versioned policy choice** (proposed initial values: 2% and 10% of the
-affected line, for review). They are not a statistical finding.
+**Thresholds A and B:**
+- They are **parameters, unconfigured by default**. No values are active, and no default is proposed.
+- They are a versioned policy choice requiring separate owner approval and calibration (for example
+  against Phase 14 outcomes).
+- They are **not** statistically validated.
+- Until approved thresholds **and** valid sourced inputs both exist, magnitude is **qualitative**
+  (left column) or `not_assessable`. The threshold column is never used.
+- Synthetic tests may exercise the parameterised logic with explicit test values. Those values are
+  labelled `TEST PARAMETER — not production policy` and are never read by non-test code.
 
 ## 4. Scenarios (qualitative framing in Phase 5; editable simulator in Phase 12)
 - **Base:** the stated change persists at the stated level for the assumed horizon.
