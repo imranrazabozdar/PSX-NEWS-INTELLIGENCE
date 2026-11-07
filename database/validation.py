@@ -91,6 +91,15 @@ def validate_source_registry(reg: dict[str, Any]) -> list[str]:
         if life in ("IMPLEMENTED", "TESTED", "ACTIVE") and (s.get("adapter") not in ADAPTERS
                                                             or not s.get("feed_url")):
             errors.append(f"{sid}: {life} requires an implemented adapter and endpoint")
+        fresh = s.get("freshness_status", "unknown")
+        if fresh not in ("unknown", "fresh", "stale", "not_applicable"):
+            errors.append(f"{sid}: invalid freshness status {fresh!r}")
+        if s.get("last_test_result", "not_tested") not in ("not_tested", "passed", "failed"):
+            errors.append(f"{sid}: invalid last test result")
+        if life in ("TESTED", "ACTIVE") and (s.get("last_test_result") != "passed" or fresh != "fresh"):
+            errors.append(f"{sid}: {life} requires a passed test and a fresh feed")
+        if s.get("last_test_result", "not_tested") != "not_tested" and not s.get("last_test_at_utc"):
+            errors.append(f"{sid}: test result without test date")
         if life != "NOT REVIEWED" and not s.get("reviewed_at_utc"):
             errors.append(f"{sid}: reviewed status without review date")
         if life != "NOT REVIEWED" and not s.get("review_notes"):

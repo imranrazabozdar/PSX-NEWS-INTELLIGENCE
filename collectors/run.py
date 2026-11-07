@@ -1,8 +1,8 @@
 """Command-line entry point used by the scheduled workflow and for manual runs.
 
   python -m collectors.run --due                 # collect every ACTIVE source that is due
-  python -m collectors.run --source dawn_business --dry-run
-  python -m collectors.run --source eia --since 2026-11-01T00:00:00Z   # bounded backfill
+  python -m collectors.run --source dawn --dry-run
+  python -m collectors.run --source dawn --since 2026-11-01T00:00:00Z  # bounded backfill (ACTIVE only)
 
 Exit code is non-zero if any source failed, so failures are visible in GitHub Actions.
 """

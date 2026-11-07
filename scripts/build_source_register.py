@@ -32,7 +32,11 @@ def build() -> str:
         "",
         "**No source is ACTIVE.** A source can only become ACTIVE through a reviewed change to the",
         "registry seed, once its terms are `approved` and access is `verified_permitted`. The database",
-        "enforces this with a trigger.",
+        "enforces this with a trigger. Registering a provider or access route records how data could",
+        "be obtained lawfully; it is **not** permission to collect or store data.",
+        "",
+        "Collector status (lifecycle) and feed freshness are separate: a collector can be implemented",
+        "and its last test can pass while the feed itself is stale.",
         "",
         "## Status summary",
         "",
@@ -43,14 +47,17 @@ def build() -> str:
         lines.append(f"| {status} | {n} |")
     lines += ["", "## Sources", "",
               "| Priority | Source ID | Name | Official URL | Category | Format / adapter | Terms "
-              "| Licensing | Access | Lifecycle | Review notes |",
-              "|---|---|---|---|---|---|---|---|---|---|---|"]
+              "| Licensing | Access | Lifecycle | Last test | Newest item | Freshness | Review notes |",
+              "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for s in sorted(src, key=lambda s: (s.get("priority") or 9, s["source_id"])):
         fmt = s.get("content_format", "unknown") + (f" / {s['adapter']}" if s.get("adapter") else "")
         lines.append("| " + " | ".join(_cell(x) for x in (
             s.get("priority"), s["source_id"], s["name"], s.get("official_url"), s.get("category"), fmt,
             s.get("terms_status"), s.get("licensing_status"), s.get("access_status"),
-            s.get("lifecycle_status"), s.get("review_notes"))) + " |")
+            s.get("lifecycle_status"),
+            f"{s.get('last_test_result', 'not_tested')} {(s.get('last_test_at_utc') or '')[:10]}".strip(),
+            s.get("newest_item_at_utc"), s.get("freshness_status", "unknown"),
+            s.get("review_notes"))) + " |")
     lines += ["", "## Social and media watchlist (collection: Phase 11)", "",
               "Handles and URLs are exactly as supplied by the owner. All accounts are `disabled`, have no",
               "authorised access yet, and their identity is unverified.", "",

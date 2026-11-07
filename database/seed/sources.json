@@ -1,6 +1,6 @@
 {
  "dataset": "source_registry",
- "version": 2,
+ "version": 3,
  "reviewed_on": "2026-11-07",
  "sources": [
   {
@@ -31,7 +31,7 @@
    "collection_frequency_minutes": null,
    "enabled": 0,
    "reviewed_at_utc": "2026-11-07T00:00:00Z",
-   "review_notes": "PSX Terms of Use (reviewed 2026-11-07) prohibit robots/spiders and 'systematic retrieval to create collections, compilations, databases or directories' without PSX's prior written permission. Announcements are loaded by JavaScript; no public feed. Requires written permission or a PSX data licence (Data Services & Vending). The Phase 1 company master was compiled from 51 profile pages read once on 2026-11-07; see docs/SOURCE_ACCESS_REGISTER.md.",
+   "review_notes": "PSX Terms of Use (reviewed 2026-11-07) prohibit robots/spiders and 'systematic retrieval to create collections, compilations, databases or directories' without PSX's prior written permission. Announcements are loaded by JavaScript; no public feed. Requires written permission or a PSX data licence (Data Services & Vending). The Phase 1 company master was compiled from 51 profile pages read once on 2026-11-07; see docs/SOURCE_ACCESS_REGISTER.md. PR #7 findings: announcement pages are protected by reCAPTCHA; PSX directs data requests to marketdatarequest@psx.com.pk (Data Services & Vending). Registration of provider routes does not permit collection.",
    "notes": "Company profiles and KSE-30 list read on 2026-11-07 to seed the company master. Terms of use to be reviewed before any collector (Phase 2)."
   },
   {
@@ -62,7 +62,7 @@
    "collection_frequency_minutes": null,
    "enabled": 0,
    "reviewed_at_utc": "2026-11-07T00:00:00Z",
-   "review_notes": "Same PSX Terms of Use apply (www.psx.com.pk/psx/terms-of-use): automated navigation and systematic retrieval prohibited without prior written permission; PSX legal notice also prohibits commercial use of market data without a licence. Collector not implemented until permission is obtained.",
+   "review_notes": "Same PSX Terms of Use apply (www.psx.com.pk/psx/terms-of-use): automated navigation and systematic retrieval prohibited without prior written permission; PSX legal notice also prohibits commercial use of market data without a licence. Collector not implemented until permission is obtained. PR #7 findings: announcement pages are protected by reCAPTCHA; PSX directs data requests to marketdatarequest@psx.com.pk (Data Services & Vending). Registration of provider routes does not permit collection.",
    "notes": "Phase 2 priority (ADR-0003)."
   },
   {
@@ -285,7 +285,11 @@
    "enabled": 0,
    "reviewed_at_utc": "2026-11-07T00:00:00Z",
    "review_notes": "Publishes a public RSS feed (WordPress); robots.txt allows. No terms page found. Live dry-run passed 2026-11-07 (see acceptance report). Activation needs owner approval of terms. Live dry-run 2026-11-07: HTTP 200, 10 items parsed, 10 with publication time, newest 2026-11-06T08:00:06Z.",
-   "notes": null
+   "notes": null,
+   "last_test_at_utc": "2026-11-07T00:00:00Z",
+   "last_test_result": "passed",
+   "newest_item_at_utc": "2026-11-06T08:00:06Z",
+   "freshness_status": "fresh"
   },
   {
    "source_id": "commerce",
@@ -599,7 +603,11 @@
    "enabled": 0,
    "reviewed_at_utc": "2026-11-07T00:00:00Z",
    "review_notes": "Public RSS feed; robots.txt allows (disallows only print/author pages). Terms page not found at https://www.dawn.com/terms. Metadata-only retention. Activation needs owner approval of terms. Live dry-run 2026-11-07: HTTP 200, 30 items parsed, 30 with publication time, newest 2026-11-07T14:26:30Z.",
-   "notes": "Phase 2 candidate (ADR-0003)."
+   "notes": "Phase 2 candidate (ADR-0003).",
+   "last_test_at_utc": "2026-11-07T00:00:00Z",
+   "last_test_result": "passed",
+   "newest_item_at_utc": "2026-11-07T14:26:30Z",
+   "freshness_status": "fresh"
   },
   {
    "source_id": "brecorder",
@@ -630,7 +638,11 @@
    "enabled": 0,
    "reviewed_at_utc": "2026-11-07T00:00:00Z",
    "review_notes": "Public RSS feeds (latest-news, business-finance); robots.txt allows. Terms page not found. Metadata-only retention. Live dry-run 2026-11-07: HTTP 200, 30 items parsed, 30 with publication time, newest 2026-11-07T15:18:12Z.",
-   "notes": "Phase 2 candidate (ADR-0003)."
+   "notes": "Phase 2 candidate (ADR-0003).",
+   "last_test_at_utc": "2026-11-07T00:00:00Z",
+   "last_test_result": "passed",
+   "newest_item_at_utc": "2026-11-07T15:18:12Z",
+   "freshness_status": "fresh"
   },
   {
    "source_id": "tribune",
@@ -661,7 +673,11 @@
    "enabled": 0,
    "reviewed_at_utc": "2026-11-07T00:00:00Z",
    "review_notes": "Public RSS feed includes full article text; this project stores metadata only. robots.txt allows. Terms page not found. Live dry-run 2026-11-07: HTTP 200, 25 items parsed, 25 with publication time, newest 2026-11-07T07:58:41Z.",
-   "notes": null
+   "notes": null,
+   "last_test_at_utc": "2026-11-07T00:00:00Z",
+   "last_test_result": "passed",
+   "newest_item_at_utc": "2026-11-07T07:58:41Z",
+   "freshness_status": "fresh"
   },
   {
    "source_id": "thenews",
@@ -691,8 +707,12 @@
    "collection_frequency_minutes": 180,
    "enabled": 0,
    "reviewed_at_utc": "2026-11-07T00:00:00Z",
-   "review_notes": "RSS feed parses, but the category feed tried (/rss/1/8) returned items last dated May 2026; the correct business feed must be identified before testing. Terms page not found. Live dry-run 2026-11-07: HTTP 200, 30 items parsed, 30 with publication time, newest 2026-05-29T20:23:00Z.",
-   "notes": null
+   "review_notes": "Collector implemented: the RSS feed tried (/rss/1/8) parses (live dry-run 2026-11-07: HTTP 200, 30 items, all with publication time) but its newest item is 2026-05-29T20:23:00Z. FRESHNESS: STALE - the feed has produced no new business content since May 2026, so it is not a functioning business-news source. The correct current business feed must be identified and dry-run tested before this source can be marked TESTED. Terms page not found.",
+   "notes": null,
+   "last_test_at_utc": "2026-11-07T00:00:00Z",
+   "last_test_result": "passed",
+   "newest_item_at_utc": "2026-05-29T20:23:00Z",
+   "freshness_status": "stale"
   },
   {
    "source_id": "profit",
@@ -744,7 +764,7 @@
    "adapter": null,
    "retention_mode": "metadata_only",
    "terms_status": "not_found",
-   "licensing_status": "unknown",
+   "licensing_status": "licence_required",
    "verification_status": "url_verified",
    "access_status": "unverified",
    "access_method": "pending_review",
@@ -753,7 +773,7 @@
    "collection_frequency_minutes": null,
    "enabled": 0,
    "reviewed_at_utc": "2026-11-07T00:00:00Z",
-   "review_notes": "No feed at /feed/ (HTTP 404); sitemap published; robots.txt allows. Terms page not found.",
+   "review_notes": "No feed at /feed/ (HTTP 404); sitemap published; robots.txt allows. Terms page not found. PR #7 finding (docs/PSX_ANNOUNCEMENT_ACCESS_INVESTIGATION.md): Mettis Global is a PSX-authorised data redistributor offering the MG Link API for internal or redistribution use under licence. Registered as a potential authorised provider route only; no data may be collected or stored without a written agreement.",
    "notes": null
   },
   {
@@ -803,17 +823,17 @@
    "feed_url": null,
    "adapter": null,
    "retention_mode": "metadata_only",
-   "terms_status": "not_reviewed",
-   "licensing_status": "unknown",
+   "terms_status": "prohibits_automation",
+   "licensing_status": "permission_required",
    "verification_status": "unverified",
-   "access_status": "unverified",
-   "access_method": "pending_review",
-   "lifecycle_status": "NOT REVIEWED",
+   "access_status": "restricted",
+   "access_method": "not_permitted",
+   "lifecycle_status": "RESTRICTED",
    "reliability_tier": "unrated",
    "collection_frequency_minutes": null,
    "enabled": 0,
-   "reviewed_at_utc": null,
-   "review_notes": "Official Pakistani platform and website not yet verified (owner instruction).",
+   "reviewed_at_utc": "2026-11-07T00:00:00Z",
+   "review_notes": "Terms reviewed 2026-11-07 (docs/INVESTIFY_SCS_TRADE_ASSESSMENT.md, PR #6): automated access, scraping and reuse of site content are prohibited without Investify's prior written permission. Not collected. Requires written permission or an authorised data agreement.",
    "notes": null
   },
   {
@@ -832,17 +852,17 @@
    "feed_url": null,
    "adapter": null,
    "retention_mode": "metadata_only",
-   "terms_status": "not_reviewed",
-   "licensing_status": "unknown",
+   "terms_status": "not_found",
+   "licensing_status": "permission_required",
    "verification_status": "unverified",
    "access_status": "unverified",
    "access_method": "pending_review",
-   "lifecycle_status": "NOT REVIEWED",
+   "lifecycle_status": "REVIEWED",
    "reliability_tier": "unrated",
    "collection_frequency_minutes": null,
    "enabled": 0,
-   "reviewed_at_utc": null,
-   "review_notes": "Official website not yet verified.",
+   "reviewed_at_utc": "2026-11-07T00:00:00Z",
+   "review_notes": "Reviewed 2026-11-07 (docs/INVESTIFY_SCS_TRADE_ASSESSMENT.md, PR #6): no published terms of use or reuse licence found. Absence of terms is not permission: reuse rights require written clarification from SCS Trade before any collection. Not collected.",
    "notes": null
   },
   {
@@ -1931,6 +1951,105 @@
    "reviewed_at_utc": null,
    "review_notes": "YouTube Data API within quota (key required); transcripts not guaranteed (Phase 11).",
    "notes": "YouTube Data API within quota; transcripts not guaranteed. Phase 11."
+  },
+  {
+   "source_id": "pucars",
+   "name": "PSX PUCARS (corporate announcements system)",
+   "source_type": "exchange",
+   "domain": "pucars.psx.com.pk",
+   "platform": null,
+   "official_url": "https://pucars.psx.com.pk/",
+   "category": "exchange",
+   "subcategory": "authorised PSX data route (potential)",
+   "geographic_coverage": "Pakistan",
+   "industries": [
+    "all"
+   ],
+   "priority": 2,
+   "content_format": "html",
+   "feed_url": null,
+   "adapter": null,
+   "retention_mode": "metadata_only",
+   "terms_status": "not_reviewed",
+   "licensing_status": "unknown",
+   "verification_status": "url_verified",
+   "access_status": "unverified",
+   "access_method": "pending_review",
+   "lifecycle_status": "REVIEWED",
+   "reliability_tier": "primary_official",
+   "collection_frequency_minutes": null,
+   "enabled": 0,
+   "reviewed_at_utc": "2026-11-07T00:00:00Z",
+   "review_notes": "PR #7 finding: PSX's corporate announcement submission system. Its TLS certificate had expired when checked on 2026-11-07, so the site could not be verified. Registered for reference only; not collected. Any access requires PSX permission or a licensed provider.",
+   "notes": null,
+   "last_test_result": "not_tested",
+   "freshness_status": "not_applicable"
+  },
+  {
+   "source_id": "capitalstake",
+   "name": "Capital Stake (PSX-authorised data redistributor)",
+   "source_type": "data_provider",
+   "domain": "csapis.com",
+   "platform": null,
+   "official_url": "https://csapis.com/",
+   "category": "data_provider",
+   "subcategory": "authorised PSX data route (potential)",
+   "geographic_coverage": "Pakistan",
+   "industries": [
+    "all"
+   ],
+   "priority": 2,
+   "content_format": "api",
+   "feed_url": null,
+   "adapter": null,
+   "retention_mode": "metadata_only",
+   "terms_status": "not_found",
+   "licensing_status": "licence_required",
+   "verification_status": "url_verified",
+   "access_status": "licence_required",
+   "access_method": "authorised_provider",
+   "lifecycle_status": "LICENCE REQUIRED",
+   "reliability_tier": "specialist",
+   "collection_frequency_minutes": null,
+   "enabled": 0,
+   "reviewed_at_utc": "2026-11-07T00:00:00Z",
+   "review_notes": "PR #7/#8 findings: documented REST, WebSocket and webhook APIs (EOD prices, financials, announcements incl. a 'pucars' channel, payouts). PSX-authorised redistributor. Terms not readable without JavaScript. Potential provider route only: requires a written agreement, pricing and owner approval; no collection or storage until then.",
+   "notes": null,
+   "last_test_result": "not_tested",
+   "freshness_status": "not_applicable"
+  },
+  {
+   "source_id": "sarmaaya",
+   "name": "Sarmaaya (PSX-authorised data redistributor)",
+   "source_type": "data_provider",
+   "domain": "sarmaaya.pk",
+   "platform": null,
+   "official_url": "https://sarmaaya.pk/",
+   "category": "data_provider",
+   "subcategory": "authorised PSX data route (potential)",
+   "geographic_coverage": "Pakistan",
+   "industries": [
+    "all"
+   ],
+   "priority": 2,
+   "content_format": "api",
+   "feed_url": null,
+   "adapter": null,
+   "retention_mode": "metadata_only",
+   "terms_status": "prohibits_automation",
+   "licensing_status": "personal_non_commercial",
+   "verification_status": "url_verified",
+   "access_status": "restricted",
+   "access_method": "not_permitted",
+   "lifecycle_status": "RESTRICTED",
+   "reliability_tier": "specialist",
+   "collection_frequency_minutes": null,
+   "enabled": 0,
+   "reviewed_at_utc": "2026-11-07T00:00:00Z",
+   "review_notes": "PR #7 finding: PSX-authorised redistributor; terms limit use to personal non-commercial purposes and prohibit automated access. No API documented. Registered for reference only; not collected.",
+   "notes": null,
+   "last_test_result": "not_tested",
+   "freshness_status": "not_applicable"
   }
  ]
 }

@@ -10,7 +10,7 @@ import os
 
 import pytest
 
-from collectors.engine import collect
+from collectors.engine import CollectionRefused, collect
 from collectors.http import HttpClient
 from database import seed_loader
 from database.connection import SQLiteDatabase
@@ -45,5 +45,7 @@ def test_live_feed_dry_run(registry, client, source_id):
 
 
 def test_robots_restriction_is_honoured_live(registry, client):
-    r = collect(registry, "eia", client=client, dry_run=True)
-    assert r.status == "failed" and "robots" in r.errors[0].lower()
+    # Policy refuses EIA before any request; robots.txt independently disallows its RSS path.
+    with pytest.raises(CollectionRefused):
+        collect(registry, "eia", client=client, dry_run=True)
+    assert client.allowed_by_robots("https://www.eia.gov/rss/todayinenergy.xml") is False
