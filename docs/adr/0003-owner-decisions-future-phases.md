@@ -13,4 +13,5 @@
 | C5 | Initial sources | PSX announcements, SBP, Business Recorder, Dawn, Profit, with official sources (PSX, SBP) first. Before any collector is implemented, verify and document its access permissions, terms of use, robots rules and collection method. | Phase 2 |
 | C6 | Reuters | Not activated until licensed or authorised access is available. | — |
 | C7 | X and YouTube | The supplied watchlists are preserved verbatim (`docs/SPECIFICATION.md` §4). Implementation and API/subscription decisions are deferred to Phase 11. Donald Trump and Reuters stay pending until exact handles are supplied. | Phase 11 |
+| C8 | Module 24 and Page 15 | Owner approved on 2026-11-07: add Module 24 "Global Energy & Oil Shock Monitor" (spec §3) and dashboard Page 15 "Global Oil & Energy Intelligence" (spec §12), built in Phase 9. The original 23 modules and 14 pages are preserved unchanged. | Phase 9 |
 | — | Independence | ADR-0001 remains permanent and non-negotiable. | Always |
