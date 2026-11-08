@@ -31,10 +31,10 @@ exposure (Phase 4) and impact (Phase 5 / 0009) substrate. No new migration is ne
 | 4 | Evidence assessment / verification state (same modules) | TESTED offline; not run in production |
 | 5 | Exposure candidates from events (Phase 4 `map_event`, reading batch-1 entities) | TESTED offline; not run in production |
 | 6 | T1–T9 impact engine (`engines/impact_intel.py`, scenario-only assessments) | TESTED offline; not run in production |
-| 7 | Intelligence dashboard | NOT STARTED |
+| 7 | Intelligence dashboard, company / sector reports, review queue, validation, readiness (`engines/dashboard_views.py`, `engines/research.py`, `engines/review_revalidation.py`, `engines/validation.py`, `engines/intel_pipeline.py`) | TESTED offline; not run in production |
 | 8 | Optional AI assist | BLOCKED (provider not approved) |
-| 9 | Production activation | BLOCKED (owner approval) |
-| 10 | Calibration | LATER |
+| 9 | Production activation (prepared: `engines/intel_pipeline.py`, `docs/INTELLIGENCE_ACTIVATION.md`) | BLOCKED (owner approval) |
+| 10 | Validation and calibration framework (human labels) | TESTED offline; no labels yet, so no scores |
 
 ## Future stages (spec §14, unchanged)
 * Corporate / policy / government modules.
@@ -60,5 +60,5 @@ exposure (Phase 4) and impact (Phase 5 / 0009) substrate. No new migration is ne
 * The GitHub cron is unreliable until the external dispatcher is live.
 
 ## Next approved task
-None yet. The recommended task is Stage 2 Component 1, the headline event builder: local and CI only, no
-migration, no AI.
+Owner decision on production activation of the intelligence pipeline (`docs/INTELLIGENCE_ACTIVATION.md`)
+and on labelling a validation sample (`data/validation/labels.json`).

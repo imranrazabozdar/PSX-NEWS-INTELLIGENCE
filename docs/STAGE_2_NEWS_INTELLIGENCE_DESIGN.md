@@ -376,3 +376,52 @@ There is no AI, no migration and no production run. It unlocks Components 2–7.
 * No approved company-evidence source, so every exposure is `unverified` and every confidence `low`.
 * Revalidation of stale assessments and the review workflow are not implemented.
 * Not run on production data.
+
+## 14. Implementation notes: final batch (Components 7–10)
+
+* **Dashboard** (`engines/dashboard_views.py`, tabs in `app.py`):
+  * **Tabs:** Intelligence (macro filter, paginated events, event detail: evidence, history, mechanisms,
+    exposure, assessments, unresolved companies, conflicts), Company report, Sector report, Review queue,
+    Validation, Readiness.
+  * **Caching:** reads are cached for 5 minutes with their timestamp shown.
+  * **Failures:** a database failure shows an error, never an empty or successful state.
+  * **Not assessed:** events not yet classified show "Not assessed".
+* **Reports** (`engines/research.py`):
+  * The company report has the 12 requested sections; the sector report shows differing impacts per company.
+  * Financials, valuation, prices and technical indicators always show "Not assessed — supporting data
+    unavailable.".
+  * Each report carries its data timestamp. Assessments are labelled `current` or `historical` (event
+    revised since).
+  * Export is Markdown (no new dependency). PDF is deferred.
+* **Revalidation** (`engines/review_revalidation.py`):
+
+  | Situation | Result |
+  |---|---|
+  | Result unchanged | Moves to the new event revision (`revalidated`), with steps and scenarios recorded again |
+  | Event now disputed | `needs_review` |
+  | Result would change | `needs_revalidation` (`evidence_superseded`); the proposal is in the change reason and the earlier conclusion is kept, because 0009 needs a human review for any substantive change |
+
+  It is idempotent and runs one transaction per assessment.
+* **Review:**
+  * `review_queue()` is read-only. It lists what needs review, why, what a decision would change, and the
+    previous actor.
+  * Decisions are recorded only through `record_impact_review` or `record_exposure_review`, with a named
+    reviewer and notes. 0009 and 0008 enforce one review per transition, newest review only, and accept only
+    from provisional.
+  * Classification and entity corrections are recorded as human labels, never as rewrites of append-only
+    records.
+* **Validation** (`engines/validation.py`):
+  * Ground truth is `data/validation/labels.json` (human labels only; currently empty).
+  * The pipeline runs on the labelled headlines in an isolated in-memory database.
+  * Metrics: classification accuracy; entity and exposure precision and recall; independence accuracy;
+    impact-direction accuracy and coverage; calibration per confidence level. Each needs **≥ 30** labels, or
+    it reports `insufficient_labelled_data` with no score.
+  * False positives and false negatives are listed per item with reasons.
+  * Market-outcome checks are `not_evaluable`: no KSE-100 benchmark is stored, and a later price move alone
+    proves nothing.
+* **Readiness** (`engines/intel_pipeline.py`):
+  * `run_all()` runs every stage under a single-writer lease (`collector_runs`, job `intelligence`, claim
+    token read back; abandoned leases are recovered). Failures are recorded as `failed`.
+  * `readiness()` reports backlogs, unclassified events, stale assessments, the review backlog, the last run
+    and its errors, and the single-writer state.
+  * Activation runbook: `docs/INTELLIGENCE_ACTIVATION.md`.

@@ -380,7 +380,7 @@ def _key_sql() -> str:
 
 
 def _statements(db: Database, event: dict, cand: dict, mech: str, a: dict, synthetic: bool) -> list:
-    now, m = now_utc(), MECHANISMS[mech]
+    now = now_utc()
     key = (event["event_id"], cand["company_id"], mech, TRANSMISSION_VERSION)
     stmts = [
         (
@@ -445,13 +445,21 @@ def _statements(db: Database, event: dict, cand: dict, mech: str, a: dict, synth
                 [*key, e["evidence_id"], e["source_item_id"], now],
             )
         )
+    return stmts + detail_statements(event["event_id"], cand["company_id"], mech, a, revision_no=1)
+
+
+def detail_statements(event_id: int, company_id: str, mech: str, a: dict, *, revision_no: int) -> list:
+    """Transmission steps and base/optimistic/adverse scenarios for one assessment revision."""
+    m = MECHANISMS[mech]
+    key = (event_id, company_id, mech, TRANSMISSION_VERSION)
+    stmts = []
     sign = {"positive": 1, "negative": -1, "neutral": 0}.get(a["direction"])
     for n, (frm, to, why) in enumerate(m.steps, 1):
         stmts.append(
             (
                 f"INSERT INTO impact_transmission_steps(assessment_id, revision_no, step_no, from_variable, "  # noqa: S608
-                f"to_variable, sign, lag_horizon, explanation) VALUES ({_key_sql()}, 1, ?, ?, ?, ?, ?, ?)",
-                [*key, n, frm, to, sign if n == len(m.steps) else None, a["horizon"], why],
+                f"to_variable, sign, lag_horizon, explanation) VALUES ({_key_sql()}, ?, ?, ?, ?, ?, ?, ?)",
+                [*key, revision_no, n, frm, to, sign if n == len(m.steps) else None, a["horizon"], why],
             )
         )
     common = {
@@ -468,9 +476,10 @@ def _statements(db: Database, event: dict, cand: dict, mech: str, a: dict, synth
         stmts.append(
             (
                 f"INSERT INTO impact_scenarios(assessment_id, revision_no, scenario_case, direction, "  # noqa: S608
-                f"magnitude_level, assumptions_json) VALUES ({_key_sql()}, 1, ?, ?, ?, ?)",
+                f"magnitude_level, assumptions_json) VALUES ({_key_sql()}, ?, ?, ?, ?, ?)",
                 [
                     *key,
+                    revision_no,
                     case,
                     a["direction"],
                     a["magnitude"],
@@ -631,7 +640,7 @@ def event_impact_overview(db: Database, event_id: int) -> dict:
         "unresolved_companies": unresolved,
         "conflicts": intel["conflicts"],
         "review_required": [r["assessment_id"] for r in rows if r["assessment_status"] == "needs_review"]
-        + [c["candidate_id"] for c in cands if c["review_status"] == "pending"],
+        + [c["candidate_id"] for c in cands if c["review_status"] in ("pending", "needs_review")],
     }
 
 

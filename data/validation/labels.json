@@ -1,0 +1,6 @@
+{
+ "description": "Human-labelled validation samples for Stage 2 (engines/validation.py). Every item must be written by a person from the headline and, where needed, an independent source. Never copy the engine's own output here. Labels are corrections and measurements only; they never rewrite stored records.",
+ "version": 1,
+ "labelled_by": [],
+ "items": []
+}
