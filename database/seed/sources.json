@@ -2295,6 +2295,35 @@
    "last_test_result": "passed",
    "newest_item_at_utc": "2026-11-06T11:48:00Z",
    "freshness_status": "fresh"
+  },
+  {
+   "source_id": "company_reports_manual",
+   "name": "Company financial reports - owner manual import",
+   "source_type": "other",
+   "domain": null,
+   "platform": null,
+   "official_url": null,
+   "category": "company_financials",
+   "subcategory": "annual, half-yearly and quarterly reports (owner-supplied)",
+   "geographic_coverage": "Pakistan",
+   "industries": [],
+   "priority": 2,
+   "content_format": "pdf",
+   "feed_url": null,
+   "adapter": null,
+   "retention_mode": "metadata_only",
+   "terms_status": "not_reviewed",
+   "licensing_status": "unknown",
+   "verification_status": "unverified",
+   "access_status": "unverified",
+   "access_method": "manual",
+   "lifecycle_status": "NOT REVIEWED",
+   "reliability_tier": "primary_official",
+   "collection_frequency_minutes": null,
+   "enabled": 0,
+   "reviewed_at_utc": null,
+   "review_notes": "Owner-attested manual import only (engines/fin_import.py). Per-company IR terms are reviewed under R1; nothing is fetched automatically.",
+   "notes": "M2"
   }
  ]
 }
