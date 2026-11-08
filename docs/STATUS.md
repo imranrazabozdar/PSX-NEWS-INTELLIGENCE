@@ -14,7 +14,7 @@ A feature is complete only when code **and** tests prove it. A page or placehold
 | 4 | Company exposure graph | TESTED with synthetic fixtures, approved and merged (PR #15, merge commit 0bdfb1a08de7dae9ea37899f4d93c10892b32e59); NOT OPERATIONAL: no approved company-evidence source, real mappings unverified; 0008 not applied to production; Turso server compatibility unverified | See Phase 4 checklist below and `docs/PHASE_4_ACCEPTANCE.md` |
 | 5 | Impact analysis and Python calculations | NOT STARTED | |
 | 6 | Streamlit MVP | NOT STARTED | |
-| 7 | Scheduling and operations | IN PROGRESS: market run orchestration (lease, abandoned-run recovery, backoff, bounded continuation, trigger tracking, 1-minute-first priority) TESTED offline; external dispatch, session calendar, completeness and operations view NOT STARTED | `docs/COLLECTION_ORCHESTRATION.md`, `tests/test_market_orchestration.py` |
+| 7 | Scheduling and operations | IN PROGRESS: market run orchestration (lease, abandoned-run recovery, backoff, bounded continuation, trigger tracking, 1-minute-first priority) TESTED offline; external dispatch (repository side), trading calendar, session completeness, gap detection and recovery, cheap coverage and the Collection operations view TESTED offline (PRs #27, #28, Stage 5) | `docs/COLLECTION_ORCHESTRATION.md`, `tests/test_market_orchestration.py` |
 | 8 | Corporate, policy and government modules | NOT STARTED | |
 | 9 | Commodities, sectors, domestic/geopolitical risk | NOT STARTED | |
 | 10 | Institutional and broker research | NOT STARTED | |
