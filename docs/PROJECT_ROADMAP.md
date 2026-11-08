@@ -44,7 +44,7 @@ The complete target system and its single programme are defined in `MASTER_ARCHI
 | Milestone | Scope | Status |
 |---|---|---|
 | M0 | Stage 1/2 operational acceptance (owner actions) | IN PROGRESS (evidence pending) |
-| M1 | Source access and company universe | NOT STARTED |
+| M1 | Source access and company universe | IN PROGRESS (universe/liquidity engine and 33-account X watchlist TESTED offline; R1–R7 research and owner priority list pending) |
 | M2 | Financial document acquisition and extraction | NOT STARTED |
 | M3 | Fundamentals | NOT STARTED |
 | M4 | Market intelligence | NOT STARTED |
