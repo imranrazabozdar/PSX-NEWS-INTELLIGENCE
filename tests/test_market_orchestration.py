@@ -267,18 +267,24 @@ def test_simultaneous_claims_admit_exactly_one_writer(tmp_path):
         "VALUES (?,'SYNTHETIC','data_provider',1,?,?,'https://chart.example.invalid','udf_ohlcv',"
         "'authorised_provider','verified_permitted','approved',1,'ACTIVE')", (SRC, _ago(0), _ago(0)))
     setup.close()
-    barrier, results = threading.Barrier(2), []
+    barrier, results, loser_done = threading.Barrier(2), [], threading.Event()
+
+    class Holding(Provider):  # the owner keeps its lease until the other attempt has been decided
+        def __call__(self, url, headers, timeout):
+            loser_done.wait(timeout=10)
+            return super().__call__(url, headers, timeout)
 
     def attempt():
         d = SQLiteDatabase(path)
         barrier.wait()
         try:
             collect_market(d, source_id=SRC, symbols=["SYN"], timeframes=["1m"], now=NOW, pause_seconds=0,
-                           client=HttpClient(transport=Provider(n=10), sleep=lambda s: None,
+                           client=HttpClient(transport=Holding(n=10), sleep=lambda s: None,
                                              respect_robots=False))
             results.append("owner")
         except CollectionBusy:
             results.append("busy")
+            loser_done.set()
         finally:
             d.close()
 

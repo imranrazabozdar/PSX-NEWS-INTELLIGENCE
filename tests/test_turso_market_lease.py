@@ -46,9 +46,9 @@ def _no_data(url, headers, timeout):
     return 200, {"content-type": "application/json"}, json.dumps({"s": "no_data"}).encode()
 
 
-def _collect(d):
+def _collect(d, transport=_no_data):
     return collect_market(d, source_id=SRC, symbols=["SYN"], timeframes=["1m"], pause_seconds=0,
-                          client=HttpClient(transport=_no_data, sleep=lambda s: None, respect_robots=False))
+                          client=HttpClient(transport=transport, sleep=lambda s: None, respect_robots=False))
 
 
 @pytest.fixture
@@ -70,27 +70,30 @@ def _runs(d):
 
 
 def test_simultaneous_claims_on_turso_admit_exactly_one(db):
-    barrier, results = threading.Barrier(2), []
+    barrier, results, loser_done = threading.Barrier(2), [], threading.Event()
+
+    def holding(url, headers, timeout):  # the owner keeps its lease until the other attempt is decided
+        loser_done.wait(timeout=30)
+        return _no_data(url, headers, timeout)
 
     def attempt():
         d = _db()
         barrier.wait()
         try:
-            _collect(d)
+            _collect(d, holding)
             results.append("owner")
         except CollectionBusy:
             results.append("busy")
+            loser_done.set()
 
     threads = [threading.Thread(target=attempt) for _ in range(2)]
     for t in threads:
         t.start()
     for t in threads:
         t.join()
-    # either one owner and one busy, or (if the first finished before the second claimed) two owners in
-    # sequence; never two concurrent 'running' rows
-    assert results.count("owner") >= 1 and len(results) == 2
-    assert all(r["status"] == "succeeded" for r in _runs(db))
-    assert len(_runs(db)) == results.count("owner")
+    assert sorted(results) == ["busy", "owner"]
+    runs = _runs(db)
+    assert len(runs) == 1 and runs[0]["status"] == "succeeded"  # the loser left no row; owner finalised
 
 
 def test_live_lease_blocks_and_expired_orchestrated_lease_is_taken_over(db):
