@@ -82,11 +82,12 @@ trigger (GitHub cron fallback | external workflow_dispatch | manual)
 
 ## 5. Production run 11: owner-approved cleanup (EXECUTED 2026-11-08)
 
-Run 11 (`market_ohlcv`; its workflow started 12:40 UTC, and the run row was started at 12:46:14 UTC) is still `running` because it predates PR #25.
-Deploying the orchestration code does **not** change it: it has no run context, so automatic recovery
-skips it. It is reported as `legacy_stale_runs_needing_owner_cleanup`, and it neither blocks the lease nor
-counts toward the daily cap or backoff. Correcting it is a separate production write that needs explicit
-owner approval.
+Run 11 (`market_ohlcv`; its workflow started 12:40 UTC, and the run row was started at 12:46:14 UTC) was left
+`running` because it predates PR #25. It was corrected to `failed` on 2026-11-08 by the owner-approved
+procedure below; the result is recorded at the end of this section. The orchestration code never changes such
+a legacy row by itself: rows without run context are skipped by automatic recovery and reported as
+`legacy_stale_runs_needing_owner_cleanup`. They don't block the lease and don't count toward the daily cap
+or backoff.
 
 1. **Backup first (required).** Take a fresh `/dump` backup and record its SHA-256 and the point-in-time
    restore marker, as for `psxni-prod-backup-20261108T105245Z.sql`. Without it, stop.
