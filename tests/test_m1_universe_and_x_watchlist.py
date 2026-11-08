@@ -119,38 +119,123 @@ def test_deleted_post_recorded_without_text(db):
     assert db.execute("SELECT rejection_reason FROM media_items")[0]["rejection_reason"] == "deleted"
 
 
+# ---------------------------------------------------------------- X claims and events
+def _event(db):
+    db.execute(
+        "INSERT INTO events(event_type, headline, status_stage, first_seen_at_utc, created_at_utc, "
+        "updated_at_utc) VALUES ('other','Gas discovery reported','rumour','2026-11-01T00:00:00Z',"
+        "'2026-11-01T00:00:00Z','2026-11-01T00:00:00Z')")
+    return db.execute("SELECT MAX(event_id) AS e FROM events")[0]["e"]
+
+
+def test_link_to_event_is_unverified_and_not_independent(db):
+    _imp(db, [_rec(), _rec(handle="SaudSami", pid="2")])
+    eid = _event(db)
+    before = db.execute("SELECT * FROM events WHERE event_id = ?", (eid,))[0]
+    a = xw.link_to_event(db, "https://x.com/KhaqanNajeeb/status/1", eid)
+    b = xw.link_to_event(db, "https://x.com/SaudSami/status/2", eid, role="context")
+    xw.link_to_event(db, "https://x.com/KhaqanNajeeb/status/1", eid)  # idempotent
+    assert (a["independence"], b["independence"]) == ("same_source", "repost")
+    links = db.execute("SELECT independence FROM media_event_links")
+    assert len(links) == 2 and "independent" not in {r["independence"] for r in links}
+    assert not db.execute("SELECT 1 FROM event_evidence WHERE event_id = ?", (eid,))
+    assert db.execute("SELECT * FROM events WHERE event_id = ?", (eid,))[0] == before
+    with pytest.raises(ValueError):
+        xw.link_to_event(db, "https://x.com/KhaqanNajeeb/status/1", eid, role="confirmation")
+
+
+def test_post_write_is_atomic_and_run_closed_on_failure(db):
+    class Bad:
+        def tag(self, text, as_of=None):
+            from engines.news_tagging import Tagging
+            return Tagging(companies=[{"company_id": "NO_SUCH", "ticker": "X", "evidence": "x"}])
+
+    with pytest.raises(Exception):  # noqa: B017 - foreign-key failure from the database driver
+        xw.import_posts(db, [_rec()], importer="owner", rights_attestation="ok", tagger=Bad())
+    assert not db.execute("SELECT 1 FROM media_items")
+    run = db.execute("SELECT status FROM collector_runs WHERE job = 'x_manual_import'")[0]
+    assert run["status"] == "failed"
+
+
+def test_non_object_and_same_batch_duplicate(db):
+    r = _imp(db, ["junk", _rec(), _rec()])
+    assert len(r["rejected"]) == 1 and len(r["accepted"]) == 1 and len(r["duplicates"]) == 1
+
+
 # ---------------------------------------------------------------- universe / liquidity
-def _bars(db, sym, n, vol):
-    for i in range(n):
-        d = f"2026-10-{i + 1:02d}"
+def _days(n, end="2026-10-30"):
+    from datetime import date, timedelta
+
+    from engines.market_calendar import load_calendar
+    cal, d, out = load_calendar(), date.fromisoformat(end), []
+    while len(out) < n:
+        if cal.is_trading_day(d.isoformat()):
+            out.append(d.isoformat())
+        d -= timedelta(days=1)
+    return out
+
+
+def _bars(db, sym, days, vol, close=10):
+    for d in days:
         db.execute(
             "INSERT INTO market_bars(source_id, symbol, timeframe, bar_start_utc, session_date_pkt, "
             "open, high, low, close, volume, retrieved_at_utc) "
-            "VALUES ('scs_chart',?,'1d',?,?,10,11,9,10,?,?)",
-            (sym, f"{d}T00:00:00Z", d, vol, f"{d}T12:00:00Z"),
+            "VALUES ('scs_chart',?,'1d',?,?,?,?,?,?,?,?)",
+            (sym, f"{d}T00:00:00Z", d, close, close, close, close, vol, f"{d}T12:00:00Z"),
         )
 
 
+AS_OF = "2026-10-30"
+
+
 def test_liquidity_policy(db):
-    _bars(db, "OGDC", 20, 150_000)
-    _bars(db, "HBL", 20, 50_000)
-    _bars(db, "LUCK", 12, 900_000)
-    assert uv.liquidity(db, "OGDC").state == "qualified"
-    assert uv.liquidity(db, "OGDC").avg_traded_value_pkr_approx == 1_500_000
-    assert uv.liquidity(db, "HBL").state == "below_threshold"
-    luck = uv.liquidity(db, "LUCK")
+    days = _days(20)
+    _bars(db, "OGDC", days, 150_000)
+    _bars(db, "HBL", days, 50_000)
+    _bars(db, "LUCK", days[:12], 900_000)  # missing 8 of the 20 market sessions
+    ogdc = uv.liquidity(db, "OGDC", as_of=AS_OF)
+    assert ogdc.state == "qualified" and ogdc.adv_shares == 150_000
+    assert ogdc.avg_traded_value_pkr_approx == 1_500_000 and "approximation" in ogdc.reasons[0]
+    assert uv.liquidity(db, "HBL", as_of=AS_OF).state == "below_threshold"
+    luck = uv.liquidity(db, "LUCK", as_of=AS_OF)
     assert luck.state == "insufficient_data" and luck.adv_shares is None
-    assert uv.liquidity(db, "PSO").state == "no_market_data"
+    assert "not treated as zero" in luck.reasons[0]
+    assert uv.liquidity(db, "PSO", as_of=AS_OF).state == "no_market_data"
+
+
+def test_threshold_boundary_and_window_end(db):
+    days = _days(25)
+    _bars(db, "OGDC", days[:20], 100_000)
+    _bars(db, "OGDC", days[20:], 1)  # older than the window: ignored
+    assert uv.liquidity(db, "OGDC", as_of=AS_OF).state == "qualified"
+    # one session earlier: the window now includes one 1-share session, so ADV falls just below 100,000
+    assert uv.liquidity(db, "OGDC", as_of=days[1]).state == "below_threshold"
+
+
+def test_unlisted_market_holiday_not_counted_as_missing(db):
+    days = _days(21)
+    holiday = days[5]  # market traded on no symbol that day (e.g. a moon-dependent holiday)
+    _bars(db, "OGDC", [d for d in days if d != holiday], 200_000)
+    assert uv.liquidity(db, "OGDC", as_of=AS_OF).state == "qualified"
+
+
+def test_stale_data_states_no_adv(db):
+    _bars(db, "OGDC", _days(20), 500_000)
+    st = uv.liquidity(db, "OGDC", as_of="2026-11-30")
+    assert st.state == "insufficient_data" and "stale" in st.reasons[0]
 
 
 def test_priority_never_removed_by_liquidity(db):
-    _bars(db, "HBL", 20, 10)
+    _bars(db, "HBL", _days(20), 10)
     uv.add_priority(db, ["HBL", "ZZZ"])
     uv.add_priority(db, ["HBL"])
-    rows = {r["ticker"]: r for r in uv.universe(db)}
+    rows = {r["ticker"]: r for r in uv.universe(db, as_of=AS_OF)}
     assert uv.priority_list(db) == ["HBL", "ZZZ"]
     assert rows["HBL"]["priority"] and rows["HBL"]["liquidity_state"] == "below_threshold"
     assert rows["HBL"]["market_analytics_eligible"]
     assert rows["ZZZ"]["priority"] and not rows["ZZZ"]["in_company_master"]
     assert all(r["broad_monitoring"] for r in rows.values())
     assert not rows["OGDC"]["market_analytics_eligible"]
+    master = db.execute("SELECT COUNT(*) AS n FROM company_identifiers WHERE id_type = 'psx_ticker' "
+                        "AND valid_to IS NULL")[0]["n"]
+    assert len(rows) == master + 1  # the whole current-ticker master plus the priority-only ticker

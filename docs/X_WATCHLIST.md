@@ -39,4 +39,12 @@ Each record in `posts.json`:
 * Lists claims that need a primary source.
 
 **What import never does:** posts never create event evidence and never count as independent corroboration.
+
+**Linking a claim to an event:** `link_to_event(db, post_url, event_id, role=...)` attaches an imported post to an
+event as an unverified lead, context, supporting or contradicting claim. It writes only `media_event_links`, with
+independence set to `same_source` (or `repost` for a detected copy), never `independent`. The event's
+verification state and its corroboration, which is computed from `event_evidence` only, are unchanged.
+
+**Availability:** for a deleted, inaccessible or edited post, the state is stored in `media_items.rejection_reason`.
+
 Production use needs separate owner approval.
