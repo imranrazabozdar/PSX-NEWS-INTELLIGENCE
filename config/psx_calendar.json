@@ -2,11 +2,70 @@
  "description": "PSX trading calendar used by session-completeness grading and gap detection (engines/market_calendar.py).",
  "maintenance": "Owner-maintained. Add each public holiday, special session, closure or change of hours only from an official PSX notice, with the notice reference in 'source'. Never add an unverified entry.",
  "timezone_offset_hours": 5,
- "weekend_weekdays": [5, 6],
+ "weekend_weekdays": [
+  5,
+  6
+ ],
  "weekend_source": "PSX trades Monday to Friday.",
- "regular_hours": {},
- "regular_hours_note": "Empty on purpose: official hours (including Friday hours and any seasonal changes) are not yet recorded from a PSX notice. Until they are, each session's window is inferred from the bars that all tracked symbols actually traded that day.",
- "holidays": {},
+ "regular_hours": {
+  "0": {
+   "open": "09:15",
+   "close": "15:50",
+   "source": "PSX website, Trading Hours page (Regular Market), https://www.psx.com.pk/psx/exchange/general/trading-hours, retrieved 2026-11-08"
+  },
+  "1": {
+   "open": "09:15",
+   "close": "15:50",
+   "source": "PSX website, Trading Hours page (Regular Market), https://www.psx.com.pk/psx/exchange/general/trading-hours, retrieved 2026-11-08"
+  },
+  "2": {
+   "open": "09:15",
+   "close": "15:50",
+   "source": "PSX website, Trading Hours page (Regular Market), https://www.psx.com.pk/psx/exchange/general/trading-hours, retrieved 2026-11-08"
+  },
+  "3": {
+   "open": "09:15",
+   "close": "15:50",
+   "source": "PSX website, Trading Hours page (Regular Market), https://www.psx.com.pk/psx/exchange/general/trading-hours, retrieved 2026-11-08"
+  },
+  "4": {
+   "open": "09:00",
+   "close": "16:50",
+   "source": "PSX website, Trading Hours page (Regular Market), https://www.psx.com.pk/psx/exchange/general/trading-hours, retrieved 2026-11-08"
+  }
+ },
+ "regular_hours_note": "Window from the start of pre-open to the end of the post-close session, as published on the PSX Trading Hours page: Monday-Thursday pre-open 09:15, open 09:32-15:30, post-close 15:35-15:50; Friday pre-open 09:00, 1st session 09:17-12:00, 2nd session pre-open 14:15, open 14:32-16:30, post-close 16:35-16:50 (PKT). The Friday break is detected from the data, without false alerts. Applied only to 1-minute bars. Seasonal (e.g. Ramadan) timings: not recorded; add from the PSX notice when issued.",
+ "holidays": {
+  "2026-02-05": {
+   "name": "Kashmir Day",
+   "source": "PSX website, Calendar Holidays 2026 page, https://www.psx.com.pk/psx/exchange/general/calendar-holidays, retrieved 2026-11-08"
+  },
+  "2026-03-23": {
+   "name": "Pakistan Day",
+   "source": "PSX website, Calendar Holidays 2026 page, https://www.psx.com.pk/psx/exchange/general/calendar-holidays, retrieved 2026-11-08"
+  },
+  "2026-05-01": {
+   "name": "Labour Day",
+   "source": "PSX website, Calendar Holidays 2026 page, https://www.psx.com.pk/psx/exchange/general/calendar-holidays, retrieved 2026-11-08"
+  },
+  "2026-05-28": {
+   "name": "Youm-e-Takbeer",
+   "source": "PSX website, Calendar Holidays 2026 page, https://www.psx.com.pk/psx/exchange/general/calendar-holidays, retrieved 2026-11-08"
+  },
+  "2026-08-14": {
+   "name": "Independence Day",
+   "source": "PSX website, Calendar Holidays 2026 page, https://www.psx.com.pk/psx/exchange/general/calendar-holidays, retrieved 2026-11-08"
+  },
+  "2026-11-09": {
+   "name": "Allama Iqbal Day",
+   "source": "PSX website, Calendar Holidays 2026 page, https://www.psx.com.pk/psx/exchange/general/calendar-holidays, retrieved 2026-11-08"
+  },
+  "2026-12-25": {
+   "name": "Quaid-e-Azam Day / Christmas",
+   "source": "PSX website, Calendar Holidays 2026 page, https://www.psx.com.pk/psx/exchange/general/calendar-holidays, retrieved 2026-11-08"
+  }
+ },
  "special_sessions": {},
- "closures": {}
+ "closures": {},
+ "holidays_note": "Only fixed-date holidays from the PSX 2026 list are recorded. Moon-dependent holidays on that list (Juma-tul-Wida, Eid-ul-Fitr, Eid-ul-Azha, Ashura, Eid Milad-un-Nabi) are 'subject to appearance of moon' and are added only from the PSX notice that confirms each date. The page shows no notice number; it states PSX may modify the dates."
 }

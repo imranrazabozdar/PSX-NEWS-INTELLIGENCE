@@ -17,7 +17,7 @@ from engines.market_quality import coverage_summary, grade_sessions, load_bars, 
 from tests.test_market_orchestration import SRC, Provider, db  # noqa: F401 (fixture)
 
 TODAY = "2026-11-09"  # Monday (PKT)
-NOW = datetime(2026, 11, 10, 6, 0, tzinfo=UTC)  # Tuesday: "yesterday" is a Monday session
+NOW = datetime(2026, 11, 11, 6, 0, tzinfo=UTC)  # Wed; "yesterday" = Tue (11-09 is a holiday)
 CAL = TradingCalendar()
 
 
@@ -90,9 +90,29 @@ def test_calendar_refuses_uncited_or_malformed_entries(tmp_path):
             load_calendar(p)
 
 
-def test_shipped_calendar_records_no_unverified_hours_or_holidays():
+def test_shipped_calendar_entries_are_official_and_cited():
+    import json as _json
+    from pathlib import Path
+
+    raw = _json.loads((Path(__file__).resolve().parents[1] / "config/psx_calendar.json").read_text())
+    for section in ("regular_hours", "holidays"):
+        assert raw[section] and all("www.psx.com.pk" in e["source"] for e in raw[section].values())
     cal = load_calendar()
-    assert cal.regular_hours == {} and cal.holidays == {} and cal.weekend == frozenset({5, 6})
+    assert cal.weekend == frozenset({5, 6}) and cal.closures == {} and cal.special == {}
+    assert cal.hours("2026-11-04") == (555, 950) and cal.hours("2026-11-06") == (540, 1010)  # Wed / Fri
+    assert cal.day_type("2026-11-09") == "HOLIDAY"  # Allama Iqbal Day (fixed date)
+    assert "2026-03-21" not in cal.holidays  # moon-dependent dates await confirming notices
+
+
+def test_official_hours_flag_only_1m_bars_outside_the_window():
+    cal = load_calendar()
+    hourly = _data({s: {"2026-11-04": [f"2026-11-04T0{h}:00:00Z" for h in range(4, 10)]} for s in "AB"})
+    g = {(x.symbol, x.session_date): x for x in grade_sessions(hourly, "1h", "2026-11-04", "2026-11-04",
+                                                              today=TODAY, calendar=cal)}
+    assert g[("A", "2026-11-04")].state == "COMPLETE"  # 09:00 PKT hourly bar is not an anomaly
+    early = _universe({"2026-11-04": _minutes("2026-11-04", start="04:00", n=390)})  # from 09:00 PKT
+    assert _grade(early, cal=cal)[("C", "2026-11-04")].state == "ANOMALY"
+    assert _grade(_universe(), cal=cal)[("A", "2026-11-04")].state == "COMPLETE"  # 09:30-15:29 inside
 
 
 # ------------------------------------------------------------------ grading
