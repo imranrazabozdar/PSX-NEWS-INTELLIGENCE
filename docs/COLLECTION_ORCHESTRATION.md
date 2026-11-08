@@ -80,9 +80,9 @@ trigger (GitHub cron fallback | external workflow_dispatch | manual)
 * **Daily cap:** counted from `collector_runs.started_at_utc` for the current UTC day, so it survives
   restarts and cannot be reset by a new dispatch.
 
-## 5. Production run 11: owner-approved cleanup procedure (NOT executed)
+## 5. Production run 11: owner-approved cleanup (EXECUTED 2026-11-08)
 
-Run 11 (`market_ohlcv`, started 2026-11-08 12:40 UTC) is still `running` because it predates PR #25.
+Run 11 (`market_ohlcv`; its workflow started 12:40 UTC, and the run row was started at 12:46:14 UTC) is still `running` because it predates PR #25.
 Deploying the orchestration code does **not** change it: it has no run context, so automatic recovery
 skips it. It is reported as `legacy_stale_runs_needing_owner_cleanup`, and it neither blocks the lease nor
 counts toward the daily cap or backoff. Correcting it is a separate production write that needs explicit
@@ -114,6 +114,19 @@ owner approval.
 4. **Verify (read-only):** run 11 has `status = 'failed'`, `finished_at_utc` NULL, and the same start time
    and counts as recorded in step 2; 1,692 bars are still linked to run 11; no other `collector_runs` row
    changed (compare `COUNT(*)` and `MAX(run_id)` before and after).
+
+### Result (2026-11-08, owner-approved)
+* **Backup:** `/dump` taken at 2026-11-08T15:25:44Z, 1,039,225 bytes, SHA-256
+  `ef2a48c86e3b70a351cbc754cad06c82bbd57bcd1f685d0bbef9cca185401b78`. The dump was complete (`BEGIN TRANSACTION` …
+  `COMMIT;`) with 3,340 bar rows. It is held by the owner, not committed.
+* **Precondition:** run 11 was `running`, with an empty end time and no run context, and owned 1,692 bars.
+  Totals: 12 runs, 3,340 bars, 0 corrections, 328 source items.
+* **Update:** guarded by the exact start time and counts; `changes()` = 1. The status is now `failed`, with
+  the error "owner-approved correction 2026-11-08: abandoned before PR #25; true end time unknown". The end
+  time stays empty.
+* **Verification:** the start time, counts, job, source and empty run context were preserved. A hash of
+  every other checked table (other runs, bars, run 11's bars, corrections, sources, checkpoints, source
+  items) was identical before and after.
 
 ## 6. Disposable-Turso lease verification (EXECUTED 2026-11-08: passed)
 
