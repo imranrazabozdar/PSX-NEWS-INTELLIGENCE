@@ -14,7 +14,7 @@ Stage 2 is mostly **connecting live news to an intelligence substrate that alrea
 | Article ↔ event, corroboration | `event_evidence` (claim, claim_type, relation, excerpt, `is_independent`), `story_clusters`, `story_cluster_members` (0007) | schema live, unused |
 | Extraction provenance, AI audit | `event_extractions` (schema/prompt/model version, confidence, review flags), `llm_calls`, `engines/llm.py` gateway (kill switch, cost cap, prompt hashing) | gateway NOT CONNECTED (owner decision) |
 | Taxonomy | `engines/schema.py`: 23 `EVENT_TYPES`, 14 status stages, claim types, entity types | implemented |
-| Entity resolution | `engines/entity_resolution.py`, `company_identifiers`, `company_aliases` (778-entry company master), `engines/news_tagging.py` (capital tickers, exact multi-word names, themes) | implemented; tags not stored |
+| Entity resolution | `engines/entity_resolution.py`, `company_identifiers`, `company_aliases` (company master: 51 seeded companies; aliases derived from legal names and tickers at load), `engines/news_tagging.py` (capital tickers, exact multi-word names, themes) | implemented; tags not stored |
 | Exposure | `company_exposures` (documented facts), `exposure_candidates` (0008; levels direct/indirect; evidence status confirmed → unverified; origin rule/model; review), `engines/exposure_rules.py`, `exposure_taxonomy.py` | implemented (Phase 4); **no approved company-evidence source**, so no real exposures |
 | Impact | `impact_assessments` (0009): mechanism T1–T9, separate direction / magnitude / horizon / 4 confidence dimensions, `impact_transmission_steps`, `impact_scenarios`, reviews, unclassified-company view | schema live; engine is Phase 5 (designed in `PHASE_5_*`) |
 | Macro inputs | `commodity_prices`, `financial_metrics`, `sector_metrics` (0003) | empty; macro sources need approval (`MACROECONOMIC_DATA_SOURCE_REVIEW.md`) |
@@ -256,6 +256,7 @@ There is no AI, no migration and no production run. It unlocks Components 2–7.
   separate source-approval track.
 * **Clustering errors:** over-merging hides new developments, and under-merging inflates corroboration. Thresholds
   need a labelled sample (owner).
+* Company master covers 51 companies; expanding it needs an approved company-list source.
 * **Exposure is the binding constraint:** with no approved company-evidence source, most impacts stay indirect or
   unknown and low confidence. That's honest, but of limited use until fundamentals / filings are approved.
 * **Open owner decisions:**
