@@ -650,6 +650,19 @@ CREATE TRIGGER trg_company_exposures_linked_no_delete BEFORE DELETE ON company_e
 WHEN EXISTS (SELECT 1 FROM exposure_candidate_evidence l WHERE l.company_exposure_id = OLD.exposure_id)
 BEGIN SELECT RAISE(ABORT, 'company_exposures: evidence linked to an exposure candidate cannot be deleted'); END;
 
+-- ---------------------------------------------------------------- retractions are permanent
+-- evidence_retractions (0008) is protected against UPDATE and DELETE, but REPLACE deletes the conflicting row
+-- without firing delete triggers (recursive_triggers off). A REPLACE reusing a retraction_id, or a
+-- (record_table, record_id) pair, could therefore erase a retraction, after which the retracted evidence
+-- could be re-mapped and re-accepted with no trace. This guard runs before conflict resolution and refuses any
+-- insert that collides with either identity. (Additive: 0008 is unchanged; migration 0010 covers the
+-- remaining legacy tables.)
+CREATE TRIGGER trg_evidence_retractions_no_replace BEFORE INSERT ON evidence_retractions
+WHEN EXISTS (SELECT 1 FROM evidence_retractions r
+             WHERE r.retraction_id = NEW.retraction_id
+                OR (r.record_table = NEW.record_table AND r.record_id = NEW.record_id))
+BEGIN SELECT RAISE(ABORT, 'evidence_retractions: a retraction already exists for this id or record; retractions are permanent'); END;
+
 -- ---------------------------------------------------------------- read models
 CREATE VIEW impact_assessments_current AS
 SELECT a.*,

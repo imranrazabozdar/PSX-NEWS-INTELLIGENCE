@@ -849,3 +849,43 @@ on one isolated test connection. The SQL under test is unchanged and still uses 
   change without review; each change is recorded in a revision.
 - **Age thresholds:** `last_verified_utc` age limits need an approved expiry policy.
 - **Migration 0010:** still required for the REPLACE guards of migrations 0001–0008.
+
+## 23. Retractions are permanent (after d4fbd70)
+**Finding (HIGH, final acceptance audit):** `evidence_retractions` (migration 0008) has UPDATE and DELETE
+triggers, but REPLACE deletes a conflicting row without firing delete triggers. The attack:
+1. Run `REPLACE INTO evidence_retractions` with the existing `retraction_id` but a different target, or with
+   the same `(record_table, record_id)` under a new id. This erases the retraction.
+2. Run `map_event` again. It revises the old candidate back to `strongly_supported`.
+3. A human re-accepts it, making it `confirmed`, with no trace that it was ever retracted.
+
+0009's correction workflow (retract, then record a new record) depends on retractions being permanent.
+
+**Fix (additive, in 0009; 0008 unchanged):**
+```sql
+CREATE TRIGGER trg_evidence_retractions_no_replace BEFORE INSERT ON evidence_retractions
+WHEN EXISTS (SELECT 1 FROM evidence_retractions r
+             WHERE r.retraction_id = NEW.retraction_id
+                OR (r.record_table = NEW.record_table AND r.record_id = NEW.record_id))
+BEGIN SELECT RAISE(ABORT, 'evidence_retractions: ... retractions are permanent'); END;
+```
+- **What it blocks:** the guard runs before conflict resolution. It refuses plain INSERT, INSERT OR REPLACE,
+  REPLACE, INSERT OR IGNORE, `ON CONFLICT DO UPDATE` and `ON CONFLICT DO NOTHING` on either identity, with
+  foreign keys on or off.
+- **What still works:** the first retraction of any record. The UPDATE and DELETE protections from 0008 are
+  unchanged.
+
+**Tests (`tests/test_impact_retraction_permanence.py`):**
+- 11 insert paths × foreign keys on and off. Each failed attempt leaves the retraction, the candidate's
+  status and revisions, and the assessment unchanged.
+- The full attack end to end. It is blocked, and no provisional or confirmed assessment can be built from the
+  retracted evidence.
+- A database-clock expiry check.
+- **Negative control:** with the trigger dropped, 23 of these 27 tests fail.
+
+**Boundary with migration 0010:**
+- **Fixed in 0009:** only the tables 0009's guarantees depend on — `company_exposures` (when linked) and
+  `evidence_retractions`.
+- **Still exposed to REPLACE** (the 0010 follow-up, §19): the other append-only tables of migrations
+  0001–0008, including `exposure_candidate_revisions`, `exposure_candidate_evidence`, `exposure_reviews` and
+  `company_relationships`.
+- **Real Turso:** verification is still outstanding.

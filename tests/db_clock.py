@@ -4,6 +4,11 @@ The schema evaluates expiry with the database clock (date('now') and strftime(..
 passage of time without waiting, this helper overrides date() and strftime() on ONE test connection only.
 Every argument except 'now' goes to the real SQLite implementation, so the SQL under test is unchanged. It
 is never used outside the test suite.
+
+CAVEAT: install the clock BEFORE the SQL statements under test are prepared. Python's sqlite3 module caches
+prepared statements, and a statement (with its trigger programs) prepared before the override still calls the
+built-in date()/strftime() and sees the real time. Create DatabaseClock(db) first in each test, before any
+query that depends on 'now'. A schema change, such as CREATE TEMP TRIGGER, recompiles cached statements.
 """
 
 from __future__ import annotations

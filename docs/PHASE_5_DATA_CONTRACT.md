@@ -68,6 +68,10 @@ Rules:
    therefore irreversible. To correct a record, retract it and record a new one; a new candidate and new
    human review are then needed before an assessment is eligible again. (Migration 0009 §22. Not yet
    verified on a real Turso server.)
+   **Retractions are permanent:** a retraction cannot be updated, deleted or replaced, by REPLACE, UPSERT or a
+   conflicting insert on its id or record. Retracted evidence can therefore never regain eligibility.
+   (Migration 0009 §23. The REPLACE guards for the remaining tables of migrations 0001–0008 are migration
+   0010.)
    **Not yet database-enforced:**
    - the `last_verified_utc` age thresholds, because no expiry policy is approved yet;
    - expiry of relationship-based evidence;
