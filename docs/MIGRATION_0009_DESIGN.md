@@ -220,33 +220,34 @@ migration with explicit input links, if performance requires it.
 | `company_classifications(company_id, sector_id, valid_from, valid_to)` with `ux_classification_current` UNIQUE on `company_id` WHERE `valid_to IS NULL` | A company has **at most one current** sector classification, and may have earlier, dated ones |
 | `companies.listing_status` (`listed`, `delisted`, `suspended`, `unknown`) is the **current** status only | Point-in-time listing must come from `company_status_history` (append-only, `effective_date`) |
 
-**Proposed definition** (needs owner confirmation, §16): the eligible set for (sector S, event E) is
+**Owner-decided definition:** the eligible set for (sector S, event E) is
 the companies whose classification row for S is valid at E's `event_date`
 (`valid_from IS NULL OR valid_from <= date`, and `valid_to IS NULL OR valid_to >= date`). When the event
 has no `event_date`, the current classification is used, and this is flagged in
 `eligibility_basis = 'current_classification'`.
 
-| Case | Handling | Policy decision needed? |
-|---|---|---|
-| Delisted company | Eligible only if it was listed at the event date (per `company_status_history`). Otherwise excluded, with reason `not_listed_at_event_date`. | Confirm |
-| Suspended company | Kept eligible; shown with reason `suspended_at_event_date` | **Yes**: include or exclude |
-| Listing status `unknown` | Kept eligible; flagged `listing_status_unknown` | **Yes** |
-| Company without a sector classification | Never in any sector's eligible set. Reported in a separate `unclassified_companies` count for the event, so it doesn't vanish | Confirm |
-| Several classifications over time | The one valid at the event date is used (point in time). Two current classifications are impossible (unique index). | No |
-| Classification valid at the event date but changed since | Event-date sector used; `eligibility_basis = 'event_date_classification'` | Confirm |
+| Case | Handling (owner decision, PR #20) |
+|---|---|
+| Classification | The classification valid on the event date. For undated events, the current classification, with `eligibility_basis = 'current_classification'` recorded. Classifications are never inferred or invented. |
+| Delisted company | **Included** if it was listed on the event date, per `company_status_history` (historical status, not today's `listing_status`). Excluded with `not_listed_at_event_date` otherwise. |
+| Suspended company | **Included** in the eligible population if it was listed on the event date and has a valid classification. Flagged `suspended_at_event_date`. Normal operations and ordinary exposure are **not** assumed. Its assessment is reported but **never contributes a sign** to `direction_among_assessed`, and its presence makes `completeness = 'partial'`. |
+| Listing status `unknown` | Kept in coverage reporting where sector membership is established. Flagged `listing_status_unknown`. **Not** treated as proof of eligibility; the company is counted in `eligibility_uncertain_n`. Any such company makes `completeness = 'partial'`. |
+| Unclassified company | Never assigned to a sector. Reported separately per event in `unclassified_companies` (count and list, reason `no_sector_classification`). |
+| Several classifications over time | Resolved by event date. Two current classifications are impossible (unique index). |
 
 ### Output columns
 | Column | Meaning |
 |---|---|
 | `sector_id`, `event_id`, `mechanism_id`, `scenario_kind` | grouping keys |
 | `eligible_n` | companies eligible per the definition above |
-| `assessed_valid_n` | eligible companies with a current assessment whose `effective_status` is valid (not `needs_revalidation`, `needs_review` or terminal) |
+| `assessed_valid_n` | eligible companies with a current assessment whose `effective_status` is valid (not `needs_revalidation`, `needs_review` or terminal). Suspended companies are counted separately (below). |
+| `suspended_n`, `eligibility_uncertain_n` | suspended at the event date; listing status unknown |
 | `assessed_review_n` | eligible companies whose assessment is `needs_review` or `needs_revalidation` |
 | `assessed_terminal_n` | eligible companies whose assessment is withdrawn or rejected |
 | `unassessed_n` | eligible companies with no assessment for this event and mechanism |
 | `coverage_pct` | `assessed_valid_n / eligible_n` × 100 (NULL when `eligible_n = 0`); descriptive only, **no minimum threshold** |
-| `completeness` | `complete` only when `assessed_valid_n = eligible_n` and `eligible_n > 0`; otherwise `partial` |
-| `direction_among_assessed` | the rule below, applied **only to valid assessments** |
+| `completeness` | `complete` only when `eligible_n > 0`, `assessed_valid_n = eligible_n`, `suspended_n = 0` and `eligibility_uncertain_n = 0`; otherwise `partial` |
+| `direction_among_assessed` | the rule below, applied **only to valid assessments of companies that are not suspended and not eligibility-uncertain** |
 | `sector_conclusion` | equals `direction_among_assessed` only when `completeness = 'complete'`; otherwise `not_concluded_partial_coverage` |
 | `positive_n`, `negative_n`, `mixed_n`, `neutral_n`, `unknown_n` | counts among valid assessments |
 | `included_json` | `[{company_id, assessment_id, effective_status, direction}]` |
@@ -474,22 +475,66 @@ Guards:
 The status is **computed, never stored**, which removes the conflict between "append-only" and
 "statuses".
 
-**No overlapping effective periods** (database-enforced at approval time):
-- An `approved` insert is refused if its effective period would overlap the open or closed period of
-  any other approved version.
-- An open-ended version (not yet retired) blocks any new approval with a later `effective_from_utc`
-  until it is retired with an `effective_to_utc` no later than the new `effective_from_utc`.
-- Concurrent approvals are prevented by serialisation. SQLite and Turso serialise writes, so two
-  approvals can't both pass the overlap check. The check runs inside the insert trigger of the same
-  transaction.
-- If the guard misbehaves on a Turso server, a detection query (overlap self-join) is run by the test
-  suite and by the health report.
+**No overlapping effective periods: transaction-safety design.**
+1. **Check inside the write.**
+   - The overlap check is a `BEFORE INSERT` trigger on `impact_expiry_policy_events`
+     (`event_type = 'approved'`). The check and the approval insert are therefore one statement, in one
+     transaction, holding the database write lock.
+   - An approval is refused if its period overlaps any other approved version's period. A version's
+     period runs from its approval's `effective_from_utc` to its retirement's `effective_to_utc`, or is
+     open-ended when not retired.
+2. **The open-ended rule.**
+   - While an approved version has no retirement event, any approval for another version is refused
+     unless that version's start is earlier and its own end bounds it (which an open-ended version
+     can't).
+   - So a new approval needs the old version retired first, with `effective_to_utc` ≤ the new
+     `effective_from_utc`. Retirement and the new approval should be submitted in **one batch**, so
+     either both apply or neither does.
+3. **Rollback.** Any failed integrity check raises `RAISE(ABORT)`, which rolls back the statement. In
+   the project's transactional batch (`db.batch`, used by the migration runner and repositories), the
+   whole operation rolls back.
+4. **Retired versions** stay readable and are never selected for new assessments (selection uses
+   effective-period containment over the derived view).
+5. **Detection backstop.** An overlap self-join query over the lifecycle events is part of the
+   automated integrity tests and the health report. It should always return zero rows.
+6. **Application-level checks are not relied on.**
+
+**Concurrency evidence (scratch prototypes, 2026-11-08, not migrations):**
+
+| Scenario | SQLite 3.53.1 | SQLite 3.47.0 (`sqlean.py`) | libSQL 3.45.1 (embedded) |
+|---|---|---|---|
+| Two connections to one file; A has an approval insert in an open transaction; B attempts an overlapping approval | B **blocked** ("database is locked") | blocked | blocked |
+| B retries after A commits | B **refused** by the in-trigger check ("overlapping approval") | refused | refused |
+| Final number of approvals | 1 | 1 | 1 |
+| Same with `BEGIN` (deferred) instead of `BEGIN IMMEDIATE` | same results | same | same |
+| **Counter-example:** an application-level check (SELECT, then INSERT, no trigger) with interleaved connections | **2 approvals: the race succeeds** | — | — |
+
+**Conclusion:**
+- Locally, SQLite's single-writer locking plus the in-trigger check gives the guarantee. The
+  application-only check does not, so the trigger is mandatory.
+- **Not verified on a Turso server.** There, writes arrive through the Hrana HTTP pipeline, and the
+  server's transaction and lock behaviour for concurrent batches has not been observed. Until a
+  disposable-Turso test shows it:
+  1. all lifecycle writes must go through one serialised path: an owner-run command that is never run
+     concurrently;
+  2. the overlap-detection query must run after every approval;
+  3. any detected overlap blocks policy selection, and new assessments then fall back to
+     `freshness_basis = 'not_established'`.
 
 **Selection for new assessments:**
 - The engine uses the single version whose effective period contains the assessment time.
 - Retired versions are kept for interpreting history but are never selected for new assessments.
 - If no version is in effect, `expiry_policy_version = NULL` and `freshness_basis` is
   `explicit_source_expiry` or `not_established`.
+
+**Owner decision (PR #20):**
+- No expiry durations are selected now, and no policy is created or approved. The registry stays
+  empty.
+- Duration calibration is deferred until approved sources and their actual update frequencies are
+  known.
+- Each assessment preserves the exact policy version used, or NULL when no approved policy was in
+  effect.
+- There are no defaults.
 
 **Shipped empty.** 0009 inserts **no** policy versions and **no** lifecycle events. Approval requires a
 separate, explicit owner decision recorded as an `approved` event. No policy activates automatically.
@@ -520,22 +565,19 @@ separate, explicit owner decision recorded as an `approved` event. No policy act
 - `data_label` is shown in every read view. No synthetic data is ever written to production Turso.
 
 ## 9b. Delete protection scope (`analyses`) and retention
-- **Scope:** `trg_analyses_no_delete` blocks `DELETE` on `analyses` only. `analyses` is already
-  update-protected (0003), so it is an append-only versioned record, consistent with the rest of the
-  audit tables.
-- **Test cleanup:** not affected. Tests use throwaway in-memory or temporary databases that are
-  discarded whole, never row-deleted (current practice).
-- **Migrations:** not affected. Migrations only add objects, and `migrate.py` refuses destructive
-  statements.
-- **Retention-policy or legally required deletion** (for example a licence that requires deleting
-  derived data on termination): not possible through ordinary SQL, by design. The authorised path is a
-  separately reviewed migration or operator procedure that:
-  1. is approved by the owner and recorded in the repository;
-  2. writes a deletion record (what, why, approval reference, time) to an append-only log first;
-  3. temporarily drops and re-creates the guard trigger inside the same transaction.
-
-  This procedure is to be designed when the first retention obligation exists. It is not part of 0009.
-- **Not weakened:** no other audit table gets a deletion path.
+- **Scope:** `trg_analyses_no_delete` blocks `DELETE` on `analyses` only. That table is already
+  update-protected (0003), so it becomes append-only like the other audit tables.
+- **Test cleanup and migrations:** not affected. Tests discard whole throwaway databases, and
+  migrations only add objects (the runner refuses destructive statements).
+- **Owner decision (PR #20):**
+  - **No retention-deletion procedure is authorised or required at present.**
+  - **0009 creates no deletion pathway.**
+  - If a legal, contractual or licence-based deletion obligation arises, it needs a **separately
+    reviewed and approved procedure**. That procedure must:
+    - preserve the audit history to the extent the law allows;
+    - log what was deleted, why, under which approval and when;
+    - state any unavoidable legal limitation explicitly.
+  - Nothing of this is implemented now.
 
 ## 9c. Boundary of immutability
 - **Enforced:** `BEFORE UPDATE` and `BEFORE DELETE` triggers raise on audit tables. The INSERT guard
@@ -550,9 +592,11 @@ separate, explicit owner decision recorded as an `approved` event. No policy act
   - anyone with the raw file, for SQLite.
 
   **Triggers are integrity guards, not tamper-proof storage.**
-- **Optional future hardening** (not in 0009): periodic hash-chained export of revision rows (each
-  row's hash includes the previous hash) to an external append-only location; least-privilege tokens
-  for the app versus schema operations; backups with retention. These need separate approval.
+- **Owner decision (PR #20): hash-chained audit export is deferred.**
+  - Possible future hardening, as a separate approved task: periodic hash-chained export of revision
+    rows to an external append-only location; least-privilege tokens for the app versus schema
+    operations; backups with retention.
+  - Until then, the immutable revision records are the audit trail, with the limitations stated above.
 
 ## 10. Turso compatibility
 - **Features used:** triggers with `RAISE`, triggers on existing tables (`events`, `analyses`),
@@ -643,17 +687,35 @@ separate, explicit owner decision recorded as an `approved` event. No policy act
 - human review before reinstating any previously confirmed chain;
 - sector aggregates as computed views.
 
-**Remaining:**
-1. The content of the first expiry policy: durations per exposure kind. It needs owner approval and a
-   calibration rationale.
-2. **Sector eligibility policy (§4b):**
-   - whether suspended and `unknown`-status companies are eligible;
-   - confirmation of the event-date classification rule and of the delisting rule;
-   - how unclassified companies are reported.
-3. The authorised retention-deletion procedure (§9b), when the first obligation arises.
-4. Whether to add hash-chained audit export (§9c).
-5. Composite-FK and cascade behaviour on a Turso server, through Hrana (gate 3).
-6. **Gate 1:** owner approves this design.
-7. **Gate 2:** the 0009 SQL is written and tested locally and in CI (synthetic).
-8. **Gate 3:** disposable-Turso verification of 0006–0009.
-9. **Gate 4:** owner approval for production.
+**Also decided (owner, PR #20 final review):**
+- sector eligibility rules (§4b): event-date classification and listing status; suspended included but
+  flagged and non-concluding; unknown status flagged and non-concluding; unclassified reported
+  separately;
+- expiry policy: none selected, registry empty, calibration deferred (§8b);
+- retention deletion: none authorised, no pathway in 0009 (§9b);
+- hash-chained audit export: deferred (§9c).
+
+**Remaining blockers:**
+1. Turso server (HTTP / Hrana) behaviour for:
+   - the cascade and composite foreign keys;
+   - **concurrent lifecycle writes** (§8b);
+   - testing migrations 0006–0009 on a disposable Turso database (gate 3).
+2. **Gate 1:** owner approves this design.
+3. **Gate 2:** 0009 SQL written and tested locally and in CI (synthetic), including the §8b race test
+   with two connections.
+4. **Gate 3:** disposable-Turso verification of 0006–0009, including concurrent approval attempts.
+5. **Gate 4:** owner approval for production.
+
+## 17. Consistency check (final)
+| Principle | Where |
+|---|---|
+| Company-level assessments only | §2, §3 |
+| Computed sector aggregates, partial-coverage safeguards | §4b |
+| Event-date classification and listing-status rules | §4b |
+| Immutable expiry-policy versions and lifecycle events; none approved | §8b |
+| Distinct system withdrawal and human rejection | §4, §5, §6 |
+| Human review to reinstate previously confirmed conclusions | §5, §6 |
+| Synthetic and real isolation | §9, §4b |
+| Read-time and write-time evidence validity checks | §8 |
+| No market-reaction claims (`market_check = 'not_evaluable'`) | §3, §4 |
+| Turso HTTP compatibility unverified | §6b, §8b, §10 |
