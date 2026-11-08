@@ -26,9 +26,9 @@ exposure (Phase 4) and impact (Phase 5 / 0009) substrate. No new migration is ne
 | # | Component | Status |
 |---|---|---|
 | 1 | Headline event builder (`engines/headline_events.py`) | TESTED offline (local / CI only); not run in production |
-| 2 | Rule classification + status stage | NOT STARTED |
-| 3 | Company / entity mapping | NOT STARTED |
-| 4 | Corroboration / verification state | NOT STARTED |
+| 2 | Rule classification + status stage (`engines/event_classification.py`, `engines/event_intel.py`) | TESTED offline; not run in production |
+| 3 | Company / entity mapping (same modules) | TESTED offline; not run in production |
+| 4 | Evidence assessment / verification state (same modules) | TESTED offline; not run in production |
 | 5 | Exposure candidates from events | NOT STARTED |
 | 6 | Impact engine (Phase 5) | NOT STARTED (designed in `PHASE_5_*`) |
 | 7 | Intelligence dashboard | NOT STARTED |
