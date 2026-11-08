@@ -60,7 +60,7 @@ def validate_company_seed(seed: dict[str, Any]) -> list[str]:
 
 LIFECYCLE = ("NOT REVIEWED", "REVIEWED", "APPROVED", "RESTRICTED", "LICENCE REQUIRED", "BLOCKED",
              "IMPLEMENTED", "TESTED", "ACTIVE", "DISABLED")
-ADAPTERS = ("rss", "atom", "json_api")
+ADAPTERS = ("rss", "atom", "json_api", "udf_ohlcv")  # udf_ohlcv: collectors/market_ohlcv.py
 
 
 def validate_source_registry(reg: dict[str, Any]) -> list[str]:

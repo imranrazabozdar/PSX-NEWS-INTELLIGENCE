@@ -316,7 +316,7 @@ def due_sources(db: Database, now: str | None = None) -> list[str]:
     now = now or now_utc()
     rows = db.execute(
         """SELECT source_id FROM sources WHERE lifecycle_status = 'ACTIVE' AND enabled = 1
-           AND adapter IS NOT NULL AND feed_url IS NOT NULL
+           AND adapter IN ('rss','atom','json_api') AND feed_url IS NOT NULL
            AND (last_attempt_at_utc IS NULL OR
                 strftime('%s', ?) - strftime('%s', last_attempt_at_utc)
                   >= 60 * COALESCE(collection_frequency_minutes, 360))
