@@ -37,9 +37,10 @@ from collectors.market_ohlcv import (
     CollectionBusy,
     collect_market,
 )
-from database.connection import Database
+from database.connection import Database, DatabaseError
 
 DEFAULT_MAX_PASSES = 3
+MAX_GAP_FETCHES = 5  # extra provider requests per invocation for recoverable gaps
 DEFAULT_MAX_RUNS_PER_DAY = 12
 MAX_BACKOFF_EXPONENT = 4  # interval x 16 at most
 
@@ -112,6 +113,28 @@ def last_triggers(db: Database, source_id: str = SOURCE_ID) -> dict:
         return json.loads(rows[0]["cursor"]) if rows and rows[0]["cursor"] else {}
     except ValueError:
         return {}
+
+
+def plan_gaps(db: Database, now: datetime, symbols, timeframes, source_id: str = SOURCE_ID,
+              limit: int = MAX_GAP_FETCHES) -> list[tuple[str, str, int, int]]:
+    """Recoverable gaps inside provider retention, 1-minute first, skipping gaps the provider reported
+    empty in the last 24 hours. Read-only."""
+    from engines.market_quality import _pkt_date, assess, recoverable_gaps
+
+    recent = db.execute(
+        "SELECT quota_usage_json FROM collector_runs WHERE job = ? AND source_id = ? "
+        "AND started_at_utc >= ? AND quota_usage_json IS NOT NULL",
+        (JOB, source_id, _iso(now - timedelta(hours=24))),
+    )
+    skip = set()
+    for r in recent:
+        try:
+            skip |= {tuple(g) for g in json.loads(r["quota_usage_json"]).get("gaps_unavailable", [])}
+        except (ValueError, TypeError, AttributeError):
+            continue
+    grades = [g for tf in timeframes for g in assess(db, source_id, symbols, tf, now=now)]
+    gaps = [g for g in recoverable_gaps(grades, today=_pkt_date(now)) if (g[0], g[1], g[2]) not in skip]
+    return gaps[:limit]
 
 
 def recover_abandoned(db: Database, now: datetime, lease_minutes: int, source_id: str = SOURCE_ID) -> int:
@@ -223,9 +246,19 @@ def orchestrate(
                 stop = d.reason
                 break
             ctx = {**(context or {}), "pass": i + 1, "reason": d.reason}
+            gaps = []
+            if i == 0 and collect_kwargs.get("symbols") and collect_kwargs.get("timeframes"):
+                try:  # gap planning is an optimisation: its failure must never block normal collection
+                    syms, tfs = collect_kwargs["symbols"], collect_kwargs["timeframes"]
+                    gaps = plan_gaps(db, now, syms, tfs, source_id)
+                    ctx["gaps_planned"] = len(gaps)
+                except (DatabaseError, ValueError) as exc:
+                    ctx["gaps_planned"] = 0
+                    ctx["gap_planning_error"] = str(exc)[:200]
             try:
                 run = collect_market(
-                    db, source_id=source_id, context=ctx, lease_minutes=limits.lease_minutes, **collect_kwargs
+                    db, source_id=source_id, context=ctx, lease_minutes=limits.lease_minutes,
+                    gap_ranges=gaps, **collect_kwargs,
                 )
             except CollectionBusy as exc:
                 stop = str(exc)

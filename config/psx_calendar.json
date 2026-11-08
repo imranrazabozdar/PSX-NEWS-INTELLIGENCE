@@ -1,0 +1,12 @@
+{
+ "description": "PSX trading calendar used by session-completeness grading and gap detection (engines/market_calendar.py).",
+ "maintenance": "Owner-maintained. Add each public holiday, special session, closure or change of hours only from an official PSX notice, with the notice reference in 'source'. Never add an unverified entry.",
+ "timezone_offset_hours": 5,
+ "weekend_weekdays": [5, 6],
+ "weekend_source": "PSX trades Monday to Friday.",
+ "regular_hours": {},
+ "regular_hours_note": "Empty on purpose: official hours (including Friday hours and any seasonal changes) are not yet recorded from a PSX notice. Until they are, each session's window is inferred from the bars that all tracked symbols actually traded that day.",
+ "holidays": {},
+ "special_sessions": {},
+ "closures": {}
+}

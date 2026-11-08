@@ -105,6 +105,7 @@ class SeriesResult:
     first_bar_utc: str | None = None
     last_bar_utc: str | None = None
     error: str | None = None
+    gap: tuple[int, int] | None = None  # set for a gap re-fetch: (from_epoch, to_epoch)
 
 
 @dataclass
@@ -336,6 +337,7 @@ def collect_market(
     pause_seconds: float = 0.5,
     context: dict | None = None,
     lease_minutes: int = DEFAULT_LEASE_MINUTES,
+    gap_ranges: list[tuple[str, str, int, int]] | None = None,
 ) -> MarketRun:
     if _kill_switch_on():
         raise CollectionRefused("PSXNI_KILL_SWITCH is on: no collection")
@@ -393,15 +395,25 @@ def collect_market(
             raise CollectionBusy("another market run holds the lease; nothing was done")
         run.run_id = mine[0]
     try:
-        for symbol, tf in ordered_series(symbols, timeframes):
-            out = SeriesResult(symbol=symbol, timeframe=tf)
+        # recoverable gaps first (engines.market_quality orders them 1-minute first), then incremental series
+        work = [(s, t, (a, b)) for s, t, a, b in (gap_ranges or []) if t in timeframes] + [
+            (s, t, None) for s, t in ordered_series(symbols, timeframes)
+        ]
+        for symbol, tf, gap in work:
+            out = SeriesResult(symbol=symbol, timeframe=tf, gap=gap)
             run.series.append(out)
             try:
-                frm, to = _window(None if dry_run else _last_bar(db, source_id, symbol, tf), tf, now)
+                if gap:
+                    frm, to = gap[0], gap[1] + TIMEFRAMES[tf][1]
+                else:
+                    frm, to = _window(None if dry_run else _last_bar(db, source_id, symbol, tf), tf, now)
                 run.http_requests += 1
                 bars, out.rejected = parse_udf(
                     fetch_series(client, source["feed_url"], symbol, tf, frm, to), tf
                 )
+                if gap:
+                    lo, hi = _iso(gap[0]), _iso(gap[1])
+                    bars = [b for b in bars if lo <= b["bar_start_utc"] <= hi]
                 out.fetched = len(bars)
                 if bars:
                     out.first_bar_utc, out.last_bar_utc = (
@@ -448,6 +460,12 @@ def collect_market(
                 "budget_stopped": run.budget_stopped,
                 "usage_before_finalise": run.usage,
                 "series_errors": sum(1 for s in run.series if s.error),
+                # gaps the provider no longer serves: not retried for a day (engines.market_quality)
+                "gaps_unavailable": [
+                    [s.symbol, s.timeframe, s.gap[0]]
+                    for s in run.series
+                    if s.gap and not s.error and not s.fetched
+                ],
             }
             stmts = [
                 (

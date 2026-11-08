@@ -56,19 +56,90 @@ def _db():
 
 def _data_views() -> None:
     db = _db()
-    market, news, health = st.tabs(["PSX market data", "News", "Source health"])
+    market, ops, news, health = st.tabs(["PSX market data", "Collection operations", "News", "Source health"])
     with market:
         _market_view(db)
+    with ops:
+        _ops_view(db)
     with news:
         _news_view(db)
     with health:
         _health_view(db)
 
 
+def _market_symbols() -> list[str]:
+    import os
+
+    from collectors.market_ohlcv import DEFAULT_SYMBOLS
+
+    raw = os.environ.get("PSXNI_MARKET_SYMBOLS", ",".join(DEFAULT_SYMBOLS))
+    return [s.strip().upper() for s in raw.split(",") if s.strip()]
+
+
+@st.cache_data(ttl=600, show_spinner=False)
+def _cached_coverage(_db, symbols: tuple[str, ...]) -> list[dict]:
+    from collectors.market_ohlcv import SOURCE_ID, TIMEFRAMES
+    from engines.market_quality import coverage_summary
+
+    return coverage_summary(_db, SOURCE_ID, symbols, list(TIMEFRAMES))
+
+
+@st.cache_data(ttl=900, show_spinner=False)
+def _cached_ops(_db, symbols: tuple[str, ...]) -> dict:
+    from datetime import UTC, datetime
+
+    from engines import collection_ops as ops
+
+    now = datetime.now(UTC)
+    return {
+        "as_of": now.strftime("%Y-%m-%d %H:%M UTC"),
+        "latest": ops.latest_success(_db),
+        "current": ops.current_market_runs(_db),
+        "triggers": ops.trigger_status(_db, now),
+        "progress": ops.backfill_progress(_db, list(symbols), now),
+        "quality": ops.completeness(_db, list(symbols), now),
+        "runs": ops.recent_runs(_db),
+        "sources": ops.source_health(_db),
+    }
+
+
+def _ops_view(db) -> None:
+    d = _cached_ops(db, tuple(_market_symbols()))
+    st.caption(
+        f"As of {d['as_of']} (refreshed at most every 15 minutes). Read-only; every value is from the run "
+        "log, source health, the trigger heartbeat and indexed bar lookups. 'Not recorded' means the value "
+        "was never stored."
+    )
+    c1, c2, c3 = st.columns(3)
+    for col, job, label in ((c1, "news", "Last successful news collection"),
+                            (c2, "market_ohlcv", "Last successful market collection")):
+        rec = d["latest"].get(job)
+        col.metric(label, rec["finished_utc"] if rec else "none recorded", rec["outcome"] if rec else None)
+    c3.metric("Market run now", ", ".join(f"#{r['run_id']} {r['outcome']}" for r in d["current"]) or "idle")
+    st.subheader("Triggers")
+    st.table(d["triggers"])
+    st.subheader("Backfill progress (share of each target window covered)")
+    st.dataframe(d["progress"], use_container_width=True)
+    st.subheader("Session completeness")
+    st.caption(
+        "COMPLETE / INCOMPLETE / ANOMALY / MISSING / PROVIDER_UNAVAILABLE are graded against the bars the "
+        "market actually traded that session; weekends, recorded holidays and closures are never counted "
+        "as missing. Volume is not used."
+    )
+    st.dataframe(d["quality"]["summary"], use_container_width=True)
+    st.subheader("Remaining gaps and provider-unavailable history")
+    st.dataframe(d["quality"]["gaps"][:200], use_container_width=True)
+    st.subheader("Recent runs (outcome, trigger, continuation pass, rows written)")
+    st.dataframe(d["runs"], use_container_width=True)
+    st.subheader("Source health (retries and failures)")
+    st.dataframe(d["sources"], use_container_width=True)
+
+
 def _market_view(db) -> None:
     from collectors.market_ohlcv import TIMEFRAMES
 
-    cov = db.execute("SELECT * FROM market_coverage ORDER BY symbol, timeframe")
+    # indexed first/latest-bar lookups (a few rows read), cached; the market_coverage view scans every bar
+    cov = [r for r in _cached_coverage(db, tuple(_market_symbols())) if r["first_bar_utc"]]
     st.caption(
         "Source: SCS Trade chart datafeed (owner-authorised; honest requests). Bars are stored "
         "as received. Times are UTC; the session date is Pakistan time (UTC+5)."
@@ -88,11 +159,8 @@ def _market_view(db) -> None:
             {
                 "Symbol": r["symbol"],
                 "Timeframe": r["timeframe"],
-                "Bars": r["bars"],
                 "First bar (UTC)": r["first_bar_utc"],
                 "Latest bar (UTC)": r["last_bar_utc"],
-                "Last retrieved (UTC)": r["last_retrieved_at_utc"],
-                "Sessions": r["sessions"],
             }
             for r in cov
         ],

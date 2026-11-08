@@ -63,7 +63,7 @@ trigger (GitHub cron fallback | external workflow_dispatch | manual)
 | 2 | Lease, abandoned-run recovery, due decision, backoff, bounded continuation, trigger tracking | TESTED (offline) |
 | 3 | Configurable timeframe-first priority | TESTED (offline) |
 | 4 | Workflow `trigger` input, trigger heartbeat, missed/late slot detection, external dispatch design (`docs/EXTERNAL_DISPATCH.md`) | TESTED (offline), repository side only; token, secret and scheduler need owner approval |
-| 5 | Session calendar (PSX hours, holidays), completeness grading (COMPLETE / INCOMPLETE / ANOMALY / MISSING / PROVIDER_UNAVAILABLE), skip-unfinished-bar fetches, indexed coverage query + app cache, operations tab | NOT STARTED |
+| 5 | Trading calendar (`config/psx_calendar.json`, `engines/market_calendar.py`), consensus-based session grading and gap detection (`engines/market_quality.py`), bounded gap recovery (1m first, 5 requests/run), indexed + cached coverage, Collection operations tab (`engines/collection_ops.py`) | TESTED (offline) |
 
 ## 4. Lease, fencing and recovery rules
 
@@ -158,3 +158,39 @@ concurrency group. Owner approval is needed for steps 1–3.
   provider no longer serves comes back as `no_data` and is not treated as a failure.
 * An in-progress intraday bar fetched during the session can later be recorded as a correction; Stage 5
   avoids requesting unfinished bars.
+
+## 7. Stage 5: calendar, completeness and gaps
+
+* **Calendar** (`config/psx_calendar.json`): weekends are recorded. Official hours, holidays, special
+  sessions and closures are added only from PSX notices, each citing its notice. None are recorded yet,
+  so nothing is assumed. Weekdays may have different hours (keys `0`–`4`).
+* **Expected bars come from the market itself**: the union of bar starts across tracked symbols for each
+  session. Shared breaks, early closes and special sessions therefore raise no false gaps. Recorded hours
+  only flag bars outside them (ANOMALY). Volume is never used.
+* **States:**
+
+  | State | Meaning |
+  |---|---|
+  | COMPLETE | |
+  | INCOMPLETE | For 1m, a run of more than 60 consecutive minutes that other symbols traded is missing; for other timeframes, any missing slot |
+  | ANOMALY | Bars on a non-trading day or outside recorded hours |
+  | MISSING | Other symbols traded and this symbol has no bar |
+  | PROVIDER_UNAVAILABLE | Still missing and older than the provider's retention (1m 5 days, 1h 90 days, 4h 365 days, 1d 5 years) |
+  | NON_TRADING | Weekend or recorded holiday/closure; never an alert |
+  | MARKET_CLOSED_INFERRED | Weekday on which no tracked symbol traded; never an alert |
+  | NOT_COLLECTED | Backfill or incremental fetch still pending |
+  | CURRENT_SESSION | Today |
+
+* **Recovery:** the first pass of each invocation re-requests up to 5 recoverable gaps inside retention,
+  1-minute first. Bars go through the normal append-only store: only missing bars are inserted, nothing
+  is rewritten. A gap the provider returns empty is recorded in the run (`gaps_unavailable`) and not
+  re-requested for 24 hours. Once it passes retention it becomes PROVIDER_UNAVAILABLE.
+* **Coverage:** the app no longer reads the `market_coverage` view, which scans every bar. It uses two
+  single-aggregate lookups per series on the primary-key index (verified with EXPLAIN QUERY PLAN), cached
+  for 10 minutes. No migration and no summary table were needed.
+* **Read cost (estimate):** one assessment reads the bars of its window, about 13k rows for five symbols
+  (7 days of 1m, 30 of 1h, 60 of 4h, 365 of 1d). It runs once per invocation and at most every 15 minutes
+  in the app.
+* **Limitations:** with one tracked symbol the consensus is that symbol, so its internal gaps can't be
+  seen. An unexpected closure is only inferred until it is recorded in the calendar. The cap and
+  retention dates use the PKT session date.
