@@ -116,6 +116,16 @@ python -m database.seed_loader            # load reference data (idempotent)
 * Applied to local and CI databases only. Production Turso is still at 0005.
 * See `docs/EXPOSURE_MAPPING.md`.
 
+## Phase 5 schema (migration 0009; implemented on a branch, not applied to production)
+- **Tables:** company-level `impact_assessments` with append-only inputs, revisions, transmission
+  steps, scenarios and reviews; immutable expiry-policy versions and lifecycle events, shipped empty.
+- **Views:** `impact_invalid_inputs`, `impact_assessments_current`, `impact_event_company_eligibility`,
+  `impact_unclassified_companies`, `impact_sector_aggregates_current`, `impact_expiry_policies_current`
+  and `impact_expiry_policy_overlaps`.
+- **Triggers:** event-refutation propagation, and delete protection for `analyses`.
+- **Design:** `docs/MIGRATION_0009_DESIGN.md`. Gate 3 (disposable Turso):
+  `docs/TURSO_DISPOSABLE_VERIFICATION.md`.
+
 ## Free-tier quota protection
 Turso's free plan caps rows read, rows written and storage. Check the current limits on Turso's site before increasing collection.
 * **Usage meter:** every Turso response reports `rows_read` / `rows_written`. `db.usage()` totals them per run, and the loader prints them.
