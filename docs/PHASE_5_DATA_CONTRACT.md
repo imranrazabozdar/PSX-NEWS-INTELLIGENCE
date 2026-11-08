@@ -58,6 +58,13 @@ Rules:
 3. **Expiry.** Each exposure input has a freshness horizon: `valid_to`, or the `last_verified_utc` age
    threshold per exposure kind (proposed: 12 months for documented business exposures, one reporting
    period for financial figures). Expired inputs make the assessment `needs_revalidation`.
+   **Database enforcement (migration 0009):** every linked company-specific exposure record must have a
+   `valid_to` that is a real calendar date (`YYYY-MM-DD` or `YYYY-MM-DDTHH:MM:SSZ`) and has not passed by
+   the database clock. A missing, impossible, malformed or expired date on **any** linked record blocks the
+   upgrade to `provisional` or `confirmed_conclusion`. It also shows the assessment as `needs_revalidation`
+   at read time. One fresh record never compensates for a stale one.
+   **Not yet database-enforced:** the `last_verified_utc` age thresholds, because no expiry policy is
+   approved yet.
 4. **Unknown stays unknown.** A mechanism whose sign the rule cannot set, or an exposure with direction
    `unknown`, yields `direction = unknown`. No calculation may infer a sign to complete itself.
 5. **Contradiction.** Opposing documented exposures or a disputed event lower direction confidence one

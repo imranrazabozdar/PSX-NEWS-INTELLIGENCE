@@ -777,3 +777,28 @@ regression tests, as in §18.
 **Design consequences:**
 - To change the direction of a provisional assessment, a human first records a `request_revalidation` review that sets the new direction. The system then revalidates the assessment.
 - A refused attempt leaves the assessment, its revisions and its review history unchanged.
+
+## 21. Targeted-verification remediation (after 950f7be)
+| Finding | Severity | Fix (0009) | Regression tests (`tests/test_impact_freshness_and_fields.py`) |
+|---|---|---|---|
+| One fresh linked exposure record could compensate for another that was expired, missing or impossible | HIGH | New view `impact_linked_exposure_freshness` classifies each linked company-specific exposure record as `fresh`, `missing`, `invalid` or `expired`. `impact_explicit_freshness` now requires at least one record **and** every record to be fresh. Both the upgrade trigger and `impact_assessments_current` use it. Malformed suffixes such as `2099-12-31garbage` are rejected. | All valid; one expired, missing, impossible or malformed record; read-time invalidation when a record lapses or its `valid_to` changes (and recovery after correction); a confirmed assessment invalidated by one lapsed record |
+| Substantive fields could change without review | MEDIUM | Without a newly linked human review, an update may change **at most one** substantive field, and only towards caution (see the rule below). | Each field individually (7 cautious moves allowed, 12 non-cautious changes refused); `unknown` combined with every other field refused; two cautious moves together refused; a human without a new review refused; combined changes with a new review allowed |
+
+**Caution rule, enforced in SQL:**
+
+| Field | Allowed without a new review |
+|---|---|
+| `direction`, `horizon` | → `unknown` |
+| `magnitude_level` | → `not_assessable` |
+| `evidence_confidence`, `exposure_confidence`, `direction_confidence`, `magnitude_confidence` | a downward move only |
+| `scenario_uncertainty` | a wider value only (`narrow` < `wide` < `undetermined`) |
+| `magnitude_basis`, `affected_lines_json` | never |
+
+**Limitations:**
+- `company_exposures.valid_to` (migration 0006) can still be changed by UPDATE. The read view reacts to the
+  new value immediately, but there is no history of that change. Protecting it belongs with the migration
+  0010 follow-up.
+- Company-specific evidence that comes from a relationship (not an exposure record) has no `valid_to` in this
+  check.
+- `counter_evidence_json`, `missing_inputs_json` and `confidence_reasons_json` are not guarded. They are
+  supporting notes, and every change is recorded in a revision.

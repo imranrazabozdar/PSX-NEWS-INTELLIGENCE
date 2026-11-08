@@ -268,18 +268,33 @@ WHERE NOT (s.lifecycle_status = 'ACTIVE' AND s.terms_status = 'approved'
               OR json_extract(nr.snapshot_json, '$.impact_direction')
                  IS NOT json_extract(lr.snapshot_json, '$.impact_direction'))));
 
--- Explicit source expiry is verified from the database: a linked exposure input whose company exposure
--- record has a valid_to that has not passed (database clock).
-CREATE VIEW impact_explicit_freshness AS
-SELECT DISTINCT i.assessment_id
+-- Explicit source expiry is verified from the database for EVERY linked company-specific exposure record
+-- (approved contract section 3: each exposure input has a freshness horizon; one expired input invalidates).
+-- A record is fresh only if valid_to is a real calendar date (YYYY-MM-DD, or YYYY-MM-DDTHH:MM:SSZ), and that
+-- date has not passed by the database clock. One fresh record never compensates for a stale one.
+CREATE VIEW impact_linked_exposure_freshness AS
+SELECT i.assessment_id, x.exposure_id, x.valid_to,
+       CASE
+         WHEN x.valid_to IS NULL THEN 'missing'
+         WHEN NOT ((length(x.valid_to) = 10 AND x.valid_to GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'
+                    AND date(x.valid_to) IS x.valid_to)
+                OR (length(x.valid_to) = 20
+                    AND x.valid_to GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9]Z'
+                    AND strftime('%Y-%m-%dT%H:%M:%SZ', x.valid_to) IS x.valid_to)) THEN 'invalid'
+         WHEN substr(x.valid_to, 1, 10) < date('now') THEN 'expired'
+         ELSE 'fresh'
+       END AS freshness
 FROM impact_assessment_inputs i
 JOIN exposure_candidate_evidence l ON l.candidate_id = i.exposure_candidate_id AND l.role = 'company_specific'
-JOIN company_exposures x ON x.exposure_id = l.company_exposure_id
-WHERE x.valid_to IS NOT NULL
-  AND x.valid_to GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]*'
-  -- a real calendar date: date() returns NULL for 9999-99-99 and normalises 2026-02-30, so equality fails
-  AND date(substr(x.valid_to, 1, 10)) IS substr(x.valid_to, 1, 10)
-  AND substr(x.valid_to, 1, 10) >= date('now');
+JOIN company_exposures x ON x.exposure_id = l.company_exposure_id;
+
+-- An assessment has verified explicit freshness only when it has at least one linked exposure record and
+-- every linked exposure record is fresh.
+CREATE VIEW impact_explicit_freshness AS
+SELECT f.assessment_id
+FROM impact_linked_exposure_freshness f
+GROUP BY f.assessment_id
+HAVING SUM(f.freshness <> 'fresh') = 0;
 
 CREATE TABLE impact_assessment_revisions (
     assessment_id      INTEGER NOT NULL REFERENCES impact_assessments(assessment_id),
@@ -473,7 +488,7 @@ BEGIN
     SELECT RAISE(ABORT, 'policy-based freshness is not yet database-verifiable: at most needs_review')
     WHERE NEW.assessment_status IN ('provisional','confirmed_conclusion')
       AND NEW.freshness_basis = 'policy_expiry';
-    SELECT RAISE(ABORT, 'explicit source expiry not verified: no linked exposure record with an unexpired valid_to')
+    SELECT RAISE(ABORT, 'explicit source expiry not verified: every linked exposure record needs a real, unexpired valid_to')
     WHERE NEW.assessment_status IN ('provisional','confirmed_conclusion')
       AND NEW.freshness_basis = 'explicit_source_expiry'
       AND NOT EXISTS (SELECT 1 FROM impact_explicit_freshness f WHERE f.assessment_id = NEW.assessment_id);
@@ -496,10 +511,35 @@ BEGIN
     SELECT RAISE(ABORT, 'stale review: only the assessment''s newest review can authorise a transition')
     WHERE NEW.last_review_id IS NOT OLD.last_review_id AND NEW.last_review_id IS NOT (
         SELECT MAX(r.review_id) FROM impact_reviews r WHERE r.assessment_id = NEW.assessment_id);
-    -- direction changes need a new human review; only the conservative move to 'unknown' is exempt
-    SELECT RAISE(ABORT, 'direction can only change with a new human review (except to unknown)')
-    WHERE NEW.direction IS NOT OLD.direction AND NEW.direction <> 'unknown'
-      AND NOT (NEW.actor_type = 'human' AND NEW.last_review_id IS NOT OLD.last_review_id);
+    -- Substantive fields change only with a new human review. Without one, a single field may move one way:
+    -- towards caution (direction/horizon -> unknown, magnitude -> not_assessable, a confidence downwards,
+    -- scenario uncertainty wider). Other fields, magnitude_basis and affected lines, never change unreviewed.
+    SELECT RAISE(ABORT, 'substantive change requires a new human review (only single moves towards caution are exempt)')
+    WHERE NOT (NEW.actor_type = 'human' AND NEW.last_review_id IS NOT OLD.last_review_id) AND (
+           (NEW.direction IS NOT OLD.direction AND NEW.direction <> 'unknown')
+        OR (NEW.horizon IS NOT OLD.horizon AND NEW.horizon <> 'unknown')
+        OR (NEW.magnitude_level IS NOT OLD.magnitude_level AND NEW.magnitude_level <> 'not_assessable')
+        OR NEW.magnitude_basis IS NOT OLD.magnitude_basis
+        OR NEW.affected_lines_json IS NOT OLD.affected_lines_json
+        OR (CASE NEW.evidence_confidence WHEN 'low' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END)
+         > (CASE OLD.evidence_confidence WHEN 'low' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END)
+        OR (CASE NEW.exposure_confidence WHEN 'low' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END)
+         > (CASE OLD.exposure_confidence WHEN 'low' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END)
+        OR (CASE NEW.direction_confidence WHEN 'low' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END)
+         > (CASE OLD.direction_confidence WHEN 'low' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END)
+        OR (CASE NEW.magnitude_confidence WHEN 'low' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END)
+         > (CASE OLD.magnitude_confidence WHEN 'low' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END)
+        OR (CASE NEW.scenario_uncertainty WHEN 'narrow' THEN 1 WHEN 'wide' THEN 2 ELSE 3 END)
+         < (CASE OLD.scenario_uncertainty WHEN 'narrow' THEN 1 WHEN 'wide' THEN 2 ELSE 3 END));
+    SELECT RAISE(ABORT, 'without a new human review only one substantive field may change per update')
+    WHERE NOT (NEW.actor_type = 'human' AND NEW.last_review_id IS NOT OLD.last_review_id)
+      AND (NEW.direction IS NOT OLD.direction) + (NEW.horizon IS NOT OLD.horizon)
+        + (NEW.magnitude_level IS NOT OLD.magnitude_level)
+        + (NEW.evidence_confidence IS NOT OLD.evidence_confidence)
+        + (NEW.exposure_confidence IS NOT OLD.exposure_confidence)
+        + (NEW.direction_confidence IS NOT OLD.direction_confidence)
+        + (NEW.magnitude_confidence IS NOT OLD.magnitude_confidence)
+        + (NEW.scenario_uncertainty IS NOT OLD.scenario_uncertainty) > 1;
 END;
 
 CREATE TRIGGER trg_impact_assessments_revision AFTER UPDATE ON impact_assessments

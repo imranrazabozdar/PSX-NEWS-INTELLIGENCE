@@ -167,9 +167,10 @@ def test_valid_to_must_be_real_unexpired_date(db, valid_to, ok):
 # ------------------------------------------------------------------ LOW: direction changes
 def test_system_cannot_change_direction(db):
     _, _, aid = _provisional(db)
-    _refused(db, aid, "direction can only change", assessment_status="provisional",
+    _refused(db, aid, "substantive change requires a new human review", assessment_status="provisional",
              status_reason="revalidated", direction="positive")
-    _refused(db, aid, "direction can only change", assessment_status="needs_revalidation",
+    _refused(db, aid, "substantive change requires a new human review",
+             assessment_status="needs_revalidation",
              status_reason="evidence_revoked", direction="mixed")
 
 
@@ -183,7 +184,8 @@ def test_human_without_new_review_cannot_change_direction(db):
     rid = _review(db, aid, "request_revalidation")
     _update(db, aid, assessment_status="needs_revalidation", status_reason="reviewer_requested_revalidation",
             last_review_id=rid, **HUMAN)
-    _refused(db, aid, "direction can only change", assessment_status="needs_revalidation",
+    _refused(db, aid, "substantive change requires a new human review",
+             assessment_status="needs_revalidation",
              status_reason="evidence_revoked", direction="positive", **HUMAN)
 
 
