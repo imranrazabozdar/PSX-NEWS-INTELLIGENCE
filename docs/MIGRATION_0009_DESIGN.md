@@ -802,3 +802,50 @@ regression tests, as in §18.
   check.
 - `counter_evidence_json`, `missing_inputs_json` and `confidence_reasons_json` are not guarded. They are
   supporting notes, and every change is recorded in a revision.
+
+## 22. Linked exposure evidence is immutable (after 1d6051b)
+**Finding (HIGH):** an expired assessment could be revived by editing `company_exposures.valid_to` (or any
+other field) back to a valid value. That needed no new review, created no revision, and left no trace. The
+table comes from migration 0002 and had no triggers, while the freshness views read its current values.
+
+**Fix (additive, in 0009; 0002 unchanged):**
+- **When a record is "linked":** a `company_exposures` record backs an exposure candidate when any
+  `exposure_candidate_evidence` row has `company_exposure_id = exposure_id`. The 0008 schema allows that
+  column only with role `company_specific`.
+- **What linked records refuse:**
+
+| Trigger | Refuses, for a linked record |
+|---|---|
+| `trg_company_exposures_linked_immutable` (BEFORE UPDATE) | Any change to `valid_to`, `valid_from`, `company_id`, `exposure_kind`, `subject`, `confidence`, `source_item_id`, `evidence_excerpt` or `last_verified_utc`, plus `scope`, `segment_id` and the key itself. This includes moving another row onto a linked key, and covers `UPDATE OR REPLACE`, `UPDATE OR IGNORE` and `ON CONFLICT DO UPDATE`. |
+| `trg_company_exposures_linked_no_replace` (BEFORE INSERT) | Any insert using a linked key (`REPLACE`, `INSERT OR REPLACE`, `INSERT OR IGNORE`, plain insert), with foreign keys on or off |
+| `trg_company_exposures_linked_no_delete` (BEFORE DELETE) | Deletion, with foreign keys on or off |
+
+- **Unlinked records** keep the existing correction behaviour.
+
+**Why:** once evidence has backed a candidate, its contents are part of the audit trail. Expiry is now driven
+only by the database clock, so it is irreversible for that record.
+
+**Correction workflow:**
+1. Retract the record (`retract_evidence` → `evidence_retractions`). Phase 4 downgrades the affected
+   candidate, and the assessment reads as `needs_revalidation`.
+2. Record a **new** exposure record.
+3. Phase 4 links the new record to a new candidate. The old candidate cannot be restored on the same event,
+   because its retracted link is permanent; a new event report, or a new ruleset version, produces the new
+   candidate.
+4. A human reviews the new candidate.
+5. Create a new assessment, upgrade it, and have a human review it before eligibility returns.
+
+All of this is tested end to end in `tests/test_impact_exposure_immutability.py`.
+
+**Testing the passage of time:** `tests/db_clock.py` overrides SQLite's `date()` and `strftime()` for `'now'`
+on one isolated test connection. The SQL under test is unchanged and still uses the database clock.
+
+**Still open:**
+- **Real Turso:** these triggers are verified on SQLite 3.53.1 and 3.47.0. On libSQL 3.45.1, migrations
+  0001–0009 apply (234 statements); the trigger behaviour itself was not exercised there. None of this has
+  been verified on a real Turso server.
+- **Relationship-based evidence:** has no `valid_to` check.
+- **Unguarded notes:** `counter_evidence_json`, `missing_inputs_json` and `confidence_reasons_json` can still
+  change without review; each change is recorded in a revision.
+- **Age thresholds:** `last_verified_utc` age limits need an approved expiry policy.
+- **Migration 0010:** still required for the REPLACE guards of migrations 0001–0008.

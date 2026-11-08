@@ -63,8 +63,16 @@ Rules:
    the database clock. A missing, impossible, malformed or expired date on **any** linked record blocks the
    upgrade to `provisional` or `confirmed_conclusion`. It also shows the assessment as `needs_revalidation`
    at read time. One fresh record never compensates for a stale one.
-   **Not yet database-enforced:** the `last_verified_utc` age thresholds, because no expiry policy is
-   approved yet.
+   **Linked evidence is immutable:** once an exposure record backs an exposure candidate, the database
+   refuses any UPDATE, UPSERT, REPLACE or DELETE that would change its evidentiary fields. Expiry is
+   therefore irreversible. To correct a record, retract it and record a new one; a new candidate and new
+   human review are then needed before an assessment is eligible again. (Migration 0009 §22. Not yet
+   verified on a real Turso server.)
+   **Not yet database-enforced:**
+   - the `last_verified_utc` age thresholds, because no expiry policy is approved yet;
+   - expiry of relationship-based evidence;
+   - review of the assessment notes `counter_evidence_json`, `missing_inputs_json` and
+     `confidence_reasons_json`. Changes to these are recorded in revisions.
 4. **Unknown stays unknown.** A mechanism whose sign the rule cannot set, or an exposure with direction
    `unknown`, yields `direction = unknown`. No calculation may infer a sign to complete itself.
 5. **Contradiction.** Opposing documented exposures or a disputed event lower direction confidence one

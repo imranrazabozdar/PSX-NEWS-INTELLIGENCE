@@ -12,9 +12,11 @@ import pytest
 from database.connection import DatabaseError, SQLiteDatabase
 from database.migrate import migrate
 from engines.exposure_mapping import map_event, review
+from tests.db_clock import DatabaseClock
 from tests.test_impact_assessments import (
     _assess,
     _base,
+    _candidate,
     _event,
     _exposure,
     _link_candidate,
@@ -46,11 +48,20 @@ def _snap(db, aid):
     return a, n
 
 
-def _two_records(db):
-    """An assessment linked to two confirmed candidates, each backed by its own exposure record."""
-    _exposure(db, "cmp-syn-alpha", subject="crude oil")
-    _exposure(db, "cmp-syn-alpha", subject="furnace oil")
-    eid = _event(db, headline="Brent crude oil and furnace oil prices rise")
+def _rel(db, modifier):
+    return db.execute("SELECT date('now', ?) d", (modifier,))[0]["d"]
+
+
+def _two_records(db, second="2099-12-31", first="2099-12-31"):
+    """An assessment linked to two confirmed candidates, each backed by its own exposure record.
+
+    valid_to values are fixed when the records are created: linked evidence is immutable (migration 0009).
+    The event is dated 10 days ago (database clock), so a record that expired yesterday was still valid at
+    the event date and Phase 4 links it.
+    """
+    _exposure(db, "cmp-syn-alpha", subject="crude oil", valid_to=first)
+    _exposure(db, "cmp-syn-alpha", subject="furnace oil", valid_to=second)
+    eid = _event(db, headline="Brent crude oil and furnace oil prices rise", date=_rel(db, "-10 days"))
     map_event(db, eid, synthetic=True)
     cands = [r["candidate_id"] for r in db.execute(
         "SELECT candidate_id FROM exposure_candidates WHERE event_id=? AND company_id='cmp-syn-alpha' "
@@ -67,25 +78,21 @@ def _two_records(db):
     return aid, xs
 
 
-def _set_valid_to(db, exposure_id, value):
-    db.execute("UPDATE company_exposures SET valid_to=? WHERE exposure_id=?", (value, exposure_id))
-
-
 # ------------------------------------------------------------------ HIGH: every linked record must be fresh
 @pytest.mark.parametrize("second,ok", [
     ("2099-12-31", True),              # all valid
     ("2099-12-31T00:00:00Z", True),    # all valid (timestamp form)
-    ("2001-01-01", False),             # one expired
+    ("today", True),                   # valid through today (database clock)
+    ("yesterday", False),              # one expired (database clock)
     (None, False),                     # one missing
     ("2099-02-30", False),             # one impossible date
     ("9999-99-99", False),             # one impossible date
     ("2099-12-31garbage", False),      # one malformed
     ("31/12/2099", False),             # one malformed
-    ("", False),                       # one malformed (empty)
 ])
 def test_every_linked_record_must_be_fresh(db, second, ok):
-    aid, xs = _two_records(db)
-    _set_valid_to(db, xs[1], second)
+    second = {"today": _rel(db, "+0 days"), "yesterday": _rel(db, "-1 day")}.get(second, second)
+    aid, xs = _two_records(db, second=second)
     fresh = bool(db.execute("SELECT 1 FROM impact_explicit_freshness WHERE assessment_id=?", (aid,)))
     assert fresh is ok
     if ok:
@@ -98,25 +105,33 @@ def test_every_linked_record_must_be_fresh(db, second, ok):
         assert _snap(db, aid) == before
 
 
-@pytest.mark.parametrize("change", ["2001-01-01", None, "2099-02-30", "not-a-date"])
-def test_read_time_invalidation_when_a_record_lapses_or_changes(db, change):
-    aid, xs = _two_records(db)
+def test_read_time_invalidation_when_a_record_lapses(db):
+    clock = DatabaseClock(db)
+    aid, xs = _two_records(db, second=_rel(db, "+1 day"))   # the second record expires after tomorrow
     _update(db, aid, assessment_status="provisional", status_reason="created_eligible")
-    assert _eff(db, aid) == "provisional"
-    _set_valid_to(db, xs[1], change)        # the second record expires or its validity is altered
+    for days, expected in ((0, "provisional"), (1, "provisional"), (2, "needs_revalidation"),
+                           (30, "needs_revalidation")):
+        clock.advance_days(days)
+        assert _eff(db, aid) == expected, days
+    # the lapse is irreversible by editing the record: linked evidence is immutable
+    with pytest.raises(DatabaseError, match="immutable"):
+        db.execute("UPDATE company_exposures SET valid_to='2099-12-31' WHERE exposure_id=?", (xs[1],))
     assert _eff(db, aid) == "needs_revalidation"
-    _set_valid_to(db, xs[1], "2099-12-31")  # a correction restores freshness at read time
-    assert _eff(db, aid) == "provisional"
 
 
 def test_single_record_lapse_invalidates_confirmed(db):
-    _, _, aid = _provisional(db)
+    clock = DatabaseClock(db)
+    _exposure(db, "cmp-syn-alpha", valid_to=_rel(db, "+1 day"))
+    eid = _event(db, date=_rel(db, "-10 days"))
+    cand = _candidate(db, eid, "cmp-syn-alpha", confirm=True)
+    aid = _assess(db, eid, "cmp-syn-alpha")
+    _link_candidate(db, aid, cand)
+    _update(db, aid, assessment_status="provisional", status_reason="created_eligible")
     rid = _review(db, aid, "accept")
     _update(db, aid, assessment_status="confirmed_conclusion", status_reason="reviewer_accepted",
             last_review_id=rid, **HUMAN)
-    x = db.execute("SELECT exposure_id FROM impact_linked_exposure_freshness WHERE assessment_id=?",
-                   (aid,))[0]["exposure_id"]
-    _set_valid_to(db, x, "2001-01-01")
+    assert _eff(db, aid) == "confirmed_conclusion"
+    clock.advance_days(2)
     assert _eff(db, aid) == "needs_revalidation"
 
 

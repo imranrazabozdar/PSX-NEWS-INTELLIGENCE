@@ -623,6 +623,33 @@ BEGIN SELECT RAISE(ABORT, 'impact_scenarios: duplicate key; existing rows cannot
 CREATE UNIQUE INDEX ux_impact_revisions_review_once ON impact_assessment_revisions(review_id)
 WHERE review_id IS NOT NULL;
 
+-- ---------------------------------------------------------------- linked exposure evidence is immutable
+-- Once a company_exposures record backs an exposure candidate (it is referenced by
+-- exposure_candidate_evidence.company_exposure_id, which the 0008 schema allows only with role
+-- 'company_specific'), its evidentiary contents can no longer change. Otherwise an expired record could be
+-- 'revived' by editing valid_to (or any other field) without a new candidate revision or human review.
+-- A correction is a retraction (evidence_retractions) plus a NEW exposure record; expiry then depends only on
+-- the database clock and is irreversible for that record. Unlinked records keep the existing behaviour.
+-- (Additive: new triggers on a 0002 table; 0002 itself is unchanged.)
+CREATE TRIGGER trg_company_exposures_linked_immutable BEFORE UPDATE ON company_exposures
+WHEN EXISTS (SELECT 1 FROM exposure_candidate_evidence l
+             WHERE l.company_exposure_id IN (OLD.exposure_id, NEW.exposure_id))
+ AND (NEW.exposure_id IS NOT OLD.exposure_id OR NEW.valid_to IS NOT OLD.valid_to
+      OR NEW.valid_from IS NOT OLD.valid_from OR NEW.company_id IS NOT OLD.company_id
+      OR NEW.exposure_kind IS NOT OLD.exposure_kind OR NEW.subject IS NOT OLD.subject
+      OR NEW.confidence IS NOT OLD.confidence OR NEW.source_item_id IS NOT OLD.source_item_id
+      OR NEW.evidence_excerpt IS NOT OLD.evidence_excerpt OR NEW.last_verified_utc IS NOT OLD.last_verified_utc
+      OR NEW.segment_id IS NOT OLD.segment_id OR NEW.scope IS NOT OLD.scope)
+BEGIN SELECT RAISE(ABORT, 'company_exposures: evidence linked to an exposure candidate is immutable; retract it and record a new exposure'); END;
+-- REPLACE / INSERT OR REPLACE onto a linked record's key would delete and re-create it without firing
+-- UPDATE or DELETE triggers (recursive_triggers off), so the key itself is guarded before conflict resolution.
+CREATE TRIGGER trg_company_exposures_linked_no_replace BEFORE INSERT ON company_exposures
+WHEN EXISTS (SELECT 1 FROM exposure_candidate_evidence l WHERE l.company_exposure_id = NEW.exposure_id)
+BEGIN SELECT RAISE(ABORT, 'company_exposures: evidence linked to an exposure candidate cannot be replaced'); END;
+CREATE TRIGGER trg_company_exposures_linked_no_delete BEFORE DELETE ON company_exposures
+WHEN EXISTS (SELECT 1 FROM exposure_candidate_evidence l WHERE l.company_exposure_id = OLD.exposure_id)
+BEGIN SELECT RAISE(ABORT, 'company_exposures: evidence linked to an exposure candidate cannot be deleted'); END;
+
 -- ---------------------------------------------------------------- read models
 CREATE VIEW impact_assessments_current AS
 SELECT a.*,
