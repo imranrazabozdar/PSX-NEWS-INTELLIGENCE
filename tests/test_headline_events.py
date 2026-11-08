@@ -245,3 +245,28 @@ def test_events_remain_append_only_and_existing_pipeline_queries_still_work(db):
 
     assert repo.event_with_evidence(db, 1)["evidence"][0]["claim_type"] == "news_report"
     assert db.execute(PHASE3_ITEMS, (10,)) == []  # Phase 3 path unchanged: no permitted excerpts
+
+
+# ------------------------------------------------------------------ follow-up: item-level data errors
+def test_malformed_item_data_is_reported_stays_eligible_and_later_items_still_run(db):
+    bad = _item(db, "syn_a", "Synthetic headline with an unparseable stored timestamp", at="not-a-timestamp")
+    good = _item(db, "syn_b", "Cement despatches rise in October", at="2026-11-06T06:00:00Z")
+    s = he.run(db)
+    assert s.outcomes == {"NEW": 1} and len(s.errors) == 1 and "invalid item data: ValueError" in s.errors[0]
+    assert _count(db, "event_extractions", "source_item_id = ?", (bad,)) == 0  # never recorded as processed
+    assert _count(db, "event_extractions", "source_item_id = ?", (good,)) == 1
+    assert [_count(db, t) for t in ("events", "event_evidence")] == [1, 1]  # nothing partial for the bad item
+    again = he.run(db)
+    assert again.processed == 0 and len(again.errors) == 1  # still eligible, retried, still reported
+
+
+def test_programming_errors_are_not_swallowed(db, monkeypatch):
+    _item(db, "syn_a", "SBP keeps policy rate unchanged at 11pc")
+
+    def broken(db, item):
+        raise RuntimeError("bug")
+
+    monkeypatch.setattr(he, "decide", broken)
+    with pytest.raises(RuntimeError):
+        he.run(db)
+    assert _count(db, "event_extractions") == 0

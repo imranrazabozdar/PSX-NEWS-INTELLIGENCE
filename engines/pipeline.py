@@ -24,7 +24,8 @@ ITEM_SQL = """SELECT i.source_item_id, i.source_id, i.title, i.permitted_excerpt
 FROM source_items i JOIN sources s USING(source_id)
 WHERE s.access_status NOT IN ('restricted','licence_required','blocked')
   AND i.permitted_excerpt IS NOT NULL
-  AND i.source_item_id NOT IN (SELECT source_item_id FROM event_extractions)
+  AND i.source_item_id NOT IN (SELECT source_item_id FROM event_extractions
+                              WHERE schema_version = 'event-extraction/1')
 ORDER BY i.source_item_id LIMIT ?"""
 
 
