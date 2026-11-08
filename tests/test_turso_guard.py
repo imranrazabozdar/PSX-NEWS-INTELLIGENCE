@@ -2,9 +2,14 @@
 
 from __future__ import annotations
 
+import pathlib
+
+import pytest
+
 from tests.turso_guard import OPT_IN_VALUE, OPT_IN_VAR, pending_migration_ddl_permitted
 
 URL = "libsql://example-disposable.turso.io"
+PROD_URL = "libsql://psx-news-intelligence-imranrazabozdar.aws-us-east-1.turso.io"
 
 
 def test_url_alone_is_insufficient():
@@ -19,11 +24,18 @@ def test_url_plus_unrelated_configuration_is_insufficient():
     assert not pending_migration_ddl_permitted(env)
 
 
-def test_explicit_opt_in_with_url_is_required():
-    assert pending_migration_ddl_permitted({"PSXNI_TURSO_DATABASE_URL": URL, OPT_IN_VAR: OPT_IN_VALUE})
+def test_explicit_opt_in_requires_the_dedicated_test_database():
+    test_env = {"PSXNI_TEST_TURSO_DATABASE_URL": URL, "PSXNI_TEST_TURSO_AUTH_TOKEN": "t"}
+    assert pending_migration_ddl_permitted({**test_env, OPT_IN_VAR: OPT_IN_VALUE})
     assert not pending_migration_ddl_permitted({OPT_IN_VAR: OPT_IN_VALUE})            # no URL
-    assert not pending_migration_ddl_permitted({"PSXNI_TURSO_DATABASE_URL": "sqlite://:memory:",
+    assert not pending_migration_ddl_permitted({"PSXNI_TEST_TURSO_DATABASE_URL": "sqlite://:memory:",
+                                                "PSXNI_TEST_TURSO_AUTH_TOKEN": "t",
                                                 OPT_IN_VAR: OPT_IN_VALUE})            # not Turso
+    # production configuration can never authorise DDL, even with the opt-in
+    assert not pending_migration_ddl_permitted({"PSXNI_TURSO_DATABASE_URL": URL,
+                                                "PSXNI_TURSO_AUTH_TOKEN": "p", OPT_IN_VAR: OPT_IN_VALUE})
+    assert not pending_migration_ddl_permitted({"PSXNI_TEST_TURSO_DATABASE_URL": PROD_URL,
+                                                "PSXNI_TEST_TURSO_AUTH_TOKEN": "t", OPT_IN_VAR: OPT_IN_VALUE})
 
 
 def test_ci_workflow_never_sets_the_opt_in():
@@ -79,3 +91,80 @@ def test_ci_workflow_never_configures_the_disposable_database():
     for wf in (root / ".github" / "workflows").glob("*.yml"):
         text = wf.read_text(encoding="utf-8")
         assert DISPOSABLE_URL_VAR not in text and DISPOSABLE_TOKEN_VAR not in text, wf.name
+
+
+# ------------------------------------------------------------------ integration-test isolation (CI)
+from tests.turso_guard import (  # noqa: E402
+    PRODUCTION_HOST,
+    TEST_TOKEN_VAR,
+    TEST_URL_VAR,
+    integration_config_status,
+)
+
+T_URL = "libsql://psxni-integration-test-example.turso.io"
+
+
+def _it(**env):
+    return integration_config_status(env)[0]
+
+
+def test_production_credentials_are_never_a_fallback():
+    prod = {PRODUCTION_URL_VAR: PROD_URL, PRODUCTION_TOKEN_VAR: "p"}
+    assert _it(**prod) == "skip"                     # production config alone never enables tests
+    assert "never used" in integration_config_status(prod)[1]
+
+
+def test_missing_test_credentials_skip_cleanly():
+    assert _it() == "skip"
+    assert _it(**{TEST_URL_VAR: T_URL}) == "fail"     # incomplete config fails loudly instead
+    assert _it(**{TEST_TOKEN_VAR: "t"}) == "fail"
+
+
+@pytest.mark.parametrize("url", [
+    PROD_URL,
+    "https://" + PRODUCTION_HOST,
+    "https://" + PRODUCTION_HOST.upper() + "/",
+    "libsql://" + PRODUCTION_HOST + ".",
+    "libsql://" + PRODUCTION_HOST + "?tls=1",
+])
+def test_production_host_is_rejected_in_every_spelling(url):
+    assert _it(**{TEST_URL_VAR: url, TEST_TOKEN_VAR: "t"}) == "fail"
+
+
+def test_test_target_matching_production_configuration_is_rejected():
+    other = "libsql://some-other-prod-alias.turso.io"
+    assert _it(**{TEST_URL_VAR: other, TEST_TOKEN_VAR: "t", PRODUCTION_URL_VAR: other}) == "fail"
+    assert _it(**{TEST_URL_VAR: T_URL, TEST_TOKEN_VAR: "same", PRODUCTION_TOKEN_VAR: "same"}) == "fail"
+    assert _it(**{TEST_URL_VAR: "sqlite:///x.db", TEST_TOKEN_VAR: "t"}) == "fail"
+
+
+def test_dedicated_test_database_is_accepted():
+    assert _it(**{TEST_URL_VAR: T_URL, TEST_TOKEN_VAR: "t", PRODUCTION_URL_VAR: PROD_URL,
+                  PRODUCTION_TOKEN_VAR: "p"}) == "ok"
+
+
+def test_integration_module_is_gated_only_by_test_credentials(monkeypatch):
+    """Importing the integration module with only production configuration must skip it."""
+    import importlib
+
+    for var in (TEST_URL_VAR, TEST_TOKEN_VAR):
+        monkeypatch.delenv(var, raising=False)
+    monkeypatch.setenv(PRODUCTION_URL_VAR, PROD_URL)
+    monkeypatch.setenv(PRODUCTION_TOKEN_VAR, "p")
+    import tests.test_turso_integration as it
+    it = importlib.reload(it)
+    assert it._STATUS == "skip"
+    src = (pathlib.Path(__file__).resolve().parent / "test_turso_integration.py").read_text(encoding="utf-8")
+    assert "connect()" not in src
+    assert 'environ["PSXNI_TURSO' not in src and 'environ.get("PSXNI_TURSO' not in src
+
+
+def test_ci_never_passes_production_secrets_to_tests():
+    root = pathlib.Path(__file__).resolve().parents[1]
+    ci = (root / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+    assert "secrets.PSXNI_TURSO_DATABASE_URL" not in ci and "secrets.PSXNI_TURSO_AUTH_TOKEN" not in ci
+    assert "secrets.PSXNI_TEST_TURSO_DATABASE_URL" in ci and "secrets.PSXNI_TEST_TURSO_AUTH_TOKEN" in ci
+    for wf in (root / ".github" / "workflows").glob("*.yml"):
+        text = wf.read_text(encoding="utf-8")
+        if "secrets.PSXNI_TURSO_" in text:   # only the scheduled collection workflow may hold them
+            assert wf.name == "scheduled-jobs.yml" and "pytest" not in text, wf.name
