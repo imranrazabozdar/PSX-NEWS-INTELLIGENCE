@@ -56,7 +56,23 @@ def _db():
 
 def _data_views() -> None:
     db = _db()
-    market, ops, news, health = st.tabs(["PSX market data", "Collection operations", "News", "Source health"])
+    (market, intel, company, sector, review, valid, ready, ops, news, health) = st.tabs(
+        ["PSX market data", "Intelligence", "Company report", "Sector report", "Review queue", "Validation",
+         "Readiness", "Collection operations", "News", "Source health"])
+    from engines import dashboard_views as dv
+
+    with intel:
+        dv.intelligence_view(db)
+    with company:
+        dv.company_view(db)
+    with sector:
+        dv.sector_view(db)
+    with review:
+        dv.review_view(db)
+    with valid:
+        dv.validation_view(db)
+    with ready:
+        dv.readiness_view(db)
     with market:
         _market_view(db)
     with ops:
