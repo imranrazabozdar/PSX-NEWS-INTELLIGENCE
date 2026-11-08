@@ -34,6 +34,7 @@ Nothing marked P, B or R may be collected automatically until its row is upgrade
 | 12 | **IMF** (programme documents, data services) | Reviews, staff reports, IFS / WEO | Official | PDF / API | Per review | Years | High | Terms page returned HTTP 403 | Free | R6 | — | Manual reading of programme documents | **R** |
 | 13 | **Licensed redistributors**: Capital Stake (csapis), Mettis (MG Link), PSX Data Services & Vending | Listings, announcements, financials, OHLCV, indices | Licensed | API (advertised; not re-verified) | Real-time / daily | Provider-dependent | Provider-dependent | Licence terms | **Quote required** (none published) | Yes, under licence | — | — | **R** (U1) |
 | 14 | **Owner manual import** | Any document or dataset the owner obtains lawfully | Per document | CSV / PDF via `MANUAL_IMPORT_DESIGN.md` | Ad hoc | As supplied | Per source | Owner attests rights | — | Import is automated; acquisition is manual | Labour | — | **V** (mechanism exists) |
+| 15 | **X (owner-supplied watchlist, 33 accounts + 2 pending)** | Posts: claims, opinions, predictions | Secondary (social) | Official X API only; registry `x_platform` is `licence_required` | Continuous | Plan-dependent | Low until corroborated | No scraping, login bypass or browser imitation; API terms, quotas and pricing to verify (R7) | API plan cost unverified; **no paid plan authorised** | **No.** Owner-attested manual import (`engines/x_watchlist.py`) | Automated monitoring | Manual import | **B** (automation) / **V** (manual import) |
 
 **Research tasks (each a short, read-only check producing a register update):**
 
@@ -45,6 +46,7 @@ Nothing marked P, B or R may be collected automatically until its row is upgrade
 | R4 | Finance Division reuse terms |
 | R5 | Whether SCS serves index symbols (KSE-100) and corporate-action-adjusted series |
 | R6 | IMF data-service terms |
+| R7 | X API: current plans, read quotas, terms for storing post metadata and excerpts, cost (decision needed before any automated access) |
 
 ## 2. Recommended minimal source set
 1. **Already active:** SCS (#1), RSS (#2) and the PBS feed (#3).

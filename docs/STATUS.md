@@ -84,7 +84,9 @@ A feature is complete only when code **and** tests prove it. A page or placehold
 | Source registry v3 (67 sources; PR #6 and PR #7 findings recorded, none ACTIVE) | `database/seed/sources.json` | `test_registry_*` | TESTED |
 | Source access & licensing register | `docs/SOURCE_ACCESS_REGISTER.md` (generated) | `test_source_register_document_is_in_sync` | TESTED |
 | Live access: Dawn, Business Recorder, Express Tribune, PBS | dry runs against live feeds | `tests/test_live_sources.py` (opt-in) | TESTED (no source ACTIVE) |
-| X watchlist (23 + 2 pending) and YouTube (7) preserved | `database/seed/media_watchlist.json` | `test_watchlist_includes_new_accounts_exactly` | TESTED (collection Phase 11) |
+| X watchlist (33 owner-supplied + 2 pending) and YouTube (7) preserved | `database/seed/media_watchlist.json` | `test_all_33_supplied_accounts_present_exactly` | TESTED (no automated collection) |
+| X manual post import, claim typing, predictions, copy detection, honest status (M1) | `engines/x_watchlist.py`, `docs/X_WATCHLIST.md` | `tests/test_m1_universe_and_x_watchlist.py` | TESTED offline; not run in production |
+| Priority list and 20-session liquidity qualification (M1) | `engines/universe.py` | `tests/test_m1_universe_and_x_watchlist.py` | TESTED offline; owner priority list not yet supplied |
 | Scheduled workflow | `.github/workflows/scheduled-jobs.yml` | not yet run with Turso secrets; nothing ACTIVE | IMPLEMENTED |
 | PSX disclosures collector | none | PSX terms prohibit automated retrieval without permission | BLOCKED |
 | SBP / SECP / Commerce / IMF / OPEC | none | HTTP 403 to automated requests | BLOCKED |

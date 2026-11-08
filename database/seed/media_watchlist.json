@@ -1,6 +1,6 @@
 {
  "dataset": "media_watchlist",
- "version": 2,
+ "version": 3,
  "source": "docs/SPECIFICATION.md section 4 (owner-supplied)",
  "accounts": [
   {
@@ -10,7 +10,8 @@
    "display_name": null,
    "monitoring_purpose": "Geopolitics / breaking developments",
    "notes": null,
-   "category": "international_geopolitics"
+   "category": "international_geopolitics",
+   "owner_group": "international_news_geopolitics_conflict"
   },
   {
    "platform": "x",
@@ -19,7 +20,8 @@
    "display_name": null,
    "monitoring_purpose": "International news",
    "notes": null,
-   "category": "international_geopolitics"
+   "category": "international_geopolitics",
+   "owner_group": "international_news_geopolitics_conflict"
   },
   {
    "platform": "x",
@@ -28,7 +30,8 @@
    "display_name": null,
    "monitoring_purpose": "Pakistan / current affairs",
    "notes": "validate identity",
-   "category": "pakistan_politics_geopolitics"
+   "category": "pakistan_politics_geopolitics",
+   "owner_group": "international_news_geopolitics_conflict"
   },
   {
    "platform": "x",
@@ -37,7 +40,8 @@
    "display_name": null,
    "monitoring_purpose": "Conflict and geopolitical developments",
    "notes": null,
-   "category": "international_geopolitics"
+   "category": "international_geopolitics",
+   "owner_group": "international_news_geopolitics_conflict"
   },
   {
    "platform": "x",
@@ -46,7 +50,8 @@
    "display_name": null,
    "monitoring_purpose": "Breaking news / markets",
    "notes": "validate source profile",
-   "category": "international_geopolitics"
+   "category": "international_geopolitics",
+   "owner_group": "international_news_geopolitics_conflict"
   },
   {
    "platform": "x",
@@ -55,7 +60,8 @@
    "display_name": null,
    "monitoring_purpose": "Conflict / security monitoring",
    "notes": "validate identity",
-   "category": "international_geopolitics"
+   "category": "international_geopolitics",
+   "owner_group": "international_news_geopolitics_conflict"
   },
   {
    "platform": "x",
@@ -64,7 +70,8 @@
    "display_name": null,
    "monitoring_purpose": "Middle East / oil / regional news",
    "notes": null,
-   "category": "international_geopolitics"
+   "category": "international_geopolitics",
+   "owner_group": "international_news_geopolitics_conflict"
   },
   {
    "platform": "x",
@@ -73,7 +80,8 @@
    "display_name": null,
    "monitoring_purpose": "US military / regional official statements",
    "notes": null,
-   "category": "international_geopolitics"
+   "category": "international_geopolitics",
+   "owner_group": "international_news_geopolitics_conflict"
   },
   {
    "platform": "x",
@@ -82,7 +90,8 @@
    "display_name": null,
    "monitoring_purpose": "Pakistan commentary",
    "notes": "validate identity",
-   "category": "pakistan_politics_geopolitics"
+   "category": "pakistan_politics_geopolitics",
+   "owner_group": "pakistan_policy_economy_politics"
   },
   {
    "platform": "x",
@@ -91,7 +100,8 @@
    "display_name": null,
    "monitoring_purpose": "Business / financial commentary",
    "notes": "validate identity",
-   "category": "pakistan_politics_geopolitics"
+   "category": "pakistan_politics_geopolitics",
+   "owner_group": "pakistan_policy_economy_politics"
   },
   {
    "platform": "x",
@@ -100,7 +110,8 @@
    "display_name": null,
    "monitoring_purpose": "Pakistan politics / current affairs",
    "notes": null,
-   "category": "pakistan_politics_geopolitics"
+   "category": "pakistan_politics_geopolitics",
+   "owner_group": "pakistan_policy_economy_politics"
   },
   {
    "platform": "x",
@@ -109,7 +120,8 @@
    "display_name": null,
    "monitoring_purpose": "International news",
    "notes": null,
-   "category": "international_geopolitics"
+   "category": "international_geopolitics",
+   "owner_group": "international_news_geopolitics_conflict"
   },
   {
    "platform": "x",
@@ -118,7 +130,8 @@
    "display_name": null,
    "monitoring_purpose": "Iran / regional developments",
    "notes": null,
-   "category": "pakistan_politics_geopolitics"
+   "category": "pakistan_politics_geopolitics",
+   "owner_group": "international_news_geopolitics_conflict"
   },
   {
    "platform": "x",
@@ -127,7 +140,8 @@
    "display_name": null,
    "monitoring_purpose": "Possible Abdul Rehman Najam X identity",
    "notes": "confirm before linking to the YouTube channel",
-   "category": "pakistan_politics_geopolitics"
+   "category": "pakistan_politics_geopolitics",
+   "owner_group": "international_news_geopolitics_conflict"
   },
   {
    "platform": "x",
@@ -136,7 +150,8 @@
    "display_name": null,
    "monitoring_purpose": "International / geopolitical news",
    "notes": null,
-   "category": "international_geopolitics"
+   "category": "international_geopolitics",
+   "owner_group": "international_news_geopolitics_conflict"
   },
   {
    "platform": "x",
@@ -145,7 +160,8 @@
    "display_name": null,
    "monitoring_purpose": "Diplomacy / foreign policy",
    "notes": null,
-   "category": "pakistan_politics_geopolitics"
+   "category": "pakistan_politics_geopolitics",
+   "owner_group": "pakistan_policy_economy_politics"
   },
   {
    "platform": "x",
@@ -154,7 +170,8 @@
    "display_name": null,
    "monitoring_purpose": "Investment / market analysis",
    "notes": null,
-   "category": "pakistan_economy_psx"
+   "category": "pakistan_economy_psx",
+   "owner_group": "pakistan_policy_economy_politics"
   },
   {
    "platform": "x",
@@ -163,7 +180,8 @@
    "display_name": null,
    "monitoring_purpose": "International / geopolitical news",
    "notes": null,
-   "category": "international_geopolitics"
+   "category": "international_geopolitics",
+   "owner_group": "international_news_geopolitics_conflict"
   },
   {
    "platform": "x",
@@ -172,7 +190,8 @@
    "display_name": null,
    "monitoring_purpose": "Financial markets / investment commentary",
    "notes": null,
-   "category": "pakistan_economy_psx"
+   "category": "pakistan_economy_psx",
+   "owner_group": "market_investment_commentary"
   },
   {
    "platform": "x",
@@ -181,7 +200,8 @@
    "display_name": null,
    "monitoring_purpose": "Pakistan politics / current affairs",
    "notes": null,
-   "category": "pakistan_politics_geopolitics"
+   "category": "pakistan_politics_geopolitics",
+   "owner_group": "pakistan_policy_economy_politics"
   },
   {
    "platform": "youtube",
@@ -271,7 +291,8 @@
    "display_name": null,
    "monitoring_purpose": "Pakistan economy / PSX commentary",
    "notes": "Added by owner (Phase 2 instruction); identity to be verified",
-   "category": "pakistan_economy_psx"
+   "category": "pakistan_economy_psx",
+   "owner_group": "pakistan_policy_economy_politics"
   },
   {
    "platform": "x",
@@ -280,7 +301,8 @@
    "display_name": null,
    "monitoring_purpose": "Pakistan economy / PSX commentary",
    "notes": "Added by owner (Phase 2 instruction); identity to be verified",
-   "category": "pakistan_economy_psx"
+   "category": "pakistan_economy_psx",
+   "owner_group": "pakistan_policy_economy_politics"
   },
   {
    "platform": "x",
@@ -289,7 +311,108 @@
    "display_name": null,
    "monitoring_purpose": "Pakistan economy / PSX commentary",
    "notes": "Added by owner (Phase 2 instruction); identity to be verified",
-   "category": "pakistan_economy_psx"
+   "category": "pakistan_economy_psx",
+   "owner_group": "pakistan_policy_economy_politics"
+  },
+  {
+   "platform": "x",
+   "handle": "KhAneeqIftikhar",
+   "supplied_url": "https://x.com/KhAneeqIftikhar",
+   "display_name": null,
+   "monitoring_purpose": "Pakistan policy, economic and political monitoring",
+   "category": "pakistan_policy_economy_politics",
+   "owner_group": "pakistan_policy_economy_politics",
+   "notes": "Added by owner (master programme instruction, 2026-11-08); identity to be verified"
+  },
+  {
+   "platform": "x",
+   "handle": "intelligent_pk",
+   "supplied_url": "https://x.com/intelligent_pk",
+   "display_name": null,
+   "monitoring_purpose": "Pakistan policy, economic and political monitoring",
+   "category": "pakistan_policy_economy_politics",
+   "owner_group": "pakistan_policy_economy_politics",
+   "notes": "Added by owner (master programme instruction, 2026-11-08); identity to be verified"
+  },
+  {
+   "platform": "x",
+   "handle": "SaudSami",
+   "supplied_url": "https://x.com/SaudSami",
+   "display_name": null,
+   "monitoring_purpose": "Pakistan policy, economic and political monitoring",
+   "category": "pakistan_policy_economy_politics",
+   "owner_group": "pakistan_policy_economy_politics",
+   "notes": "Added by owner (master programme instruction, 2026-11-08); identity to be verified"
+  },
+  {
+   "platform": "x",
+   "handle": "kschehzad",
+   "supplied_url": "https://x.com/kschehzad",
+   "display_name": null,
+   "monitoring_purpose": "Pakistan policy, economic and political monitoring",
+   "category": "pakistan_policy_economy_politics",
+   "owner_group": "pakistan_policy_economy_politics",
+   "notes": "Added by owner (master programme instruction, 2026-11-08); identity to be verified"
+  },
+  {
+   "platform": "x",
+   "handle": "Muhamma10420762",
+   "supplied_url": "https://x.com/Muhamma10420762",
+   "display_name": null,
+   "monitoring_purpose": "Pakistan policy, economic and political monitoring",
+   "category": "pakistan_policy_economy_politics",
+   "owner_group": "pakistan_policy_economy_politics",
+   "notes": "Added by owner (master programme instruction, 2026-11-08); identity to be verified"
+  },
+  {
+   "platform": "x",
+   "handle": "miandawoodadv",
+   "supplied_url": "https://x.com/miandawoodadv",
+   "display_name": null,
+   "monitoring_purpose": "Pakistan policy, economic and political monitoring",
+   "category": "pakistan_policy_economy_politics",
+   "owner_group": "pakistan_policy_economy_politics",
+   "notes": "Added by owner (master programme instruction, 2026-11-08); identity to be verified"
+  },
+  {
+   "platform": "x",
+   "handle": "toplinesec",
+   "supplied_url": "https://x.com/toplinesec",
+   "display_name": null,
+   "monitoring_purpose": "Pakistan policy, economic and political monitoring",
+   "category": "pakistan_policy_economy_politics",
+   "owner_group": "pakistan_policy_economy_politics",
+   "notes": "Added by owner (master programme instruction, 2026-11-08); identity to be verified"
+  },
+  {
+   "platform": "x",
+   "handle": "Nasir_dar101",
+   "supplied_url": "https://x.com/Nasir_dar101",
+   "display_name": null,
+   "monitoring_purpose": "Pakistan policy, economic and political monitoring",
+   "category": "pakistan_policy_economy_politics",
+   "owner_group": "pakistan_policy_economy_politics",
+   "notes": "Added by owner (master programme instruction, 2026-11-08); identity to be verified"
+  },
+  {
+   "platform": "x",
+   "handle": "awais_hameed",
+   "supplied_url": "https://x.com/awais_hameed",
+   "display_name": null,
+   "monitoring_purpose": "Pakistan policy, economic and political monitoring",
+   "category": "pakistan_policy_economy_politics",
+   "owner_group": "pakistan_policy_economy_politics",
+   "notes": "Added by owner (master programme instruction, 2026-11-08); identity to be verified"
+  },
+  {
+   "platform": "x",
+   "handle": "81ShahbazRana",
+   "supplied_url": "https://x.com/81ShahbazRana",
+   "display_name": null,
+   "monitoring_purpose": "Pakistan policy, economic and political monitoring",
+   "category": "pakistan_policy_economy_politics",
+   "owner_group": "pakistan_policy_economy_politics",
+   "notes": "Added by owner (master programme instruction, 2026-11-08); identity to be verified"
   }
  ]
 }
