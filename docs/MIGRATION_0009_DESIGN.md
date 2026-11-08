@@ -48,7 +48,8 @@ erDiagram
     impact_assessment_inputs }o--|| event_evidence : "claim"
     impact_assessment_inputs }o--|| financial_metrics : "sourced figure"
     impact_assessment_inputs }o--|| commodity_prices : "benchmark"
-    impact_expiry_policies ||--o{ impact_assessments : "policy version used"
+    impact_expiry_policy_versions ||--o{ impact_expiry_policy_events : "approved / retired"
+    impact_expiry_policy_versions ||--o{ impact_assessments : "policy version used"
     exposure_candidate_revisions ||--o{ impact_assessment_inputs : "exact revision"
     impact_assessment_inputs }o--|| source_items : "provenance"
 ```
@@ -61,7 +62,8 @@ erDiagram
 | `impact_transmission_steps` | table | ordered chain steps per revision |
 | `impact_scenarios` | table | base/optimistic/adverse framing per revision |
 | `impact_reviews` | table | human decisions; append-only |
-| `impact_expiry_policies` | table | versioned expiry policies (§8b); **empty until the owner approves one** |
+| `impact_expiry_policy_versions`, `impact_expiry_policy_events` | tables | immutable policy content and immutable lifecycle events (§8b); **empty** |
+| `impact_expiry_policies_current` | view | derived policy status (§8b) |
 | `impact_sector_aggregates_current` | view | computed sector aggregation (§4b) |
 | `impact_invalid_inputs` | view | inputs that are currently invalid |
 | `impact_assessments_current` | view | read model with `effective_status` and `data_label` |
@@ -108,7 +110,7 @@ Conventions follow 0002 and 0008:
 | `quantification_json` | TEXT NULL | formula id, inputs, unit, result, sensitivity; NOT NULL iff basis = `financially_quantified` |
 | `market_check` | TEXT NOT NULL | `CHECK (market_check = 'not_evaluable')` in 0009 |
 | `analysis_id` | INTEGER NULL FK `analyses(analysis_id)` | optional summary link |
-| `expiry_policy_version` | TEXT NULL FK `impact_expiry_policies(policy_version)` | NULL = no approved policy existed at assessment time (recorded, never assumed) |
+| `expiry_policy_version` | TEXT NULL FK `impact_expiry_policy_versions(policy_version)` | NULL = no approved policy existed at assessment time (recorded, never assumed) |
 | `freshness_basis` | TEXT NOT NULL | `explicit_source_expiry` · `policy_expiry` · `not_established` (§8b) |
 | `is_synthetic` | INTEGER NOT NULL | 0/1 |
 | `current_revision` | INTEGER NOT NULL ≥ 1 | |
@@ -206,23 +208,69 @@ a schema one.
 | `market_check = 'not_evaluable'` | CHECK |
 | No delete on any new table, nor on `analyses` | triggers |
 
-## 4b. Sector aggregation (computed view)
-`impact_sector_aggregates_current` is computed from `impact_assessments_current` joined to the
-current `company_classifications`. Nothing is stored and nothing duplicated.
+## 4b. Sector aggregation (computed view, with coverage safeguards)
+`impact_sector_aggregates_current` is computed from `impact_assessments_current`, the sector
+classifications and the company master. **No aggregate rows are stored.** Each company's evidence and
+assumptions stay on its own assessment. A materialised aggregate can be added later, in a separate
+migration with explicit input links, if performance requires it.
 
-| Output column | Rule |
+### Eligible companies (grounded in the existing schema)
+| Schema fact (0001) | Consequence |
+|---|---|
+| `company_classifications(company_id, sector_id, valid_from, valid_to)` with `ux_classification_current` UNIQUE on `company_id` WHERE `valid_to IS NULL` | A company has **at most one current** sector classification, and may have earlier, dated ones |
+| `companies.listing_status` (`listed`, `delisted`, `suspended`, `unknown`) is the **current** status only | Point-in-time listing must come from `company_status_history` (append-only, `effective_date`) |
+
+**Proposed definition** (needs owner confirmation, §16): the eligible set for (sector S, event E) is
+the companies whose classification row for S is valid at E's `event_date`
+(`valid_from IS NULL OR valid_from <= date`, and `valid_to IS NULL OR valid_to >= date`). When the event
+has no `event_date`, the current classification is used, and this is flagged in
+`eligibility_basis = 'current_classification'`.
+
+| Case | Handling | Policy decision needed? |
+|---|---|---|
+| Delisted company | Eligible only if it was listed at the event date (per `company_status_history`). Otherwise excluded, with reason `not_listed_at_event_date`. | Confirm |
+| Suspended company | Kept eligible; shown with reason `suspended_at_event_date` | **Yes**: include or exclude |
+| Listing status `unknown` | Kept eligible; flagged `listing_status_unknown` | **Yes** |
+| Company without a sector classification | Never in any sector's eligible set. Reported in a separate `unclassified_companies` count for the event, so it doesn't vanish | Confirm |
+| Several classifications over time | The one valid at the event date is used (point in time). Two current classifications are impossible (unique index). | No |
+| Classification valid at the event date but changed since | Event-date sector used; `eligibility_basis = 'event_date_classification'` | Confirm |
+
+### Output columns
+| Column | Meaning |
 |---|---|
 | `sector_id`, `event_id`, `mechanism_id`, `scenario_kind` | grouping keys |
-| `company_count`, `positive_n`, `negative_n`, `mixed_n`, `neutral_n`, `unknown_n` | counts of company assessments by effective direction |
-| `sector_direction` | `positive` / `negative` only if **every** included company is that sign with valid inputs; `neutral` if all neutral; `unknown` if any company is unknown and the rest agree; otherwise `mixed`. Unknowns are never converted into a sign. |
-| `component_assessment_ids` | JSON list of the company assessments used (traceability) |
-| `excluded_company_ids` | companies in the sector **without** a company assessment. Sector membership never creates exposure. |
-| `is_synthetic` | MAX over components. `data_label = 'SYNTHETIC TEST DATA'` if any component is synthetic |
-| `effective_status_floor` | the weakest effective status among components |
+| `eligible_n` | companies eligible per the definition above |
+| `assessed_valid_n` | eligible companies with a current assessment whose `effective_status` is valid (not `needs_revalidation`, `needs_review` or terminal) |
+| `assessed_review_n` | eligible companies whose assessment is `needs_review` or `needs_revalidation` |
+| `assessed_terminal_n` | eligible companies whose assessment is withdrawn or rejected |
+| `unassessed_n` | eligible companies with no assessment for this event and mechanism |
+| `coverage_pct` | `assessed_valid_n / eligible_n` × 100 (NULL when `eligible_n = 0`); descriptive only, **no minimum threshold** |
+| `completeness` | `complete` only when `assessed_valid_n = eligible_n` and `eligible_n > 0`; otherwise `partial` |
+| `direction_among_assessed` | the rule below, applied **only to valid assessments** |
+| `sector_conclusion` | equals `direction_among_assessed` only when `completeness = 'complete'`; otherwise `not_concluded_partial_coverage` |
+| `positive_n`, `negative_n`, `mixed_n`, `neutral_n`, `unknown_n` | counts among valid assessments |
+| `included_json` | `[{company_id, assessment_id, effective_status, direction}]` |
+| `excluded_json` | `[{company_id, reason}]`; reasons: `no_assessment`, `assessment_needs_review`, `assessment_needs_revalidation`, `assessment_withdrawn`, `assessment_rejected`, `not_listed_at_event_date`, `suspended_at_event_date`, `listing_status_unknown` |
+| `is_synthetic`, `data_label` | `MAX(is_synthetic)` over included **and** excluded assessments; `SYNTHETIC TEST DATA` if any is synthetic |
+| `eligibility_basis` | `event_date_classification` or `current_classification` |
 
-The view stores no assumptions. Each company's evidence and assumptions stay on its own assessment.
-A materialised aggregate can be added later (a separate migration) with explicit input links, if
-performance requires it.
+### Rules
+1. `direction_among_assessed`:
+   - `positive` or `negative` only if every valid assessment has that sign;
+   - `neutral` if all are neutral;
+   - `unknown` if any is unknown and the rest agree;
+   - otherwise `mixed`.
+
+   Unknowns are never turned into a sign, and disagreement stays `mixed`.
+2. **A unanimous subset is not a sector conclusion.** With `partial` coverage the view reports
+   `sector_conclusion = 'not_concluded_partial_coverage'`, and consumers must display it as a partial
+   result.
+3. Unassessed and invalid companies always appear in `excluded_json` and in the counts. They are never
+   dropped.
+4. Missing assessments are **never** fabricated or inferred from sector membership.
+5. Synthetic and real data are distinguishable at row level. Tests also assert that a sector aggregate
+   over real companies never includes a synthetic assessment, because the input trigger prevents
+   mixing at company level.
 
 ## 5. Lifecycle, statuses and reason codes
 **Naming convention:** snake_case, following the Phase 4 `evidence_status` style. The terminal
@@ -380,30 +428,86 @@ a disposable Turso database (gate 3).
 - **Expiry** uses the contract §3 freshness rule, implemented in the engine with a versioned freshness
   policy. The view can't evaluate "now" reliably across engines, which is an open question (§16).
 
-## 8b. Versioned expiry policy (mechanism only; no durations chosen)
-- **`impact_expiry_policies`:**
-  - columns: `policy_version` TEXT PK; `effective_from_utc` NOT NULL; `approved_by` NOT NULL;
-    `approved_at_utc` NOT NULL; `rules_json` NOT NULL (per exposure kind or input kind: a duration, or
-    `none`); `status` (`draft` · `approved` · `retired`);
-  - append-only: a new version supersedes, never edits.
-- **Shipped empty.** 0009 inserts **no** policy rows. With no approved policy:
-  - **no policy-derived expiry ever happens**, so evidence is never silently expired;
-  - only **explicit source expiry** can expire an input. That means a dated validity in the evidence
-    itself: `valid_to` on `company_exposures`, `company_relationships`, `company_identifiers` or
-    `company_aliases`, or the source's own stated validity.
-- **Freshness basis per assessment:**
+## 8b. Versioned expiry policy (mechanism only; no durations; nothing approved)
+The lifecycle is made immutable by separating **policy content** from **lifecycle events**. Neither is
+ever updated or deleted.
 
-  | `freshness_basis` | When |
-  |---|---|
-  | `explicit_source_expiry` | the input carries its own validity end date |
-  | `policy_expiry` | an approved policy is in effect at assessment time; `expiry_policy_version` recorded |
-  | `not_established` | neither applies; the assessment can be at most `needs_review` (reason `freshness_not_established`), never `confirmed_conclusion` |
+**`impact_expiry_policy_versions`** (immutable content):
 
-- **Recorded per assessment:** the policy version in effect (or NULL) is stored on every assessment and
-  copied into every revision snapshot. A later policy never rewrites earlier assessments; it triggers
-  a revalidation pass that writes new revisions.
-- **`evidence_expired`:** this reason requires an explicit source expiry or an approved policy version
-  (§4 constraint).
+| Column | Rule |
+|---|---|
+| `policy_version` | TEXT PK (for example `expiry/1`) |
+| `rules_json` | NOT NULL; per exposure or input kind: a duration, or `none` (`json_valid`) |
+| `rationale` | NOT NULL; the calibration rationale |
+| `drafted_by`, `drafted_at_utc` | NOT NULL |
+| `supersedes_version` | NULL or FK to the previous version |
+
+Guards: no UPDATE, no DELETE. Changing the content means a new version.
+
+**`impact_expiry_policy_events`** (immutable lifecycle):
+
+| Column | Rule |
+|---|---|
+| `policy_event_id` | INTEGER PK |
+| `policy_version` | FK |
+| `event_type` | `approved` · `retired` |
+| `actor` | NOT NULL; the human approver or retirer |
+| `effective_from_utc` | required for `approved`; when the policy starts to apply |
+| `effective_to_utc` | required for `retired`; when it stops applying (≥ its approval's `effective_from_utc`) |
+| `recorded_at_utc` | NOT NULL |
+| `notes` | NOT NULL |
+
+Guards:
+- no UPDATE and no DELETE;
+- at most one `approved` and one `retired` event per version;
+- a version can't be retired before it is approved;
+- `effective_to_utc` must not precede `effective_from_utc`.
+
+**Derived status (view `impact_expiry_policies_current`):**
+
+| Status | When |
+|---|---|
+| `draft` | no lifecycle events |
+| `approved` | an `approved` event and no `retired` event |
+| `retired` | both events exist |
+
+The status is **computed, never stored**, which removes the conflict between "append-only" and
+"statuses".
+
+**No overlapping effective periods** (database-enforced at approval time):
+- An `approved` insert is refused if its effective period would overlap the open or closed period of
+  any other approved version.
+- An open-ended version (not yet retired) blocks any new approval with a later `effective_from_utc`
+  until it is retired with an `effective_to_utc` no later than the new `effective_from_utc`.
+- Concurrent approvals are prevented by serialisation. SQLite and Turso serialise writes, so two
+  approvals can't both pass the overlap check. The check runs inside the insert trigger of the same
+  transaction.
+- If the guard misbehaves on a Turso server, a detection query (overlap self-join) is run by the test
+  suite and by the health report.
+
+**Selection for new assessments:**
+- The engine uses the single version whose effective period contains the assessment time.
+- Retired versions are kept for interpreting history but are never selected for new assessments.
+- If no version is in effect, `expiry_policy_version = NULL` and `freshness_basis` is
+  `explicit_source_expiry` or `not_established`.
+
+**Shipped empty.** 0009 inserts **no** policy versions and **no** lifecycle events. Approval requires a
+separate, explicit owner decision recorded as an `approved` event. No policy activates automatically.
+
+**Freshness basis per assessment:**
+
+| `freshness_basis` | When |
+|---|---|
+| `explicit_source_expiry` | the input carries its own validity end date (`valid_to` on `company_exposures`, `company_relationships`, `company_identifiers`, `company_aliases`, or the source's stated validity) |
+| `policy_expiry` | an approved version is in effect at assessment time; `expiry_policy_version` recorded |
+| `not_established` | neither applies; the assessment can be at most `needs_review` (reason `freshness_not_established`), never `confirmed_conclusion` |
+
+**Recorded per assessment:**
+- The exact version used (or NULL) is stored on every assessment and copied into every revision
+  snapshot.
+- A later version never rewrites earlier assessments; it triggers a revalidation pass that writes new
+  revisions.
+- `evidence_expired` requires an explicit source expiry, or an approved version in effect (§4).
 
 ## 9. Synthetic-data isolation
 - `is_synthetic` on assessments. An input trigger refuses linking a synthetic source item, a synthetic
@@ -509,8 +613,17 @@ a disposable Turso database (gate 3).
     review. With an explicit `valid_to`, the input expires with `evidence_expired`. A test policy must
     be labelled `TEST PARAMETER`.
   - **Reinstatement:** it is refused without an `accept` review for previously confirmed chains.
-  - **Sector view:** unknowns stay unknown; a single opposite sign gives `mixed`; companies without an
-    assessment are listed as excluded, not counted.
+  - **Sector view:**
+    - unknowns stay unknown, and a single opposite sign gives `mixed`;
+    - partial coverage reports `not_concluded_partial_coverage` even when the assessed subset is
+      unanimous;
+    - every eligible company appears in the included or excluded list with a reason;
+    - delisted, unclassified and suspended companies are handled per §4b.
+  - **Expiry lifecycle:**
+    - versions and events can't be updated or deleted;
+    - an overlapping approval is refused;
+    - a retired version is not selected;
+    - with no versions present, nothing expires by policy.
   - **Composite FK:** the exposure candidate revision must exist.
   - **Synthetic isolation:** S19–S21, plus the `cmp-syn-*` guard.
   - **Compatibility:** SQLite 3.47.0 and libSQL engine runs, and later a disposable Turso run.
@@ -533,10 +646,14 @@ a disposable Turso database (gate 3).
 **Remaining:**
 1. The content of the first expiry policy: durations per exposure kind. It needs owner approval and a
    calibration rationale.
-2. The authorised retention-deletion procedure (§9b), when the first obligation arises.
-3. Whether to add hash-chained audit export (§9c).
-4. Composite-FK and cascade behaviour on a Turso server, through Hrana (gate 3).
-5. **Gate 1:** owner approves this design.
-6. **Gate 2:** the 0009 SQL is written and tested locally and in CI (synthetic).
-7. **Gate 3:** disposable-Turso verification of 0006–0009.
-8. **Gate 4:** owner approval for production.
+2. **Sector eligibility policy (§4b):**
+   - whether suspended and `unknown`-status companies are eligible;
+   - confirmation of the event-date classification rule and of the delisting rule;
+   - how unclassified companies are reported.
+3. The authorised retention-deletion procedure (§9b), when the first obligation arises.
+4. Whether to add hash-chained audit export (§9c).
+5. Composite-FK and cascade behaviour on a Turso server, through Hrana (gate 3).
+6. **Gate 1:** owner approves this design.
+7. **Gate 2:** the 0009 SQL is written and tested locally and in CI (synthetic).
+8. **Gate 3:** disposable-Turso verification of 0006–0009.
+9. **Gate 4:** owner approval for production.
