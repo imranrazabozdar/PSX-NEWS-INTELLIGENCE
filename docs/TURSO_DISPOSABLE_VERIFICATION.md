@@ -80,13 +80,17 @@ disposable database afterwards and revoke its token.
 - **Coverage:** they pass on SQLite 3.53.1 and 3.47.0. On Turso the same rules are checked against the
   real server clock, as above.
 
-## Production integration test: explicit DDL opt-in
-`tests/test_turso_integration.py` can verify pending migrations inside a batch that is always rolled
-back. Since the PR #21 remediation, it does so **only** when
-`PSXNI_TURSO_ALLOW_PENDING_MIGRATION_DDL=yes-execute-migration-ddl` is also set. A configured
-`PSXNI_TURSO_DATABASE_URL` alone skips that step.
-- **Risk:** even rolled back, migration DDL executes against whatever database the URL names.
-- **Rule:** CI never sets the opt-in, and it must never be set for production.
+## Integration tests: dedicated test database only
+- **Credentials:** `tests/test_turso_integration.py` connects only with the dedicated
+  `PSXNI_TEST_TURSO_DATABASE_URL` and `PSXNI_TEST_TURSO_AUTH_TOKEN`. It never falls back to the production
+  `PSXNI_TURSO_*` variables, and CI never passes those to tests.
+- **Gate:** `integration_config_status` fails closed on the production host
+  (`psx-news-intelligence-imranrazabozdar.aws-us-east-1.turso.io`) before any connection is made.
+- **No credentials:** the tests are skipped.
+- **Expected test database:** migrations applied and this repository's seed loaded. The reference-data
+  assertions are derived from the seed files.
+- **Pending-migration DDL:** runs only against that test database, inside a rolled-back batch, and only with
+  `PSXNI_TURSO_ALLOW_PENDING_MIGRATION_DDL=yes-execute-migration-ddl`. CI never sets that variable.
 
 ## Already verified locally (not Turso)
 - SQLite 3.53.1 (stdlib): full suite, including the two-connection approval race.
