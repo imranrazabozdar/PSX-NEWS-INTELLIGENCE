@@ -101,7 +101,12 @@ def test_markdown_export_has_all_sections_timestamp_and_no_advice(db):
     for n in range(1, 13):
         assert f"## {n}." in md
     assert "Data as of" in md and "no buy/sell recommendation" in md and "not forecasts" in md
-    assert research.NOT_ASSESSED in md and "https://www.dawn.com/" in md
+    assert research.NOT_ASSESSED in md
+    import re
+    from urllib.parse import urlparse
+
+    hosts = {urlparse(u).hostname for u in re.findall(r"https://[^\s|)]+", md)}
+    assert hosts == {"www.dawn.com"}  # source references are present and point at the stored publisher
 
 
 def test_sector_report_shows_differing_impacts_and_never_sector_proof(db):
