@@ -25,7 +25,7 @@ exposure (Phase 4) and impact (Phase 5 / 0009) substrate. No new migration is ne
 
 | # | Component | Status |
 |---|---|---|
-| 1 | Headline event builder | **NEXT** (awaiting authorisation) |
+| 1 | Headline event builder (`engines/headline_events.py`) | TESTED offline (local / CI only); not run in production |
 | 2 | Rule classification + status stage | NOT STARTED |
 | 3 | Company / entity mapping | NOT STARTED |
 | 4 | Corroboration / verification state | NOT STARTED |
