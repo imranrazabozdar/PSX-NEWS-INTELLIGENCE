@@ -319,3 +319,27 @@ def test_history_no_longer_available_is_not_a_collection_failure(db):
 
     run = _collect(db, Expired(), ["SYN", "OLD"])
     assert run.status == "succeeded" and not run.errors and _bars(db) == 60
+
+
+def test_claim_fails_closed_if_another_live_lease_appears_in_the_same_window(db):
+    """Ownership is read back by claim token; if two live leases are ever seen, nobody writes."""
+    real_batch = db.batch
+
+    def racing_batch(statements, **kw):
+        statements = list(statements)
+        if any("INSERT INTO collector_runs" in sql for sql, _ in statements):
+            i = next(n for n, (sql, _) in enumerate(statements) if "INSERT INTO collector_runs" in sql)
+            statements.insert(i + 1, ("INSERT INTO collector_runs(job, source_id, started_at_utc, status, "
+                                      "quota_usage_json) VALUES ('market_ohlcv', ?, ?, 'running', "
+                                      "'{\"context\": {}, \"claim\": \"other\"}')", (SRC, _ago(0))))
+            out = real_batch(statements, **kw)
+            return out[: i + 1] + out[i + 2:]
+        return real_batch(statements, **kw)
+
+    db.batch = racing_batch
+    with pytest.raises(CollectionBusy):
+        _collect(db, Provider(n=10), ["SYN"])
+    db.batch = real_batch
+    statuses = sorted(r["status"] for r in _runs(db))
+    assert statuses == ["failed", "running"] and _bars(db) == 0  # ours released, the other untouched
+    assert "lease conflict" in next(r["errors"] for r in _runs(db) if r["status"] == "failed")

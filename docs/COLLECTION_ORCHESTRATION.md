@@ -83,24 +83,37 @@ trigger (GitHub cron fallback | external workflow_dispatch | manual)
 ## 5. Production run 11: owner-approved cleanup procedure (NOT executed)
 
 Run 11 (`market_ohlcv`, started 2026-11-08 12:40 UTC) is still `running` because it predates PR #25.
-Deploying this code does **not** change it. Proposed one-row correction, to be run only with explicit
-owner approval, after a fresh backup / point-in-time marker:
+Deploying the orchestration code does **not** change it: it has no run context, so automatic recovery
+skips it. It is reported as `legacy_stale_runs_needing_owner_cleanup`, and it neither blocks the lease nor
+counts toward the daily cap or backoff. Correcting it is a separate production write that needs explicit
+owner approval.
 
-```sql
--- 1. confirm the target (expect exactly one row: run 11, status running, finished_at NULL)
-SELECT run_id, job, status, started_at_utc, finished_at_utc, items_fetched, items_accepted
-FROM collector_runs WHERE run_id = 11 AND job = 'market_ohlcv' AND status = 'running';
--- 2. correct it in one transaction; started_at, counts and existing errors are preserved;
---    finished_at stays NULL because the true end time is unknown
-UPDATE collector_runs
-SET status = 'failed',
-    errors = substr(COALESCE(errors || char(10), '') ||
-             'owner-approved correction: abandoned before PR #25; true end time unknown', 1, 2000)
-WHERE run_id = 11 AND job = 'market_ohlcv' AND status = 'running' AND finished_at_utc IS NULL;
--- 3. verify: changes() = 1, and the run's 1,692 bars are untouched
-SELECT changes() AS n;
-SELECT COUNT(*) FROM market_bars WHERE collection_run_id = 11;
-```
+1. **Backup first (required).** Take a fresh `/dump` backup and record its SHA-256 and the point-in-time
+   restore marker, as for `psxni-prod-backup-20261108T105245Z.sql`. Without it, stop.
+2. **Read-only precondition.** Expect exactly one row, with `status = 'running'` and
+   `finished_at_utc IS NULL`. Record `started_at_utc`, the counts and the bar count:
+   ```sql
+   SELECT run_id, job, source_id, status, started_at_utc, finished_at_utc, items_fetched,
+          items_accepted, items_rejected, http_requests, errors, quota_usage_json
+   FROM collector_runs WHERE run_id = 11;
+   SELECT COUNT(*) AS bars FROM market_bars WHERE collection_run_id = 11;   -- expect 1692
+   ```
+3. **One-row update, guarded by its current state, in one transaction:**
+   ```sql
+   UPDATE collector_runs
+   SET status = 'failed',
+       errors = substr(COALESCE(errors || char(10), '') ||
+                'owner-approved correction: abandoned before PR #25; true end time unknown', 1, 2000)
+   WHERE run_id = 11 AND job = 'market_ohlcv' AND status = 'running' AND finished_at_utc IS NULL
+     AND quota_usage_json IS NULL;
+   SELECT changes() AS n;   -- must be 1; if 0, nothing matched: stop and investigate
+   ```
+   `finished_at_utc` stays NULL because the true end time is unknown. `started_at_utc`, the counts and
+   `quota_usage_json` are not touched. Market bars cannot be touched: they are append-only, guarded by
+   triggers.
+4. **Verify (read-only):** run 11 has `status = 'failed'`, `finished_at_utc` NULL, and the same start time
+   and counts as recorded in step 2; 1,692 bars are still linked to run 11; no other `collector_runs` row
+   changed (compare `COUNT(*)` and `MAX(run_id)` before and after).
 
 ## 6. Known limitations
 * The lease, fencing and `changes()` behaviour are verified on local SQLite (including two simultaneous
