@@ -36,14 +36,36 @@ exposure (Phase 4) and impact (Phase 5 / 0009) substrate. No new migration is ne
 | 9 | Production activation (prepared: `engines/intel_pipeline.py`, `docs/INTELLIGENCE_ACTIVATION.md`) | BLOCKED (owner approval) |
 | 10 | Validation and calibration framework (human labels) | TESTED offline; no labels yet, so no scores |
 
-## Future stages (spec §14, unchanged)
+## Master programme (DESIGN, not implemented)
+The complete target system and its single programme are defined in `MASTER_ARCHITECTURE.md` and
+`MASTER_IMPLEMENTATION_PLAN.md`, with `MASTER_DATA_SOURCE_REGISTER.md`, `MASTER_DATABASE_DESIGN.md`,
+`MASTER_VALIDATION_STRATEGY.md` and `MASTER_SECURITY_AND_OPERATIONS.md`.
+
+| Milestone | Scope | Status |
+|---|---|---|
+| M0 | Stage 1/2 operational acceptance (owner actions) | IN PROGRESS (evidence pending) |
+| M1 | Source access and company universe | NOT STARTED |
+| M2 | Financial document acquisition and extraction | NOT STARTED |
+| M3 | Fundamentals | NOT STARTED |
+| M4 | Market intelligence | NOT STARTED |
+| M5 | Valuation | NOT STARTED |
+| M6 | Macro and commodity series | NOT STARTED |
+| M7 | Labels, validation and backtesting | NOT STARTED (harness exists) |
+| M8 | Portfolio and theses | NOT STARTED |
+| M9 | Integrated reports | NOT STARTED |
+| M10 | Production activation per module | NOT STARTED |
+
+Critical path: M1 → M2 → M3 → M5. Owner decisions U1–U11 are listed in `MASTER_ARCHITECTURE.md` §9.
+
+## Future stages (spec §14; now mapped into the master programme)
 * Corporate / policy / government modules.
 * Commodities and sector risk.
 * Institutional research.
 * YouTube / X (needs authorised access).
 * Valuation and scenarios.
-* Event investigator with optional technical context: read-only market data, no indicators copied from the
-  technical project.
+* Event investigator with optional market context drawn exclusively from market data independently collected
+  and stored within PSX News Intelligence. No data, indicators, code or other material is imported from or
+  exchanged with the separate technical-analysis project.
 * Backtesting and alerts.
 
 ## Key architectural decisions
@@ -60,5 +82,6 @@ exposure (Phase 4) and impact (Phase 5 / 0009) substrate. No new migration is ne
 * The GitHub cron is unreliable until the external dispatcher is live.
 
 ## Next approved task
-Owner decision on production activation of the intelligence pipeline (`docs/INTELLIGENCE_ACTIVATION.md`)
-and on labelling a validation sample (`data/validation/labels.json`).
+None approved. Proposed next: owner review of the master programme, decisions U1–U4, and approval of M1
+(source access and universe). In parallel: the M0 evidence, an optional intelligence activation
+(`docs/INTELLIGENCE_ACTIVATION.md`) and labelling (`data/validation/labels.json`).
