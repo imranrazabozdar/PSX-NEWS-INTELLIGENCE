@@ -1,6 +1,6 @@
 # ADR-0001: Permanent independence from the existing technical engine
 
-* **Status:** Accepted (permanent architectural requirement)
+* **Status:** Accepted (permanent architectural requirement); amended 2026-11-08 to record one expired, one-time audit exception
 * **Date:** 2026-11-07
 * **Spec reference:** Master Implementation Specification v2.0, sections 1.2, 1.3, 3.18, 14 (Phase 0) and 20
 
@@ -34,6 +34,36 @@ technical engine. That covers:
 **Integration is out of scope by default.** It may be considered only if the owner
 explicitly authorises a specific integration later. That would require a new ADR that
 supersedes the relevant parts of this one.
+
+## Recorded exception: one-time read-only audit (2026-11-08, expired)
+
+The rule above was not changed. This section records the only exception to it so far.
+
+* **What:** a single read-only inspection of the technical engine's local checkout
+  (`/home/user/PSX-INTELLIGENCE-NEW-2026`, repository `imranrazabozdar/psx-intelligence-new-2026`)
+  at commit `850aef5`.
+* **Authorised by:** the owner, explicitly and for this one inspection only, on 2026-11-08.
+* **Purpose:** to find out how the technical engine obtains data without paid subscriptions,
+  and whether any of those methods could be implemented **independently and lawfully** in this
+  project. The findings were reported to the owner in that session; nothing was recorded in
+  this repository.
+* **Restrictions observed:**
+  * no files were modified and no code was copied or adapted;
+  * no scripts, collectors or workflows were run, and no network requests were made;
+  * no credentials were accessed: only the names of the GitHub secrets were noted, never their values;
+  * no runtime, build or data dependency between the projects was created.
+* **Status: expired.** The exception covered that single inspection only. It grants no
+  continuing access and is not a precedent. Any future inspection of the technical engine
+  needs fresh, explicit, task-specific authorisation from the owner, recorded the same way
+  here.
+* **Unchanged:** every rule in the Decision table still applies in full. That includes no
+  shared code, databases, credentials, workflows, deployments or data exchange; no copying or
+  adapting of the technical engine's implementation; and no access to its repository or files
+  without that fresh authorisation.
+
+  The audit itself also ruled out reproducing the technical engine's methods that rely on
+  scraping, undocumented endpoints, spoofed browser headers or bypassing access controls. No
+  data source may be activated here without documented permission and the owner's approval.
 
 ## Enforcement
 
@@ -79,4 +109,5 @@ check script. That forces a deliberate review of each one.
 * Credentials and quotas (Turso, LLM, YouTube, X) are paid for and tracked separately.
 * A failure, outage or schema change in either project can't affect the other.
 * Contributors, including AI coding agents, must not open the technical engine's repository
-  for this project's work. `CLAUDE.md` repeats this rule for Claude Code sessions.
+  for this project's work. The only exception so far is the expired one-time audit recorded
+  above; any further access needs new explicit owner authorisation. `CLAUDE.md` repeats this rule for Claude Code sessions.
