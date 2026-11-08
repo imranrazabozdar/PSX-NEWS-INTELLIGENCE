@@ -310,3 +310,18 @@ def test_operations_data_from_a_real_run(db):  # noqa: F811
     assert later["external"]["status"].startswith("overdue")
     prog = {(p["symbol"], p["timeframe"]): p for p in ops.backfill_progress(db, ["SYN"], now, SRC)}
     assert prog[("SYN", "1d")]["covered_pct"] == 0.0 and prog[("SYN", "1m")]["covered_pct"] > 0
+
+
+def test_gap_planning_failure_never_blocks_normal_collection(db, monkeypatch):  # noqa: F811
+    from collectors import market_orchestrator as mo
+    from database.connection import DatabaseError
+    from tests.test_market_orchestration import _orch
+
+    def broken(*a, **k):
+        raise DatabaseError("simulated read failure while planning gaps")
+
+    monkeypatch.setattr(mo, "plan_gaps", broken)
+    out = _orch(db, Provider(n=30))
+    p = out["passes"][0]
+    assert p["status"] == "succeeded" and p["context"]["gaps_planned"] == 0
+    assert "simulated" in p["context"]["gap_planning_error"]

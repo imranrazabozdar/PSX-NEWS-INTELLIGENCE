@@ -37,7 +37,7 @@ from collectors.market_ohlcv import (
     CollectionBusy,
     collect_market,
 )
-from database.connection import Database
+from database.connection import Database, DatabaseError
 
 DEFAULT_MAX_PASSES = 3
 MAX_GAP_FETCHES = 5  # extra provider requests per invocation for recoverable gaps
@@ -248,8 +248,13 @@ def orchestrate(
             ctx = {**(context or {}), "pass": i + 1, "reason": d.reason}
             gaps = []
             if i == 0 and collect_kwargs.get("symbols") and collect_kwargs.get("timeframes"):
-                gaps = plan_gaps(db, now, collect_kwargs["symbols"], collect_kwargs["timeframes"], source_id)
-                ctx["gaps_planned"] = len(gaps)
+                try:  # gap planning is an optimisation: its failure must never block normal collection
+                    syms, tfs = collect_kwargs["symbols"], collect_kwargs["timeframes"]
+                    gaps = plan_gaps(db, now, syms, tfs, source_id)
+                    ctx["gaps_planned"] = len(gaps)
+                except (DatabaseError, ValueError) as exc:
+                    ctx["gaps_planned"] = 0
+                    ctx["gap_planning_error"] = str(exc)[:200]
             try:
                 run = collect_market(
                     db, source_id=source_id, context=ctx, lease_minutes=limits.lease_minutes,
