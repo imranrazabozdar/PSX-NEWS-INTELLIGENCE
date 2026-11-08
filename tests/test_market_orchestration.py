@@ -83,6 +83,12 @@ def _ago(minutes):
     return (NOW - timedelta(minutes=minutes)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def _collect(db, provider, symbols, timeframes=("1m",)):
+    return collect_market(db, source_id=SRC, symbols=list(symbols), timeframes=list(timeframes), now=NOW,
+                          pause_seconds=0,
+                          client=HttpClient(transport=provider, sleep=lambda s: None, respect_robots=False))
+
+
 def _runs(db):
     return db.execute("SELECT run_id, status, errors, quota_usage_json FROM collector_runs ORDER BY run_id")
 
@@ -123,7 +129,9 @@ def test_budget_stop_continues_automatically_and_stops_when_done(db):
 def test_continuation_is_bounded_by_max_passes_and_daily_cap(db):
     out = _orch(db, Provider(n=5000), limits=Limits(max_passes=2))
     assert len(out["passes"]) == 2 and out["stop_reason"] == "max passes reached"
-    out = _orch(db, Provider(n=5000), limits=Limits(max_passes=3, max_runs_per_day=3))
+    # a separate execution with a different trigger origin cannot reset the cap (counted from the database)
+    out = _orch(db, Provider(n=5000), limits=Limits(max_passes=3, max_runs_per_day=3),
+                context={"trigger": "external", "github_run_id": 2})
     assert len(out["passes"]) == 1 and out["stop_reason"].startswith("daily run cap reached (3/3)")
     assert len(_runs(db)) == 3
 
@@ -157,15 +165,23 @@ def test_a_live_lease_blocks_a_second_writer(db):
                        client=HttpClient(transport=Provider(), sleep=lambda s: None, respect_robots=False))
 
 
+CTX = '{"context": {"trigger": "schedule"}}'
+
+
+def _running(db, minutes_ago, *, job="market_ohlcv", meta=CTX):
+    db.execute("INSERT INTO collector_runs(job, source_id, started_at_utc, status, items_fetched, "
+               "quota_usage_json) VALUES (?, ?, ?, 'running', 7, ?)", (job, SRC, _ago(minutes_ago), meta))
+
+
 def test_abandoned_run_is_finalised_as_failed_then_work_resumes(db):
-    db.execute("INSERT INTO collector_runs(job, source_id, started_at_utc, status) "
-               "VALUES ('market_ohlcv', ?, ?, 'running')", (SRC, _ago(120)))
-    db.execute("INSERT INTO collector_runs(job, source_id, started_at_utc, status) "  # other jobs untouched
-               "VALUES ('news', ?, ?, 'running')", (SRC, _ago(120)))
+    _running(db, 120)
+    _running(db, 120, job="news")  # other jobs untouched
     out = _orch(db, Provider(n=100))
     runs = _runs(db)
     assert out["recovered_abandoned_runs"] == 1 and runs[0]["status"] == "failed"
     assert "abandoned" in runs[0]["errors"] and runs[1]["status"] == "running"
+    old = db.execute("SELECT started_at_utc, items_fetched FROM collector_runs WHERE run_id = 1")[0]
+    assert old["started_at_utc"] == _ago(120) and old["items_fetched"] == 7  # original metadata kept
     assert runs[2]["status"] == "succeeded" and _bars(db) == 100
     assert recover_abandoned(db, NOW, 30, SRC) == 0  # idempotent
 
@@ -209,3 +225,91 @@ def test_limits_are_clamped_and_the_budget_is_not_configurable_here():
                            "PSXNI_MARKET_LEASE_MINUTES": "1"})
     assert (lim.max_passes, lim.max_runs_per_day, lim.lease_minutes) == (6, 1, 25)
     assert "rows" not in " ".join(vars(lim))
+
+
+def test_legacy_stale_run_is_reported_but_never_changed_or_counted(db):
+    _running(db, 3000, meta=None)  # like production run 11: pre-orchestration, no run context
+    db.execute("UPDATE collector_runs SET started_at_utc = '2026-11-01T12:40:00Z' WHERE run_id = 1")
+    out = _orch(db, Provider(n=50), limits=Limits(max_runs_per_day=1))
+    first = db.execute("SELECT status, finished_at_utc, errors FROM collector_runs WHERE run_id = 1")[0]
+    assert first == {"status": "running", "finished_at_utc": None, "errors": None}
+    assert out["legacy_stale_runs_needing_owner_cleanup"] == [1] and out["recovered_abandoned_runs"] == 0
+    assert len(out["passes"]) == 1 and _bars(db) == 50  # neither blocking nor counted in today's cap
+
+
+def test_taken_over_run_cannot_write_or_overwrite_the_recovery(db):
+    class TakeOver(Provider):
+        def __call__(self, url, headers, timeout):
+            if "symbol=B" in url:  # another process recovers this run's lease mid-run
+                db.execute("UPDATE collector_runs SET status = 'failed', errors = 'abandoned' "
+                           "WHERE status = 'running'")
+            return super().__call__(url, headers, timeout)
+
+    run = _collect(db, TakeOver(n=20), ["A", "B"])
+    assert run.status == "failed" and run.finalized is False and "no longer holds the lease" in run.errors[-1]
+    per_symbol = db.execute("SELECT symbol, COUNT(*) AS n FROM market_bars GROUP BY symbol")
+    assert per_symbol == [{"symbol": "A", "n": 20}]
+    row = db.execute("SELECT status, errors, finished_at_utc FROM collector_runs")[0]
+    assert row == {"status": "failed", "errors": "abandoned", "finished_at_utc": None}  # not overwritten
+
+
+def test_simultaneous_claims_admit_exactly_one_writer(tmp_path):
+    import threading
+
+    from database.connection import SQLiteDatabase
+
+    path = str(tmp_path / "lease.db")
+    setup = SQLiteDatabase(path)
+    migrate(setup)
+    setup.execute(
+        "INSERT INTO sources(source_id, name, source_type, is_synthetic, created_at_utc, updated_at_utc, "
+        "feed_url, adapter, access_method, access_status, terms_status, enabled, lifecycle_status) "
+        "VALUES (?,'SYNTHETIC','data_provider',1,?,?,'https://chart.example.invalid','udf_ohlcv',"
+        "'authorised_provider','verified_permitted','approved',1,'ACTIVE')", (SRC, _ago(0), _ago(0)))
+    setup.close()
+    barrier, results = threading.Barrier(2), []
+
+    def attempt():
+        d = SQLiteDatabase(path)
+        barrier.wait()
+        try:
+            collect_market(d, source_id=SRC, symbols=["SYN"], timeframes=["1m"], now=NOW, pause_seconds=0,
+                           client=HttpClient(transport=Provider(n=10), sleep=lambda s: None,
+                                             respect_robots=False))
+            results.append("owner")
+        except CollectionBusy:
+            results.append("busy")
+        finally:
+            d.close()
+
+    threads = [threading.Thread(target=attempt) for _ in range(2)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    check = SQLiteDatabase(path)
+    assert sorted(results) == ["busy", "owner"]
+    assert check.execute("SELECT COUNT(*) AS n FROM collector_runs")[0]["n"] == 1
+    assert check.execute("SELECT COUNT(*) AS n FROM market_bars")[0]["n"] == 10  # the loser wrote nothing
+    check.close()
+
+
+# ------------------------------------------------------------------ 1-minute history protection
+def test_all_five_symbols_get_1m_before_any_deeper_timeframe(db, monkeypatch):
+    monkeypatch.delenv("PSXNI_MARKET_TIMEFRAME_PRIORITY", raising=False)
+    p = Provider(n=10)
+    syms = ["OGDC", "HBL", "LUCK", "ENGROH", "PSO"]
+    _collect(db, p, syms, ["1d", "4h", "1h", "1m"])
+    res = [parse_qs(urlparse(u).query)["resolution"][0] for u in p.urls]
+    sym = [parse_qs(urlparse(u).query)["symbol"][0] for u in p.urls]
+    assert res == ["1"] * 5 + ["60"] * 5 + ["240"] * 5 + ["D"] * 5 and sym[:5] == syms
+
+
+def test_history_no_longer_available_is_not_a_collection_failure(db):
+    class Expired(Provider):  # provider retains only the most recent 30 minutes
+        def __call__(self, url, headers, timeout):
+            self.n = 30
+            return super().__call__(url, headers, timeout)
+
+    run = _collect(db, Expired(), ["SYN", "OLD"])
+    assert run.status == "succeeded" and not run.errors and _bars(db) == 60

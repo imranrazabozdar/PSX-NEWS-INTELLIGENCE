@@ -66,6 +66,17 @@ class CollectionBusy(CollectionRefused):
     """Another market run holds the lease: this one did nothing."""
 
 
+class LeaseLost(RuntimeError):
+    """This run's lease was taken over (it is no longer 'running'): it must stop writing at once."""
+
+
+# Only runs written by this orchestrated collector carry run context; legacy rows (for example a run left
+# 'running' before this code existed) are never changed automatically. See docs/COLLECTION_ORCHESTRATION.md.
+ORCHESTRATED_RUN = "json_extract(quota_usage_json, '$.context') IS NOT NULL"
+# Fencing: every bar or correction insert is conditional on the run still holding its lease.
+_FENCE = " WHERE EXISTS (SELECT 1 FROM collector_runs WHERE run_id = ? AND status = 'running')"
+
+
 def timeframe_priority(env: dict | None = None) -> tuple[str, ...]:
     raw = (env if env is not None else os.environ).get("PSXNI_MARKET_TIMEFRAME_PRIORITY", "")
     order = [t.strip() for t in raw.split(",") if t.strip()] or list(DEFAULT_TIMEFRAME_PRIORITY)
@@ -263,7 +274,7 @@ def _store(
                         "INSERT INTO market_bars(source_id, symbol, timeframe, bar_start_utc, "
                         "session_date_pkt, open, high, low, close, volume, retrieved_at_utc, "
                         "collection_run_id) "
-                        "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                        "SELECT ?,?,?,?,?,?,?,?,?,?,?,?" + _FENCE,
                         (
                             source_id,
                             symbol,
@@ -272,6 +283,7 @@ def _store(
                             b["session_date_pkt"],
                             *vals,
                             now,
+                            run_id,
                             run_id,
                         ),
                     ),
@@ -284,8 +296,8 @@ def _store(
                     (
                         "INSERT INTO market_bar_corrections(source_id, symbol, timeframe, bar_start_utc, "
                         "open, high, low, close, volume, retrieved_at_utc, collection_run_id) "
-                        "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-                        (source_id, symbol, timeframe, b["bar_start_utc"], *vals, now, run_id),
+                        "SELECT ?,?,?,?,?,?,?,?,?,?,?" + _FENCE,
+                        (source_id, symbol, timeframe, b["bar_start_utc"], *vals, now, run_id, run_id),
                     ),
                 )
             )
@@ -299,7 +311,14 @@ def _store(
                 f"stopped before writing to keep the finalisation reserve: {db.usage()}"
             )
         chunk, pending = pending[:n], pending[n:]
-        db.batch([stmt for _, stmt in chunk])  # atomic: counts change only after it succeeds
+        # atomic: counts change only after it succeeds. The trailing status read is in the same
+        # transaction as the fenced inserts: if this run lost its lease, none of them wrote anything.
+        res = db.batch(
+            [stmt for _, stmt in chunk]
+            + [("SELECT status FROM collector_runs WHERE run_id = ?", (run_id,))]
+        )
+        if not res[-1] or res[-1][0]["status"] != "running":
+            raise LeaseLost(f"run {run_id} no longer holds the lease; nothing in this batch was written")
         for kind, _ in chunk:
             setattr(out, kind, getattr(out, kind) + 1)
 
@@ -335,6 +354,14 @@ def collect_market(
         # the lease window, so two triggers can never write at the same time.
         rows = db.batch(
             [
+                (  # expired orchestrated leases are released in the same transaction as the claim
+                    "UPDATE collector_runs SET status = 'failed', finished_at_utc = ?, errors = "
+                    "substr(COALESCE(errors || char(10), '') || 'abandoned: lease expired before the run "
+                    "was finalised', 1, 2000) WHERE job = ? AND source_id = ? AND status = 'running' "
+                    "AND strftime('%s', ?) - strftime('%s', started_at_utc) >= 60 * ? "
+                    "AND json_extract(quota_usage_json, '$.context') IS NOT NULL",
+                    (started, JOB, source_id, started, lease_minutes),
+                ),
                 (
                     "INSERT INTO collector_runs(job, source_id, started_at_utc, status, quota_usage_json) "
                     "SELECT ?, ?, ?, 'running', ? WHERE NOT EXISTS (SELECT 1 FROM collector_runs "
@@ -346,9 +373,9 @@ def collect_market(
                 ("SELECT changes() AS n, last_insert_rowid() AS id", ()),
             ]
         )
-        if not rows[1][0]["n"]:
+        if not rows[2][0]["n"]:
             raise CollectionBusy("another market run holds the lease; nothing was done")
-        run.run_id = rows[1][0]["id"]
+        run.run_id = rows[2][0]["id"]
     try:
         for symbol, tf in ordered_series(symbols, timeframes):
             out = SeriesResult(symbol=symbol, timeframe=tf)
@@ -384,12 +411,16 @@ def collect_market(
             if failed
             else "succeeded"
         )
+    except LeaseLost as exc:
+        run.status = "failed"
+        run.errors.append(str(exc))
+        run.finalized = False  # the run that took over owns the record; this one must not touch it
     except DatabaseBudgetError as exc:
         run.status = "partial"
         run.budget_stopped = True
         run.errors.append(f"database budget reached: {exc}")
     finally:
-        if not dry_run and run.run_id is not None:
+        if not dry_run and run.run_id is not None and run.finalized is not False:
             if run.status == "running":
                 run.status = "failed"
             fetched = sum(s.fetched for s in run.series)
@@ -406,7 +437,7 @@ def collect_market(
                 (
                     "UPDATE collector_runs SET finished_at_utc = ?, status = ?, items_fetched = ?, "
                     "items_accepted = ?, items_rejected = ?, http_requests = ?, errors = ?, "
-                    "quota_usage_json = ? WHERE run_id = ?",
+                    "quota_usage_json = ? WHERE run_id = ? AND status = 'running'",
                     (
                         now_utc(),
                         run.status,

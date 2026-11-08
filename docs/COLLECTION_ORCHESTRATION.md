@@ -65,11 +65,51 @@ trigger (GitHub cron fallback | external workflow_dispatch | manual)
 | 4 | Workflow `trigger` input, external dispatch design (fine-grained token, `actions:write` on this repo only), missed-run detection | NOT STARTED; token/routine need owner approval |
 | 5 | Session calendar (PSX hours, holidays), completeness grading (COMPLETE / INCOMPLETE / ANOMALY / MISSING / PROVIDER_UNAVAILABLE), skip-unfinished-bar fetches, indexed coverage query + app cache, operations tab | NOT STARTED |
 
-## 4. Known limitations
-* `SELECT changes()` inside a Hrana batch is verified on local SQLite only; disposable-Turso
-  verification needs owner authorisation.
-* The first production run after deployment will finalise run 11 (still `running` since 2026-11-08) as
-  `failed` / abandoned. That is the intended recovery, and it is a production write that happens on the
-  owner's approval of the merge.
+## 4. Lease, fencing and recovery rules
+
+* **Claim** (one transaction): release *orchestrated* runs whose lease expired, then insert the new run
+  only if no run of this job is `running` inside the lease window. `changes()` decides ownership.
+* **Fencing:** every bar and correction insert is `INSERT … SELECT … WHERE EXISTS (run still running)`,
+  followed in the same transaction by a status read. A run that lost its lease writes nothing more,
+  raises `LeaseLost`, and does not finalise, so the takeover's record stands.
+* **Finalisation** is `UPDATE … WHERE run_id = ? AND status = 'running'`.
+* **Legacy runs** (no `context` in `quota_usage_json`, i.e. written before this code) are never changed
+  automatically. They are reported as `legacy_stale_runs_needing_owner_cleanup`, they do not block the
+  lease (it only considers runs inside the window), and they don't count toward today's cap or toward
+  backoff (`sources.consecutive_failures` is not touched).
+* **Daily cap:** counted from `collector_runs.started_at_utc` for the current UTC day, so it survives
+  restarts and cannot be reset by a new dispatch.
+
+## 5. Production run 11: owner-approved cleanup procedure (NOT executed)
+
+Run 11 (`market_ohlcv`, started 2026-11-08 12:40 UTC) is still `running` because it predates PR #25.
+Deploying this code does **not** change it. Proposed one-row correction, to be run only with explicit
+owner approval, after a fresh backup / point-in-time marker:
+
+```sql
+-- 1. confirm the target (expect exactly one row: run 11, status running, finished_at NULL)
+SELECT run_id, job, status, started_at_utc, finished_at_utc, items_fetched, items_accepted
+FROM collector_runs WHERE run_id = 11 AND job = 'market_ohlcv' AND status = 'running';
+-- 2. correct it in one transaction; started_at, counts and existing errors are preserved;
+--    finished_at stays NULL because the true end time is unknown
+UPDATE collector_runs
+SET status = 'failed',
+    errors = substr(COALESCE(errors || char(10), '') ||
+             'owner-approved correction: abandoned before PR #25; true end time unknown', 1, 2000)
+WHERE run_id = 11 AND job = 'market_ohlcv' AND status = 'running' AND finished_at_utc IS NULL;
+-- 3. verify: changes() = 1, and the run's 1,692 bars are untouched
+SELECT changes() AS n;
+SELECT COUNT(*) FROM market_bars WHERE collection_run_id = 11;
+```
+
+## 6. Known limitations
+* The lease, fencing and `changes()` behaviour are verified on local SQLite (including two simultaneous
+  writers on one file). **Turso verification is prepared but not run:** `tests/test_turso_market_lease.py`
+  needs a dedicated test database with migrations applied, `PSXNI_TEST_TURSO_DATABASE_URL`,
+  `PSXNI_TEST_TURSO_AUTH_TOKEN` and `PSXNI_TEST_TURSO_ALLOW_COMMITS=yes-commit-test-rows`. None are
+  configured, and creating them requires owner approval.
+* The cap counts by UTC day (PKT 05:00 to 05:00).
+* Gaps inside already-collected history are not re-requested yet (Stage 5 gap detection). History the
+  provider no longer serves comes back as `no_data` and is not treated as a failure.
 * An in-progress intraday bar fetched during the session can later be recorded as a correction; Stage 5
   avoids requesting unfinished bars.

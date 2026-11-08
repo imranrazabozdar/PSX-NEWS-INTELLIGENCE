@@ -302,7 +302,8 @@ def test_corrections_are_counted_after_their_batch_commits():
 
 def test_failed_finalisation_is_reported_not_swallowed(monkeypatch):
     def fail_bookkeeping(stmts):
-        return any(sql.lstrip().upper().startswith("UPDATE COLLECTOR_RUNS") for sql, _ in stmts)
+        final = "UPDATE COLLECTOR_RUNS SET FINISHED_AT_UTC"
+        return any(sql.lstrip().upper().startswith(final) for sql, _ in stmts)
 
     db = _budget_db(max_rows_written=100_000, fail_on=fail_bookkeeping)
     run = _run(db, FakeProvider(_daily()))

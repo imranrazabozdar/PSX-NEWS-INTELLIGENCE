@@ -1,8 +1,12 @@
 """Market collection orchestration: one coordinated decision about whether, why and how often to run.
 
 Responsibilities (collectors.market_ohlcv does the fetching and storing; this module only coordinates):
-* Recovery: a market run left 'running' past its lease (process killed, job timed out) is finalised as
-  'failed' with an explicit reason, so it never looks active or successful.
+* Recovery: an orchestrated market run left 'running' past its lease (process killed, job timed out) is
+  finalised as 'failed' with an explicit reason; started_at and counts are kept. Legacy runs without run
+  context (production run 11) are never changed automatically: they are only reported, and are cleaned
+  up by the owner-approved procedure in docs/COLLECTION_ORCHESTRATION.md.
+* Fencing: bar writes are conditional on the run still holding its lease, so a taken-over run cannot
+  write after the takeover, and its finalisation cannot overwrite the recovery record.
 * Due decision, in order: source ACTIVE and enabled; daily run cap not reached; a continuation is due
   at once when the previous run stopped at the per-run database budget; otherwise the source's
   collection interval must have elapsed, lengthened by exponential backoff after consecutive failures.
@@ -90,13 +94,30 @@ def recover_abandoned(db: Database, now: datetime, lease_minutes: int, source_id
                 "UPDATE collector_runs SET status = 'failed', finished_at_utc = ?, errors = "
                 "substr(COALESCE(errors || char(10), '') || 'abandoned: still running after the lease "
                 "expired (process ended before finalising)', 1, 2000) "
-                "WHERE job = ? AND source_id = ? AND status = 'running' AND started_at_utc < ?",
+                "WHERE job = ? AND source_id = ? AND status = 'running' AND started_at_utc < ? "
+                "AND json_extract(quota_usage_json, '$.context') IS NOT NULL",
                 (_iso(now), JOB, source_id, cutoff),
             ),
             ("SELECT changes() AS n", ()),
         ]
     )
     return int(rows[1][0]["n"] or 0)
+
+
+def legacy_stale_runs(
+    db: Database, now: datetime, lease_minutes: int, source_id: str = SOURCE_ID
+) -> list[int]:
+    """Runs left 'running' by pre-orchestration code: reported, never changed automatically."""
+    cutoff = _iso(now - timedelta(minutes=lease_minutes))
+    return [
+        r["run_id"]
+        for r in db.execute(
+            "SELECT run_id FROM collector_runs WHERE job = ? AND source_id = ? AND status = 'running' "
+            "AND started_at_utc < ? AND json_extract(quota_usage_json, '$.context') IS NULL "
+            "ORDER BY run_id",
+            (JOB, source_id, cutoff),
+        )
+    ]
 
 
 @dataclass
@@ -157,6 +178,7 @@ def orchestrate(
     limits = limits or Limits.from_env()
     passes: list[dict] = []
     recovered = 0
+    legacy: list[int] = []
     stop = "max passes reached"
     exit_code = 0
     for i in range(limits.max_passes):
@@ -164,6 +186,8 @@ def orchestrate(
         try:
             now = now_fn()
             recovered += recover_abandoned(db, now, limits.lease_minutes, source_id)
+            if i == 0:
+                legacy = legacy_stale_runs(db, now, limits.lease_minutes, source_id)
             d = decide(db, now, limits, source_id)
             if not d.run:
                 stop = d.reason
@@ -197,6 +221,7 @@ def orchestrate(
         "context": context or {},
         "limits": vars(limits),
         "recovered_abandoned_runs": recovered,
+        "legacy_stale_runs_needing_owner_cleanup": legacy,
         "passes": passes,
         "stop_reason": stop,
         "exit_code": exit_code,
