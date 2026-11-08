@@ -766,3 +766,14 @@ rewritten.
 
 The 0010 implementation must enumerate every table with a no-update or no-delete trigger and add REPLACE
 regression tests, as in §18.
+
+## 20. Targeted-verification remediation (after b81be46)
+| Finding | Severity | Fix (0009) | Regression tests (`tests/test_impact_review_binding.py`) |
+|---|---|---|---|
+| An old human review could authorise a later transition (reinstatement or rejection replay) | HIGH | Each review is **single-use**. It must be the assessment's newest review and never linked to a revision before. Only a human decision can link it, and a linked review cannot be removed. The partial unique index `ux_impact_revisions_review_once` enforces this as well. | accept replay, reject replay, needs-more-evidence and revalidation replay, stale unused review, confirmation reuse, system linking and removal, index presence |
+| `valid_to` checked by shape only (`9999-99-99` accepted) | MEDIUM | `impact_explicit_freshness` requires `date(valid_to) IS substr(valid_to,1,10)`, which rejects impossible and normalised dates | valid, leap day, invalid, impossible, expired and missing dates |
+| Direction could change without review | LOW | A direction change needs `actor_type='human'` and a newly linked, single-use review. Only the conservative move to `unknown` is exempt. | system refused, human without a new review refused, human with a new review allowed, change to unknown allowed |
+
+**Design consequences:**
+- To change the direction of a provisional assessment, a human first records a `request_revalidation` review that sets the new direction. The system then revalidates the assessment.
+- A refused attempt leaves the assessment, its revisions and its review history unchanged.

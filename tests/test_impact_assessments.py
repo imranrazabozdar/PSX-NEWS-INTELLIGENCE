@@ -439,8 +439,12 @@ def test_complete_coverage_rules_unknown_and_mixed(db):
         _update(db, ids[c], assessment_status="provisional", status_reason="created_eligible")
     s = _sector(db, eid)
     assert s["completeness"] == "complete" and s["sector_conclusion"] == "unknown"   # unknown stays unknown
-    _update(db, ids["cmp-syn-beta"], direction="positive", status_reason="created_eligible",
-            assessment_status="provisional")
+    # a direction change needs a new human review: revalidation request, then system revalidation
+    rid = _review(db, ids["cmp-syn-beta"], "request_revalidation")
+    _update(db, ids["cmp-syn-beta"], direction="positive", status_reason="reviewer_requested_revalidation",
+            assessment_status="needs_revalidation", actor_type="human", changed_by="human:owner",
+            last_review_id=rid)
+    _update(db, ids["cmp-syn-beta"], status_reason="revalidated", assessment_status="provisional")
     assert _sector(db, eid)["sector_conclusion"] == "mixed"
 
 

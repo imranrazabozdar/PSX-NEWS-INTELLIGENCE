@@ -277,6 +277,8 @@ JOIN exposure_candidate_evidence l ON l.candidate_id = i.exposure_candidate_id A
 JOIN company_exposures x ON x.exposure_id = l.company_exposure_id
 WHERE x.valid_to IS NOT NULL
   AND x.valid_to GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]*'
+  -- a real calendar date: date() returns NULL for 9999-99-99 and normalises 2026-02-30, so equality fails
+  AND date(substr(x.valid_to, 1, 10)) IS substr(x.valid_to, 1, 10)
   AND substr(x.valid_to, 1, 10) >= date('now');
 
 CREATE TABLE impact_assessment_revisions (
@@ -481,6 +483,23 @@ BEGIN
                   AND t.revision_no = OLD.current_revision AND t.sign IS NULL);
     SELECT RAISE(ABORT, 'evidence_expired requires an explicit source expiry or an approved policy')
     WHERE NEW.status_reason = 'evidence_expired' AND NEW.freshness_basis = 'not_established';
+    -- review binding (replay protection) and direction-change authorisation
+    SELECT RAISE(ABORT, 'a linked review cannot be removed')
+    WHERE OLD.last_review_id IS NOT NULL AND NEW.last_review_id IS NULL;
+    SELECT RAISE(ABORT, 'a review can only be linked by a human decision')
+    WHERE NEW.last_review_id IS NOT OLD.last_review_id
+      AND NOT (NEW.actor_type = 'human' AND NEW.status_reason IN ('reviewer_accepted','reviewer_rejected',
+               'reviewer_needs_more_evidence','reviewer_requested_revalidation','reinstated'));
+    SELECT RAISE(ABORT, 'review already used: each review authorises exactly one transition')
+    WHERE NEW.last_review_id IS NOT OLD.last_review_id AND EXISTS (
+        SELECT 1 FROM impact_assessment_revisions h WHERE h.review_id = NEW.last_review_id);
+    SELECT RAISE(ABORT, 'stale review: only the assessment''s newest review can authorise a transition')
+    WHERE NEW.last_review_id IS NOT OLD.last_review_id AND NEW.last_review_id IS NOT (
+        SELECT MAX(r.review_id) FROM impact_reviews r WHERE r.assessment_id = NEW.assessment_id);
+    -- direction changes need a new human review; only the conservative move to 'unknown' is exempt
+    SELECT RAISE(ABORT, 'direction can only change with a new human review (except to unknown)')
+    WHERE NEW.direction IS NOT OLD.direction AND NEW.direction <> 'unknown'
+      AND NOT (NEW.actor_type = 'human' AND NEW.last_review_id IS NOT OLD.last_review_id);
 END;
 
 CREATE TRIGGER trg_impact_assessments_revision AFTER UPDATE ON impact_assessments
@@ -556,6 +575,13 @@ BEGIN SELECT RAISE(ABORT, 'impact_transmission_steps: duplicate key; existing ro
 CREATE TRIGGER trg_impact_scenarios_no_replace BEFORE INSERT ON impact_scenarios
 WHEN EXISTS (SELECT 1 FROM impact_scenarios t WHERE t.assessment_id = NEW.assessment_id AND t.revision_no = NEW.revision_no AND t.scenario_case = NEW.scenario_case)
 BEGIN SELECT RAISE(ABORT, 'impact_scenarios: duplicate key; existing rows cannot be replaced'); END;
+
+-- ---------------------------------------------------------------- review binding (replay protection)
+-- Every human review is single-use and bound to exactly one transition of its own assessment: it must be
+-- the assessment's newest review, never previously linked to any revision, and can only be linked by a
+-- human decision. A partial unique index makes reuse impossible even if a trigger were bypassed. The binding checks themselves are in trg_impact_assessments_update.
+CREATE UNIQUE INDEX ux_impact_revisions_review_once ON impact_assessment_revisions(review_id)
+WHERE review_id IS NOT NULL;
 
 -- ---------------------------------------------------------------- read models
 CREATE VIEW impact_assessments_current AS
