@@ -1,7 +1,8 @@
 # PSX trading calendar: what is needed to complete it
 
-`config/psx_calendar.json` records only weekends today. Hours, holidays, special sessions and closures are
-**intentionally empty**. They may be entered only from official Pakistan Stock Exchange notices, and each
+**Status 2026-11-08:** regular hours (Monday–Thursday, Friday) and the seven fixed-date 2026 holidays are
+recorded from the official PSX website pages (Trading Hours, Calendar Holidays). Still absent pending official
+notices: moon-dependent holiday dates, seasonal (Ramadan) timings, special sessions and closures. They may be entered only from official Pakistan Stock Exchange notices, and each
 entry must cite its notice (`source`). The loader refuses an entry without one. Nothing in this document
 is a confirmed date or time.
 

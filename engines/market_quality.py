@@ -108,7 +108,9 @@ def _pkt_day(iso: str | None) -> str | None:
 
 
 def _outside_hours(own: list[int], hours: tuple[int, int] | None, timeframe: str) -> int:
-    if not hours or timeframe == "1d":
+    # only 1-minute bars: hour-aligned 1h/4h bars (e.g. starting 09:00 PKT) and daily bars legitimately
+    # start before the official pre-open time
+    if not hours or timeframe != "1m":
         return 0
     o, c = hours
     mins = [(datetime.fromtimestamp(t, UTC) + PKT) for t in own]
