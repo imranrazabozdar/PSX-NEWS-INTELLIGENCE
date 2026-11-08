@@ -236,6 +236,13 @@ def run(db: Database, *, limit: int = 200) -> Summary:
         except DatabaseError as exc:  # isolated: this item stays eligible for the next run
             s.errors.append(f"item {item['source_item_id']}: {str(exc)[:200]}")
             continue
+        except (ValueError, TypeError) as exc:
+            # A malformed stored value (e.g. an unparseable timestamp) fails before anything is written, so
+            # nothing is recorded for this item: it stays eligible and is reported, and later items still
+            # run. Other exceptions (programming errors) are not caught and stop the run.
+            s.errors.append(f"item {item['source_item_id']}: invalid item data: {type(exc).__name__}: "
+                            f"{str(exc)[:160]}")
+            continue
         if outcome == "ALREADY_PROCESSED":
             s.already_processed += 1
             continue
