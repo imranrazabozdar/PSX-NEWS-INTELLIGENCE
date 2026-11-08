@@ -115,7 +115,39 @@ owner approval.
    and counts as recorded in step 2; 1,692 bars are still linked to run 11; no other `collector_runs` row
    changed (compare `COUNT(*)` and `MAX(run_id)` before and after).
 
-## 6. Known limitations
+## 6. Disposable-Turso lease verification: setup checklist (NOT executed)
+
+SQLite results do not prove Turso behaviour. Until this checklist has been run, single-writer behaviour
+on Turso is **unverified**. The only safeguards are the fail-closed ownership read-back and the GitHub
+concurrency group. Owner approval is needed for steps 1–3.
+
+1. Create a **new, empty** Turso database used only for this test (e.g. `psxni-lease-test-<date>`), never
+   production (`psx-news-intelligence-imranrazabozdar…`).
+2. Create a database-scoped token for it, with an expiry of 1 day.
+3. Apply migrations to it: `PSXNI_TURSO_DATABASE_URL=<test url> PSXNI_TURSO_AUTH_TOKEN=<test token>
+   python -m database.migrate`, in a shell that has no production values set.
+4. Run, in that shell:
+   ```
+   export PSXNI_TEST_TURSO_DATABASE_URL=<test url> PSXNI_TEST_TURSO_AUTH_TOKEN=<test token>
+   export PSXNI_TEST_TURSO_ALLOW_COMMITS=yes-commit-test-rows
+   unset PSXNI_TURSO_DATABASE_URL PSXNI_TURSO_AUTH_TOKEN
+   pytest tests/test_turso_market_lease.py -v
+   ```
+   The gate (`tests/turso_guard.integration_config_status`) refuses the production host or token before
+   connecting.
+5. Expected: 3 passed.
+
+   | Test | Verifies |
+   |---|---|
+   | `test_simultaneous_claims_on_turso_admit_exactly_one` | Two connections claim at once; one owner, one busy, one row, owner finalised |
+   | `test_live_lease_blocks_and_expired_orchestrated_lease_is_taken_over` | Live lease blocks; expired lease is taken over and marked abandoned; no `running` row left |
+   | `test_fenced_write_after_takeover_writes_nothing` | A fenced bar insert for a run that is no longer `running` writes 0 rows, inside a rolled-back batch |
+
+   Each test removes its synthetic source and run rows. No market bars are committed.
+6. Record the date, result and libsql server version here, then delete the test database and revoke the
+   token.
+
+## 6a. Known limitations
 * The lease, fencing and `changes()` behaviour are verified on local SQLite (including two simultaneous
   writers on one file). **Turso verification is prepared but not run:** `tests/test_turso_market_lease.py`
   needs a dedicated test database with migrations applied, `PSXNI_TEST_TURSO_DATABASE_URL`,
