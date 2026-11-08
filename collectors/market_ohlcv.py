@@ -24,7 +24,9 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import time
+import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
@@ -52,6 +54,43 @@ FINALIZE_RESERVE_REQUESTS = 2
 FINALIZE_RESERVE_ROWS_READ = 500
 CHUNK = 200
 DEFAULT_SYMBOLS = ("OGDC", "HBL", "LUCK", "ENGROH", "PSO")
+# Backfill priority: series are collected timeframe by timeframe in this order, every symbol before the
+# next timeframe, so the provider's short-retention 1-minute history is stored first (it expires after
+# about 5 days; deeper timeframes stay available for years). Override with PSXNI_MARKET_TIMEFRAME_PRIORITY.
+DEFAULT_TIMEFRAME_PRIORITY = ("1m", "1h", "4h", "1d")
+JOB = "market_ohlcv"
+# A 'running' run older than this is treated as abandoned (the workflow job times out after 20 minutes).
+DEFAULT_LEASE_MINUTES = 30
+
+
+class CollectionBusy(CollectionRefused):
+    """Another market run holds the lease: this one did nothing."""
+
+
+class LeaseLost(RuntimeError):
+    """This run's lease was taken over (it is no longer 'running'): it must stop writing at once."""
+
+
+# Only runs written by this orchestrated collector carry run context; legacy rows (for example a run left
+# 'running' before this code existed) are never changed automatically. See docs/COLLECTION_ORCHESTRATION.md.
+ORCHESTRATED_RUN = "json_extract(quota_usage_json, '$.context') IS NOT NULL"
+# Fencing: every bar or correction insert is conditional on the run still holding its lease.
+_FENCE = " WHERE EXISTS (SELECT 1 FROM collector_runs WHERE run_id = ? AND status = 'running')"
+
+
+def timeframe_priority(env: dict | None = None) -> tuple[str, ...]:
+    raw = (env if env is not None else os.environ).get("PSXNI_MARKET_TIMEFRAME_PRIORITY", "")
+    order = [t.strip() for t in raw.split(",") if t.strip()] or list(DEFAULT_TIMEFRAME_PRIORITY)
+    bad = [t for t in order if t not in TIMEFRAMES]
+    if bad or len(set(order)) != len(order):
+        raise CollectionRefused(f"invalid PSXNI_MARKET_TIMEFRAME_PRIORITY: {raw!r}")
+    return tuple(order) + tuple(t for t in DEFAULT_TIMEFRAME_PRIORITY if t not in order)
+
+
+def ordered_series(symbols, timeframes) -> list[tuple[str, str]]:
+    """(symbol, timeframe) pairs in backfill-priority order: by timeframe priority, then symbol order."""
+    rank = {t: i for i, t in enumerate(timeframe_priority())}
+    return [(s, t) for t in sorted(dict.fromkeys(timeframes), key=rank.__getitem__) for s in symbols]
 
 
 @dataclass
@@ -78,6 +117,9 @@ class MarketRun:
     series: list[SeriesResult] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
     finalized: bool | None = None  # None: dry run; False: final bookkeeping could not be written
+    budget_stopped: bool = False  # stopped at the per-run database budget: useful work remains
+    context: dict = field(default_factory=dict)  # trigger origin, continuation pass, reason
+    usage: dict | None = None  # database usage recorded at finalisation
 
     def as_dict(self) -> dict:
         return {
@@ -86,6 +128,9 @@ class MarketRun:
             "status": self.status,
             "run_id": self.run_id,
             "finalized": self.finalized,
+            "budget_stopped": self.budget_stopped,
+            "context": self.context,
+            "usage": self.usage,
             "http_requests": self.http_requests,
             "errors": self.errors,
             "series": [vars(s) for s in self.series],
@@ -230,7 +275,7 @@ def _store(
                         "INSERT INTO market_bars(source_id, symbol, timeframe, bar_start_utc, "
                         "session_date_pkt, open, high, low, close, volume, retrieved_at_utc, "
                         "collection_run_id) "
-                        "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                        "SELECT ?,?,?,?,?,?,?,?,?,?,?,?" + _FENCE,
                         (
                             source_id,
                             symbol,
@@ -239,6 +284,7 @@ def _store(
                             b["session_date_pkt"],
                             *vals,
                             now,
+                            run_id,
                             run_id,
                         ),
                     ),
@@ -251,8 +297,8 @@ def _store(
                     (
                         "INSERT INTO market_bar_corrections(source_id, symbol, timeframe, bar_start_utc, "
                         "open, high, low, close, volume, retrieved_at_utc, collection_run_id) "
-                        "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-                        (source_id, symbol, timeframe, b["bar_start_utc"], *vals, now, run_id),
+                        "SELECT ?,?,?,?,?,?,?,?,?,?,?" + _FENCE,
+                        (source_id, symbol, timeframe, b["bar_start_utc"], *vals, now, run_id, run_id),
                     ),
                 )
             )
@@ -266,7 +312,14 @@ def _store(
                 f"stopped before writing to keep the finalisation reserve: {db.usage()}"
             )
         chunk, pending = pending[:n], pending[n:]
-        db.batch([stmt for _, stmt in chunk])  # atomic: counts change only after it succeeds
+        # atomic: counts change only after it succeeds. The trailing status read is in the same
+        # transaction as the fenced inserts: if this run lost its lease, none of them wrote anything.
+        res = db.batch(
+            [stmt for _, stmt in chunk]
+            + [("SELECT status FROM collector_runs WHERE run_id = ?", (run_id,))]
+        )
+        if not res[-1] or res[-1][0]["status"] != "running":
+            raise LeaseLost(f"run {run_id} no longer holds the lease; nothing in this batch was written")
         for kind, _ in chunk:
             setattr(out, kind, getattr(out, kind) + 1)
 
@@ -281,6 +334,8 @@ def collect_market(
     client: HttpClient | None = None,
     now: datetime | None = None,
     pause_seconds: float = 0.5,
+    context: dict | None = None,
+    lease_minutes: int = DEFAULT_LEASE_MINUTES,
 ) -> MarketRun:
     if _kill_switch_on():
         raise CollectionRefused("PSXNI_KILL_SWITCH is on: no collection")
@@ -293,45 +348,75 @@ def collect_market(
         raise CollectionRefused(f"source '{source_id}' has no endpoint configured")
     client = client or HttpClient()
     now = now or datetime.now(UTC)
-    run = MarketRun(source_id=source_id, dry_run=dry_run)
+    run = MarketRun(source_id=source_id, dry_run=dry_run, context=dict(context or {}))
     if not dry_run:
+        started = now_utc()
+        claim = uuid.uuid4().hex  # unique per claim attempt; identifies this run's own lease row
+        # Atomic lease: the run row is inserted only if no other run of this job is still running within
+        # the lease window, so two triggers can never write at the same time.
         rows = db.batch(
             [
-                (
-                    "INSERT INTO collector_runs(job, source_id, started_at_utc, status) "
-                    "VALUES ('market_ohlcv', ?, ?, 'running')",
-                    (source_id, now_utc()),
+                (  # expired orchestrated leases are released in the same transaction as the claim
+                    "UPDATE collector_runs SET status = 'failed', finished_at_utc = ?, errors = "
+                    "substr(COALESCE(errors || char(10), '') || 'abandoned: lease expired before the run "
+                    "was finalised', 1, 2000) WHERE job = ? AND source_id = ? AND status = 'running' "
+                    "AND strftime('%s', ?) - strftime('%s', started_at_utc) >= 60 * ? "
+                    "AND json_extract(quota_usage_json, '$.context') IS NOT NULL",
+                    (started, JOB, source_id, started, lease_minutes),
                 ),
-                ("SELECT last_insert_rowid() AS id", ()),
+                (
+                    "INSERT INTO collector_runs(job, source_id, started_at_utc, status, quota_usage_json) "
+                    "SELECT ?, ?, ?, 'running', ? WHERE NOT EXISTS (SELECT 1 FROM collector_runs "
+                    "WHERE job = ? AND source_id = ? AND status = 'running' "
+                    "AND strftime('%s', ?) - strftime('%s', started_at_utc) < 60 * ?)",
+                    (JOB, source_id, started, json.dumps({"context": run.context, "claim": claim}), JOB,
+                     source_id, started, lease_minutes),
+                ),
+                (  # ownership is read back, not inferred from changes() / last_insert_rowid()
+                    "SELECT run_id, json_extract(quota_usage_json, '$.claim') AS claim FROM collector_runs "
+                    "WHERE job = ? AND source_id = ? AND status = 'running' "
+                    "AND strftime('%s', ?) - strftime('%s', started_at_utc) < 60 * ?",
+                    (JOB, source_id, started, lease_minutes),
+                ),
             ]
         )
-        run.run_id = rows[1][0]["id"]
+        holders = rows[2]
+        mine = [r["run_id"] for r in holders if r["claim"] == claim]
+        if mine and len(holders) > 1:  # fail closed: never write while another live lease exists
+            db.batch([(
+                "UPDATE collector_runs SET status = 'failed', finished_at_utc = ?, "
+                "errors = 'lease conflict: another run held the lease' "
+                "WHERE run_id = ? AND status = 'running'",
+                (now_utc(), mine[0]),
+            )])
+        if len(mine) != 1 or len(holders) != 1:
+            raise CollectionBusy("another market run holds the lease; nothing was done")
+        run.run_id = mine[0]
     try:
-        for symbol in symbols:
-            for tf in timeframes:
-                out = SeriesResult(symbol=symbol, timeframe=tf)
-                run.series.append(out)
-                try:
-                    frm, to = _window(None if dry_run else _last_bar(db, source_id, symbol, tf), tf, now)
-                    run.http_requests += 1
-                    bars, out.rejected = parse_udf(
-                        fetch_series(client, source["feed_url"], symbol, tf, frm, to), tf
+        for symbol, tf in ordered_series(symbols, timeframes):
+            out = SeriesResult(symbol=symbol, timeframe=tf)
+            run.series.append(out)
+            try:
+                frm, to = _window(None if dry_run else _last_bar(db, source_id, symbol, tf), tf, now)
+                run.http_requests += 1
+                bars, out.rejected = parse_udf(
+                    fetch_series(client, source["feed_url"], symbol, tf, frm, to), tf
+                )
+                out.fetched = len(bars)
+                if bars:
+                    out.first_bar_utc, out.last_bar_utc = (
+                        bars[0]["bar_start_utc"],
+                        bars[-1]["bar_start_utc"],
                     )
-                    out.fetched = len(bars)
-                    if bars:
-                        out.first_bar_utc, out.last_bar_utc = (
-                            bars[0]["bar_start_utc"],
-                            bars[-1]["bar_start_utc"],
-                        )
-                    if not dry_run:
-                        _store(db, source_id, symbol, tf, bars, run.run_id, out)
-                except DatabaseBudgetError:
-                    raise
-                except (FetchError, ValueError, DatabaseError) as exc:
-                    out.error = str(exc)[:300]
-                    run.errors.append(f"{symbol} {tf}: {out.error}")
-                if pause_seconds:
-                    time.sleep(pause_seconds)
+                if not dry_run:
+                    _store(db, source_id, symbol, tf, bars, run.run_id, out)
+            except DatabaseBudgetError:
+                raise
+            except (FetchError, ValueError, DatabaseError) as exc:
+                out.error = str(exc)[:300]
+                run.errors.append(f"{symbol} {tf}: {out.error}")
+            if pause_seconds:
+                time.sleep(pause_seconds)
         failed = [s for s in run.series if s.error]
         run.status = (
             "dry_run"
@@ -342,20 +427,33 @@ def collect_market(
             if failed
             else "succeeded"
         )
+    except LeaseLost as exc:
+        run.status = "failed"
+        run.errors.append(str(exc))
+        run.finalized = False  # the run that took over owns the record; this one must not touch it
     except DatabaseBudgetError as exc:
         run.status = "partial"
+        run.budget_stopped = True
         run.errors.append(f"database budget reached: {exc}")
     finally:
-        if not dry_run and run.run_id is not None:
+        if not dry_run and run.run_id is not None and run.finalized is not False:
             if run.status == "running":
                 run.status = "failed"
             fetched = sum(s.fetched for s in run.series)
             accepted = sum(s.inserted + s.corrected for s in run.series)
             rejected = sum(s.rejected for s in run.series)
+            run.usage = db.usage() or None
+            meta = {
+                "context": run.context,
+                "budget_stopped": run.budget_stopped,
+                "usage_before_finalise": run.usage,
+                "series_errors": sum(1 for s in run.series if s.error),
+            }
             stmts = [
                 (
                     "UPDATE collector_runs SET finished_at_utc = ?, status = ?, items_fetched = ?, "
-                    "items_accepted = ?, items_rejected = ?, http_requests = ?, errors = ? WHERE run_id = ?",
+                    "items_accepted = ?, items_rejected = ?, http_requests = ?, errors = ?, "
+                    "quota_usage_json = ? WHERE run_id = ? AND status = 'running'",
                     (
                         now_utc(),
                         run.status,
@@ -364,6 +462,7 @@ def collect_market(
                         rejected,
                         run.http_requests,
                         "\n".join(run.errors)[:2000] or None,
+                        json.dumps(meta),
                         run.run_id,
                     ),
                 )
@@ -415,28 +514,34 @@ def market_due(db: Database, source_id: str = SOURCE_ID, now: str | None = None)
 
 def main(argv: list[str] | None = None) -> int:
     import argparse
-    import os
 
+    from collectors.market_orchestrator import orchestrate, trigger_context
     from database.connection import connect
 
     ap = argparse.ArgumentParser(description="Collect PSX OHLCV bars (1m/1h/4h/1d)")
     ap.add_argument("--symbols", default=os.environ.get("PSXNI_MARKET_SYMBOLS", ",".join(DEFAULT_SYMBOLS)))
     ap.add_argument("--timeframes", default=",".join(TIMEFRAMES))
     ap.add_argument("--dry-run", action="store_true")
-    ap.add_argument("--due", action="store_true", help="only run if the source's interval has elapsed")
+    ap.add_argument("--due", action="store_true",
+                    help="orchestrated: run only when due, continue after budget-limited runs within limits")
+    ap.add_argument("--trigger", default=None, help="trigger origin: schedule / external / manual")
     args = ap.parse_args(argv)
-    db = connect()
-    if args.due and not market_due(db):
-        print(json.dumps({"skipped": "market source not ACTIVE or not due"}))
-        return 0
     symbols = [s.strip().upper() for s in args.symbols.split(",") if s.strip()]
+    timeframes = [t.strip() for t in args.timeframes.split(",")]
+    ctx = trigger_context(args.trigger)
     try:
-        run = collect_market(
-            db,
-            symbols=symbols,
-            timeframes=[t.strip() for t in args.timeframes.split(",")],
-            dry_run=args.dry_run,
-        )
+        if args.due and not args.dry_run:
+            summary = orchestrate(connect, context=ctx, symbols=symbols, timeframes=timeframes)
+            print(json.dumps(summary, indent=1))
+            return summary["exit_code"]
+        db = connect()
+        if args.due and not market_due(db):
+            print(json.dumps({"skipped": "market source not ACTIVE or not due"}))
+            return 0
+        run = collect_market(db, symbols=symbols, timeframes=timeframes, dry_run=args.dry_run, context=ctx)
+    except CollectionBusy as exc:
+        print(json.dumps({"skipped": str(exc)}))
+        return 0
     except CollectionRefused as exc:
         print(json.dumps({"refused": str(exc)}))
         return 2
