@@ -47,6 +47,10 @@ needed. GitHub cron stays as the fallback, so a failure of either trigger alone 
   It must not loop: the next hourly call is the retry, and the cron fallback covers outages.
 * HTTP 401/403 means the token expired or lost access. That needs owner action. Collection continues on
   GitHub cron.
+* **An accepted dispatch (HTTP 204) is not a successful collection.** It only queues the workflow, and
+  the heartbeat records only that collection was invoked. Collection success is judged only from
+  `collector_runs` (status `succeeded`, or `partial` with `budget_stopped`) and the source health columns.
+  A workflow run that ends green because nothing was due writes no run row.
 * A successful dispatch only starts the workflow. The kill switch (`PSXNI_KILL_SWITCH`), missing Turso
   secrets and source ACTIVE status still apply.
 * GitHub may delay dispatched runs under load. Usually they start within a minute.
