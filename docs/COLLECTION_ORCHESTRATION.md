@@ -62,7 +62,7 @@ trigger (GitHub cron fallback | external workflow_dispatch | manual)
 |---|---|---|
 | 2 | Lease, abandoned-run recovery, due decision, backoff, bounded continuation, trigger tracking | TESTED (offline) |
 | 3 | Configurable timeframe-first priority | TESTED (offline) |
-| 4 | Workflow `trigger` input, external dispatch design (fine-grained token, `actions:write` on this repo only), missed-run detection | NOT STARTED; token/routine need owner approval |
+| 4 | Workflow `trigger` input, trigger heartbeat, missed/late slot detection, external dispatch design (`docs/EXTERNAL_DISPATCH.md`) | TESTED (offline), repository side only; token, secret and scheduler need owner approval |
 | 5 | Session calendar (PSX hours, holidays), completeness grading (COMPLETE / INCOMPLETE / ANOMALY / MISSING / PROVIDER_UNAVAILABLE), skip-unfinished-bar fetches, indexed coverage query + app cache, operations tab | NOT STARTED |
 
 ## 4. Lease, fencing and recovery rules
