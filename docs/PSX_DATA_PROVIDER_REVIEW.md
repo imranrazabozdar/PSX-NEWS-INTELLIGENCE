@@ -37,8 +37,9 @@ historical prices, profiles, indices, sectors, corporate actions, dividends and 
 | **PSX Data Services & Vending** | Licensed feeds (real-time and delayed) | On request | Both | — | — | Yes | Per product | On request | **QUOTE_REQUIRED** | By licence | Owner of the data |
 
 ## 3. Historical OHLCV and market data
-- **No free, lawful route** to historical PSX OHLCV, adjusted prices, indices or market breadth for a
-  database.
+- **No free, lawful route was verified in this review** to historical PSX OHLCV, adjusted prices,
+  indices or market breadth for a database. PSX's own websites are excluded by its **verified** Terms of
+  Use. Other free sources were not exhaustively searched.
 - **Cheapest credible delayed prices:** QUOTE_REQUIRED from Capital Stake, Mettis or PSX vending. None
   publish prices. A delayed or EOD-only licence is likely the narrowest product to ask for
   (UNCONFIRMED).
@@ -46,6 +47,14 @@ historical prices, profiles, indices, sectors, corporate actions, dividends and 
   method, CSV export, and storage, retention and LLM rights.
 - **Manual download for a private database:** only after PSX confirms in writing. The terms permit a
   personal single copy only.
+
+**Approval gate:** Capital Stake and Mettis remain **unverified candidates**. Before either is
+selected or activated, it must confirm in writing its authority to license the underlying PSX data,
+and every right in `DATA_ACQUISITION_RESOLUTION.md` §7:
+- automated retrieval, current and historical data, corporate announcements and actions;
+- storage, retention, internal display, LLM processing, derived facts and deletion obligations.
+
+Otherwise the route stays unresolved and is not activated.
 
 ## 4. Rejected routes
 - pypsx and adeerkhan/PSX-data (scrape the PSX Data Portal; PRs #8 and #9).

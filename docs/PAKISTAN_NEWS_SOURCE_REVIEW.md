@@ -29,7 +29,8 @@ identified user agent. No articles were collected. Classifications follow
 | ProPakistani, The Nation, Arab News PK | Not checked | — | — | — | — | **NOT_ASSESSED** | — |
 
 ## Findings
-- **No Pakistani publisher has verified permission for automated storage or LLM processing.**
+- **No Pakistani publisher's permission for automated storage or LLM processing was verified in this
+  review.** The review was not exhaustive (several terms pages were unreadable or not checked).
 - Express Tribune's terms expressly require written consent for reuse, and prohibit redistribution and
   derived works.
 - Dawn and Business Recorder now return HTTP 403 to this client, and their terms couldn't be read.

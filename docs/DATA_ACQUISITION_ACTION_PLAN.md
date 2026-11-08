@@ -4,10 +4,12 @@ Nothing in this plan is approved. Each step needs the owner's go-ahead. No provi
 contacted.
 
 ## 1. Pursue immediately (no cost; owner approval needed)
-1. **EIA Open Data:** read the API Terms of Service, then the owner registers a free key. Once
-   approved, it becomes the first `APPROVED_AUTOMATION` source (energy prices).
-2. **ADB:** identify the CC BY 3.0 IGO datasets and publications relevant to Pakistan; record the
-   per-item licence.
+1. **EIA Open Data (candidate):** read the API Terms of Service and record the attribution wording.
+   Only after **explicit owner approval** does the owner register a free key and EIA become eligible to
+   be classified `APPROVED_AUTOMATION`.
+2. **ADB (candidate):** identify the CC BY 3.0 IGO datasets and publications relevant to Pakistan,
+   and record each item's licence and attribution. Joint and "All Rights Reserved" items are excluded
+   unless separately cleared. Approval is for the owner.
 3. **World Bank:** check per-dataset licences for the indicators needed (reserves, GDP, inflation,
    Pink Sheet commodities).
 
@@ -20,7 +22,11 @@ contacted.
 | FBR, NEPRA, OGRA, PBS, Finance Division | Automated metadata collection and private storage of notifications and releases |
 | Standard Capital (SCS Trade) | Whether any data product or licence exists; storage rights |
 
-## 3. Request quotes (no purchase)
+## 3. Request quotes (only after owner approval; no purchase; nothing sent in this review)
+Capital Stake and Mettis are **unverified candidates**. A quote alone is not enough: each provider must
+also confirm its authority to license the underlying PSX data and every right in the resolution's §7
+checklist. If it can't, the route stays unresolved and is not activated.
+
 - **Capital Stake:** delayed/EOD prices, history depth, adjusted prices, indices, PUCARS webhook,
   financials; rights to store, retain, process with an LLM and display privately; PSX approval scope.
 - **Mettis Global MG Link:** the same list.
