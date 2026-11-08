@@ -63,3 +63,41 @@ needed. GitHub cron stays as the fallback, so a failure of either trigger alone 
 * No successful external invocation for over 3 hours means the external trigger is down. Collection still
   runs on GitHub cron, and the owner checks the token and scheduler.
 * Stage 5 adds these to the Streamlit operations view.
+
+## Operational setup guide (owner steps; nothing here has been done)
+
+1. **Create the token:** GitHub → Settings → Developer settings → Fine-grained tokens → Generate.
+   * Resource owner: `imranrazabozdar`.
+   * Repository access: *Only select repositories* → `PSX-NEWS-INTELLIGENCE`.
+   * Permissions: Repository → **Actions: Read and write**. Leave everything else as *No access*
+     (Metadata: Read is mandatory and automatic).
+   * Expiration: 90 days or less.
+2. **Store it** only in the external scheduler's secret store, as `PSXNI_DISPATCH_TOKEN`. Don't add it to
+   this repository's secrets, and don't paste it into chat or logs.
+3. **Configure the scheduler** to run hourly at a jittered minute (e.g. `41 * * * *` UTC):
+   ```
+   curl -fsS -X POST \
+     -H "Authorization: Bearer $PSXNI_DISPATCH_TOKEN" -H "Accept: application/vnd.github+json" \
+     https://api.github.com/repos/imranrazabozdar/PSX-NEWS-INTELLIGENCE/actions/workflows/scheduled-jobs.yml/dispatches \
+     -d '{"ref":"main","inputs":{"trigger":"external","dry_run":"false"}}'
+   ```
+   `dry_run` must be `"false"` explicitly; the default is a dry run. Expect HTTP 204.
+4. **First check (owner-approved):** let one dispatch run, then confirm in the *Collection operations*
+   tab that the `external` trigger shows status `ok`, and that a run row records `trigger: external` with
+   the GitHub run id.
+5. **Failure detection:**
+
+   | Symptom | Cause | Action |
+   |---|---|---|
+   | Non-204 from the dispatch call | API failure | Scheduler retries once after 60 s, then alerts |
+   | 401 or 403 | Token expired or revoked | Owner rotates the token |
+   | `external` trigger overdue (more than 3 h) | External scheduler is down | Collection continues on cron |
+   | `schedule` trigger overdue (more than 6 h 30 min) | GitHub cron missed or late | `python -m collectors.schedule_health` lists the missed slots |
+
+6. **Missed-run recovery:** none is needed by hand. The next trigger from either path runs whatever is
+   due. Bars resume from the last stored bar, budget-stopped runs continue, and recoverable gaps are
+   re-requested within provider retention.
+7. **Cron fallback:** keep `17 */6 * * *` in place. Remove it only after the external trigger has been
+   reliable for a period the owner chooses.
+8. **Rotation:** before the token expires, create its replacement, update the scheduler secret, then
+   revoke the old token.
