@@ -173,3 +173,141 @@ def test_all_four_timeframes_use_their_resolutions(db):
 def test_market_source_is_scheduled_separately_from_news(db):
     assert "synscs" not in due_sources(db)  # the news scheduler never picks the market adapter
     assert market_due(db, "synscs", now=NOW.strftime("%Y-%m-%dT%H:%M:%SZ"))
+
+
+# ------------------------------------------------------------------ bookkeeping under a write budget
+import collectors.market_ohlcv as mo  # noqa: E402
+from database.connection import DatabaseBudgetError, DatabaseError  # noqa: E402
+
+
+class BudgetedSQLite(SQLiteDatabase):
+    """SQLite with the Turso client's per-run budget: checked before each request; each bar insert billed as
+    3 rows written (table + 2 indexes, as observed on Turso), each UPDATE as 1."""
+
+    def __init__(self, *, max_rows_written, fail_on=None):
+        super().__init__()
+        self.requests = self.rows_read = self.rows_written = 0
+        self.max_requests, self.max_rows_read, self.max_rows_written = 2000, 50_000, max_rows_written
+        self.fail_on = fail_on  # callable(statements) -> bool: raise a DatabaseError for that batch
+
+    def usage(self):
+        return {"requests": self.requests, "rows_read": self.rows_read, "rows_written": self.rows_written}
+
+    def batch(self, statements, *, transactional=True, rollback=False):
+        statements = list(statements)
+        if (
+            self.requests >= self.max_requests
+            or self.rows_read >= self.max_rows_read
+            or self.rows_written >= self.max_rows_written
+        ):
+            raise DatabaseBudgetError(f"per-run database budget exhausted: {self.usage()}")
+        self.requests += 1
+        if self.fail_on and self.fail_on(statements):
+            raise DatabaseError("simulated write failure")
+        out = super().batch(statements, transactional=transactional, rollback=rollback)
+        for sql, _ in statements:
+            head = sql.lstrip().upper()
+            self.rows_written += (
+                3
+                if head.startswith("INSERT INTO MARKET_BAR")
+                else 1
+                if head.startswith(("INSERT", "UPDATE"))
+                else 0
+            )
+        return out
+
+
+def _budget_db(max_rows_written, fail_on=None):
+    d = BudgetedSQLite(max_rows_written=max_rows_written, fail_on=fail_on)
+    migrate(d)
+    d.execute(
+        "INSERT INTO sources(source_id, name, source_type, is_synthetic, created_at_utc, updated_at_utc, "
+        "feed_url, adapter, access_method, access_status, terms_status, enabled, lifecycle_status, "
+        "collection_frequency_minutes) VALUES ('synscs','SYNTHETIC chart feed','data_provider',1,?,?,"
+        "'https://chart.example.invalid','udf_ohlcv','authorised_provider','verified_permitted',"
+        "'approved',1,'ACTIVE',60)",
+        (NOW.isoformat(), NOW.isoformat()),
+    )
+    d.rows_written = d.requests = 0  # measure the collection run only
+    return d
+
+
+def _many_daily(n):
+    start = D2 - (n - 1) * 86400
+    t = [start + i * 86400 for i in range(n)]
+    return _udf(t, [10.0] * n, [11.0] * n, [9.0] * n, [10.5] * n, [100] * n)
+
+
+def _stored(db):
+    return db.execute("SELECT COUNT(*) n FROM market_bars")[0]["n"]
+
+
+def _run_row(db, run):
+    return db.execute("SELECT * FROM collector_runs WHERE run_id = ?", (run.run_id,))[0]
+
+
+def test_budget_exhaustion_stops_cleanly_and_run_is_finalised(monkeypatch):
+    monkeypatch.setattr(mo, "CHUNK", 10)
+    db = _budget_db(max_rows_written=400)
+    run = _run(db, FakeProvider(_many_daily(300)))
+    assert run.status == "partial" and run.finalized is True
+    assert any("finalisation reserve" in e for e in run.errors)
+    row = _run_row(db, run)
+    assert row["status"] == "partial" and row["finished_at_utc"] is not None
+    assert row["items_accepted"] == _stored(db) == run.series[0].inserted > 0  # counts match storage
+    src = db.execute("SELECT last_attempt_at_utc, last_success_at_utc FROM sources WHERE source_id='synscs'")[
+        0
+    ]
+    assert src["last_attempt_at_utc"] and src["last_success_at_utc"]  # health recorded
+    assert db.rows_written <= db.max_rows_written  # budget never exceeded
+
+
+def test_reserve_shrinks_an_oversized_chunk_to_what_fits(monkeypatch):
+    monkeypatch.setattr(mo, "CHUNK", 200)
+    db = _budget_db(max_rows_written=500)
+    run = _run(db, FakeProvider(_many_daily(300)))
+    first_fit = (500 - 1 - mo.FINALIZE_RESERVE_ROWS_WRITTEN) // mo.ROWS_WRITTEN_PER_BAR  # 1 = run row insert
+    assert first_fit < 200 <= 300                    # a full 200-bar chunk would not have fitted
+    assert first_fit <= _stored(db) < 300            # shrunk chunks were written, then the run stopped
+    assert run.series[0].inserted == _stored(db) and run.status == "partial" and run.finalized is True
+    assert db.rows_written <= db.max_rows_written
+
+
+def test_inserted_counts_only_successful_batches(monkeypatch):
+    monkeypatch.setattr(mo, "CHUNK", 10)
+    calls = {"bar_batches": 0}
+
+    def fail_second_bar_batch(stmts):
+        if stmts and stmts[0][0].lstrip().upper().startswith("INSERT INTO MARKET_BARS"):
+            calls["bar_batches"] += 1
+            return calls["bar_batches"] == 2
+        return False
+
+    db = _budget_db(max_rows_written=100_000, fail_on=fail_second_bar_batch)
+    run = _run(db, FakeProvider(_many_daily(30)))
+    s = run.series[0]
+    assert s.error and "simulated write failure" in s.error  # failure visible per series
+    assert s.inserted == _stored(db) == 10  # only the committed chunk
+    assert run.status == "failed" and run.finalized is True
+    assert _run_row(db, run)["items_accepted"] == 10
+    assert db.execute("SELECT consecutive_failures c FROM sources WHERE source_id='synscs'")[0]["c"] == 1
+
+
+def test_corrections_are_counted_after_their_batch_commits():
+    db = _budget_db(max_rows_written=100_000)
+    _run(db, FakeProvider(_daily(close2=11.0)))
+    run = _run(db, FakeProvider(_daily(close2=11.25)))
+    assert run.series[0].corrected == db.execute("SELECT COUNT(*) n FROM market_bar_corrections")[0]["n"] == 1
+
+
+def test_failed_finalisation_is_reported_not_swallowed(monkeypatch):
+    def fail_bookkeeping(stmts):
+        return any(sql.lstrip().upper().startswith("UPDATE COLLECTOR_RUNS") for sql, _ in stmts)
+
+    db = _budget_db(max_rows_written=100_000, fail_on=fail_bookkeeping)
+    run = _run(db, FakeProvider(_daily()))
+    assert run.finalized is False
+    assert any("bookkeeping could not be written" in e for e in run.errors)
+    monkeypatch.setattr("database.connection.connect", lambda: db)
+    monkeypatch.setattr(mo, "collect_market", lambda *a, **k: run)
+    assert mo.main(["--symbols", "SYN", "--timeframes", "1d"]) == 1  # non-zero exit in Actions

@@ -31,7 +31,7 @@ from datetime import UTC, datetime, timedelta
 from collectors.engine import CollectionRefused, _kill_switch_on, authorise, load_source
 from collectors.http import FetchError, HttpClient
 from database.canonical import now_utc
-from database.connection import Database, DatabaseBudgetError
+from database.connection import Database, DatabaseBudgetError, DatabaseError
 
 SOURCE_ID = "scs_chart"
 PKT = timedelta(hours=5)
@@ -43,6 +43,13 @@ TIMEFRAMES: dict[str, tuple[str, int, int]] = {
     "1d": ("D", 86400, 5 * 365),
 }
 OVERLAP_BARS = 3
+# Turso bills index writes too: one market_bars insert costs about 3 rows written (table + 2 indexes).
+# Planning uses a conservative 4. FINALIZE_RESERVE_* keeps enough of the per-run budget for the final
+# collector_runs/sources update, so a run that reaches the budget is still recorded.
+ROWS_WRITTEN_PER_BAR = 4
+FINALIZE_RESERVE_ROWS_WRITTEN = 50
+FINALIZE_RESERVE_REQUESTS = 2
+FINALIZE_RESERVE_ROWS_READ = 500
 CHUNK = 200
 DEFAULT_SYMBOLS = ("OGDC", "HBL", "LUCK", "ENGROH", "PSO")
 
@@ -70,6 +77,7 @@ class MarketRun:
     http_requests: int = 0
     series: list[SeriesResult] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
+    finalized: bool | None = None  # None: dry run; False: final bookkeeping could not be written
 
     def as_dict(self) -> dict:
         return {
@@ -77,6 +85,7 @@ class MarketRun:
             "dry_run": self.dry_run,
             "status": self.status,
             "run_id": self.run_id,
+            "finalized": self.finalized,
             "http_requests": self.http_requests,
             "errors": self.errors,
             "series": [vars(s) for s in self.series],
@@ -169,6 +178,25 @@ def fetch_series(client: HttpClient, base_url: str, symbol: str, timeframe: str,
         raise ValueError(f"provider returned non-JSON for {symbol} {timeframe}") from exc
 
 
+class BudgetReserveReached(DatabaseBudgetError):
+    """Raised before a write that would leave too little budget to record the run."""
+
+
+def _rows_that_fit(db: Database, wanted: int) -> int:
+    """How many of `wanted` rows can still be written while keeping the finalisation reserve."""
+    max_w = getattr(db, "max_rows_written", None)
+    if max_w is None:  # a database without a per-run budget (local SQLite)
+        return wanted
+    usage = db.usage()
+    if (
+        usage["requests"] >= db.max_requests - FINALIZE_RESERVE_REQUESTS
+        or usage["rows_read"] >= db.max_rows_read - FINALIZE_RESERVE_ROWS_READ
+    ):
+        return 0
+    spare = max_w - usage["rows_written"] - FINALIZE_RESERVE_ROWS_WRITTEN
+    return max(0, min(wanted, spare // ROWS_WRITTEN_PER_BAR))
+
+
 def _store(
     db: Database,
     source_id: str,
@@ -197,36 +225,50 @@ def _store(
         if cur is None:
             stmts.append(
                 (
-                    "INSERT INTO market_bars(source_id, symbol, timeframe, bar_start_utc, session_date_pkt, "
-                    "open, high, low, close, volume, retrieved_at_utc, collection_run_id) "
-                    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                    "inserted",
                     (
-                        source_id,
-                        symbol,
-                        timeframe,
-                        b["bar_start_utc"],
-                        b["session_date_pkt"],
-                        *vals,
-                        now,
-                        run_id,
+                        "INSERT INTO market_bars(source_id, symbol, timeframe, bar_start_utc, "
+                        "session_date_pkt, open, high, low, close, volume, retrieved_at_utc, "
+                        "collection_run_id) "
+                        "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                        (
+                            source_id,
+                            symbol,
+                            timeframe,
+                            b["bar_start_utc"],
+                            b["session_date_pkt"],
+                            *vals,
+                            now,
+                            run_id,
+                        ),
                     ),
                 )
             )
-            out.inserted += 1
         elif tuple(float(cur[k]) for k in ("open", "high", "low", "close", "volume")) != vals:
             stmts.append(
                 (
-                    "INSERT INTO market_bar_corrections(source_id, symbol, timeframe, bar_start_utc, open, "
-                    "high, low, close, volume, retrieved_at_utc, collection_run_id) "
-                    "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-                    (source_id, symbol, timeframe, b["bar_start_utc"], *vals, now, run_id),
+                    "corrected",
+                    (
+                        "INSERT INTO market_bar_corrections(source_id, symbol, timeframe, bar_start_utc, "
+                        "open, high, low, close, volume, retrieved_at_utc, collection_run_id) "
+                        "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                        (source_id, symbol, timeframe, b["bar_start_utc"], *vals, now, run_id),
+                    ),
                 )
             )
-            out.corrected += 1
         else:
             out.unchanged += 1
-    for i in range(0, len(stmts), CHUNK):
-        db.batch(stmts[i : i + CHUNK])
+    pending = stmts  # (kind, statement) in bar order
+    while pending:
+        n = _rows_that_fit(db, min(CHUNK, len(pending)))
+        if n == 0:
+            raise BudgetReserveReached(
+                f"stopped before writing to keep the finalisation reserve: {db.usage()}"
+            )
+        chunk, pending = pending[:n], pending[n:]
+        db.batch([stmt for _, stmt in chunk])  # atomic: counts change only after it succeeds
+        for kind, _ in chunk:
+            setattr(out, kind, getattr(out, kind) + 1)
 
 
 def collect_market(
@@ -285,7 +327,7 @@ def collect_market(
                         _store(db, source_id, symbol, tf, bars, run.run_id, out)
                 except DatabaseBudgetError:
                     raise
-                except (FetchError, ValueError) as exc:
+                except (FetchError, ValueError, DatabaseError) as exc:
                     out.error = str(exc)[:300]
                     run.errors.append(f"{symbol} {tf}: {out.error}")
                 if pause_seconds:
@@ -353,8 +395,10 @@ def collect_market(
                 )
             try:
                 db.batch(stmts)
-            except DatabaseBudgetError:
-                pass
+                run.finalized = True
+            except DatabaseError as exc:
+                run.finalized = False
+                run.errors.append(f"run bookkeeping could not be written: {exc}")
     return run
 
 
@@ -397,7 +441,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"refused": str(exc)}))
         return 2
     print(json.dumps(run.as_dict(), indent=1))
-    return 1 if run.status == "failed" else 0
+    return 1 if run.status == "failed" or run.finalized is False else 0
 
 
 if __name__ == "__main__":
