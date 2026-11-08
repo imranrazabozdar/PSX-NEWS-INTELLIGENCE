@@ -140,3 +140,16 @@ Turso's free plan caps rows read, rows written and storage. Check the current li
 ## Backup and restore (plan)
 Turso has point-in-time restore on its own platform. Check the current plan limits on Turso's site.
 For an independent copy, use `turso db shell <db> .dump > backup.sql`, kept in **private** storage and never in this public repo (ADR-0003 D6 is still open). A tested restore procedure is a Phase 14 deliverable (spec section 11.1).
+
+## Market OHLCV (migration 0010)
+| Object | Purpose |
+|---|---|
+| `market_bars` | First observation of each bar. Key: `(source_id, symbol, timeframe, bar_start_utc)`. Timeframes `1m`, `1h`, `4h`, `1d`. Append-only: UPDATE, DELETE and REPLACE are refused. OHLC consistency and bar alignment are checked. |
+| `market_bar_corrections` | A later fetch whose values differ from the stored bar is appended here. The original row is never overwritten. |
+| `market_bars_current` | Latest values per bar (the newest correction, otherwise the original), with first and last retrieval times and the number of corrections. |
+| `market_coverage` | Coverage and freshness per source, symbol and timeframe: bar count, first and last bar, last retrieval, sessions. |
+
+**Timestamps:** `bar_start_utc` is UTC; `session_date_pkt` is the Pakistan (UTC+5) trading date. Daily bars start
+at 00:00 UTC on the session date.
+
+**Provenance:** the provider is a row in `sources`; each run is audited in `collector_runs`.

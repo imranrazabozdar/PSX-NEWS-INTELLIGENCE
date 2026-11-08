@@ -752,7 +752,11 @@ a rule.
 
 ## 19. Follow-up: the same REPLACE exposure in migrations 0001–0008 (not fixed here)
 These append-only or immutable tables rely only on UPDATE and DELETE triggers. They need the same BEFORE
-INSERT duplicate-key guard in a **new additive migration (0010)** after this PR. Migrations 0001–0008 are not
+INSERT duplicate-key guard in a **new additive migration (0010)** after this PR.
+
+> **Numbering note (2026-11-08):** migration number 0010 is now used by `0010_market_ohlcv.sql`. In this
+> document, "migration 0010" means the legacy REPLACE-guard follow-up, which will use the next free number.
+ Migrations 0001–0008 are not
 rewritten.
 
 | Migration | Tables |

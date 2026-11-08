@@ -22,7 +22,7 @@ import threading
 import pytest
 
 from database.connection import DatabaseError, TursoHTTPDatabase
-from database.migrate import migrate
+from database.migrate import discover, migrate
 from tests.turso_guard import DISPOSABLE_TOKEN_VAR, DISPOSABLE_URL_VAR, disposable_config_status
 
 URL = os.environ.get(DISPOSABLE_URL_VAR, "").strip()
@@ -50,7 +50,8 @@ def db():
 
 
 def test_all_migrations_apply_and_foreign_keys_enforced(db):
-    assert db.execute("SELECT MAX(version) v FROM schema_migrations")[0]["v"] == 9
+    latest = max(m.version for m in discover())
+    assert db.execute("SELECT MAX(version) v FROM schema_migrations")[0]["v"] == latest
     assert db.validate()["foreign_keys"] is True
 
 
