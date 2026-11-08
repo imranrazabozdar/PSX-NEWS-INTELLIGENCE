@@ -4,7 +4,7 @@ Status: DESIGN (main `012a6bf`, 2026-11-08). This is a plan, not an authorisatio
 with the owner's explicit approval and ends at its acceptance gate (CLAUDE.md: one approved phase at a time).
 Concepts: `MASTER_ARCHITECTURE.md`. Sources: `MASTER_DATA_SOURCE_REGISTER.md` (R1–R6). Tables:
 `MASTER_DATABASE_DESIGN.md`. Tests: `MASTER_VALIDATION_STRATEGY.md`. Controls:
-`MASTER_SECURITY_AND_OPERATIONS.md`. Decisions: U1–U12 (architecture §9).
+`MASTER_SECURITY_AND_OPERATIONS.md`. Decisions: U1–U11 (architecture §9).
 
 **Two kinds of completion, always reported separately:**
 * **Code complete:** merged, tests pass in CI, `STATUS.md` = TESTED.
@@ -135,7 +135,7 @@ Every milestone also has these standing items, not repeated below:
 * **Acceptance:** series loaded with provenance; one T-mechanism shows a quantified driver change.
 * **Risks:** terms; lags.
 
-### M7 — Human labels, validation and backtesting (start labelling now; U11)
+### M7 — Human labels, validation and backtesting (start labelling now; U10)
 * **Objective:** measured accuracy; walk-forward evaluation before any predictive output is shown.
 * **Components:**
   * labelling guide and workflow;
@@ -210,7 +210,7 @@ M10 follows each module separately.
 | Licensed provider (U1) | Quote required |
 | Turso | Within the Starter plan given the U7 limits |
 | PyPI PDF libraries | Free (U3) |
-| AI | None (U12 not authorised) |
+| AI | None (U11 not authorised) |
 
 ## Token-efficient delivery (for agent-assisted work)
 * **One milestone per session.** Start from this plan and the milestone's section only.

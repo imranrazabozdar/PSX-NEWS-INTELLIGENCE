@@ -81,10 +81,17 @@ Estimates use the measured ~3 billed rows per row inserted (table plus two index
 |---|---|---|
 | Daily bars, 600 symbols | 600 × ~21 sessions | ~38k / month |
 | 1-minute bars, 600 symbols | 600 × ~375 × ~21 | ≈ **14M / month: exceeds the 10M quota** |
-| 1-minute bars, 25 priority symbols | 25 × ~375 × ~21 | ~0.6M / month |
+| 1-minute bars, 120 symbols (illustration of a 100+ priority list) | 120 × ~375 × ~21 | ~2.8M / month |
+| 1-minute bars, 25 symbols (capacity illustration only) | 25 × ~375 × ~21 | ~0.6M / month |
 | Financial line items, 600 companies | 600 × 4 reports × ~300 lines / year | ≈ 2.2M / year, mostly one-off backfill |
 
-* **1-minute bars are therefore limited to the priority universe (U7).**
+* **1-minute bars for all ~600 symbols exceed the quota,** so the intraday universe is bounded. The 25- and
+  120-symbol rows are capacity illustrations, not an approved universe; the actual intraday size is an owner
+  decision (U7).
+* **The manually curated priority list (100+ stocks) is never reduced or filtered** by this budget or by
+  liquidity qualification (20 sessions, initial 100,000-share ADV threshold, with traded value and other
+  liquidity measures). News, fundamentals, macro and event monitoring stay broad and independent of
+  liquidity filters.
 * **Storage:** per-row size isn't measured reliably yet. Measure `storage_bytes` after M2 and M4 backfills before
   widening.
 

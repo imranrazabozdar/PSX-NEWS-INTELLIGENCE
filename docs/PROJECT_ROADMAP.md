@@ -55,7 +55,7 @@ The complete target system and its single programme are defined in `MASTER_ARCHI
 | M9 | Integrated reports | NOT STARTED |
 | M10 | Production activation per module | NOT STARTED |
 
-Critical path: M1 → M2 → M3 → M5. Owner decisions U1–U12 are listed in `MASTER_ARCHITECTURE.md` §9.
+Critical path: M1 → M2 → M3 → M5. Owner decisions U1–U11 are listed in `MASTER_ARCHITECTURE.md` §9.
 
 ## Future stages (spec §14; now mapped into the master programme)
 * Corporate / policy / government modules.

@@ -40,7 +40,7 @@ Status: DESIGN (main `012a6bf`). This extends the existing harness `engines/vali
 * **Quality thresholds** (e.g. minimum direction accuracy before a predictive output is shown) are an owner
   decision (U9). None is set now, and until one is set, predictive outputs are not displayed.
 
-## 5. Labelling programme (U11)
+## 5. Labelling programme (U10)
 * **Guide:** a per-kind guide (event type, companies, independence, exposure, impact direction).
 * **Labeller identity:** recorded on every label.
 * **Double labelling:** a 10% sample is labelled twice to measure agreement.

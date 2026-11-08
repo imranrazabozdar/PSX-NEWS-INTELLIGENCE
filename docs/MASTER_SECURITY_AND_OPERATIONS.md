@@ -7,8 +7,9 @@ Status: DESIGN (main `012a6bf`). These controls keep their current form; none is
   cross-repository workflows or copied indicators.
 * **`scripts/check_independence.py`** must pass before every commit, and its allowlist is not loosened to fit new
   modules (new modules go under `engines/` or `collectors/`).
-* **Any exchange with the technical project (U10)** would be a one-way, file-based contract approved
-  separately. None exists.
+* **No integration or data exchange of any kind** with the technical project (files, tables, exports,
+  submodules, workflows or runtime calls). This is permanent unless the owner changes the project boundary in a
+  future, separately documented decision; it is not an open decision.
 
 ## 2. Secrets
 * **Naming and storage:** `PSXNI_` prefix only, stored in GitHub secrets or the environment, never in the
@@ -25,7 +26,7 @@ Status: DESIGN (main `012a6bf`). These controls keep their current form; none is
 | Production write, migration, activation, new scheduled job | **Separate** owner approval, per action; a merge is not approval |
 | New source automation | Register row upgraded to V (terms reviewed) and owner approval |
 | New dependency | PyPI only; justified in the PR; owner approval |
-| Paid service or AI provider | Not authorised (U12) |
+| Paid service or AI provider | Not authorised (U11) |
 | Order execution / trading | Never built |
 
 ## 4. Production change procedure (every migration or activation)

@@ -145,8 +145,7 @@ Permanent constraints:
   * price-volume divergence;
   * accumulation/distribution (on-balance volume, money-flow).
 * **Independence:** every indicator is implemented here independently. Nothing is imported or copied from
-  the technical project. A future authorised exchange would be file- or table-based (§7), never runtime
-  coupling.
+  the technical project, and there is no data exchange or runtime coupling with it (§7).
 * **Liquidity qualification:** 20 sessions, initial 100,000 shares ADV threshold, plus traded value. It is
   computed per symbol, gates **only** technical and market analytics, and never removes the owner's priority
   list.
@@ -266,12 +265,12 @@ Missing is never zero.
 * idempotent, lease-protected jobs.
 
 ## 7. Integration boundary with the technical-analysis project
-* **None today.** If the owner later authorises an exchange, it is a **one-way, file- or table-level
-  contract** (e.g. a dated CSV or Parquet export of PSX-NI market metrics), produced by this repository
-  and read by the other project, or the reverse.
-* That contract has its own schema, version and checksum. There is no shared database, credential, code,
-  workflow or runtime call.
-* The independence guard stays unchanged. The contract is designed only on approval (U10).
+* **None, permanently (ADR-0001).** There is no integration and no data exchange of any kind (files,
+  tables, exports or imports), and no shared database, credentials, code, dependencies, submodules,
+  workflows or runtime coupling with the technical-analysis project, in either direction.
+* This is a settled architectural constraint, not an open decision. It can change only if the owner
+  explicitly changes the project boundary in a future, separately documented decision (a new ADR).
+* The independence guard stays unchanged.
 
 ## 8. AI and automation (optional, not authorised)
 * **Possible future uses:** extraction assistance for hard tables, classification of ambiguous headlines,
@@ -294,9 +293,8 @@ Missing is never zero.
 | U4 | Approved authoritative listed-company universe source |
 | U5 | KSE-100 benchmark: does SCS serve an index symbol? (research task); otherwise a licensed source |
 | U6 | Consensus estimates (licensed only), or forward P/E not offered |
-| U7 | Universe size for SCS intraday versus daily bars (write budget, §6 of the database design) |
+| U7 | Actual intraday (1-minute) universe size within the write budget (§6 of the database design); the manually curated priority list (100+ stocks) itself is not reduced by this |
 | U8 | Single-user versus multi-user, authentication, and a separate portfolio database |
 | U9 | Policy thresholds: fundamentals bands, impact magnitude A/B, outlier bounds, valuation assumptions |
-| U10 | Whether any data exchange with the technical project is wanted |
-| U11 | Labelling capacity: who labels, how many items per month |
-| U12 | Optional AI provider and budget |
+| U10 | Labelling capacity: who labels, how many items per month |
+| U11 | Optional AI provider and budget |
