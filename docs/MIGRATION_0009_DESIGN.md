@@ -719,3 +719,223 @@ separate, explicit owner decision recorded as an `approved` event. No policy act
 | Read-time and write-time evidence validity checks | §8 |
 | No market-reaction claims (`market_check = 'not_evaluable'`) | §3, §4 |
 | Turso HTTP compatibility unverified | §6b, §8b, §10 |
+
+## 18. Implementation amendments from the independent audit (PR #21 remediation)
+The PR #21 audit verdict was DO NOT MERGE. The remediation below corrects the still-unmerged 0009 in
+place; migrations 0001–0008 are unchanged. Each amendment tightens the approved design, and none relaxes
+a rule.
+
+| Finding | Severity | Disposition | Implementation (0009) | Regression test (`tests/test_impact_remediation.py`) |
+|---|---|---|---|---|
+| `INSERT OR REPLACE` / `REPLACE INTO` overwrites append-only rows; delete triggers don't fire without `recursive_triggers` | BLOCKER | Fixed | `trg_<table>_no_replace` BEFORE INSERT duplicate-key guards on all 8 tables. Primary key, and the unique keys of `impact_expiry_policy_events` (version, event_type) and `impact_assessments` (identity). | `test_replace_cannot_overwrite_existing_rows`: 8 tables × 2 verbs, PK and unique variants; row and revision count unchanged |
+| Expiry policy can be attached on UPDATE without validation | BLOCKER | Fixed | `expiry_policy_version` and `freshness_basis` are **fixed at creation** (update trigger) | `test_policy_and_freshness_cannot_change_on_update`: draft and retired versions, with and without an upgrade |
+| Terminal states can be left, or swapped, through any new review | HIGH | Fixed | Strict matrix: withdrawn and rejected may only go to `provisional` with `reinstated`, a human actor and an `accept` review recorded against the prior status. Confirmed may only go to system `needs_revalidation` or withdrawn, or to human `rejected_by_review`. | `test_transition_matrix`: all 42 transitions; `test_terminal_reinstatement_bypass_attempts` |
+| Provisional may include potential or unverified exposure inputs | HIGH | Fixed | Upgrade and input-insert triggers require **every** exposure input to be `strongly_supported` or `confirmed` (confirmed still needs all `confirmed`). The current view reports `needs_revalidation` otherwise. | `test_provisional_requires_every_exposure_input_eligible` (7 cases); `test_ineligible_input_after_upgrade_and_status_change_detected` |
+| The production integration test could execute pending migration DDL whenever the URL is set | HIGH | Fixed | `tests/turso_guard.py`: DDL only with `PSXNI_TURSO_ALLOW_PENDING_MIGRATION_DDL=yes-execute-migration-ddl`; otherwise skipped; CI never sets it | `tests/test_turso_guard.py` (URL alone, unrelated config, exact value, CI workflows checked) |
+| `freshness_basis` trusted, not verified | HIGH | Fixed | `impact_explicit_freshness` view: an `explicit_source_expiry` upgrade needs a linked exposure record whose `valid_to` has not passed by the **database clock**. `policy_expiry` can never unlock provisional or confirmed until policy rules are machine-evaluable. The read view degrades confirmed and provisional when freshness lapses. | `test_unsupported_or_expired_explicit_freshness_cannot_qualify`, `test_policy_based_freshness_cannot_unlock_provisional` |
+| Sector conclusion can rest on scenario-only components | MEDIUM | Fixed | New columns `weakest_status`, `scenario_only_n`, `evidence_backed_n`. `sector_conclusion = 'not_concluded_scenario_only_components'` whenever any included component is scenario-only, even with complete coverage. | `test_sector_weakest_status` (5 mixes), `test_sector_partial_coverage_still_wins` |
+| Policy selection trusts client `created_at_utc` | MEDIUM | Fixed | Policy eligibility uses `strftime('now')` (database time); `created_at_utc` is ignored for selection | `test_policy_selection_uses_database_time` (current, future-dated, backdated, retired, not-yet-effective) |
+| Explicit source expiry not evaluated at read time | MEDIUM | Partly fixed | Evaluated for assessments relying on explicit freshness (current view). Not evaluated for relationship or identifier validity in general. | covered by the freshness tests |
+| Unclassified reporting covers assessed companies only | LOW | Accepted limitation | — | existing test |
+| Month or year event dates treated as undated (current classification) | LOW | Accepted limitation (documented) | — | — |
+| Company whose only status record is after the event date → `unknown` | LOW | Accepted (conservative; keeps the sector partial) | — | existing test |
+| Supersession flags strengthened evidence too | LOW | Accepted (conservative; forces revalidation) | — | existing test |
+| Forward FK `impact_assessments.last_review_id` → `impact_reviews` on a Turso server | INFO | Deferred to gate 3 | — | `tests/test_turso_disposable.py` (not run) |
+| Disposable-Turso tests never run | INFO | **Production blocker** (gate 3) | — | — |
+
+**Design consequences, recorded rather than silent:**
+- **Freshness basis and policy are fixed at creation.** An assessment created as `not_established` stays at
+  `needs_review` at most. To use new evidence, the engine creates a new assessment under a new
+  `transmission_version`.
+- **Policy-based freshness unlocks nothing yet.** With the registry empty this changes nothing today. Before
+  any policy is approved, a future migration must make its rules database-evaluable.
+
+## 19. Follow-up: the same REPLACE exposure in migrations 0001–0008 (not fixed here)
+These append-only or immutable tables rely only on UPDATE and DELETE triggers. They need the same BEFORE
+INSERT duplicate-key guard in a **new additive migration (0010)** after this PR. Migrations 0001–0008 are not
+rewritten.
+
+| Migration | Tables |
+|---|---|
+| 0001 | `source_item_versions`, `company_status_history` |
+| 0002 | `event_revisions`, `event_evidence` |
+| 0003 | `alerts_predictions` |
+| 0004 | append-only media and operations tables per their triggers (to be enumerated in 0010) |
+| 0007 | `llm_calls`, `event_extractions` |
+| 0008 | `exposure_candidate_revisions`, `exposure_reviews`, `exposure_candidate_evidence`, `company_relationships`, `evidence_retractions` |
+
+The 0010 implementation must enumerate every table with a no-update or no-delete trigger and add REPLACE
+regression tests, as in §18.
+
+## 20. Targeted-verification remediation (after b81be46)
+| Finding | Severity | Fix (0009) | Regression tests (`tests/test_impact_review_binding.py`) |
+|---|---|---|---|
+| An old human review could authorise a later transition (reinstatement or rejection replay) | HIGH | Each review is **single-use**. It must be the assessment's newest review and never linked to a revision before. Only a human decision can link it, and a linked review cannot be removed. The partial unique index `ux_impact_revisions_review_once` enforces this as well. | accept replay, reject replay, needs-more-evidence and revalidation replay, stale unused review, confirmation reuse, system linking and removal, index presence |
+| `valid_to` checked by shape only (`9999-99-99` accepted) | MEDIUM | `impact_explicit_freshness` requires `date(valid_to) IS substr(valid_to,1,10)`, which rejects impossible and normalised dates | valid, leap day, invalid, impossible, expired and missing dates |
+| Direction could change without review | LOW | A direction change needs `actor_type='human'` and a newly linked, single-use review. Only the conservative move to `unknown` is exempt. | system refused, human without a new review refused, human with a new review allowed, change to unknown allowed |
+
+**Design consequences:**
+- To change the direction of a provisional assessment, a human first records a `request_revalidation` review that sets the new direction. The system then revalidates the assessment.
+- A refused attempt leaves the assessment, its revisions and its review history unchanged.
+
+## 21. Targeted-verification remediation (after 950f7be)
+| Finding | Severity | Fix (0009) | Regression tests (`tests/test_impact_freshness_and_fields.py`) |
+|---|---|---|---|
+| One fresh linked exposure record could compensate for another that was expired, missing or impossible | HIGH | New view `impact_linked_exposure_freshness` classifies each linked company-specific exposure record as `fresh`, `missing`, `invalid` or `expired`. `impact_explicit_freshness` now requires at least one record **and** every record to be fresh. Both the upgrade trigger and `impact_assessments_current` use it. Malformed suffixes such as `2099-12-31garbage` are rejected. | All valid; one expired, missing, impossible or malformed record; read-time invalidation when a record lapses or its `valid_to` changes (and recovery after correction); a confirmed assessment invalidated by one lapsed record |
+| Substantive fields could change without review | MEDIUM | Without a newly linked human review, an update may change **at most one** substantive field, and only towards caution (see the rule below). | Each field individually (7 cautious moves allowed, 12 non-cautious changes refused); `unknown` combined with every other field refused; two cautious moves together refused; a human without a new review refused; combined changes with a new review allowed |
+
+**Caution rule, enforced in SQL:**
+
+| Field | Allowed without a new review |
+|---|---|
+| `direction`, `horizon` | → `unknown` |
+| `magnitude_level` | → `not_assessable` |
+| `evidence_confidence`, `exposure_confidence`, `direction_confidence`, `magnitude_confidence` | a downward move only |
+| `scenario_uncertainty` | a wider value only (`narrow` < `wide` < `undetermined`) |
+| `magnitude_basis`, `affected_lines_json` | never |
+
+**Limitations:**
+- `company_exposures.valid_to` (migration 0006) can still be changed by UPDATE. The read view reacts to the
+  new value immediately, but there is no history of that change. Protecting it belongs with the migration
+  0010 follow-up.
+- Company-specific evidence that comes from a relationship (not an exposure record) has no `valid_to` in this
+  check.
+- `counter_evidence_json`, `missing_inputs_json` and `confidence_reasons_json` are not guarded. They are
+  supporting notes, and every change is recorded in a revision.
+
+## 22. Linked exposure evidence is immutable (after 1d6051b)
+**Finding (HIGH):** an expired assessment could be revived by editing `company_exposures.valid_to` (or any
+other field) back to a valid value. That needed no new review, created no revision, and left no trace. The
+table comes from migration 0002 and had no triggers, while the freshness views read its current values.
+
+**Fix (additive, in 0009; 0002 unchanged):**
+- **When a record is "linked":** a `company_exposures` record backs an exposure candidate when any
+  `exposure_candidate_evidence` row has `company_exposure_id = exposure_id`. The 0008 schema allows that
+  column only with role `company_specific`.
+- **What linked records refuse:**
+
+| Trigger | Refuses, for a linked record |
+|---|---|
+| `trg_company_exposures_linked_immutable` (BEFORE UPDATE) | Any change to `valid_to`, `valid_from`, `company_id`, `exposure_kind`, `subject`, `confidence`, `source_item_id`, `evidence_excerpt` or `last_verified_utc`, plus `scope`, `segment_id` and the key itself. This includes moving another row onto a linked key, and covers `UPDATE OR REPLACE`, `UPDATE OR IGNORE` and `ON CONFLICT DO UPDATE`. |
+| `trg_company_exposures_linked_no_replace` (BEFORE INSERT) | Any insert using a linked key (`REPLACE`, `INSERT OR REPLACE`, `INSERT OR IGNORE`, plain insert), with foreign keys on or off |
+| `trg_company_exposures_linked_no_delete` (BEFORE DELETE) | Deletion, with foreign keys on or off |
+
+- **Unlinked records** keep the existing correction behaviour.
+
+**Why:** once evidence has backed a candidate, its contents are part of the audit trail. Expiry is now driven
+only by the database clock, so it is irreversible for that record.
+
+**Correction workflow:**
+1. Retract the record (`retract_evidence` → `evidence_retractions`). Phase 4 downgrades the affected
+   candidate, and the assessment reads as `needs_revalidation`.
+2. Record a **new** exposure record.
+3. Phase 4 links the new record to a new candidate. The old candidate cannot be restored on the same event,
+   because its retracted link is permanent; a new event report, or a new ruleset version, produces the new
+   candidate.
+4. A human reviews the new candidate.
+5. Create a new assessment, upgrade it, and have a human review it before eligibility returns.
+
+All of this is tested end to end in `tests/test_impact_exposure_immutability.py`.
+
+**Testing the passage of time:** `tests/db_clock.py` overrides SQLite's `date()` and `strftime()` for `'now'`
+on one isolated test connection. The SQL under test is unchanged and still uses the database clock.
+
+**Still open:**
+- **Real Turso:** these triggers are verified on SQLite 3.53.1 and 3.47.0. On libSQL 3.45.1, migrations
+  0001–0009 apply (234 statements); the trigger behaviour itself was not exercised there. None of this has
+  been verified on a real Turso server.
+- **Relationship-based evidence:** has no `valid_to` check.
+- **Unguarded notes:** `counter_evidence_json`, `missing_inputs_json` and `confidence_reasons_json` can still
+  change without review; each change is recorded in a revision.
+- **Age thresholds:** `last_verified_utc` age limits need an approved expiry policy.
+- **Migration 0010:** still required for the REPLACE guards of migrations 0001–0008.
+
+## 23. Retractions are permanent (after d4fbd70)
+**Finding (HIGH, final acceptance audit):** `evidence_retractions` (migration 0008) has UPDATE and DELETE
+triggers, but REPLACE deletes a conflicting row without firing delete triggers. The attack:
+1. Run `REPLACE INTO evidence_retractions` with the existing `retraction_id` but a different target, or with
+   the same `(record_table, record_id)` under a new id. This erases the retraction.
+2. Run `map_event` again. It revises the old candidate back to `strongly_supported`.
+3. A human re-accepts it, making it `confirmed`, with no trace that it was ever retracted.
+
+0009's correction workflow (retract, then record a new record) depends on retractions being permanent.
+
+**Fix (additive, in 0009; 0008 unchanged):**
+```sql
+CREATE TRIGGER trg_evidence_retractions_no_replace BEFORE INSERT ON evidence_retractions
+WHEN EXISTS (SELECT 1 FROM evidence_retractions r
+             WHERE r.retraction_id = NEW.retraction_id
+                OR (r.record_table = NEW.record_table AND r.record_id = NEW.record_id))
+BEGIN SELECT RAISE(ABORT, 'evidence_retractions: ... retractions are permanent'); END;
+```
+- **What it blocks:** the guard runs before conflict resolution. It refuses plain INSERT, INSERT OR REPLACE,
+  REPLACE, INSERT OR IGNORE, `ON CONFLICT DO UPDATE` and `ON CONFLICT DO NOTHING` on either identity, with
+  foreign keys on or off.
+- **What still works:** the first retraction of any record. The UPDATE and DELETE protections from 0008 are
+  unchanged.
+
+**Tests (`tests/test_impact_retraction_permanence.py`):**
+- 11 insert paths × foreign keys on and off. Each failed attempt leaves the retraction, the candidate's
+  status and revisions, and the assessment unchanged.
+- The full attack end to end. It is blocked, and no provisional or confirmed assessment can be built from the
+  retracted evidence.
+- A database-clock expiry check.
+- **Negative control:** with the trigger dropped, 23 of these 27 tests fail.
+
+**Boundary with migration 0010:**
+- **Fixed in 0009:** only the tables 0009's guarantees depend on — `company_exposures` (when linked) and
+  `evidence_retractions`.
+- **Still exposed to REPLACE** (the 0010 follow-up, §19): the other append-only tables of migrations
+  0001–0008, including `exposure_candidate_revisions`, `exposure_candidate_evidence`, `exposure_reviews` and
+  `company_relationships`.
+- **Real Turso:** verification is still outstanding.
+
+## 24. The 0008 exposure chain cannot be replaced (after e076189)
+The final acceptance audit of `e076189` reproduced three REPLACE attacks on migration 0008 tables that
+0009's guarantees depend on. All three reproduced with foreign keys on and off.
+
+| Finding | Severity | Attack |
+|---|---|---|
+| 1 | HIGH | `REPLACE INTO exposure_candidates` with an existing `candidate_id` reset the candidate. Trigger programs inherit the outer conflict policy, so its revision-1 trigger also overwrote revision 1 of the history. |
+| 2 | HIGH | Retract the evidence; copy the exposure record (same source item, fresh `valid_to`); `REPLACE INTO exposure_candidate_evidence` using the old link's rowid, pointing at the copy. The candidate's evidence then read as valid, and the retracted record became unlinked and editable. After re-mapping and a human re-accept, a new assessment reached `confirmed_conclusion`. |
+| 3 | MEDIUM | `REPLACE INTO exposure_candidate_revisions` on the current revision rewrote recorded history. |
+
+**Fix (additive, in 0009; 0008 unchanged).** Three BEFORE INSERT guards run before conflict resolution:
+
+| Trigger | Refuses an insert matching |
+|---|---|
+| `trg_exposure_candidates_no_replace` | `candidate_id`, or the unique key `(event_id, company_id, exposure_category, exposure_subtype, mechanism, ruleset_version)` |
+| `trg_exposure_candidate_evidence_no_replace` | the row's `rowid` (`NEW.rowid` is -1 when not supplied), or the `ux_candidate_evidence` key `(candidate_id, role, COALESCE(event_evidence_id,0), COALESCE(company_exposure_id,0), COALESCE(relationship_id,0))` |
+| `trg_exposure_candidate_revisions_no_replace` | the primary key `(candidate_id, revision_no)` |
+
+They refuse plain INSERT, `INSERT OR REPLACE`, `REPLACE`, `INSERT OR IGNORE`, `ON CONFLICT DO UPDATE` and
+`ON CONFLICT DO NOTHING`. Foreign keys are not relied on.
+
+**Still working:**
+- first-time candidate creation, evidence links and new revisions;
+- retraction and revalidation;
+- mapping under a new ruleset version (it creates a new candidate that does not reuse the retracted record);
+- a replacement event;
+- human review of the new candidate;
+- a new confirmed assessment on genuinely new evidence.
+
+**Tests:** `tests/test_impact_exposure_chain_replace.py`, 76 tests, each run with foreign keys on and off.
+- Each attack is tried on every insert path and on every identity.
+- After each refusal, the whole chain must be byte-identical: candidates, revisions, links (including rowid),
+  retractions, exposure records, assessments and their revisions, and both read views.
+- The finding-2 attack is also tested end to end.
+- **Negative control:** with the three guards dropped, 62 of the 76 fail. The 14 that still pass are the two
+  legitimate-flow runs (one per foreign-key setting) and the 12 "first revision" cases, which the existing
+  0008 trigger `trg_exposure_revisions_only_current` already refuses.
+
+**Boundary with migration 0010.** This closes only the three tables that directly undermine 0009. The other
+legacy append-only tables listed in §19 remain migration 0010 work and are **not** fixed here:
+- `source_item_versions`, `company_status_history`;
+- `event_revisions`, `event_evidence`;
+- `alerts_predictions`;
+- `llm_calls`, `event_extractions`;
+- `exposure_reviews`, which a REPLACE probe found refused by its existing insert check;
+- `company_relationships`;
+- the 0004 tables.
+
+Real Turso verification is also still outstanding.

@@ -58,6 +58,29 @@ Rules:
 3. **Expiry.** Each exposure input has a freshness horizon: `valid_to`, or the `last_verified_utc` age
    threshold per exposure kind (proposed: 12 months for documented business exposures, one reporting
    period for financial figures). Expired inputs make the assessment `needs_revalidation`.
+   **Database enforcement (migration 0009):** every linked company-specific exposure record must have a
+   `valid_to` that is a real calendar date (`YYYY-MM-DD` or `YYYY-MM-DDTHH:MM:SSZ`) and has not passed by
+   the database clock. A missing, impossible, malformed or expired date on **any** linked record blocks the
+   upgrade to `provisional` or `confirmed_conclusion`. It also shows the assessment as `needs_revalidation`
+   at read time. One fresh record never compensates for a stale one.
+   **Linked evidence is immutable:** once an exposure record backs an exposure candidate, the database
+   refuses any UPDATE, UPSERT, REPLACE or DELETE that would change its evidentiary fields. Expiry is
+   therefore irreversible. To correct a record, retract it and record a new one; a new candidate and new
+   human review are then needed before an assessment is eligible again. (Migration 0009 §22. Not yet
+   verified on a real Turso server.)
+   **Retractions are permanent:** a retraction cannot be updated, deleted or replaced, by REPLACE, UPSERT or a
+   conflicting insert on its id or record. Retracted evidence can therefore never regain eligibility.
+   (Migration 0009 §23. The REPLACE guards for the remaining tables of migrations 0001–0008 are migration
+   0010.)
+   **The exposure chain cannot be rewritten:** existing exposure candidates, their evidence links (by rowid
+   or by unique key) and their revisions cannot be replaced. A retracted link therefore can't be redirected
+   to copied evidence, and candidate history can't be reset. (Migration 0009 §24. Other legacy tables are
+   migration 0010; real Turso verification is outstanding.)
+   **Not yet database-enforced:**
+   - the `last_verified_utc` age thresholds, because no expiry policy is approved yet;
+   - expiry of relationship-based evidence;
+   - review of the assessment notes `counter_evidence_json`, `missing_inputs_json` and
+     `confidence_reasons_json`. Changes to these are recorded in revisions.
 4. **Unknown stays unknown.** A mechanism whose sign the rule cannot set, or an exposure with direction
    `unknown`, yields `direction = unknown`. No calculation may infer a sign to complete itself.
 5. **Contradiction.** Opposing documented exposures or a disputed event lower direction confidence one
