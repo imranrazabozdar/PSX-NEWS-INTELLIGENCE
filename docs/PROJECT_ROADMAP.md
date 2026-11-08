@@ -63,8 +63,9 @@ Critical path: M1 → M2 → M3 → M5. Owner decisions U1–U11 are listed in `
 * Institutional research.
 * YouTube / X (needs authorised access).
 * Valuation and scenarios.
-* Event investigator with optional technical context: read-only market data, no indicators copied from the
-  technical project.
+* Event investigator with optional market context drawn exclusively from market data independently collected
+  and stored within PSX News Intelligence. No data, indicators, code or other material is imported from or
+  exchanged with the separate technical-analysis project.
 * Backtesting and alerts.
 
 ## Key architectural decisions
