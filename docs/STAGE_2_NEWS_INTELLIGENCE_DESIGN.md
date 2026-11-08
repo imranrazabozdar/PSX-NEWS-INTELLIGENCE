@@ -265,3 +265,52 @@ There is no AI, no migration and no production run. It unlocks Components 2–7.
   * whether intelligence runs in the collection workflow (as a second job) or its own workflow (recommended:
     its own);
   * the ranking weights for the home view.
+
+## 12. Implementation notes: batch 1 (Components 2–4)
+
+`engines/event_intel.py` runs after the headline builder. It processes each built item once and records an
+`event_extractions` row (`event-intel/1`, deterministic) in the same transaction as any event revision.
+
+**Classification** (`engines/event_classification.py`)
+* Contextual rules: a subject term, plus a context term where one is listed, plus a company mention for
+  corporate result and announcement types. The primary type is the first matching rule in priority order.
+  Court matters rank as `legal_court` ahead of policy types.
+* Secondary types are kept in the per-item record and the revision snapshot. No new table.
+* Status-stage cues map to the existing 14 stages. Claim nature (`news_report`, `rumour`,
+  `personal_opinion`, `prediction`) is kept separate from the stage.
+
+**Status and history**
+* An event built only by the headline builder, with no `event-intel/1` record, is **Not assessed**:
+  `classification_status()`. Its `not_applicable` stage must not be shown as an assessment.
+* Changes are recorded only as new revisions: type out of `other`, a stage development (e.g.
+  `proposal -> approval`), and verification state. Repeats cause no revision. A builder UPDATE on a figure
+  without a unit is noted as not material.
+
+**Entities**
+* Companies come only from the existing exact-match resolver (capital tickers, exact multi-word names; 51
+  seeded companies).
+* Company-like names that aren't in the master, and ambiguous names, are kept with relation `unresolved` or
+  `ambiguous` and flagged for review. They are never assigned.
+* Regulators, government bodies, institutions, countries, commodities, indicators and PSX sectors come from
+  exact phrases (relation `direct`). Implied entities (e.g. NEPRA → electricity tariff) have relation
+  `context`. No company is ever inferred from a sector.
+
+**Evidence**
+* The publisher group is `sources.owner` when recorded; otherwise the registrable domain. The live sources
+  have no owner, so feeds of one publisher share their domain.
+* Independence is `not_independent` (a stored or near duplicate, or the same publisher group) or `unknown`.
+  It is **never** `independent` from headlines, and different domains are not confirmation.
+* Verification state:
+
+  | State | When |
+  |---|---|
+  | `primary_confirmed` | Only for a `primary_official` source reporting it, and not a rumour |
+  | `disputed` | A denial, or opposing stages from different publishers within 48 h |
+  | `unverified` | Otherwise. Media repetition never reaches `corroborated` |
+
+**Limitations / deferred**
+* The rules are English keyword-and-context rules, untuned on a labelled sample.
+* Single-word company names (e.g. "Engro") are never assigned.
+* `event_evidence` is append-only, so independence assessed here lives in the processing record.
+* Concurrent runs are safe per item but can interleave event revisions. Run one processor at a time.
+* Not run on production data.
