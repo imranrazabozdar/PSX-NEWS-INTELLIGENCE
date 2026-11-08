@@ -28,6 +28,11 @@ on:
         description: "Backfill: only items published at/before this UTC time"
         required: false
         default: ""
+      trigger:
+        description: "Trigger origin recorded with the run (an external scheduler sends 'external')"
+        type: choice
+        options: [manual, external]
+        default: manual
 
 permissions:
   contents: read
@@ -48,6 +53,9 @@ jobs:
       INPUT_DRY_RUN: ${{ inputs.dry_run }}
       INPUT_SINCE: ${{ inputs.since }}
       INPUT_UNTIL: ${{ inputs.until }}
+      # Trigger origin: 'schedule' for GitHub cron (the fallback), else the dispatch input. Recorded by the
+      # market orchestrator with GITHUB_RUN_ID; never contains a token.
+      PSXNI_TRIGGER: ${{ github.event_name == 'schedule' && 'schedule' || inputs.trigger }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -81,6 +89,6 @@ jobs:
         # from the last stored bar, and the per-run database budget applies.
         if: steps.cfg.outputs.run == 'true' && inputs.source == ''
         run: |
-          margs=(--due)
+          margs=(--due --trigger "$PSXNI_TRIGGER")
           if [ "$INPUT_DRY_RUN" = "true" ]; then margs+=(--dry-run); fi
           python -m collectors.market_ohlcv "${margs[@]}"

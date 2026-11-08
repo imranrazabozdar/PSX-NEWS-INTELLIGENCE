@@ -85,6 +85,35 @@ def _iso(dt: datetime) -> str:
     return dt.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def record_trigger(db: Database, context: dict, now: datetime, source_id: str = SOURCE_ID) -> None:
+    """Heartbeat: the last time each trigger origin invoked market collection (even when nothing was
+    due), in the market source's collector_checkpoints.cursor JSON. One row written per invocation."""
+    origin = context.get("trigger", "manual")
+    db.batch(
+        [
+            (
+                "INSERT INTO collector_checkpoints(source_id, endpoint_url, cursor, updated_at_utc) "
+                "SELECT source_id, COALESCE(feed_url, ''), json_object(?, json_object('at', ?, "
+                "'github_run_id', ?)), ? FROM sources WHERE source_id = ? "
+                "ON CONFLICT(source_id) DO UPDATE SET cursor = json_set(COALESCE(CASE WHEN "
+                "json_valid(collector_checkpoints.cursor) THEN collector_checkpoints.cursor END, '{}'), "
+                "'$.' || ?, json(json_extract(excluded.cursor, '$.' || ?))), "
+                "updated_at_utc = excluded.updated_at_utc",
+                (origin, _iso(now), context.get("github_run_id"), _iso(now), source_id, origin, origin),
+            )
+        ]
+    )
+
+
+def last_triggers(db: Database, source_id: str = SOURCE_ID) -> dict:
+    """{origin: {at, github_run_id}} from the heartbeat, e.g. for the operations view."""
+    rows = db.execute("SELECT cursor FROM collector_checkpoints WHERE source_id = ?", (source_id,))
+    try:
+        return json.loads(rows[0]["cursor"]) if rows and rows[0]["cursor"] else {}
+    except ValueError:
+        return {}
+
+
 def recover_abandoned(db: Database, now: datetime, lease_minutes: int, source_id: str = SOURCE_ID) -> int:
     """Finalise market runs left 'running' beyond the lease as failed. Returns how many were recovered."""
     cutoff = _iso(now - timedelta(minutes=lease_minutes))
@@ -187,6 +216,7 @@ def orchestrate(
             now = now_fn()
             recovered += recover_abandoned(db, now, limits.lease_minutes, source_id)
             if i == 0:
+                record_trigger(db, context or {}, now, source_id)
                 legacy = legacy_stale_runs(db, now, limits.lease_minutes, source_id)
             d = decide(db, now, limits, source_id)
             if not d.run:
