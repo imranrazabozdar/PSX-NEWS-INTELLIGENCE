@@ -80,13 +80,14 @@ trigger (GitHub cron fallback | external workflow_dispatch | manual)
 * **Daily cap:** counted from `collector_runs.started_at_utc` for the current UTC day, so it survives
   restarts and cannot be reset by a new dispatch.
 
-## 5. Production run 11: owner-approved cleanup procedure (NOT executed)
+## 5. Production run 11: owner-approved cleanup (EXECUTED 2026-11-08)
 
-Run 11 (`market_ohlcv`, started 2026-11-08 12:40 UTC) is still `running` because it predates PR #25.
-Deploying the orchestration code does **not** change it: it has no run context, so automatic recovery
-skips it. It is reported as `legacy_stale_runs_needing_owner_cleanup`, and it neither blocks the lease nor
-counts toward the daily cap or backoff. Correcting it is a separate production write that needs explicit
-owner approval.
+Run 11 (`market_ohlcv`; its workflow started 12:40 UTC, and the run row was started at 12:46:14 UTC) was left
+`running` because it predates PR #25. It was corrected to `failed` on 2026-11-08 by the owner-approved
+procedure below; the result is recorded at the end of this section. The orchestration code never changes such
+a legacy row by itself: rows without run context are skipped by automatic recovery and reported as
+`legacy_stale_runs_needing_owner_cleanup`. They don't block the lease and don't count toward the daily cap
+or backoff.
 
 1. **Backup first (required).** Take a fresh `/dump` backup and record its SHA-256 and the point-in-time
    restore marker, as for `psxni-prod-backup-20261108T105245Z.sql`. Without it, stop.
@@ -115,10 +116,23 @@ owner approval.
    and counts as recorded in step 2; 1,692 bars are still linked to run 11; no other `collector_runs` row
    changed (compare `COUNT(*)` and `MAX(run_id)` before and after).
 
-## 6. Disposable-Turso lease verification: setup checklist (NOT executed)
+### Result (2026-11-08, owner-approved)
+* **Backup:** `/dump` taken at 2026-11-08T15:25:44Z, 1,039,225 bytes, SHA-256
+  `ef2a48c86e3b70a351cbc754cad06c82bbd57bcd1f685d0bbef9cca185401b78`. The dump was complete (`BEGIN TRANSACTION` …
+  `COMMIT;`) with 3,340 bar rows. It is held by the owner, not committed.
+* **Precondition:** run 11 was `running`, with an empty end time and no run context, and owned 1,692 bars.
+  Totals: 12 runs, 3,340 bars, 0 corrections, 328 source items.
+* **Update:** guarded by the exact start time and counts; `changes()` = 1. The status is now `failed`, with
+  the error "owner-approved correction 2026-11-08: abandoned before PR #25; true end time unknown". The end
+  time stays empty.
+* **Verification:** the start time, counts, job, source and empty run context were preserved. A hash of
+  every other checked table (other runs, bars, run 11's bars, corrections, sources, checkpoints, source
+  items) was identical before and after.
 
-SQLite results do not prove Turso behaviour. Until this checklist has been run, single-writer behaviour
-on Turso is **unverified**. The only safeguards are the fail-closed ownership read-back and the GitHub
+## 6. Disposable-Turso lease verification (EXECUTED 2026-11-08: passed)
+
+SQLite results do not prove Turso behaviour, so this checklist was run against a real disposable Turso
+database. The result is recorded at the end of this section. The only safeguards are the fail-closed ownership read-back and the GitHub
 concurrency group. Owner approval is needed for steps 1–3.
 
 1. Create a **new, empty** Turso database used only for this test (e.g. `psxni-lease-test-<date>`), never
@@ -147,12 +161,31 @@ concurrency group. Owner approval is needed for steps 1–3.
 6. Record the date, result and libsql server version here, then delete the test database and revoke the
    token.
 
+### Result (2026-11-08)
+
+| Item | Value |
+|---|---|
+| Database | `psxni-lease-test-20261108-imranrazabozdar.aws-us-east-1.turso.io`: new, empty, used only for this test; not production |
+| Server | Turso, SQLite 3.47.0, foreign keys on |
+| Schema | migrations 0001–0010 applied (version 10); 0 user objects before migration |
+| Credential | database-scoped token with a 1-day expiry, entered by the owner in the secure credential form and added by the session proxy; never shown, logged or committed |
+| Preflight | host matched the supplied name and differed from production; the guard refused the production host; no production variables in the shell |
+
+Two executions of `pytest tests/test_turso_market_lease.py`, both **3 passed**:
+
+| Test | Result |
+|---|---|
+| `test_simultaneous_claims_on_turso_admit_exactly_one` | PASSED: two Turso connections claimed at once; exactly one owner, the other refused; one run row, finalised `succeeded` |
+| `test_live_lease_blocks_and_expired_orchestrated_lease_is_taken_over` | PASSED: a live lease blocked the competing claim; the expired lease was taken over and the old run recorded `failed` / abandoned; no `running` row left |
+| `test_fenced_write_after_takeover_writes_nothing` | PASSED: a fenced bar insert for a run no longer `running` wrote **0 rows** |
+
+**Cleanup:** after both executions, `collector_runs`, `market_bars` and `sources` held 0 rows, and the
+schema was intact. The production database and the technical repository were not accessed. The
+single-writer lock is verified on real Turso.
+
 ## 6a. Known limitations
-* The lease, fencing and `changes()` behaviour are verified on local SQLite (including two simultaneous
-  writers on one file). **Turso verification is prepared but not run:** `tests/test_turso_market_lease.py`
-  needs a dedicated test database with migrations applied, `PSXNI_TEST_TURSO_DATABASE_URL`,
-  `PSXNI_TEST_TURSO_AUTH_TOKEN` and `PSXNI_TEST_TURSO_ALLOW_COMMITS=yes-commit-test-rows`. None are
-  configured, and creating them requires owner approval.
+* The lease, fencing and fail-closed ownership are verified on local SQLite and, on 2026-11-08, on a real
+  disposable Turso database (§6).
 * The cap counts by UTC day (PKT 05:00 to 05:00).
 * Gaps inside already-collected history are not re-requested yet (Stage 5 gap detection). History the
   provider no longer serves comes back as `no_data` and is not treated as a failure.
