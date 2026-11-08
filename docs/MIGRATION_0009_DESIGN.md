@@ -889,3 +889,53 @@ BEGIN SELECT RAISE(ABORT, 'evidence_retractions: ... retractions are permanent')
   0001–0008, including `exposure_candidate_revisions`, `exposure_candidate_evidence`, `exposure_reviews` and
   `company_relationships`.
 - **Real Turso:** verification is still outstanding.
+
+## 24. The 0008 exposure chain cannot be replaced (after e076189)
+The final acceptance audit of `e076189` reproduced three REPLACE attacks on migration 0008 tables that
+0009's guarantees depend on. All three reproduced with foreign keys on and off.
+
+| Finding | Severity | Attack |
+|---|---|---|
+| 1 | HIGH | `REPLACE INTO exposure_candidates` with an existing `candidate_id` reset the candidate. Trigger programs inherit the outer conflict policy, so its revision-1 trigger also overwrote revision 1 of the history. |
+| 2 | HIGH | Retract the evidence; copy the exposure record (same source item, fresh `valid_to`); `REPLACE INTO exposure_candidate_evidence` using the old link's rowid, pointing at the copy. The candidate's evidence then read as valid, and the retracted record became unlinked and editable. After re-mapping and a human re-accept, a new assessment reached `confirmed_conclusion`. |
+| 3 | MEDIUM | `REPLACE INTO exposure_candidate_revisions` on the current revision rewrote recorded history. |
+
+**Fix (additive, in 0009; 0008 unchanged).** Three BEFORE INSERT guards run before conflict resolution:
+
+| Trigger | Refuses an insert matching |
+|---|---|
+| `trg_exposure_candidates_no_replace` | `candidate_id`, or the unique key `(event_id, company_id, exposure_category, exposure_subtype, mechanism, ruleset_version)` |
+| `trg_exposure_candidate_evidence_no_replace` | the row's `rowid` (`NEW.rowid` is -1 when not supplied), or the `ux_candidate_evidence` key `(candidate_id, role, COALESCE(event_evidence_id,0), COALESCE(company_exposure_id,0), COALESCE(relationship_id,0))` |
+| `trg_exposure_candidate_revisions_no_replace` | the primary key `(candidate_id, revision_no)` |
+
+They refuse plain INSERT, `INSERT OR REPLACE`, `REPLACE`, `INSERT OR IGNORE`, `ON CONFLICT DO UPDATE` and
+`ON CONFLICT DO NOTHING`. Foreign keys are not relied on.
+
+**Still working:**
+- first-time candidate creation, evidence links and new revisions;
+- retraction and revalidation;
+- mapping under a new ruleset version (it creates a new candidate that does not reuse the retracted record);
+- a replacement event;
+- human review of the new candidate;
+- a new confirmed assessment on genuinely new evidence.
+
+**Tests:** `tests/test_impact_exposure_chain_replace.py`, 76 tests, each run with foreign keys on and off.
+- Each attack is tried on every insert path and on every identity.
+- After each refusal, the whole chain must be byte-identical: candidates, revisions, links (including rowid),
+  retractions, exposure records, assessments and their revisions, and both read views.
+- The finding-2 attack is also tested end to end.
+- **Negative control:** with the three guards dropped, 62 of the 76 fail. The 14 that still pass are the two
+  legitimate-flow runs (one per foreign-key setting) and the 12 "first revision" cases, which the existing
+  0008 trigger `trg_exposure_revisions_only_current` already refuses.
+
+**Boundary with migration 0010.** This closes only the three tables that directly undermine 0009. The other
+legacy append-only tables listed in §19 remain migration 0010 work and are **not** fixed here:
+- `source_item_versions`, `company_status_history`;
+- `event_revisions`, `event_evidence`;
+- `alerts_predictions`;
+- `llm_calls`, `event_extractions`;
+- `exposure_reviews`, which a REPLACE probe found refused by its existing insert check;
+- `company_relationships`;
+- the 0004 tables.
+
+Real Turso verification is also still outstanding.

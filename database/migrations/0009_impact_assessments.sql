@@ -663,6 +663,38 @@ WHEN EXISTS (SELECT 1 FROM evidence_retractions r
                 OR (r.record_table = NEW.record_table AND r.record_id = NEW.record_id))
 BEGIN SELECT RAISE(ABORT, 'evidence_retractions: a retraction already exists for this id or record; retractions are permanent'); END;
 
+-- ---------------------------------------------------------------- 0008 exposure chain cannot be replaced
+-- REPLACE deletes a conflicting row without firing delete triggers. Trigger programs inherit the outer
+-- statement's conflict policy, so a REPLACE on exposure_candidates also lets its revision-1 trigger
+-- overwrite history. Without these guards a candidate could be reset, its revisions rewritten, or a
+-- retracted evidence link redirected to a copied record; the candidate could then be re-mapped,
+-- re-accepted and used for a new confirmed assessment. Foreign keys do not prevent this, because the key
+-- exists again by the end of the statement. Each guard runs before conflict resolution and refuses any
+-- insert that collides with an existing identity. Genuinely new rows are unaffected. (Additive: 0008 is
+-- unchanged. The other legacy tables of migrations 0001-0008 remain the migration 0010 follow-up, §19.)
+CREATE TRIGGER trg_exposure_candidates_no_replace BEFORE INSERT ON exposure_candidates
+WHEN EXISTS (SELECT 1 FROM exposure_candidates c
+             WHERE c.candidate_id = NEW.candidate_id
+                OR (c.event_id = NEW.event_id AND c.company_id = NEW.company_id
+                    AND c.exposure_category = NEW.exposure_category AND c.exposure_subtype = NEW.exposure_subtype
+                    AND c.mechanism = NEW.mechanism AND c.ruleset_version = NEW.ruleset_version))
+BEGIN SELECT RAISE(ABORT, 'exposure_candidates: duplicate key; existing candidates cannot be replaced'); END;
+-- exposure_candidate_evidence has no declared primary key: its identity is the rowid (NEW.rowid is -1 when
+-- not supplied) and the unique index ux_candidate_evidence on
+-- (candidate_id, role, COALESCE(event_evidence_id,0), COALESCE(company_exposure_id,0), COALESCE(relationship_id,0)).
+CREATE TRIGGER trg_exposure_candidate_evidence_no_replace BEFORE INSERT ON exposure_candidate_evidence
+WHEN EXISTS (SELECT 1 FROM exposure_candidate_evidence l
+             WHERE l.rowid = NEW.rowid
+                OR (l.candidate_id = NEW.candidate_id AND l.role = NEW.role
+                    AND COALESCE(l.event_evidence_id, 0) = COALESCE(NEW.event_evidence_id, 0)
+                    AND COALESCE(l.company_exposure_id, 0) = COALESCE(NEW.company_exposure_id, 0)
+                    AND COALESCE(l.relationship_id, 0) = COALESCE(NEW.relationship_id, 0)))
+BEGIN SELECT RAISE(ABORT, 'exposure_candidate_evidence: duplicate key; existing evidence links cannot be replaced'); END;
+CREATE TRIGGER trg_exposure_candidate_revisions_no_replace BEFORE INSERT ON exposure_candidate_revisions
+WHEN EXISTS (SELECT 1 FROM exposure_candidate_revisions r
+             WHERE r.candidate_id = NEW.candidate_id AND r.revision_no = NEW.revision_no)
+BEGIN SELECT RAISE(ABORT, 'exposure_candidate_revisions: duplicate key; existing revisions cannot be replaced'); END;
+
 -- ---------------------------------------------------------------- read models
 CREATE VIEW impact_assessments_current AS
 SELECT a.*,

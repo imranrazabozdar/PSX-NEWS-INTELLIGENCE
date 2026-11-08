@@ -72,6 +72,10 @@ Rules:
    conflicting insert on its id or record. Retracted evidence can therefore never regain eligibility.
    (Migration 0009 §23. The REPLACE guards for the remaining tables of migrations 0001–0008 are migration
    0010.)
+   **The exposure chain cannot be rewritten:** existing exposure candidates, their evidence links (by rowid
+   or by unique key) and their revisions cannot be replaced. A retracted link therefore can't be redirected
+   to copied evidence, and candidate history can't be reset. (Migration 0009 §24. Other legacy tables are
+   migration 0010; real Turso verification is outstanding.)
    **Not yet database-enforced:**
    - the `last_verified_utc` age thresholds, because no expiry policy is approved yet;
    - expiry of relationship-based evidence;
