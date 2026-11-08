@@ -95,14 +95,20 @@ Estimates use the measured ~3 billed rows per row inserted (table plus two index
 * **Storage:** per-row size isn't measured reliably yet. Measure `storage_bytes` after M2 and M4 backfills before
   widening.
 
-## 7. Migration sequence (proposed)
+## 7. Migration sequence (implemented in the repository, 2026-11-08; NOT applied to production)
 | Migration | Contents | Milestone |
 |---|---|---|
-| 0011 | `financial_reports`, `financial_line_items`, `account_mappings`, `corporate_actions`, `report_disclosures`, `financial_metrics` additions | M2 |
+| 0011 | `financial_reports`, `financial_line_items`, `account_mappings`, `corporate_actions`, `financial_metrics` additions (`report_id`, `scope`) | M2 |
 | 0012 | `dimension_assessments`, `valuations` | M3 / M5 |
 | 0013 | `macro_series`, `macro_observations` | M6 |
-| 0014 | `validation_runs`, `labels` | M7 |
-| 0015 | `market_metrics_daily`, `report_snapshots` | M4 / M9 |
-| Portfolio DB schema | Separate | M8 |
+| 0014 | `validation_runs`, `report_snapshots` | M7 / M9 |
+| Portfolio DB schema | `database/portfolio_migrations/0001_portfolio.sql` (separate database) | M8 |
+
+**Deviations from the proposal:**
+* `report_disclosures`, `labels` and `market_metrics_daily` (all optional) were not created. Labels stay in
+  `data/validation/labels.json`, and market measures are computed on demand.
+* `report_snapshots` moved into 0014.
+* `financial_metrics.supersedes_metric_id` and `state` were not added. Restatements use `basis = 'restated'`
+  plus `financial_reports.restates_report_id`, and missing values have no metric row.
 
 Each migration is additive, with append-only triggers where history matters.
