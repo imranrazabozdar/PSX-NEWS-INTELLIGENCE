@@ -180,7 +180,9 @@ def test_fresh_migration_creates_all_objects():
                 "trg_events_refutation_withdraws_assessments", "trg_analyses_no_delete",
                 "trg_policy_events_validate"):
         assert obj in names, obj
-    assert d.execute("SELECT MAX(version) v FROM schema_migrations")[0]["v"] == 9
+    latest = max(m.version for m in discover())
+    assert d.execute("SELECT MAX(version) v FROM schema_migrations")[0]["v"] == latest
+    assert d.execute("SELECT 1 FROM schema_migrations WHERE version = 9")
     assert migrate(d) and all(line.startswith("skip") for line in migrate(d))
 
 
@@ -198,7 +200,7 @@ def test_upgrade_from_0008_to_0009_keeps_existing_data():
     log = migrate(d)
     assert any("apply  0009" in line for line in log)
     assert d.execute("SELECT COUNT(*) n FROM exposure_candidates")[0]["n"] == before
-    assert len(discover()) == 9
+    assert 9 in {m.version for m in discover()}
 
 
 def test_foreign_keys_reject_invalid_references(db):
