@@ -314,3 +314,65 @@ There is no AI, no migration and no production run. It unlocks Components 2–7.
 * `event_evidence` is append-only, so independence assessed here lives in the processing record.
 * Concurrent runs are safe per item but can interleave event revisions. Run one processor at a time.
 * Not run on production data.
+
+## 13. Implementation notes: batch 2 (Components 5–6)
+
+**Exposure: existing Phase 4 engine, unchanged rules**
+* `engines/impact_intel.py` calls `exposure_mapping.map_event` for every event that batch 1 assessed.
+  `load_event` now also reads batch 1's directly resolved companies from `event-intel/1` records. Ambiguous
+  and unresolved names are never passed on.
+* Exposure levels:
+
+  | Level | Source |
+  |---|---|
+  | Direct | A company named in the event; or a rule link to a **documented** `company_exposures` row |
+  | Indirect | A documented subsidiary or associate relationship |
+  | Contextual hypothesis | Phase 4 sector-level candidates (oil, gas and rate rules only), marked "sector membership alone is not proof", evidence status `unverified` |
+  | None | Reported (`no_established_exposure`), never filled |
+
+* Company-specific events never spread to sector peers.
+
+**Impact: T1–T9 exactly as `PHASE_5_TRANSMISSION_FRAMEWORK.md`**
+* **Which mechanisms apply:** a rule candidate gets its rule's mechanism (R-OIL→T1, R-GAS→T2, R-RATE→T3,
+  R-PKR→T4, R-DUTY→T5). A named company gets only the mechanisms the event supports (`event_mechanisms`).
+  T6–T9 therefore appear only for named or related companies, because no rules exist for them. An event
+  with no supported mechanism is reported as "no demonstrable PSX transmission". A global event, such as US
+  equities, needs a mechanism; oil and commodities have one.
+* **Direction:**
+  * the documented candidate sign;
+  * otherwise the framework's sector roles: T1 E&P +, refiners and OMCs mixed; T2 fertiliser feedstock −;
+    T3 banks unknown;
+  * otherwise `unknown`.
+
+  Any unstated change also gives `unknown`. Opposite signs aggregate to `mixed` and are never netted.
+* **Magnitude:** qualitative only. `low` for indirect or sector-level; `not_assessable` without a documented
+  share. Thresholds A and B are not configured, so nothing is quantified.
+* **Horizon:** per framework §5 (T1 and T4 short; T2, T3 and T5–T7 medium; T8 unknown; T9 long).
+* **Confidences** are kept separate:
+
+  | Dimension | Value |
+  |---|---|
+  | Evidence | `medium` only for `primary_confirmed`, else `low` |
+  | Exposure | From the candidate's effective status |
+  | Direction | `low` unless both direction and exposure are established |
+  | Magnitude | Always `low` |
+
+* **Status:** every assessment is created `scenario_only`, or `needs_review` / `event_disputed`. Nothing is
+  upgraded here, so weak exposure never becomes a provisional or confirmed impact.
+* **Fundamentals versus market pressure:** each assessment records separate `impact_layers` (fundamental,
+  operational, financial, valuation, market sentiment). Fundamental and valuation are "not assessed" without
+  sourced `financial_metrics`. Geopolitical and market-wide events are recorded as possible risk-premium
+  pressure, "not evidence of a change in fundamentals".
+* **Scenarios:** base, optimistic and adverse, each with assumptions, `strengthened_by`, `invalidated_by`
+  and "not a forecast or price". No prices, targets or recommendations.
+* **Safety:** each assessment and its inputs, steps and scenarios is one transaction, with a unique key per
+  (event, company, mechanism, kind, version). Re-runs are no-ops. A later event revision is reported
+  `stale`; revalidation is deferred to a reviewed step. Synthetic and real data are never mixed (the
+  `synthetic` flag). Run one processor at a time.
+
+**Limitations / deferred**
+* No T6–T9 rules, so there are no sector hypotheses for tariffs, coal, routes or fiscal measures.
+* Change detection is Phase 4's (e.g. "imposes" is not read as an increase).
+* No approved company-evidence source, so every exposure is `unverified` and every confidence `low`.
+* Revalidation of stale assessments and the review workflow are not implemented.
+* Not run on production data.

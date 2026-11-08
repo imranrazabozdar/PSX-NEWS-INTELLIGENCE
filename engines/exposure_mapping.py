@@ -87,12 +87,27 @@ def load_event(db, event_id: int) -> dict:
     if not rows:
         raise ValueError(f"event {event_id} not found")
     ev = dict(rows[0])
+    # Phase 3 extraction payload, if any (headline-builder and event-intel records carry no "event" key)
     ext = db.execute("SELECT extracted_json FROM event_extractions WHERE event_id = ? "
-                     "ORDER BY extraction_id DESC LIMIT 1", (event_id,))
+                     "AND schema_version = 'event-extraction/1' ORDER BY extraction_id DESC LIMIT 1",
+                     (event_id,))
     payload = json.loads(ext[0]["extracted_json"]).get("event") if ext else None
     payload = payload or {}
     for key in ("entities", "indicators", "claims"):
         ev[key] = payload.get(key, [])
+    if not ev["entities"]:
+        # Stage 2 batch 1 (event-intel/1): only companies the exact-match resolver assigned ("direct");
+        # ambiguous and unresolved mentions are never passed on as companies
+        seen = set()
+        for r in db.execute("SELECT extracted_json FROM event_extractions WHERE event_id = ? "
+                            "AND schema_version = 'event-intel/1' ORDER BY source_item_id", (event_id,)):
+            for e in json.loads(r["extracted_json"]).get("entities", []):
+                direct = e.get("entity_type") == "company" and e.get("relation") == "direct"
+                if direct and e.get("company_id") and e["company_id"] not in seen:
+                    seen.add(e["company_id"])
+                    m = re.search(r"'([^']+)'", e.get("evidence") or "")
+                    ev["entities"].append({"name": e["name"], "entity_type": "company",
+                                           "quote": m.group(1) if m else e["name"]})
     ev["evidence"] = db.execute(
         "SELECT e.evidence_id, e.source_item_id, e.claim, e.claim_type, e.relation, e.excerpt, i.source_id "
         "FROM event_evidence e JOIN source_items i USING(source_item_id) WHERE e.event_id = ? "

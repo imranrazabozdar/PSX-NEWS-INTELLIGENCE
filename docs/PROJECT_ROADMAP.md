@@ -29,8 +29,8 @@ exposure (Phase 4) and impact (Phase 5 / 0009) substrate. No new migration is ne
 | 2 | Rule classification + status stage (`engines/event_classification.py`, `engines/event_intel.py`) | TESTED offline; not run in production |
 | 3 | Company / entity mapping (same modules) | TESTED offline; not run in production |
 | 4 | Evidence assessment / verification state (same modules) | TESTED offline; not run in production |
-| 5 | Exposure candidates from events | NOT STARTED |
-| 6 | Impact engine (Phase 5) | NOT STARTED (designed in `PHASE_5_*`) |
+| 5 | Exposure candidates from events (Phase 4 `map_event`, reading batch-1 entities) | TESTED offline; not run in production |
+| 6 | T1–T9 impact engine (`engines/impact_intel.py`, scenario-only assessments) | TESTED offline; not run in production |
 | 7 | Intelligence dashboard | NOT STARTED |
 | 8 | Optional AI assist | BLOCKED (provider not approved) |
 | 9 | Production activation | BLOCKED (owner approval) |
