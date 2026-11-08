@@ -46,10 +46,20 @@ application uses, before any production migration is proposed. Specifically:
   within one batch);
 - synthetic-isolation refusals.
 
+## Production integration test: explicit DDL opt-in
+`tests/test_turso_integration.py` can verify pending migrations inside a batch that is always rolled
+back. Since the PR #21 remediation, it does so **only** when
+`PSXNI_TURSO_ALLOW_PENDING_MIGRATION_DDL=yes-execute-migration-ddl` is also set. A configured
+`PSXNI_TURSO_DATABASE_URL` alone skips that step.
+- **Risk:** even rolled back, migration DDL executes against whatever database the URL names.
+- **Rule:** CI never sets the opt-in, and it must never be set for production.
+
 ## Already verified locally (not Turso)
 - SQLite 3.53.1 (stdlib): full suite, including the two-connection approval race.
 - SQLite 3.47.0 (`sqlean.py`, Turso's reported version): impact, exposure and database suites.
-- libSQL embedded engine 3.45.1: migrations 0001–0009 apply (220 statements), views query.
+- libSQL embedded engine 3.45.1: migrations 0001–0009 apply (229 statements after remediation); a REPLACE
+  overwrite attempt is refused.
+- SQLite 3.47.0: the remediation regression suite passes as well.
 
 ## Remains unverified
 - Hrana transaction and lock semantics for concurrent batches.

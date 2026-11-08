@@ -719,3 +719,50 @@ separate, explicit owner decision recorded as an `approved` event. No policy act
 | Read-time and write-time evidence validity checks | §8 |
 | No market-reaction claims (`market_check = 'not_evaluable'`) | §3, §4 |
 | Turso HTTP compatibility unverified | §6b, §8b, §10 |
+
+## 18. Implementation amendments from the independent audit (PR #21 remediation)
+The PR #21 audit verdict was DO NOT MERGE. The remediation below corrects the still-unmerged 0009 in
+place; migrations 0001–0008 are unchanged. Each amendment tightens the approved design, and none relaxes
+a rule.
+
+| Finding | Severity | Disposition | Implementation (0009) | Regression test (`tests/test_impact_remediation.py`) |
+|---|---|---|---|---|
+| `INSERT OR REPLACE` / `REPLACE INTO` overwrites append-only rows; delete triggers don't fire without `recursive_triggers` | BLOCKER | Fixed | `trg_<table>_no_replace` BEFORE INSERT duplicate-key guards on all 8 tables. Primary key, and the unique keys of `impact_expiry_policy_events` (version, event_type) and `impact_assessments` (identity). | `test_replace_cannot_overwrite_existing_rows`: 8 tables × 2 verbs, PK and unique variants; row and revision count unchanged |
+| Expiry policy can be attached on UPDATE without validation | BLOCKER | Fixed | `expiry_policy_version` and `freshness_basis` are **fixed at creation** (update trigger) | `test_policy_and_freshness_cannot_change_on_update`: draft and retired versions, with and without an upgrade |
+| Terminal states can be left, or swapped, through any new review | HIGH | Fixed | Strict matrix: withdrawn and rejected may only go to `provisional` with `reinstated`, a human actor and an `accept` review recorded against the prior status. Confirmed may only go to system `needs_revalidation` or withdrawn, or to human `rejected_by_review`. | `test_transition_matrix`: all 42 transitions; `test_terminal_reinstatement_bypass_attempts` |
+| Provisional may include potential or unverified exposure inputs | HIGH | Fixed | Upgrade and input-insert triggers require **every** exposure input to be `strongly_supported` or `confirmed` (confirmed still needs all `confirmed`). The current view reports `needs_revalidation` otherwise. | `test_provisional_requires_every_exposure_input_eligible` (7 cases); `test_ineligible_input_after_upgrade_and_status_change_detected` |
+| The production integration test could execute pending migration DDL whenever the URL is set | HIGH | Fixed | `tests/turso_guard.py`: DDL only with `PSXNI_TURSO_ALLOW_PENDING_MIGRATION_DDL=yes-execute-migration-ddl`; otherwise skipped; CI never sets it | `tests/test_turso_guard.py` (URL alone, unrelated config, exact value, CI workflows checked) |
+| `freshness_basis` trusted, not verified | HIGH | Fixed | `impact_explicit_freshness` view: an `explicit_source_expiry` upgrade needs a linked exposure record whose `valid_to` has not passed by the **database clock**. `policy_expiry` can never unlock provisional or confirmed until policy rules are machine-evaluable. The read view degrades confirmed and provisional when freshness lapses. | `test_unsupported_or_expired_explicit_freshness_cannot_qualify`, `test_policy_based_freshness_cannot_unlock_provisional` |
+| Sector conclusion can rest on scenario-only components | MEDIUM | Fixed | New columns `weakest_status`, `scenario_only_n`, `evidence_backed_n`. `sector_conclusion = 'not_concluded_scenario_only_components'` whenever any included component is scenario-only, even with complete coverage. | `test_sector_weakest_status` (5 mixes), `test_sector_partial_coverage_still_wins` |
+| Policy selection trusts client `created_at_utc` | MEDIUM | Fixed | Policy eligibility uses `strftime('now')` (database time); `created_at_utc` is ignored for selection | `test_policy_selection_uses_database_time` (current, future-dated, backdated, retired, not-yet-effective) |
+| Explicit source expiry not evaluated at read time | MEDIUM | Partly fixed | Evaluated for assessments relying on explicit freshness (current view). Not evaluated for relationship or identifier validity in general. | covered by the freshness tests |
+| Unclassified reporting covers assessed companies only | LOW | Accepted limitation | — | existing test |
+| Month or year event dates treated as undated (current classification) | LOW | Accepted limitation (documented) | — | — |
+| Company whose only status record is after the event date → `unknown` | LOW | Accepted (conservative; keeps the sector partial) | — | existing test |
+| Supersession flags strengthened evidence too | LOW | Accepted (conservative; forces revalidation) | — | existing test |
+| Forward FK `impact_assessments.last_review_id` → `impact_reviews` on a Turso server | INFO | Deferred to gate 3 | — | `tests/test_turso_disposable.py` (not run) |
+| Disposable-Turso tests never run | INFO | **Production blocker** (gate 3) | — | — |
+
+**Design consequences, recorded rather than silent:**
+- **Freshness basis and policy are fixed at creation.** An assessment created as `not_established` stays at
+  `needs_review` at most. To use new evidence, the engine creates a new assessment under a new
+  `transmission_version`.
+- **Policy-based freshness unlocks nothing yet.** With the registry empty this changes nothing today. Before
+  any policy is approved, a future migration must make its rules database-evaluable.
+
+## 19. Follow-up: the same REPLACE exposure in migrations 0001–0008 (not fixed here)
+These append-only or immutable tables rely only on UPDATE and DELETE triggers. They need the same BEFORE
+INSERT duplicate-key guard in a **new additive migration (0010)** after this PR. Migrations 0001–0008 are not
+rewritten.
+
+| Migration | Tables |
+|---|---|
+| 0001 | `source_item_versions`, `company_status_history` |
+| 0002 | `event_revisions`, `event_evidence` |
+| 0003 | `alerts_predictions` |
+| 0004 | append-only media and operations tables per their triggers (to be enumerated in 0010) |
+| 0007 | `llm_calls`, `event_extractions` |
+| 0008 | `exposure_candidate_revisions`, `exposure_reviews`, `exposure_candidate_evidence`, `company_relationships`, `evidence_retractions` |
+
+The 0010 implementation must enumerate every table with a no-update or no-delete trigger and add REPLACE
+regression tests, as in §18.

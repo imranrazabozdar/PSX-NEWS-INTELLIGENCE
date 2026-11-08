@@ -219,6 +219,12 @@ BEGIN
                    WHERE i.source_item_id = NEW.source_item_id AND s.is_synthetic = 1)
         OR EXISTS (SELECT 1 FROM exposure_candidates x WHERE x.candidate_id = NEW.exposure_candidate_id
                    AND x.is_synthetic = 1));
+    SELECT RAISE(ABORT, 'an exposure input attached to a provisional assessment must be strongly supported or confirmed')
+    WHERE NEW.exposure_candidate_id IS NOT NULL
+      AND EXISTS (SELECT 1 FROM impact_assessments a WHERE a.assessment_id = NEW.assessment_id
+                  AND a.assessment_status = 'provisional')
+      AND NOT EXISTS (SELECT 1 FROM exposure_candidates_current c WHERE c.candidate_id = NEW.exposure_candidate_id
+                      AND c.effective_status IN ('strongly_supported','confirmed'));
     SELECT RAISE(ABORT, 'inputs cannot be added to a terminal assessment')
     WHERE EXISTS (SELECT 1 FROM impact_assessments a WHERE a.assessment_id = NEW.assessment_id
                   AND a.assessment_status IN ('confirmed_conclusion','withdrawn_evidence_invalid',
@@ -261,6 +267,17 @@ WHERE NOT (s.lifecycle_status = 'ACTIVE' AND s.terms_status = 'approved'
          AND (nr.evidence_status <> lr.evidence_status
               OR json_extract(nr.snapshot_json, '$.impact_direction')
                  IS NOT json_extract(lr.snapshot_json, '$.impact_direction'))));
+
+-- Explicit source expiry is verified from the database: a linked exposure input whose company exposure
+-- record has a valid_to that has not passed (database clock).
+CREATE VIEW impact_explicit_freshness AS
+SELECT DISTINCT i.assessment_id
+FROM impact_assessment_inputs i
+JOIN exposure_candidate_evidence l ON l.candidate_id = i.exposure_candidate_id AND l.role = 'company_specific'
+JOIN company_exposures x ON x.exposure_id = l.company_exposure_id
+WHERE x.valid_to IS NOT NULL
+  AND x.valid_to GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]*'
+  AND substr(x.valid_to, 1, 10) >= date('now');
 
 CREATE TABLE impact_assessment_revisions (
     assessment_id      INTEGER NOT NULL REFERENCES impact_assessments(assessment_id),
@@ -348,8 +365,9 @@ BEGIN
     WHERE NEW.expiry_policy_version IS NOT NULL AND (
         NOT EXISTS (SELECT 1 FROM impact_expiry_policies_current p
                     WHERE p.policy_version = NEW.expiry_policy_version AND p.status <> 'draft'
-                      AND p.effective_from_utc <= NEW.created_at_utc
-                      AND (p.effective_to_utc IS NULL OR NEW.created_at_utc < p.effective_to_utc))
+                      AND p.effective_from_utc <= strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
+                      AND (p.effective_to_utc IS NULL
+                           OR strftime('%Y-%m-%dT%H:%M:%SZ', 'now') < p.effective_to_utc))
         OR EXISTS (SELECT 1 FROM impact_expiry_policy_overlaps));
 END;
 
@@ -379,12 +397,19 @@ BEGIN
        OR NEW.mechanism_id <> OLD.mechanism_id OR NEW.scenario_kind <> OLD.scenario_kind
        OR NEW.transmission_version <> OLD.transmission_version OR NEW.is_synthetic <> OLD.is_synthetic
        OR NEW.created_at_utc <> OLD.created_at_utc;
-    -- terminal or decided states change only through a new human review
-    SELECT RAISE(ABORT, 'a withdrawn, rejected or confirmed assessment changes only through a new review')
-    WHERE OLD.assessment_status IN ('withdrawn_evidence_invalid','rejected_by_review','confirmed_conclusion')
-      AND NEW.last_review_id IS OLD.last_review_id
-      AND NOT (OLD.assessment_status = 'confirmed_conclusion' AND NEW.actor_type = 'system'
-               AND NEW.assessment_status IN ('needs_revalidation','withdrawn_evidence_invalid'));
+    SELECT RAISE(ABORT, 'expiry_policy_version and freshness_basis are fixed at creation')
+    WHERE NEW.expiry_policy_version IS NOT OLD.expiry_policy_version
+       OR NEW.freshness_basis <> OLD.freshness_basis;
+    -- strict transition matrix for terminal and confirmed states
+    SELECT RAISE(ABORT, 'a terminal assessment can only be reinstated to provisional after a human accept review')
+    WHERE OLD.assessment_status IN ('withdrawn_evidence_invalid','rejected_by_review')
+      AND NOT (NEW.assessment_status = 'provisional' AND NEW.status_reason = 'reinstated'
+               AND NEW.actor_type = 'human');
+    SELECT RAISE(ABORT, 'a confirmed conclusion can only be revalidated or withdrawn by the system, or rejected by review')
+    WHERE OLD.assessment_status = 'confirmed_conclusion'
+      AND NOT ((NEW.assessment_status IN ('needs_revalidation','withdrawn_evidence_invalid')
+                AND NEW.actor_type = 'system' AND NEW.last_review_id IS OLD.last_review_id)
+               OR (NEW.assessment_status = 'rejected_by_review' AND NEW.actor_type = 'human'));
     -- human reasons need a matching review of this assessment, written for this transition
     SELECT RAISE(ABORT, 'human decision requires a matching new review of this assessment')
     WHERE NEW.status_reason IN ('reviewer_accepted','reviewer_rejected','reviewer_needs_more_evidence',
@@ -417,6 +442,12 @@ BEGIN
           ON c.candidate_id = i.exposure_candidate_id
         WHERE i.assessment_id = NEW.assessment_id
           AND c.effective_status IN ('strongly_supported','confirmed'));
+    SELECT RAISE(ABORT, 'every exposure input of a provisional assessment must be strongly supported or confirmed')
+    WHERE NEW.assessment_status = 'provisional' AND EXISTS (
+        SELECT 1 FROM impact_assessment_inputs i LEFT JOIN exposure_candidates_current c
+          ON c.candidate_id = i.exposure_candidate_id
+        WHERE i.assessment_id = NEW.assessment_id AND i.exposure_candidate_id IS NOT NULL
+          AND (c.effective_status IS NULL OR c.effective_status NOT IN ('strongly_supported','confirmed')));
     SELECT RAISE(ABORT, 'a confirmed conclusion requires confirmed exposures and a corroborated event')
     WHERE NEW.assessment_status = 'confirmed_conclusion' AND (
         EXISTS (SELECT 1 FROM impact_assessment_inputs i JOIN exposure_candidates_current c
@@ -435,6 +466,15 @@ BEGIN
     SELECT RAISE(ABORT, 'freshness not established: at most needs_review')
     WHERE NEW.assessment_status IN ('provisional','confirmed_conclusion')
       AND NEW.freshness_basis = 'not_established';
+    -- policy-based freshness cannot be evaluated by the database yet (rules are not machine-checked), so it
+    -- never unlocks provisional/confirmed; explicit expiry must be verifiable from a linked exposure record
+    SELECT RAISE(ABORT, 'policy-based freshness is not yet database-verifiable: at most needs_review')
+    WHERE NEW.assessment_status IN ('provisional','confirmed_conclusion')
+      AND NEW.freshness_basis = 'policy_expiry';
+    SELECT RAISE(ABORT, 'explicit source expiry not verified: no linked exposure record with an unexpired valid_to')
+    WHERE NEW.assessment_status IN ('provisional','confirmed_conclusion')
+      AND NEW.freshness_basis = 'explicit_source_expiry'
+      AND NOT EXISTS (SELECT 1 FROM impact_explicit_freshness f WHERE f.assessment_id = NEW.assessment_id);
     SELECT RAISE(ABORT, 'an unknown transmission step requires unknown direction')
     WHERE NEW.assessment_status IN ('provisional','confirmed_conclusion') AND NEW.direction <> 'unknown'
       AND EXISTS (SELECT 1 FROM impact_transmission_steps t WHERE t.assessment_id = NEW.assessment_id
@@ -486,12 +526,60 @@ END;
 CREATE TRIGGER trg_analyses_no_delete BEFORE DELETE ON analyses
 BEGIN SELECT RAISE(ABORT, 'analyses are versioned records and cannot be deleted'); END;
 
+
+-- ---------------------------------------------------------------- duplicate-key guards (REPLACE bypass)
+-- SQLite's REPLACE conflict resolution deletes the existing row WITHOUT firing delete triggers unless
+-- recursive_triggers is on. These BEFORE INSERT guards run before conflict resolution and refuse any
+-- insert whose primary or unique key already exists, so INSERT OR REPLACE / REPLACE INTO can never
+-- overwrite an immutable or audited row. Ordinary first-time inserts are unaffected.
+CREATE TRIGGER trg_impact_expiry_policy_versions_no_replace BEFORE INSERT ON impact_expiry_policy_versions
+WHEN EXISTS (SELECT 1 FROM impact_expiry_policy_versions t WHERE t.policy_version = NEW.policy_version)
+BEGIN SELECT RAISE(ABORT, 'impact_expiry_policy_versions: duplicate key; existing rows cannot be replaced'); END;
+CREATE TRIGGER trg_impact_expiry_policy_events_no_replace BEFORE INSERT ON impact_expiry_policy_events
+WHEN EXISTS (SELECT 1 FROM impact_expiry_policy_events t WHERE t.policy_event_id = NEW.policy_event_id OR (t.policy_version = NEW.policy_version AND t.event_type = NEW.event_type))
+BEGIN SELECT RAISE(ABORT, 'impact_expiry_policy_events: duplicate key; existing rows cannot be replaced'); END;
+CREATE TRIGGER trg_impact_assessments_no_replace BEFORE INSERT ON impact_assessments
+WHEN EXISTS (SELECT 1 FROM impact_assessments t WHERE t.assessment_id = NEW.assessment_id OR (t.event_id = NEW.event_id AND t.company_id = NEW.company_id AND t.mechanism_id = NEW.mechanism_id AND t.scenario_kind = NEW.scenario_kind AND t.transmission_version = NEW.transmission_version))
+BEGIN SELECT RAISE(ABORT, 'impact_assessments: duplicate key; existing rows cannot be replaced'); END;
+CREATE TRIGGER trg_impact_reviews_no_replace BEFORE INSERT ON impact_reviews
+WHEN EXISTS (SELECT 1 FROM impact_reviews t WHERE t.review_id = NEW.review_id)
+BEGIN SELECT RAISE(ABORT, 'impact_reviews: duplicate key; existing rows cannot be replaced'); END;
+CREATE TRIGGER trg_impact_assessment_inputs_no_replace BEFORE INSERT ON impact_assessment_inputs
+WHEN EXISTS (SELECT 1 FROM impact_assessment_inputs t WHERE t.input_id = NEW.input_id)
+BEGIN SELECT RAISE(ABORT, 'impact_assessment_inputs: duplicate key; existing rows cannot be replaced'); END;
+CREATE TRIGGER trg_impact_assessment_revisions_no_replace BEFORE INSERT ON impact_assessment_revisions
+WHEN EXISTS (SELECT 1 FROM impact_assessment_revisions t WHERE t.assessment_id = NEW.assessment_id AND t.revision_no = NEW.revision_no)
+BEGIN SELECT RAISE(ABORT, 'impact_assessment_revisions: duplicate key; existing rows cannot be replaced'); END;
+CREATE TRIGGER trg_impact_transmission_steps_no_replace BEFORE INSERT ON impact_transmission_steps
+WHEN EXISTS (SELECT 1 FROM impact_transmission_steps t WHERE t.assessment_id = NEW.assessment_id AND t.revision_no = NEW.revision_no AND t.step_no = NEW.step_no)
+BEGIN SELECT RAISE(ABORT, 'impact_transmission_steps: duplicate key; existing rows cannot be replaced'); END;
+CREATE TRIGGER trg_impact_scenarios_no_replace BEFORE INSERT ON impact_scenarios
+WHEN EXISTS (SELECT 1 FROM impact_scenarios t WHERE t.assessment_id = NEW.assessment_id AND t.revision_no = NEW.revision_no AND t.scenario_case = NEW.scenario_case)
+BEGIN SELECT RAISE(ABORT, 'impact_scenarios: duplicate key; existing rows cannot be replaced'); END;
+
 -- ---------------------------------------------------------------- read models
 CREATE VIEW impact_assessments_current AS
 SELECT a.*,
-       CASE WHEN a.assessment_status NOT IN ('withdrawn_evidence_invalid','rejected_by_review')
-             AND EXISTS (SELECT 1 FROM impact_invalid_inputs v WHERE v.assessment_id = a.assessment_id)
-            THEN 'needs_revalidation' ELSE a.assessment_status END AS effective_status,
+       CASE WHEN a.assessment_status IN ('withdrawn_evidence_invalid','rejected_by_review') THEN a.assessment_status
+            WHEN EXISTS (SELECT 1 FROM impact_invalid_inputs v WHERE v.assessment_id = a.assessment_id)
+              THEN 'needs_revalidation'
+            WHEN a.assessment_status = 'provisional' AND EXISTS (
+                 SELECT 1 FROM impact_assessment_inputs i LEFT JOIN exposure_candidates_current c
+                   ON c.candidate_id = i.exposure_candidate_id
+                 WHERE i.assessment_id = a.assessment_id AND i.exposure_candidate_id IS NOT NULL
+                   AND (c.effective_status IS NULL OR c.effective_status NOT IN ('strongly_supported','confirmed')))
+              THEN 'needs_revalidation'
+            WHEN a.assessment_status = 'confirmed_conclusion' AND EXISTS (
+                 SELECT 1 FROM impact_assessment_inputs i LEFT JOIN exposure_candidates_current c
+                   ON c.candidate_id = i.exposure_candidate_id
+                 WHERE i.assessment_id = a.assessment_id AND i.exposure_candidate_id IS NOT NULL
+                   AND (c.effective_status IS NULL OR c.effective_status <> 'confirmed'))
+              THEN 'needs_revalidation'
+            WHEN a.assessment_status IN ('provisional','confirmed_conclusion')
+                 AND (a.freshness_basis <> 'explicit_source_expiry' OR NOT EXISTS (
+                      SELECT 1 FROM impact_explicit_freshness f WHERE f.assessment_id = a.assessment_id))
+              THEN 'needs_revalidation'
+            ELSE a.assessment_status END AS effective_status,
        CASE WHEN EXISTS (SELECT 1 FROM impact_invalid_inputs v WHERE v.assessment_id = a.assessment_id)
             THEN 0 ELSE 1 END AS inputs_currently_valid,
        CASE WHEN a.is_synthetic = 1 THEN 'SYNTHETIC TEST DATA' ELSE 'real' END AS data_label
@@ -579,6 +667,12 @@ WITH combos AS (
            SUM(exclusion_reason IS NULL AND direction = 'neutral') AS neutral_n,
            SUM(exclusion_reason IS NULL AND direction = 'unknown') AS unknown_n,
            SUM(exclusion_reason IS NULL) AS directional_n,
+           SUM(exclusion_reason IS NULL AND effective_status = 'scenario_only') AS scenario_only_n,
+           SUM(exclusion_reason IS NULL AND effective_status IN ('provisional','confirmed_conclusion'))
+               AS evidence_backed_n,
+           MIN(CASE WHEN exclusion_reason IS NULL THEN CASE effective_status
+                    WHEN 'scenario_only' THEN 1 WHEN 'provisional' THEN 2 WHEN 'confirmed_conclusion' THEN 3 END
+               END) AS weakest_rank,
            MAX(COALESCE(is_synthetic, 0)) AS is_synthetic,
            json_group_array(CASE WHEN exclusion_reason IS NULL THEN json_object('company_id', company_id,
                'assessment_id', assessment_id, 'effective_status', effective_status, 'direction', direction)
@@ -596,6 +690,9 @@ SELECT sector_id, event_id, mechanism_id, scenario_kind, transmission_version, e
        CASE WHEN eligible_n > 0 AND assessed_valid_n = eligible_n AND suspended_n = 0
                  AND eligibility_uncertain_n = 0 THEN 'complete' ELSE 'partial' END AS completeness,
        positive_n, negative_n, mixed_n, neutral_n, unknown_n,
+       scenario_only_n, evidence_backed_n,
+       CASE weakest_rank WHEN 1 THEN 'scenario_only' WHEN 2 THEN 'provisional'
+            WHEN 3 THEN 'confirmed_conclusion' END AS weakest_status,
        CASE WHEN directional_n = 0 THEN 'unknown'
             WHEN positive_n = directional_n THEN 'positive'
             WHEN negative_n = directional_n THEN 'negative'
@@ -603,9 +700,10 @@ SELECT sector_id, event_id, mechanism_id, scenario_kind, transmission_version, e
             WHEN unknown_n > 0 AND (positive_n + unknown_n = directional_n OR negative_n + unknown_n = directional_n
                                     OR neutral_n + unknown_n = directional_n) THEN 'unknown'
             ELSE 'mixed' END AS direction_among_assessed,
-       CASE WHEN eligible_n > 0 AND assessed_valid_n = eligible_n AND suspended_n = 0
-                 AND eligibility_uncertain_n = 0
-            THEN CASE WHEN directional_n = 0 THEN 'unknown'
+       CASE WHEN NOT (eligible_n > 0 AND assessed_valid_n = eligible_n AND suspended_n = 0
+                      AND eligibility_uncertain_n = 0) THEN 'not_concluded_partial_coverage'
+            WHEN scenario_only_n > 0 THEN 'not_concluded_scenario_only_components'
+            ELSE CASE WHEN directional_n = 0 THEN 'unknown'
                       WHEN positive_n = directional_n THEN 'positive'
                       WHEN negative_n = directional_n THEN 'negative'
                       WHEN neutral_n = directional_n THEN 'neutral'
@@ -613,7 +711,7 @@ SELECT sector_id, event_id, mechanism_id, scenario_kind, transmission_version, e
                                               OR negative_n + unknown_n = directional_n
                                               OR neutral_n + unknown_n = directional_n) THEN 'unknown'
                       ELSE 'mixed' END
-            ELSE 'not_concluded_partial_coverage' END AS sector_conclusion,
+       END AS sector_conclusion,
        (SELECT json_group_array(json(value)) FROM json_each(included_raw) WHERE value IS NOT NULL) AS included_json,
        (SELECT json_group_array(json(value)) FROM json_each(excluded_raw) WHERE value IS NOT NULL) AS excluded_json,
        is_synthetic,

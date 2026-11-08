@@ -13,6 +13,7 @@ import pytest
 
 from database.connection import DatabaseError, TursoHTTPDatabase, connect
 from database.migrate import discover
+from tests.turso_guard import OPT_IN_VALUE, OPT_IN_VAR, pending_migration_ddl_permitted
 
 pytestmark = pytest.mark.skipif(
     not os.environ.get("PSXNI_TURSO_DATABASE_URL", "").startswith(("libsql://", "https://")),
@@ -42,6 +43,9 @@ def test_all_migrations_applied_with_matching_checksums(db):
     assert all(applied[v] == repo[v].checksum for v in applied)
     assert sorted(applied) == list(range(1, len(applied) + 1))
     pending = [repo[v] for v in sorted(repo) if v not in applied]
+    if pending and not pending_migration_ddl_permitted(os.environ):
+        pytest.skip(f"{len(pending)} pending migration(s) not executed: set {OPT_IN_VAR}={OPT_IN_VALUE} "
+                    "to run their DDL inside a rolled-back batch (never set in CI)")
     if pending:
         stmts = [(s, ()) for m in pending for s in m.statements()]
         stmts.append(("SELECT COUNT(*) AS n FROM sqlite_master WHERE name = 'collector_checkpoints'", ()))

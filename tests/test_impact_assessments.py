@@ -73,19 +73,18 @@ def _item(db, source, text):
                                    published_at_utc=NOW).source_item_id
 
 
-def _exposure(db, company, subject="crude oil", source="synapproved"):
-    sid = _item(db, source, f"SYNTHETIC FIXTURE: {company} input {subject}")
+def _exposure(db, company, subject="crude oil", source="synapproved", valid_to="2099-12-31"):
+    text = f"SYNTHETIC FIXTURE: {company} input {subject}"
+    sid = _item(db, source, text)
     db.execute("INSERT INTO company_exposures(company_id, exposure_kind, subject, confidence, "
-               "source_item_id, "
-               "evidence_excerpt, last_verified_utc) VALUES (?,?,?,?,?,?,?)",
-               (company, "input", subject, "documented", sid, f"SYNTHETIC FIXTURE: {company} input "
-                                                               "{subject}", NOW))
+               "source_item_id, evidence_excerpt, valid_to, last_verified_utc) VALUES (?,?,?,?,?,?,?,?)",
+               (company, "input", subject, "documented", sid, text, valid_to, NOW))
 
 
 def _event(db, headline="Brent crude oil price rises", verification="corroborated", stage="confirmed_fact",
-           date="2026-11-05", source="synapproved"):
+           date="2026-11-05", source="synapproved", event_type="commodity_price"):
     sid = _item(db, source, f"SYNTHETIC FIXTURE. {headline}.")
-    eid = repo.create_event(db, {"event_type": "commodity_price", "headline": headline, "summary": headline,
+    eid = repo.create_event(db, {"event_type": event_type, "headline": headline, "summary": headline,
                                  "status_stage": stage, "verification_state": verification,
                                  "magnitude": "medium", "confidence": 0.8, "event_date": date},
                             changed_by="test")
