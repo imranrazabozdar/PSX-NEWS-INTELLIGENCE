@@ -1,30 +1,48 @@
-"""Integration tests against this project's real Turso database.
+"""Integration tests against a dedicated, real Turso TEST database (never production).
 
-They run only when PSXNI_TURSO_DATABASE_URL is set (and a token is available). In CI without
-secrets they are skipped, never faked. Writes run inside batches that are always rolled
-back, so the tests leave no data behind.
+They run only when PSXNI_TEST_TURSO_DATABASE_URL and PSXNI_TEST_TURSO_AUTH_TOKEN are set. They never fall
+back to the production PSXNI_TURSO_* variables. The gate (tests/turso_guard.py: integration_config_status)
+fails closed on the production host before any connection is made. Without test credentials they are
+skipped. Writes run inside batches that are always rolled back, so the tests leave no data behind.
+
+Expected state of the test database: migrations applied and this repository's seed loaded
+(python -m database.migrate && python -m database.seed_loader, pointed at the test database). The
+reference-data assertions are derived from the seed files, never from production's state.
 """
 
 from __future__ import annotations
 
+import json
 import os
+from pathlib import Path
 
 import pytest
 
-from database.connection import DatabaseError, TursoHTTPDatabase, connect
+from database.connection import DatabaseError, TursoHTTPDatabase
 from database.migrate import discover
-from tests.turso_guard import OPT_IN_VALUE, OPT_IN_VAR, pending_migration_ddl_permitted
+from tests.turso_guard import (
+    OPT_IN_VALUE,
+    OPT_IN_VAR,
+    TEST_TOKEN_VAR,
+    TEST_URL_VAR,
+    integration_config_status,
+    pending_migration_ddl_permitted,
+)
 
-pytestmark = pytest.mark.skipif(
-    not os.environ.get("PSXNI_TURSO_DATABASE_URL", "").startswith(("libsql://", "https://")),
-    reason="PSXNI_TURSO_DATABASE_URL not set: Turso integration tests not run")
+_STATUS, _REASON = integration_config_status(os.environ)
+pytestmark = pytest.mark.skipif(_STATUS == "skip", reason=_REASON)
+SEED = Path(__file__).resolve().parents[1] / "database" / "seed"
 
 
 @pytest.fixture(scope="module")
 def db():
-    d = connect()
-    assert isinstance(d, TursoHTTPDatabase)
-    return d
+    if _STATUS != "ok":
+        pytest.fail(_REASON)  # fail closed: e.g. the production host was configured as the test target
+    return TursoHTTPDatabase(os.environ[TEST_URL_VAR].strip(), os.environ[TEST_TOKEN_VAR].strip())
+
+
+def _seed_sources() -> list[dict]:
+    return json.loads((SEED / "sources.json").read_text(encoding="utf-8"))["sources"]
 
 
 def test_connection_and_foreign_keys(db):
@@ -56,10 +74,17 @@ def test_all_migrations_applied_with_matching_checksums(db):
 
 
 def test_reference_data_present(db):
+    """The test database holds exactly this repository's seed: listed companies, KSE-30 members, and
+    enabled sources equal to the seed's ACTIVE sources (derived from the files, not from production)."""
+    companies = json.loads((SEED / "companies.json").read_text(encoding="utf-8"))["companies"]
+    listed = sum(c["listing_status"] == "listed" for c in companies)
+    kse30 = sum(bool(c.get("kse30_member_observed")) for c in companies)
+    active = {s["source_id"] for s in _seed_sources() if s["lifecycle_status"] == "ACTIVE"}
     r = db.execute("SELECT (SELECT COUNT(*) FROM companies WHERE listing_status='listed') listed, "
-                   "(SELECT COUNT(*) FROM index_memberships WHERE index_code='KSE30') kse30, "
-                   "(SELECT COUNT(*) FROM sources WHERE enabled=1) enabled")[0]
-    assert r["listed"] == 50 and r["kse30"] == 30 and r["enabled"] == 0
+                   "(SELECT COUNT(*) FROM index_memberships WHERE index_code='KSE30') kse30")[0]
+    enabled = {x["source_id"] for x in db.execute("SELECT source_id FROM sources WHERE enabled=1")}
+    assert r["listed"] == listed and r["kse30"] == kse30
+    assert enabled == active
 
 
 def test_store_and_retrieve_source_event_evidence(db):
@@ -91,8 +116,11 @@ def test_constraints_enforced_on_turso(db):
                    "confidence) VALUES ('cmp-nope','x','x','ticker','verified')", ())], rollback=True)
     with pytest.raises(DatabaseError, match="append-only"):
         db.batch([("DELETE FROM company_status_history", ())], rollback=True)
+    # a source whose access is not verified can never be enabled (chosen from the seed, not hard-coded)
+    unverified = next(s["source_id"] for s in _seed_sources()
+                      if s.get("access_status") != "verified_permitted")
     with pytest.raises(DatabaseError, match="CHECK"):
-        db.batch([("UPDATE sources SET enabled = 1 WHERE source_id = 'dawn'", ())], rollback=True)
+        db.batch([("UPDATE sources SET enabled = 1 WHERE source_id = ?", (unverified,))], rollback=True)
 
 
 def test_point_in_time_lookup_on_turso(db):

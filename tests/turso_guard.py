@@ -1,6 +1,7 @@
 """Safety gate for any test that would execute pending-migration DDL against a Turso database.
 
-A configured PSXNI_TURSO_DATABASE_URL alone never authorises DDL. The separate, explicit variable
+Only the dedicated integration-test database (PSXNI_TEST_TURSO_*) can be targeted, never production, and a
+configured URL alone never authorises DDL. The separate, explicit variable
 PSXNI_TURSO_ALLOW_PENDING_MIGRATION_DDL must equal exactly "yes-execute-migration-ddl", and CI never
 sets it. Even then the DDL runs only inside a batch that is always rolled back.
 """
@@ -14,8 +15,9 @@ OPT_IN_VALUE = "yes-execute-migration-ddl"
 
 
 def pending_migration_ddl_permitted(env: Mapping[str, str]) -> bool:
-    url = env.get("PSXNI_TURSO_DATABASE_URL", "")
-    if not url.startswith(("libsql://", "https://")):
+    """Only for the dedicated integration-test database: its gate must pass, and the explicit opt-in
+    must be set. Production configuration (PSXNI_TURSO_*) can never authorise DDL."""
+    if integration_config_status(env)[0] != "ok":
         return False
     return env.get(OPT_IN_VAR, "") == OPT_IN_VALUE
 
@@ -59,4 +61,41 @@ def disposable_config_status(env: Mapping[str, str]) -> tuple[str, str]:
     prod_token = env.get(PRODUCTION_TOKEN_VAR, "").strip()
     if prod_token and prod_token == token:
         return "fail", "refusing to run: the disposable token equals the production token"
+    return "ok", ""
+
+
+# ------------------------------------------------------------------ integration-test gate (CI isolation)
+TEST_URL_VAR = "PSXNI_TEST_TURSO_DATABASE_URL"
+TEST_TOKEN_VAR = "PSXNI_TEST_TURSO_AUTH_TOKEN"  # noqa: S105 - a variable name
+# The production database. Integration tests must never connect to it, whatever the configuration.
+PRODUCTION_HOST = "psx-news-intelligence-imranrazabozdar.aws-us-east-1.turso.io"
+
+
+def integration_config_status(env: Mapping[str, str]) -> tuple[str, str]:
+    """Decide whether the real-Turso integration tests may run: ('skip' | 'fail' | 'ok', reason).
+
+    Only the dedicated PSXNI_TEST_TURSO_* variables can enable them. The production variables
+    (PSXNI_TURSO_*) are never used as a fallback; they are read only to refuse a test target that
+    matches them. A production target fails closed before any connection is made.
+    """
+    url = env.get(TEST_URL_VAR, "").strip()
+    token = env.get(TEST_TOKEN_VAR, "").strip()
+    if not url and not token:
+        return "skip", (f"{TEST_URL_VAR} / {TEST_TOKEN_VAR} not set: real-Turso integration tests not run "
+                        "(production credentials are never used for tests)")
+    if not (url and token):
+        return "fail", f"incomplete configuration: set both {TEST_URL_VAR} and {TEST_TOKEN_VAR}"
+    if not url.startswith(("libsql://", "https://")):
+        return "fail", "the test database URL must be a libsql:// or https:// Turso URL"
+    host = _host(url)
+    if not host:
+        return "fail", "the test database URL has no host"
+    if host == PRODUCTION_HOST or any(m in url.lower() for m in PRODUCTION_MARKERS):
+        return "fail", "refusing to run: the integration-test target is the production database"
+    prod_url = env.get(PRODUCTION_URL_VAR, "").strip()
+    if prod_url and _host(prod_url) == host:
+        return "fail", "refusing to run: the integration-test target has the production database host"
+    prod_token = env.get(PRODUCTION_TOKEN_VAR, "").strip()
+    if prod_token and prod_token == token:
+        return "fail", "refusing to run: the integration-test token equals the production token"
     return "ok", ""

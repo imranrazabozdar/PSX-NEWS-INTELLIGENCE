@@ -43,10 +43,12 @@ jobs:
         run: python scripts/check_installed_sources.py
       - name: Lint
         run: ruff check .
-      - name: Tests (Turso integration tests run only if the PSXNI_ secrets exist)
+      - name: Tests (real-Turso integration tests run only with the dedicated PSXNI_TEST_ secrets)
+        # Production credentials are deliberately NOT passed to tests; only the scheduled collection
+        # workflow receives them.
         env:
-          PSXNI_TURSO_DATABASE_URL: ${{ secrets.PSXNI_TURSO_DATABASE_URL }}
-          PSXNI_TURSO_AUTH_TOKEN: ${{ secrets.PSXNI_TURSO_AUTH_TOKEN }}
+          PSXNI_TEST_TURSO_DATABASE_URL: ${{ secrets.PSXNI_TEST_TURSO_DATABASE_URL }}
+          PSXNI_TEST_TURSO_AUTH_TOKEN: ${{ secrets.PSXNI_TEST_TURSO_AUTH_TOKEN }}
         run: pytest -rs
       - name: Vulnerability audit of the installed environment
         run: pip-audit --strict --progress-spinner off
