@@ -258,7 +258,7 @@ def test_pagination_stops_on_empty_page_and_errors():
 # ---------------------------------------------------------------- engine: policy
 def test_non_active_sources_are_never_collected_for_real(db):
     with pytest.raises(CollectionRefused, match="only ACTIVE"):
-        collect(db, "dawn", client=client_for(FakeNet()))
+        collect(db, "thenews", client=client_for(FakeNet()))  # IMPLEMENTED, stale, not owner-approved
     with pytest.raises(CollectionRefused, match="dry runs are not permitted"):
         collect(db, "psx", client=client_for(FakeNet()), dry_run=True)
 
@@ -332,15 +332,25 @@ def test_kill_switch_stops_collection(db, monkeypatch):
 
 def test_active_requires_approved_terms_in_database(db):
     with pytest.raises(DatabaseError, match="ACTIVE requires"):
-        db.execute("UPDATE sources SET lifecycle_status='ACTIVE' WHERE source_id='dawn'")
+        db.execute("UPDATE sources SET lifecycle_status='ACTIVE' WHERE source_id='thenews'")
     with pytest.raises(DatabaseError):
         db.execute("UPDATE sources SET enabled=1, lifecycle_status='ACTIVE', terms_status='approved' "
                    "WHERE source_id='psx'")  # access still restricted
 
 
-def test_no_source_is_active_or_enabled_in_registry(db):
-    sql = "SELECT COUNT(*) n FROM sources WHERE enabled=1 OR lifecycle_status='ACTIVE'"
-    assert db.execute(sql)[0]["n"] == 0
+OWNER_APPROVED_2026_11_08 = {"dawn", "dawn_pakistan", "dawn_world", "brecorder", "brecorder_markets",
+                             "brecorder_pakistan", "tribune", "tribune_pakistan", "tribune_world", "pbs",
+                             "scs_chart"}
+
+
+def test_only_owner_approved_sources_are_active_or_enabled(db):
+    rows = db.execute("SELECT * FROM sources WHERE enabled=1 OR lifecycle_status='ACTIVE'")
+    assert {r["source_id"] for r in rows} == OWNER_APPROVED_2026_11_08
+    for r in rows:
+        assert (r["lifecycle_status"], r["enabled"], r["terms_status"], r["access_status"]) == (
+            "ACTIVE", 1, "approved", "verified_permitted")
+        assert "OWNER DECISION 2026-11-08" in r["review_notes"]
+        assert r["retention_mode"] == "metadata_only"
 
 
 # ---------------------------------------------------------------- engine: persistence
@@ -500,10 +510,12 @@ def test_document_versions(db):
 
 def test_scheduler_respects_frequency(db):
     sid = make_active(db)
-    assert due_sources(db, "2026-11-07T12:00:00Z") == [sid]
+    assert sid in due_sources(db, "2026-11-07T12:00:00Z")
     db.execute("UPDATE sources SET last_attempt_at_utc='2026-11-07T11:30:00Z' WHERE source_id=?", (sid,))
-    assert due_sources(db, "2026-11-07T12:00:00Z") == []  # 60-minute interval not elapsed
-    assert due_sources(db, "2026-11-07T12:31:00Z") == [sid]
+    assert sid not in due_sources(db, "2026-11-07T12:00:00Z")  # 60-minute interval not elapsed
+    assert sid in due_sources(db, "2026-11-07T12:31:00Z")
+    # the market adapter is scheduled separately (collectors/market_ohlcv.py)
+    assert "scs_chart" not in due_sources(db, "2026-11-07T12:31:00Z")
 
 
 # ---------------------------------------------------------------- registry
@@ -550,7 +562,10 @@ def test_registry_records_provider_findings_without_activation(db):
     for sid, life in expected:
         assert rows[sid]["lifecycle_status"] == life and rows[sid]["enabled"] == 0
         assert rows[sid]["feed_url"] is None and rows[sid]["adapter"] is None
-    assert all(r["lifecycle_status"] != "ACTIVE" and r["enabled"] == 0 for r in rows.values())
+    never_active = ("investify", "scstrade", "mettis", "pucars", "capitalstake", "sarmaaya",
+                    "psx", "psx_dps", "sbp")
+    for sid in never_active:
+        assert rows[sid]["lifecycle_status"] != "ACTIVE" and rows[sid]["enabled"] == 0, sid
     assert "reCAPTCHA" in rows["psx"]["review_notes"]
 
 

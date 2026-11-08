@@ -9,7 +9,7 @@ A feature is complete only when code **and** tests prove it. A page or placehold
 |---|---|---|---|
 | 0 | Specification and repository bootstrap | TESTED, approved and merged (PR #1) | See Phase 0 checklist below |
 | 1 | Data foundation (Turso, migrations, company master) | TESTED, approved and merged (PR #2, merge commit 108cdd6) | See Phase 1 checklist below |
-| 2 | Source collection engine | TESTED, approved and merged (PR #5, merge commit 992e4b0); no source ACTIVE; 0006 not yet applied to production | See Phase 2 checklist below |
+| 2 | Source collection engine | TESTED, approved and merged (PR #5, merge commit 992e4b0). 2026-11-08: owner approved 11 sources (10 RSS feeds, metadata only, and the SCS chart feed for PSX OHLCV). They are ACTIVE in the seed registry, and real collection is verified locally. Not yet loaded into or applied to production. | See Phase 2 checklist below |
 | 3 | Event extraction and verification | TESTED, approved and merged (PR #11, merge commit 0491deec56adbd10c719eef3039bd7a546c521c6). Offline scope complete; live LLM NOT CONNECTED (BLOCKED, owner decision); 0007 not yet applied to production | See Phase 3 checklist below and `docs/PHASE_3_ACCEPTANCE.md` |
 | 4 | Company exposure graph | TESTED with synthetic fixtures, approved and merged (PR #15, merge commit 0bdfb1a08de7dae9ea37899f4d93c10892b32e59); NOT OPERATIONAL: no approved company-evidence source, real mappings unverified; 0008 not applied to production; Turso server compatibility unverified | See Phase 4 checklist below and `docs/PHASE_4_ACCEPTANCE.md` |
 | 5 | Impact analysis and Python calculations | NOT STARTED | |

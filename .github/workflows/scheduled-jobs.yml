@@ -76,3 +76,11 @@ jobs:
           if [ -n "$INPUT_SINCE" ]; then args+=(--since "$INPUT_SINCE"); fi
           if [ -n "$INPUT_UNTIL" ]; then args+=(--until "$INPUT_UNTIL"); fi
           python -m collectors.run "${args[@]}"
+      - name: Collect PSX market bars (1m/1h/4h/1d)
+        # Runs only if the scs_chart source is ACTIVE and its interval has elapsed. Each run is incremental
+        # from the last stored bar, and the per-run database budget applies.
+        if: steps.cfg.outputs.run == 'true' && inputs.source == ''
+        run: |
+          margs=(--due)
+          if [ "$INPUT_DRY_RUN" = "true" ]; then margs+=(--dry-run); fi
+          python -m collectors.market_ohlcv "${margs[@]}"

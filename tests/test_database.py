@@ -164,7 +164,7 @@ def test_foreign_keys_enforced(db):
 
 def test_source_cannot_be_enabled_before_verification(seeded):
     with pytest.raises(DatabaseError, match="CHECK"):
-        seeded.execute("UPDATE sources SET enabled = 1 WHERE source_id = 'dawn'")
+        seeded.execute("UPDATE sources SET enabled = 1 WHERE source_id = 'thenews'")  # access unverified
 
 
 def test_unverified_media_account_cannot_be_activated(seeded):
