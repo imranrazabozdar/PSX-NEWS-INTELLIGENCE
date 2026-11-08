@@ -26,6 +26,7 @@ import json
 import math
 import os
 import time
+import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
@@ -350,6 +351,7 @@ def collect_market(
     run = MarketRun(source_id=source_id, dry_run=dry_run, context=dict(context or {}))
     if not dry_run:
         started = now_utc()
+        claim = uuid.uuid4().hex  # unique per claim attempt; identifies this run's own lease row
         # Atomic lease: the run row is inserted only if no other run of this job is still running within
         # the lease window, so two triggers can never write at the same time.
         rows = db.batch(
@@ -367,15 +369,29 @@ def collect_market(
                     "SELECT ?, ?, ?, 'running', ? WHERE NOT EXISTS (SELECT 1 FROM collector_runs "
                     "WHERE job = ? AND source_id = ? AND status = 'running' "
                     "AND strftime('%s', ?) - strftime('%s', started_at_utc) < 60 * ?)",
-                    (JOB, source_id, started, json.dumps({"context": run.context}), JOB, source_id,
-                     started, lease_minutes),
+                    (JOB, source_id, started, json.dumps({"context": run.context, "claim": claim}), JOB,
+                     source_id, started, lease_minutes),
                 ),
-                ("SELECT changes() AS n, last_insert_rowid() AS id", ()),
+                (  # ownership is read back, not inferred from changes() / last_insert_rowid()
+                    "SELECT run_id, json_extract(quota_usage_json, '$.claim') AS claim FROM collector_runs "
+                    "WHERE job = ? AND source_id = ? AND status = 'running' "
+                    "AND strftime('%s', ?) - strftime('%s', started_at_utc) < 60 * ?",
+                    (JOB, source_id, started, lease_minutes),
+                ),
             ]
         )
-        if not rows[2][0]["n"]:
+        holders = rows[2]
+        mine = [r["run_id"] for r in holders if r["claim"] == claim]
+        if mine and len(holders) > 1:  # fail closed: never write while another live lease exists
+            db.batch([(
+                "UPDATE collector_runs SET status = 'failed', finished_at_utc = ?, "
+                "errors = 'lease conflict: another run held the lease' "
+                "WHERE run_id = ? AND status = 'running'",
+                (now_utc(), mine[0]),
+            )])
+        if len(mine) != 1 or len(holders) != 1:
             raise CollectionBusy("another market run holds the lease; nothing was done")
-        run.run_id = rows[2][0]["id"]
+        run.run_id = mine[0]
     try:
         for symbol, tf in ordered_series(symbols, timeframes):
             out = SeriesResult(symbol=symbol, timeframe=tf)
