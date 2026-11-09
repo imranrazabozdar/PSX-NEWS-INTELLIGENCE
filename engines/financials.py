@@ -473,5 +473,86 @@ def promote(db, report_id: int) -> dict:
             "reconciliation": rec_status}
 
 
+BALANCE_CODES = ("total_assets", "total_liabilities", "total_equity", "current_assets", "current_liabilities",
+                 "cash_and_equivalents", "inventory", "trade_receivables", "share_capital")
+
+
+def promote_balance_comparative(db, report_id: int, column_period_end: str) -> dict:
+    """Promote verified balance-sheet COMPARATIVES as point-in-time balances (owner-approved rule).
+
+    Only balance-sheet lines with a balance code, only from the named comparative column, only at a fiscal
+    year-end date (the metrics table accepts period type FY there), and only for the report's own company and
+    scope. Nothing is overwritten: an existing different value at the same date and metric refuses the whole
+    promotion. Income-statement and cash-flow comparatives are never promoted by this rule."""
+    rep = db.execute("SELECT * FROM financial_reports WHERE report_id = ?", (report_id,))
+    if not rep:
+        raise ImportError_("unknown report")
+    rep = rep[0]
+    if column_period_end == rep["period_end"]:
+        return {"promoted": 0, "refused": "current period balances are promoted by promote(), not this rule"}
+    if rep["extraction_status"] not in ("reconciled", "extracted"):
+        return {"promoted": 0, "refused": f"report is {rep['extraction_status']}"}
+    fye = db.execute("SELECT fiscal_year_end_month AS m FROM companies WHERE company_id = ?",
+                     (rep["company_id"],))[0]["m"]
+    d = date.fromisoformat(column_period_end)
+    if fye is None or d.month != fye or d.day != _month_end_day(d.year, fye):
+        return {"promoted": 0, "refused": "comparative date is not a fiscal year-end: point balances refused"}
+    rows = db.execute(
+        "SELECT canonical_code, value, raw_label, page FROM financial_line_items WHERE report_id = ? "
+        "AND statement = 'BS' AND column_period_end = ? AND is_comparative = 1 AND value IS NOT NULL "
+        "AND canonical_code IS NOT NULL", (report_id, column_period_end))
+    rows = [r for r in rows if r["canonical_code"] in BALANCE_CODES]
+    if not rows:
+        return {"promoted": 0, "refused": "no balance-sheet comparative lines with balance codes"}
+    basis = "restated" if rep["restates_report_id"] else "reported"
+    conflicts, stmts = [], []
+    for r in rows:
+        v = r["value"] * rep["unit_scale"]
+        same = db.execute(
+            "SELECT value, source_item_id FROM financial_metrics WHERE company_id = ? AND period_end = ? "
+            "AND period_type = 'FY' AND metric = ? AND scope = ?",
+            (rep["company_id"], column_period_end, r["canonical_code"], rep["scope"]))
+        if same and any(abs(x["value"] - v) > 0.5 for x in same):
+            conflicts.append({"metric": r["canonical_code"], "stored": same[0]["value"], "new": v,
+                              "reason": "a different value already exists for this date: not overwritten"})
+            continue
+        if same:
+            continue  # already promoted with the same value
+        method = (f"balance_point_comparative; source_label={r['raw_label']}; page={r['page']}; "
+                  f"restates={'yes' if rep['restates_report_id'] else 'no'}")
+        stmts.append((
+            "INSERT INTO financial_metrics(company_id, period_end, period_type, metric, value, unit, "
+            "currency, basis, calculation_method, source_item_id, recorded_at_utc, report_id, scope) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (rep["company_id"], column_period_end, "FY", r["canonical_code"], v, rep["currency"],
+             rep["currency"], basis, method, rep["source_item_id"], _now(), report_id, rep["scope"])))
+    if conflicts:
+        return {"promoted": 0, "refused": "conflicting existing values", "conflicts": conflicts}
+    if stmts:
+        db.batch(stmts, transactional=True)
+    return {"promoted": len(stmts), "period_end": column_period_end, "basis": basis, "scope": rep["scope"],
+            "period_type": "FY (balance point, fiscal year end)"}
+
+
+def _month_end_day(year: int, month: int) -> int:
+    from calendar import monthrange
+
+    return monthrange(year, month)[1]
+
+
+def cash_definition_check(cash_and_bank: float | None, term_deposits: float | None,
+                          cash_closing: float | None) -> dict:
+    """Note 23 definition: cash and cash equivalents = cash and bank balances + short-term highly liquid
+    investments (term deposits). Checks the disclosed components against the cash-flow closing balance.
+    The two canonical measures are NOT merged: this only tests whether the disclosed definition explains
+    the difference."""
+    if cash_and_bank is None or term_deposits is None or cash_closing is None:
+        return {"check": "cash_definition", "result": "not_checkable"}
+    expected = cash_and_bank + term_deposits
+    ok = abs(expected - cash_closing) <= 0.5
+    return {"check": "cash_definition", "result": "pass" if ok else "fail", "expected": expected,
+            "reported": cash_closing}
+
+
 def document_sha256(path: Path | str) -> str:
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()

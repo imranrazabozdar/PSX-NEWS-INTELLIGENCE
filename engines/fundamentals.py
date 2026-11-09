@@ -37,6 +37,9 @@ RATIOS: dict[str, tuple[tuple[str, ...], str, tuple[str, ...], tuple[str, ...]]]
             ("profit_after_tax",), ("total_assets",)),
     "asset_turnover_average": (("corporate",), "revenue / average(opening, closing) total_assets",
                                ("revenue",), ("total_assets",)),
+    "roe_average_balance": (("corporate", "bank", "insurer"),
+                            "profit_after_tax / average(opening, closing) total_equity",
+                            ("profit_after_tax",), ("total_equity",)),
     "roa_average_assets": (("corporate", "bank", "insurer"),
                            "profit_after_tax / average(opening, closing) total_assets",
                            ("profit_after_tax",), ("total_assets",)),
@@ -130,7 +133,8 @@ def metrics(db, company_id: str, period_end: str, period_type: str, scope: str, 
 
 # Ratios that divide a flow by a balance, or count days, depend on the length of the period. For an interim
 # period they are scaled to a full year (flows) or to the days in the period (day counts); FY is unchanged.
-ANNUALISE = {"asset_turnover", "roe", "roa", "asset_turnover_average", "roa_average_assets"}
+ANNUALISE = {"asset_turnover", "roe", "roa", "asset_turnover_average", "roa_average_assets",
+             "roe_average_balance"}
 PERIOD_MONTHS = {"FY": 12, "9M": 9, "H1": 6, "H2": 6, "Q1": 3, "Q2": 3, "Q3": 3, "Q4": 3}
 
 
@@ -138,7 +142,8 @@ PERIOD_MONTHS = {"FY": 12, "9M": 9, "H1": 6, "H2": 6, "Q1": 3, "Q2": 3, "Q3": 3,
 # opening balance is available as a promoted metric; otherwise the closing balance, labelled as approximation.
 # The existing ratios keep their closing-balance definitions (a documented contract). Average-balance versions
 # are separate ratios; they are not computed without a promoted opening balance, never from a guess.
-AVERAGE_RATIOS = {"asset_turnover_average": "total_assets", "roa_average_assets": "total_assets"}
+AVERAGE_RATIOS = {"asset_turnover_average": "total_assets", "roa_average_assets": "total_assets",
+                  "roe_average_balance": "total_equity"}
 CLOSING_APPROX = {"asset_turnover", "roe", "roa"}
 # Day counts that use closing receivables or inventory are proxies, not exact collection or holding periods.
 PROXY_DAYS = {"receivable_days", "inventory_days"}

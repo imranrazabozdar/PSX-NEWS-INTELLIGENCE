@@ -56,10 +56,12 @@ def _elements(lines: list[str], *, statement: str, columns: list[str], page: int
 
 
 def _sum_ok(total: dict, parts: list[dict], columns: list[str]) -> bool:
+    """Exact block sum. A dash ('-') is a nil presentation: it counts as zero inside this arithmetic check
+    only. Stored values are never changed, so a dash is still stored as not reported."""
     for c in columns:
-        vals = [p.get(c) for p in parts]
-        if total.get(c) is None or any(v is None for v in vals):
+        if total.get(c) is None:
             return False
+        vals = [0.0 if p.get(c) is None else p[c] for p in parts]
         if abs(sum(vals) - total[c]) > 0.5:  # figures are in whole thousands; exact match required
             return False
     return True
@@ -89,10 +91,31 @@ def analyse(lines: list[str], *, statement: str, columns: list[str], page: int) 
             run = idx[start:]
             if _sum_ok(e["values"], [contributor[k] for k in run], columns):
                 matches.append(run)
+        if not matches and statement == "CF":
+            # R8: the cash-flow block that begins with profit before income tax and runs through the
+            # 'Adjustments for:' items, closed by this row. Recognised only by this exact structure.
+            pbt = next((k for k, x in enumerate(els) if x["kind"] == "item"
+                        and x["label"].casefold().startswith("profit before income tax")), None)
+            adj = next((k for k, x in enumerate(els) if x["kind"] == "text"
+                        and x["text"].casefold().startswith("adjustments for")), None)
+            if pbt is not None and adj is not None and pbt < adj < i:
+                run = [pbt] + [k for k in range(adj + 1, i) if els[k]["kind"] == "item"]
+                if _sum_ok(e["values"], [contributor[k] for k in run], columns):
+                    matches.append(run)
         rec = {"text": e["text"], "values": e["values"], "page": page, "index": i}
         if len(matches) == 1:
-            rec.update(status="recognised", rule="R1_block_sum", covers=matches[0], code=None,
-                       rule_version=RULE_VERSION)
+            run = matches[0]
+            pbt_idx = next((k for k, x in enumerate(els) if x["kind"] == "item"
+                            and x["label"].casefold().startswith("profit before income tax")), None)
+            adj_idx = next((k for k, x in enumerate(els) if x["kind"] == "text"
+                            and x["text"].casefold().startswith("adjustments for")), None)
+            starts_at_pbt = statement == "CF" and pbt_idx is not None and run[0] == pbt_idx
+            through_adjustments = adj_idx is not None and pbt_idx is not None and pbt_idx < adj_idx < i
+            rule = "R8_cf_adjustments_block" if starts_at_pbt and through_adjustments else "R1_block_sum"
+            rec.update(status="recognised", rule=rule, covers=matches[0], code=None,
+                       rule_version=RULE_VERSION,
+                       nil_items=sum(1 for k in matches[0] if any(
+                           contributor[k].get(c) is None for c in columns)))
             contributor[i] = e["values"]
         else:
             rec.update(status="unresolved", rule=None, covers=[], code=None, rule_version=None,
