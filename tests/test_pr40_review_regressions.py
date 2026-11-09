@@ -412,3 +412,23 @@ def test_negative_numerator_is_flagged_and_zero_denominator_is_not_applicable(db
     fin.promote(db, _imp(db, zero)["report_id"])
     z = fu.analyse(db, "cmp-ogdc", period_end="2024-06-30", as_of=AS_OF)["ratios"]
     assert z["roe"]["state"] == "not_applicable" and z["roe"]["value"] is None
+
+
+def test_same_day_revision_is_rejected_not_silently_ordered(db):
+    """Review finding: a revision released on the SAME day as the stored vintage was accepted, and the
+    point-in-time read then returned the later value for a date when both values were published. The order
+    within one day is unknowable, so the revision is refused and must come later as a corrected release."""
+    from engines import macro
+    macro.load_registry(db)
+    kw = {"importer": "o", "release_url": None, "rights_attestation": "official release"}
+    first = [{"reference_period": "2026-09-15", "value": 10.0, "release_date": "2026-09-15"}]
+    macro.import_observations(db, "sbp_policy_rate", first, release_title="a", **kw)
+    same_day = [{"reference_period": "2026-09-15", "value": 10.5, "release_date": "2026-09-15"}]
+    same = macro.import_observations(db, "sbp_policy_rate", same_day, release_title="b", **kw)
+    assert same["rejected"] and not same["added"]
+    assert macro.as_known_at(db, "sbp_policy_rate", "2026-09-15")["value"] == 10.0
+    later_rev = [{"reference_period": "2026-09-15", "value": 10.5, "release_date": "2026-09-20"}]
+    later = macro.import_observations(db, "sbp_policy_rate", later_rev, release_title="c", **kw)
+    assert later["added"]
+    assert macro.as_known_at(db, "sbp_policy_rate", "2026-09-19")["value"] == 10.0
+    assert macro.as_known_at(db, "sbp_policy_rate", "2026-09-20")["value"] == 10.5
