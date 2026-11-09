@@ -184,3 +184,42 @@ def test_zz_failed_migration_rolls_back_and_retries(db, tmp_path):
     bad.write_text("CREATE TABLE rehearsal_probe (x INTEGER);\n")
     assert migrate(db, directory=tmp_path)[-1].startswith("apply  0015")
     assert db.execute("SELECT 1 FROM sqlite_master WHERE name = 'rehearsal_probe'")
+    # clean up the probe so the database again matches the repository's migrations 1-14 exactly
+    db.execute("DROP TABLE rehearsal_probe")
+    db.execute("DELETE FROM schema_migrations WHERE version = 15")
+
+
+def test_point_in_time_filing_gate_over_http(db):
+    """The filing-date SQL added in PR #41 runs on real libSQL: strict vs lenient, restatement visibility,
+    unknown dates and the prior-period query. Uses its own company so it does not disturb the others."""
+    from engines import financials as fin
+    from engines import fundamentals as fu
+    from tests.test_m2_m3_financials import _corp, _imp
+
+    # idempotent re-run: each row is checked on its own, so a partial earlier run is completed
+    if not db.execute("SELECT 1 FROM companies WHERE company_id = 'cmp-pit-syn'"):
+        db.execute("INSERT INTO companies(company_id, legal_name, listing_status, created_at_utc, "
+                   "updated_at_utc) VALUES ('cmp-pit-syn','PIT Synthetic Ltd','listed',?,?)", (NOW, NOW))
+    if not db.execute("SELECT 1 FROM company_identifiers WHERE company_id = 'cmp-pit-syn' AND "
+                      "id_type = 'psx_ticker' AND value = 'PITSYN'"):
+        db.execute("INSERT INTO company_identifiers(company_id, id_type, value, valid_from, valid_to, "
+                   "verified_at_utc) VALUES ('cmp-pit-syn','psx_ticker','PITSYN',NULL,NULL,?)", (NOW,))
+    fin.load_mappings(db)
+    rec = _corp(period="2024-06-30", prev="2023-06-30", sha="9" * 64, filed_at_utc="2025-09-30T00:00:00Z")
+    rec["company_ticker"] = "PITSYN"
+    fin.promote(db, _imp(db, rec)["report_id"])
+    rec2 = _corp(filed_at_utc="2026-09-30T00:00:00Z", sha="8" * 64)
+    rec2["company_ticker"] = "PITSYN"
+    fin.promote(db, _imp(db, rec2)["report_id"])
+    unknown = _corp(filed_at_utc=None, sha="7" * 64)
+    unknown["company_ticker"] = "PITSYN"
+    fin.promote(db, _imp(db, unknown)["report_id"])
+    before = fu.analyse(db, "cmp-pit-syn", period_end="2025-06-30", as_of="2026-06-30")
+    assert before["state"] == "insufficient_data"  # FY2025 filed 2026-09-30, not yet known on 2026-06-30
+    mid = fu.analyse(db, "cmp-pit-syn", period_end="2025-06-30", as_of="2026-10-01")
+    assert mid["prior_period_end"] == "2024-06-30" and mid["growth"]["revenue"]["state"] == "ok"
+    lenient = fu.analyse(db, "cmp-pit-syn", period_end="2025-06-30", as_of="2026-10-01", strict=False)
+    assert lenient["state"] == "ok_with_unknown_filing_dates" and lenient["filing_dates_unknown"]
+    scope_rows = db.execute("SELECT COUNT(*) n FROM financial_reports WHERE company_id = 'cmp-pit-syn' AND "
+                            "filed_at_utc IS NULL")
+    assert scope_rows[0]["n"] == 1  # the unknown-date report is kept in the database, never silently deleted

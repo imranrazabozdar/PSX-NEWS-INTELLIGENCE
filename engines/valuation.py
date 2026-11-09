@@ -57,7 +57,7 @@ def _share_factor(db, company_id: str, after: str, until: str) -> tuple[float, l
     return f, notes
 
 
-def inputs(db, company_id: str, *, as_of: str, strict_point_in_time: bool = False) -> dict:
+def inputs(db, company_id: str, *, as_of: str, strict_point_in_time: bool = True) -> dict:
     """Valuation inputs known on `as_of`.
 
     A report counts only if its period ended on or before `as_of` and, where its filing date is recorded,
@@ -341,7 +341,7 @@ def models(i: dict, assumptions: dict | None) -> list[dict]:
 
 
 def value(db, company_id: str, *, as_of: str, assumptions: dict | None = None, store: bool = True,
-          strict_point_in_time: bool = False) -> dict:
+          strict_point_in_time: bool = True) -> dict:
     """Run every method; with `store`, write the valuations rows and dimension D (no band, U9)."""
     i = inputs(db, company_id, as_of=as_of, strict_point_in_time=strict_point_in_time)
     results = multiples(i) + models(i, assumptions) + [dcf(i, assumptions)]

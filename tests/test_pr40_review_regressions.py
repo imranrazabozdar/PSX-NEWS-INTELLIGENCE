@@ -97,7 +97,9 @@ def test_split_ratio_is_shares_after_per_share_before(db):
     assert f[days[0]] == pytest.approx(0.5) and f[days[2]] == 1.0
 
 
-def _val_setup(db, *, short_term=True, filed=None):
+def _val_setup(db, *, short_term=True, filed="2025-09-30T00:00:00Z"):
+    """Valuation fixture. The FY2025 report is filed on a known date before the as-of date (strict default);
+    pass filed=None to model an unknown filing date."""
     over = {} if short_term else {("Short term borrowings", "2025-06-30"): None}
     rec = _corp(overrides=over, filed_at_utc=filed)
     rec["lines"] += [_line("CF", "Depreciation", "2025-06-30", -30.0),
@@ -124,8 +126,11 @@ def test_bonus_after_period_end_restates_per_share_inputs(db):
 
 
 def test_point_in_time_filing_dates(db):
-    _val_setup(db)  # no filing date recorded
-    lenient = va.value(db, "cmp-ogdc", as_of=AS_OF, store=False)
+    _val_setup(db, filed=None)  # unknown filing date: excluded in strict mode, and not used at all
+    strict = va.value(db, "cmp-ogdc", as_of=AS_OF, store=False)
+    assert strict["inputs"]["fy_period_end"] is None  # strict: the unfiled report is not used
+    lenient = va.value(db, "cmp-ogdc", as_of=AS_OF, store=False, strict_point_in_time=False)
+    assert lenient["inputs"]["fy_period_end"] == "2025-06-30"
     assert lenient["inputs"]["filing_date_known"] is False and lenient["inputs"]["notes"]
     strict = {x["method"]: x for x in va.value(db, "cmp-ogdc", as_of=AS_OF, store=False,
                                                strict_point_in_time=True)["results"]}
@@ -275,10 +280,16 @@ def test_report_respects_filing_dates(db):
     fin.promote(db, _imp(db, _corp(filed_at_utc="2026-12-01T00:00:00Z"))["report_id"])
     body = reports.company_report(db, "cmp-ogdc", as_of=AS_OF)  # filed after as_of: not yet known
     assert body["fundamental_performance"] == {"state": "data_unavailable"}
-    fin.promote(db, _imp(db, _corp(period="2024-06-30", prev="2023-06-30", sha="b" * 64))["report_id"])
+    fin.promote(db, _imp(db, _corp(period="2024-06-30", prev="2023-06-30", sha="b" * 64,
+                                   filed_at_utc="2025-09-30T00:00:00Z"))["report_id"])
     body = reports.company_report(db, "cmp-ogdc", as_of=AS_OF)
     assert body["executive_summary"]["fundamentals"]["period_end"] == "2024-06-30"
-    assert any("filing date" in m for m in body["confidence_and_missing_data"]["missing"])
+    # an unknown-date report is excluded in strict mode and counted, never silently used
+    r = _imp(db, _corp(filed_at_utc=None, sha="f" * 64))  # FY2025, unknown filing date, its own document
+    fin.promote(db, r["report_id"])
+    body = reports.company_report(db, "cmp-ogdc", as_of=AS_OF)
+    assert body["point_in_time"]["excluded_unknown_filing_date_reports"] == 1
+    assert body["executive_summary"]["fundamentals"]["period_end"] == "2024-06-30"
 
 
 def test_efficiency_and_dividend_ratios(db):
@@ -338,11 +349,11 @@ def test_later_restatement_does_not_leak_into_earlier_date(db):
 def test_unknown_filing_date_is_visible_and_excluded_when_strict(db):
     from engines import fundamentals as fu
 
-    fin.promote(db, _imp(db, _corp())["report_id"])  # no filing date
-    lenient = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30", as_of=AS_OF)
-    assert lenient["filing_dates_unknown"] and lenient["state"] == "ok_with_unknown_filing_dates"
-    strict = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30", as_of=AS_OF, strict=True)
+    fin.promote(db, _imp(db, _corp(filed_at_utc=None))["report_id"])  # unknown filing date
+    strict = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30", as_of=AS_OF)  # strict is the default
     assert strict["state"] == "insufficient_data"
+    lenient = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30", as_of=AS_OF, strict=False)
+    assert lenient["filing_dates_unknown"] and lenient["state"] == "ok_with_unknown_filing_dates"
 
 
 def test_prior_period_roe_and_growth_respect_as_of(db):

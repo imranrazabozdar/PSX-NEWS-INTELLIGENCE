@@ -118,3 +118,20 @@ AI gateway, and order execution (never built).
   * The token file was shredded, and the temporary allowlist entry was removed from the environment.
   * No credentials were written to the repository, CI or the production configuration.
 * **Not done:** no migration was applied to production. Production activation still needs separate approval.
+
+## 8. Evidence: disposable Turso recheck with the point-in-time filing gate, 2026-11-09 (production untouched)
+* **Database:** `psxni-migration-rehearsal-20261109d` on its own host (not production). Created through the Turso
+  Platform API in group `us-group`, with a database-scoped 2-hour full-access token that was never printed or
+  committed. Earlier attempts (`…20261109b` and `…20261109c`) were discarded: each was left in a partial state by a
+  failed run, so the clean verification used a fresh database.
+* **Result:** 19/19 passed (9 gate-3 checks and 10 migration and engine checks, including the new point-in-time
+  test), exit 0.
+* **Schema:** `schema_migrations` holds 1–14 (the test's rollback probe, version 15, is removed by the test itself
+  now), and libSQL reports SQLite 3.47.0 with foreign keys enforced. The schema matches the repository's migrations
+  object for object, after the probe is removed.
+* **New SQL verified on real libSQL:** strict and lenient filing gates; a restatement hidden until its filing date
+  and then visible; an unknown filing date excluded in strict mode and kept in the database; and the prior-period
+  query.
+* **Cleanup:** database deleted (only `psx-news-intelligence` remains); its host returns 404; the token file was
+  shredded; the temporary allowlist entries were removed.
+* **Not done:** no migration was applied to production.

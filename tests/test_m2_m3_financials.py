@@ -52,7 +52,16 @@ YEARS["2023-12-31"] = YEARS["2024-06-30"]
 ORDER = [(st, lab) for st in ("IS", "BS", "CF") for lab in LABELS[st]]
 
 
-def _corp(period="2025-06-30", prev="2024-06-30", sha=SHA, overrides=None, **kw):
+_NOT_SET = object()
+
+
+def _corp(period="2025-06-30", prev="2024-06-30", sha=SHA, overrides=None, filed_at_utc=_NOT_SET, **kw):
+    """A synthetic annual report. Filing date defaults to 90 days after the period end, so strict
+    point-in-time reads use it. Pass filed_at_utc=None to model an unknown filing date."""
+    if filed_at_utc is _NOT_SET:
+        from datetime import date, timedelta
+        filed_at_utc = (date.fromisoformat(period) + timedelta(days=90)).isoformat() + "T00:00:00Z"
+    kw["filed_at_utc"] = filed_at_utc
     lines = []
     for col in (period, prev):
         for (st, lab), v in zip(ORDER, YEARS[col], strict=True):

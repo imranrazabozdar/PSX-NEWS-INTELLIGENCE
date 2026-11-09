@@ -172,9 +172,11 @@ def valuation_view(db) -> None:
     as_of = st.text_input("As of (YYYY-MM-DD)", _today(), key="va_asof")
     from engines import valuation as va
 
-    out = _run(va.value, db, cid, as_of=as_of, store=False)
+    out = _run(va.value, db, cid, as_of=as_of, store=False)  # strict point-in-time by default
     if not out:
         return
+    st.info("Strict point-in-time: only financial reports filed by the as-of date are used; reports with no "
+            "filing date are excluded.")
     i = out["inputs"]
     st.caption(f"Price {i['price']} on {i['price_date']} (SCS, unadjusted) · FY {i['fy_period_end']} "
                f"({i['scope']}) · share factor x{i['share_factor']:g}. {out['disclaimer']}")
@@ -252,11 +254,19 @@ def integrated_report_view(db) -> None:
     if not cid:
         return
     as_of = st.text_input("As of (YYYY-MM-DD)", _today(), key="rep_asof")
+    lenient = st.toggle("Exploratory: include reports with no filing date (labelled, not historical)",
+                        value=False, key="rep_lenient")
     from engines import reports
 
-    body = _run(reports.company_report, db, cid, as_of=as_of)
+    body = _run(reports.company_report, db, cid, as_of=as_of, mode="lenient" if lenient else "strict")
     if not body:
         return
+    pit = body["point_in_time"]
+    if pit["mode"] == "lenient":
+        st.warning(pit["statement"])
+    else:
+        st.info(f"{pit['statement']} Excluded reports with no filing date: "
+                f"{pit['excluded_unknown_filing_date_reports']}.")
     st.caption(body["disclaimer"])
     miss = body["confidence_and_missing_data"]["missing"]
     if miss:

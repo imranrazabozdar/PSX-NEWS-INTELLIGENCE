@@ -187,7 +187,7 @@ def growth(cur: dict, prev: dict | None, key: str) -> dict:
 
 
 def analyse(db, company_id: str, *, period_end: str, as_of: str, period_type: str = "FY",
-            strict: bool = False) -> dict:
+            strict: bool = True) -> dict:
     """Ratios for one period, using only reports filed by `as_of` (required).
     Unknown filing dates are kept unless `strict`; `filing_dates_unknown` lists the reports relying on them.
     """
@@ -273,7 +273,7 @@ def _state(items: list[dict]) -> str:
 
 
 def assess(db, company_id: str, *, period_end: str, as_of_date: str, period_type: str = "FY",
-           strict: bool = False) -> dict:
+           strict: bool = True) -> dict:
     """Write dimensions A, B and C for one period as known on `as_of_date` (required). Re-running the same
     version and date is a no-op."""
     as_of = as_of_date
