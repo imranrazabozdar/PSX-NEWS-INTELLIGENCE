@@ -52,7 +52,7 @@ The complete target system and its single programme are defined in `MASTER_ARCHI
 | M6 | Macro and commodity series | PARTIALLY COMPLETE: registry, manual import with vintages, point-in-time reads, driver changes TESTED offline; EIA / World Bank automation BLOCKED (U2) |
 | M7 | Labels, validation and backtesting | PARTIALLY COMPLETE: validation runs, walk-forward, look-ahead guard, event study, prediction scoring, label template TESTED offline; no human labels (U10); outcome checks BLOCKED (U5) |
 | M8 | Portfolio and theses | PARTIALLY COMPLETE: separate owner-scoped portfolio DB, holdings, marking, theses, alerts TESTED offline; multi-user and UI BLOCKED (U8) |
-| M9 | Integrated reports | PARTIALLY COMPLETE: 13-section company report, sector and market views, reproducible snapshots TESTED offline; dashboard page not added |
+| M9 | Integrated reports | PARTIALLY COMPLETE: 13-section company report, sector and market views, reproducible snapshots, six dashboard pages TESTED offline; pages wait for migrations 0011–0014 in production |
 | M10 | Production activation per module | PREPARED: `docs/OPERATIONS_RUNBOOK.md`; nothing activated (owner approval per module) |
 
 Critical path: M1 → M2 → M3 → M5. Owner decisions U1–U11 are listed in `MASTER_ARCHITECTURE.md` §9.

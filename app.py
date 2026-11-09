@@ -11,15 +11,16 @@ import streamlit as st
 
 from config.settings import load_settings
 
-PHASES = [
-    ("Phase 0", "Specification and repository bootstrap", "TESTED"),
-    ("Phase 1", "Data foundation (Turso, migrations, company master)", "TESTED"),
-    ("Phase 2", "First source collectors", "NOT STARTED"),
-    ("Phase 3", "Event extraction and verification", "NOT STARTED"),
-    ("Phase 4", "Company exposure graph", "NOT STARTED"),
-    ("Phase 5", "Impact analysis and calculations", "NOT STARTED"),
-    ("Phase 6", "Streamlit MVP", "NOT STARTED"),
-    ("Phase 7", "Scheduling and operations", "NOT STARTED"),
+PHASES = [  # master programme (docs/PROJECT_ROADMAP.md); code status only, nothing implies production use
+    ("Stage 1", "Data architecture, SCS market data, RSS collection", "TESTED; operational acceptance "
+        "pending"),
+    ("Stage 2", "News, event, exposure and impact intelligence", "TESTED offline; not activated"),
+    ("M1", "X watchlist, priority list, liquidity qualification", "TESTED offline"),
+    ("M2-M5", "Financial statements, fundamentals, market behaviour, valuation", "TESTED offline "
+        "(synthetic)"),
+    ("M6-M9", "Macro vintages, validation, portfolio engine, integrated reports", "TESTED offline "
+        "(synthetic)"),
+    ("M10", "Activation runbook; migrations 0011-0014 rehearsed on disposable Turso", "NOT ACTIVATED"),
 ]
 
 
@@ -56,10 +57,19 @@ def _db():
 
 def _data_views() -> None:
     db = _db()
-    (market, intel, company, sector, review, valid, ready, ops, news, health) = st.tabs(
+    (market, intel, company, sector, review, valid, ready, ops, news, health, fin_t, fund_t, val_t, mkt_t,
+     macro_t, report_t) = st.tabs(
         ["PSX market data", "Intelligence", "Company report", "Sector report", "Review queue", "Validation",
-         "Readiness", "Collection operations", "News", "Source health"])
+         "Readiness", "Collection operations", "News", "Source health", "Financial statements",
+         "Fundamentals", "Valuation", "Market behaviour", "Macro", "Integrated report"])
     from engines import dashboard_views as dv
+    from engines import research_views as rv
+
+    for tab, view in ((fin_t, rv.financials_view), (fund_t, rv.fundamentals_view), (val_t, rv.valuation_view),
+                      (mkt_t, rv.market_behaviour_view), (macro_t, rv.macro_view),
+                      (report_t, rv.integrated_report_view)):
+        with tab:
+            view(db)
 
     with intel:
         dv.intelligence_view(db)

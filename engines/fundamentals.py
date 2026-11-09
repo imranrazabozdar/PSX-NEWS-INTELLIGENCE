@@ -52,16 +52,28 @@ RATIOS: dict[str, tuple[tuple[str, ...], str, tuple[str, ...], tuple[str, ...]]]
     "cost_to_income": (("bank",), "operating_expenses / (net_interest_income + non_markup_income)",
                        ("operating_expenses",), ("net_interest_income", "non_markup_income")),
     "claims_ratio": (("insurer",), "net_claims / net_premium", ("net_claims",), ("net_premium",)),
+    # efficiency (fiscal-year figures; closing balances, stated)
+    "asset_turnover": (("corporate",), "revenue / closing total_assets", ("revenue",), ("total_assets",)),
+    "receivable_days": (("corporate",), "365 x closing trade_receivables / revenue", ("trade_receivables",),
+                        ("revenue",)),
+    "inventory_days": (("corporate",), "365 x closing inventory / |cost_of_sales|", ("inventory",),
+                       ("cost_of_sales",)),
+    # dividend sustainability
+    "payout_ratio": (("corporate", "bank", "insurer"), "|dividends_paid| / profit_after_tax (cash basis)",
+                     ("dividends_paid",), ("profit_after_tax",)),
 }
+DAYS = {"receivable_days", "inventory_days"}
+ABS_NUM = {"cost_to_income", "claims_ratio", "payout_ratio"}
+ABS_DEN = {"interest_cover", "inventory_days"}
 REPORTED = {"car_pct": ("bank",)}  # shown as reported by the company, not recalculated
 GROWTH = ("revenue", "profit_after_tax", "eps_basic", "net_interest_income", "net_premium", "total_assets")
 DIMENSIONS = {
     "A": ("gross_margin", "operating_margin", "net_margin", "roe", "roe_average_equity", "roa",
-          "cash_conversion", "claims_ratio",
+          "cash_conversion", "claims_ratio", "asset_turnover", "receivable_days", "inventory_days",
           "nii_share_of_income", "cost_to_income"),
     "B": ("debt_to_equity", "current_ratio", "interest_cover", "liabilities_to_assets",
           "advances_to_deposits",
-          "npl_to_advances", "car_pct"),
+          "npl_to_advances", "car_pct", "payout_ratio", "dividend_cover_fcf"),
 }
 
 
@@ -100,15 +112,15 @@ def ratio(name: str, m: dict[str, dict], framework: str) -> dict:
         return res
     n = sum(m[k]["value"] for k in num)
     d = sum(m[k]["value"] for k in den)
-    if name in ("cost_to_income", "claims_ratio"):
-        n = abs(n)  # expenses may be presented as negatives
-    if name == "interest_cover":
+    if name in ABS_NUM:
+        n = abs(n)  # expenses and outflows may be presented as negatives
+    if name in ABS_DEN:
         d = abs(d)
     if d <= 0:
         res["state"] = "not_applicable"
         res["reason"] = "denominator is zero or negative"
         return res
-    res["value"] = n / d
+    res["value"] = n / d * (365 if name in DAYS else 1)
     return res
 
 
@@ -162,6 +174,7 @@ def analyse(db, company_id: str, *, period_end: str, period_type: str = "FY") ->
     pm = metrics(db, company_id, prior, period_type, scope) if prior else None
     g = {k: growth(m, pm, k) for k in GROWTH}
     ratios["roe_average_equity"] = roe_average(m, pm, framework)
+    ratios["dividend_cover_fcf"] = _dividend_cover(m)
     return {"company_id": company_id, "framework": framework, "period_end": period_end,
             "period_type": period_type, "scope": scope, "prior_period_end": prior, "ratios": ratios,
             "growth": g, "fcf": _fcf(m)}
@@ -190,6 +203,19 @@ def roe_average(cur: dict, prev: dict | None, framework: str) -> dict:
     if avg <= 0:
         return {**res, "state": "not_applicable", "reason": "average equity is zero or negative"}
     return {**res, "value": cur["profit_after_tax"]["value"] / avg}
+
+
+def _dividend_cover(m: dict) -> dict:
+    res = {"ratio": "dividend_cover_fcf", "formula": "(cfo - |capex|) / |dividends_paid|", "state": "ok",
+           "value": None, "missing": [k for k in ("cfo", "capex", "dividends_paid") if k not in m]}
+    if res["missing"]:
+        return {**res, "state": "insufficient_data"}
+    div = abs(m["dividends_paid"]["value"])
+    if div == 0:
+        return {**res, "state": "not_applicable", "reason": "no dividends paid"}
+    return {**res, "value": (m["cfo"]["value"] - abs(m["capex"]["value"])) / div,
+            "inputs": {k: {"value": m[k]["value"], "metric_id": m[k]["metric_id"]}
+                       for k in ("cfo", "capex", "dividends_paid")}}
 
 
 def _fcf(m: dict) -> dict:

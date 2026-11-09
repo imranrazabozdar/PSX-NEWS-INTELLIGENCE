@@ -279,3 +279,22 @@ def test_report_respects_filing_dates(db):
     body = reports.company_report(db, "cmp-ogdc", as_of=AS_OF)
     assert body["executive_summary"]["fundamentals"]["period_end"] == "2024-06-30"
     assert any("filing date" in m for m in body["confidence_and_missing_data"]["missing"])
+
+
+def test_efficiency_and_dividend_ratios(db):
+    from engines import fundamentals as fu
+
+    rec = _corp()
+    rec["lines"] += [_line("BS", "Trade debts", "2025-06-30", 50.0),
+                     _line("BS", "Stock in trade", "2025-06-30", 60.0),
+                     _line("CF", "Dividends paid", "2025-06-30", -35.0)]
+    fin.promote(db, _imp(db, rec)["report_id"])
+    r = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30")["ratios"]
+    assert r["asset_turnover"]["value"] == pytest.approx(2.0)
+    assert r["receivable_days"]["value"] == pytest.approx(365 * 50 / 1000)
+    assert r["inventory_days"]["value"] == pytest.approx(365 * 60 / 600)
+    assert r["payout_ratio"]["value"] == pytest.approx(0.25)
+    assert r["dividend_cover_fcf"]["value"] == pytest.approx((175 - 70) / 35)
+    fin.promote(db, _imp(db, _corp(period="2024-06-30", prev="2023-06-30", sha="b" * 64))["report_id"])
+    assert fu.analyse(db, "cmp-ogdc", period_end="2024-06-30")["ratios"]["payout_ratio"]["state"] == \
+        "insufficient_data"

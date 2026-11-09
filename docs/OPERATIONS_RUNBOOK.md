@@ -62,6 +62,10 @@ CFO − capex, because companies treat interest differently in those lines.
 fiscal year has been imported. Reports show both, each with its formula.
 
 ## 5. Monitoring
+* **Integrity check:** `python -m engines.integrity` is read-only. It checks that applied migration checksums
+  match the repository, that every trigger and index the migrations define exists, and that
+  `PRAGMA foreign_key_check` is clean. Pending migrations are listed as notes. Run it before and after any backup
+  restore, rehearsal or approved migration.
 * Collection health uses the existing operations tab (schedule health, gaps, readiness).
 * Manual imports record a `collector_runs` row (`x_manual_import`) or a `source_items` row with
   `retrieval_method = 'manual'`, with the importer and attestation in `source_metadata_json`.
