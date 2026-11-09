@@ -152,6 +152,13 @@ def parse_statement_text(text: str, *, statement: str, columns: list[str], page:
         if len(vals) == n + 1 and re.fullmatch(r"[0-9]{1,2}(\.[0-9]{1,2})?", vals[0]):
             vals = vals[1:]  # note reference
         label = " ".join(toks)
+        if any(re.search(r"\d", t) for t in toks):  # figure inside a label: side-by-side, never guessed
+            unparsed.append({"line": s, "reason": "numbers inside the label: possible side-by-side layout"})
+            continue
+        if re.search(r"\b[A-Z]{3,} [A-Z]{3,}\b.*\b[a-z]", label):  # section heading from the other column
+            unparsed.append({"line": s,
+                             "reason": "section heading inside the label: possible side-by-side layout"})
+            continue
         if not label or len(vals) != n:
             if vals or label:
                 unparsed.append({"line": s, "reason": f"expected {n} values, found {len(vals)}"})

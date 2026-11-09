@@ -126,3 +126,46 @@ def test_source_and_metadata_are_required(db, tmp_path, vault):
     with pytest.raises(di.IntakeError, match="not in the company master"):
         di.intake(db, pdf, _meta(company_ticker="NOPE"), vault=vault, importer="owner",
                   rights_attestation=SYNTH)
+
+
+# ------------------------------------------- pilot regressions (found on real OGDCL pages)
+def test_comparative_columns_are_per_statement_not_shared(db, tmp_path, vault):
+    """Real OGDCL interim report: the quarterly profit or loss compares with 30 Sep 2025, while the balance
+    sheet compares with 30 Jun 2026. A single shared column list stored the P&L comparative as 30 Jun 2026."""
+    pdf = _pdf(tmp_path, "pl.pdf", [["Statement of profit or loss", "Revenue 132,418,817 96,191,968"]])
+    meta = _meta(columns={"IS": ["2026-09-30", "2025-09-30"], "BS": ["2026-09-30", "2026-06-30"]},
+                 statement_pages={"IS": [1]})
+    di.intake(db, pdf, meta, vault=vault, importer="owner", rights_attestation=SYNTH)
+    rows = db.execute("SELECT column_period_end, value FROM financial_line_items WHERE raw_label='Revenue'")
+    assert {r["column_period_end"]: r["value"] for r in rows} == {"2026-09-30": 132418817.0,
+                                                                  "2025-09-30": 96191968.0}
+
+
+def test_label_containing_numbers_is_flagged_not_stored(db, tmp_path, vault):
+    """Real OGDCL balance sheet (side-by-side layout): the text layer puts a figure of the left column inside
+    the label of the right column. Such a line must be reported, never stored under a guessed label."""
+    line = ("Provision for decommissioning cost 5 62,186,348 6 0,720,610 "
+            "Trade debts 14 595,587,753 594,845,141")
+    r = fin.parse_statement_text(line, statement="BS", columns=["2026-09-30", "2026-06-30"], page=2)
+    assert r["lines"] == [] and r["unparsed"] and "numbers" in r["unparsed"][0]["reason"]
+
+
+def test_failed_extraction_imports_nothing(db, tmp_path, vault):
+    """A scanned-only document must not leave an empty report in the database."""
+    pdf = _pdf(tmp_path, "scan2.pdf", [None, None])
+    before = db.execute("SELECT COUNT(*) n FROM financial_reports")[0]["n"]
+    r = di.intake(db, pdf, _meta(statement_pages={"IS": [1], "BS": [2]}), vault=vault, importer="owner",
+                  rights_attestation=SYNTH)
+    assert r["status"] == "extraction_failed" and r["scanned_pages"] == [1, 2]
+    assert db.execute("SELECT COUNT(*) n FROM financial_reports")[0]["n"] == before
+
+
+def test_section_heading_from_the_other_column_is_not_kept_in_the_label():
+    """Real OGDCL announcement annexure: 'CURRENT LIABILITIES' from the left column sat on the same text line
+    as 'Deposits and short term prepayments' from the right column. The value was right; the label was not."""
+    line = "CURRENT LIABILITIES Deposits and short term prepayments 2,331,896 1,915,330"
+    r = fin.parse_statement_text(line, statement="BS", columns=["2026-09-30", "2026-06-30"], page=2)
+    assert r["lines"] == [] and "section heading" in r["unparsed"][0]["reason"]
+    ok = fin.parse_statement_text("Deposits and short term prepayments 2,331,896 1,915,330", statement="BS",
+                                  columns=["2026-09-30", "2026-06-30"], page=2)
+    assert [x["raw_label"] for x in ok["lines"]][0] == "Deposits and short term prepayments"

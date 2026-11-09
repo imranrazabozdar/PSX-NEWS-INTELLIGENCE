@@ -76,6 +76,16 @@ def store_original(pdf: Path | str, vault: Path) -> tuple[Path, str]:
     return dest, sha
 
 
+def _columns_for(meta: dict, statement: str) -> list[str]:
+    """Comparatives differ by statement (quarter vs year-end): columns may be given per statement."""
+    cols = meta["columns"]
+    if isinstance(cols, dict):
+        if statement not in cols:
+            raise IntakeError(f"no column periods given for statement {statement}")
+        return list(cols[statement])
+    return list(cols)
+
+
 def _ticker_company(db, ticker: str) -> str:
     row = db.execute("SELECT company_id FROM company_identifiers WHERE id_type = 'psx_ticker' AND value = ? "
                      "AND valid_to IS NULL", (ticker,))
@@ -124,7 +134,6 @@ def intake(db, pdf: Path | str, meta: dict, *, vault: Path, importer: str, right
                 "note": "same company, report type, period and scope with different bytes; "
                         "confirm whether this is a restatement before importing"}
     doc = pe.extract(stored)
-    columns = list(meta["columns"])
     located = pe.locate_statements(doc)
     pages_by_stmt = meta.get("statement_pages") or located
     lines, unparsed, used = [], [], {}
@@ -132,11 +141,15 @@ def intake(db, pdf: Path | str, meta: dict, *, vault: Path, importer: str, right
         pages = pages_by_stmt.get(st)
         if not pages:
             continue
-        r = pe.to_statement_lines(doc, st, pages, columns=columns)
+        r = pe.to_statement_lines(doc, st, pages, columns=_columns_for(meta, st))
         lines.extend({**ln, "statement": st} for ln in r["lines"])
         unparsed.extend({**u, "statement": st} for u in r["unparsed"])
         used[st] = pages
     scanned = [pg.number for pg in doc.pages if not pg.has_text]
+    if not lines:  # nothing extracted: store nothing, so no empty report can be mistaken for a real one
+        return {"status": "extraction_failed", "sha256": sha, "stored_as": stored.name,
+                "pages": len(doc.pages), "statement_pages": used, "scanned_pages": scanned,
+                "lines_extracted": 0, "unparsed": unparsed}
     rec = {k: meta[k] for k in ("company_ticker", "doc_type", "period_end", "scope", "currency", "unit_scale",
                                 "audit_status", "filed_at_utc", "retrieved_at_utc") if k in meta}
     rec.update({"document_sha256": sha, "source": "manual_pdf", "extraction_method": "pdf_text",
