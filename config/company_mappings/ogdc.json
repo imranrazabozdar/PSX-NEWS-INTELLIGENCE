@@ -1,0 +1,28 @@
+{
+  "company_ticker": "OGDC",
+  "version": 1,
+  "approved_by": "owner",
+  "approved_on": "2026-11-09",
+  "scope_note": "OGDC-specific. Applies only to OGDC reports. Not a universal PSX mapping; other companies need their own evidence.",
+  "mappings": [
+    {"statement": "IS", "raw_label": "Profit before income tax", "canonical_code": "profit_before_tax", "context": "any",
+     "note": "Reconciles to profit after tax with taxation. Not 'Profit before income tax and final taxes'."},
+    {"statement": "IS", "raw_label": "Profit for the quarter", "canonical_code": "profit_after_tax", "context": "quarterly"},
+    {"statement": "IS", "raw_label": "Earnings per share- basic and diluted (Rupees)", "canonical_code": "eps_basic", "context": "quarterly",
+     "note": "Combined basic and diluted wording preserved. No separate diluted EPS is derived from it."},
+    {"statement": "CF", "raw_label": "Amortization of development and production assets", "canonical_code": "amortisation_expense", "context": "any",
+     "note": "Replaces the rejected mapping to depreciation_amortisation."},
+    {"statement": "CF", "raw_label": "Cash and cash equivalents at beginning of the quarter", "canonical_code": "cash_opening", "context": "quarterly"},
+    {"statement": "CF", "raw_label": "Cash and cash equivalents at end of the quarter", "canonical_code": "cash_closing", "context": "quarterly",
+     "note": "Cash-flow closing balance. Distinct from balance-sheet cash_and_equivalents."},
+    {"statement": "CF", "raw_label": "Net cash (used in) /generated from investing activities", "canonical_code": "cfi", "context": "any"},
+    {"statement": "CF", "raw_label": "Net cash used in financing activities", "canonical_code": "cff", "context": "any"},
+    {"statement": "CF", "raw_label": "Net increase /(decrease) in cash and cash equivalents", "canonical_code": "net_change_in_cash", "context": "any"},
+    {"statement": "CF", "raw_label": "Cash generated from operations", "canonical_code": "cash_generated_from_operations", "context": "any"},
+    {"statement": "CF", "raw_label": "Income taxes paid", "canonical_code": "income_tax_paid", "context": "any"}
+  ],
+  "rejected": [
+    {"statement": "CF", "raw_label": "Amortization of development and production assets", "rejected_code": "depreciation_amortisation",
+     "reason": "Amortisation is not reported as combined depreciation and amortisation in this line."}
+  ]
+}

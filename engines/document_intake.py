@@ -26,6 +26,7 @@ No OCR, no network access, no external processing.
 from __future__ import annotations
 
 import os
+import re
 import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
@@ -60,19 +61,27 @@ def vault_dir(explicit: str | Path | None = None) -> Path:
     resolved = p.resolve()
     if resolved == REPO_ROOT or REPO_ROOT in resolved.parents:
         raise IntakeError("the vault must be outside the Git repository")
+    if p.is_symlink():
+        raise IntakeError("a symbolic link cannot be the vault")
     resolved.mkdir(parents=True, exist_ok=True, mode=0o700)
+    if resolved.stat().st_mode & 0o077:  # group or other access: the vault must be private
+        raise IntakeError("the vault must be private (mode 0700): group and other access are refused")
     return resolved
 
 
 def store_original(pdf: Path | str, vault: Path) -> tuple[Path, str]:
     """Verify the file is a readable PDF, then keep its original bytes in the vault under its SHA-256."""
     src = Path(pdf)
+    if src.is_symlink():  # the owner's file itself: a link could point anywhere, so it is refused
+        raise IntakeError("symbolic links are refused as document inputs")
     doc = pdf_reader.read(src)  # raises ValueError for a missing, non-PDF or empty file: nothing is stored
     if not doc.pages:
         raise IntakeError("PDF has no pages")
     data = src.read_bytes()
     sha = pe.sha256_file(src)
     dest = vault / f"{sha}.pdf"
+    if dest.is_symlink():
+        raise IntakeError("a symbolic link in the vault is refused")
     if dest.exists():
         if dest.read_bytes() != data:  # never overwrite with different bytes
             raise IntakeError("vault file with this hash has different bytes; refusing to overwrite")
@@ -123,25 +132,51 @@ def _revisions(db, company_id: str, meta: dict, sha: str) -> list[dict]:
             if r["content_sha256"] != sha]
 
 
+DATE_ONLY = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def _normalised_dates(meta: dict) -> dict:
+    """Receipt may be supplied as a date only. Storage needs a timestamp, so the precision is recorded and
+    midnight is never presented as the actual upload time."""
+    out = dict(meta)
+    receipt = str(meta["receipt_at_utc"])
+    if DATE_ONLY.match(receipt):
+        out["receipt_precision"] = "date_only"
+        out["receipt_at_utc"] = receipt + "T00:00:00Z"
+    else:
+        out["receipt_precision"] = "timestamp"
+    return out
+
+
 def _date_provenance(meta: dict) -> dict:
     download = meta.get("download_at_utc") or "unknown"  # never substituted by the receipt date
     return {"download_at_utc": download, "receipt_at_utc": meta["receipt_at_utc"],
+            "receipt_precision": meta.get("receipt_precision", "timestamp"),
             "filed_at_utc": meta["filed_at_utc"]}
 
 
-def _statement_lines(doc, st: str, pages: list[int], columns: list[str]) -> tuple[list, list]:
-    """Labelled lines plus recognised and unresolved subtotal rows for one statement."""
+def _statement_lines(doc, st: str, pages: list[int], columns: list[str], sha: str) -> tuple[list, list, list]:
+    """Labelled lines, recognised and unresolved subtotal rows, and the audit record of every subtotal row."""
     labelled = pe.to_statement_lines(doc, st, pages, columns=columns)
     lines = list(labelled["lines"])
     unparsed = list(labelled["unparsed"])
+    audit: list[dict] = []
     recognised_text: set[tuple[int, str]] = set()
     for part in doc.pages:
         if part.number not in pages or not part.has_text or part.layout_flag == "uncertain":
             continue
         for res in subtotals.analyse(part.lines, statement=st, columns=columns, page=part.number):
             tag = {"column": part.column} if part.column else {}
+            audit.append({"document_sha256": sha, "statement": st, "page": part.number,
+                          "original_text": res["text"], "explicit_label": None,
+                          "derived_label": res.get("code") or "unnamed block subtotal",
+                          "rule_id": res.get("rule"), "rule_version": res.get("rule_version"),
+                          "status": res["status"],
+                          "confidence": 0.9 if res["status"] == "recognised" else None,
+                          "label_origin": ("structurally_inferred" if res["status"] == "recognised"
+                                           else "unresolved")})
             if res["status"] == "recognised":
-                label = f"[structural {res['rule']}] {res['text']}"
+                label = f"[structural {res['rule']} v{res['rule_version']}] {res['text']}"
                 conf = 0.9
                 recognised_text.add((part.number, res["text"]))
             else:
@@ -154,13 +189,14 @@ def _statement_lines(doc, st: str, pages: list[int], columns: list[str]) -> tupl
                               "canonical_code": res["code"] if res["status"] == "recognised" else None,
                               **tag})
     unparsed = [u for u in unparsed if (u.get("page"), u.get("line")) not in recognised_text]
-    return lines, unparsed
+    return lines, unparsed, audit
 
 
 def intake(db, pdf: Path | str, meta: dict, *, vault: Path, importer: str, rights_attestation: str) -> dict:
     """Store, extract and import one owner-supplied document. Returns a review record; never promotes."""
     if not importer.strip() or not rights_attestation.strip():
         raise IntakeError("importer and rights_attestation are required")
+    meta = _normalised_dates(meta)
     missing = [k for k in _REQUIRED if meta.get(k) in (None, "", [])]
     if missing:
         raise IntakeError(f"missing metadata: {missing}")
@@ -181,12 +217,13 @@ def intake(db, pdf: Path | str, meta: dict, *, vault: Path, importer: str, right
     split = list(meta.get("split_pages") or [])
     doc = pdf_reader.read_with_layout(stored, split) if split else pe.extract(stored)
     pages_by_stmt = meta.get("statement_pages") or pe.locate_statements(doc)
-    lines, unparsed, used = [], [], {}
+    lines, unparsed, used, audit = [], [], {}, []
     for st in STATEMENTS:
         pages = pages_by_stmt.get(st)
         if not pages:
             continue
-        l_, u_ = _statement_lines(doc, st, pages, _columns_for(meta, st))
+        l_, u_, a_ = _statement_lines(doc, st, pages, _columns_for(meta, st), sha)
+        audit.extend(a_)
         lines.extend({**x, "statement": x.get("statement", st)} for x in l_)
         unparsed.extend({**u, "statement": st} for u in u_)
         used[st] = pages
@@ -203,7 +240,7 @@ def intake(db, pdf: Path | str, meta: dict, *, vault: Path, importer: str, right
                 "auditor_opinion": meta.get("auditor_opinion"), "title": meta.get("title"),
                 "receipt_at_utc": meta["receipt_at_utc"],
                 "provenance_extra": {"dates": _date_provenance(meta), "layout_split_pages": split,
-                                     "text_repairs": repairs},
+                                     "text_repairs": repairs, "structural_audit": audit},
                 "lines": lines})
     result = fin.import_report(db, rec, importer=importer, rights_attestation=rights_attestation)
     review = bool(unparsed or scanned or result["status"] != "reconciled")

@@ -107,7 +107,8 @@ def test_import_maps_reconciles_and_flags_unmapped(db):
     r = _imp(db, _corp())
     assert r["status"] == "reconciled" and r["framework"] == "corporate"
     assert {c["check"]: c["result"] for c in r["checks"]} == {
-        "balance_sheet": "pass", "gross_profit": "pass", "profit_after_tax": "pass"}
+        "balance_sheet": "pass", "gross_profit": "pass", "profit_after_tax": "pass",
+        "cash_movement": "not_checkable"}  # the fixture has no cash-flow statement
     assert r["unmapped"] == ["Mystery reserve"]
     blank = db.execute("SELECT value, value_state FROM financial_line_items WHERE raw_label = "
                        "'Short term borrowings' AND column_period_end = '2024-06-30'")[0]

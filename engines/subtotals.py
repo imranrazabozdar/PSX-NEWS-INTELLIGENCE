@@ -21,6 +21,8 @@ from __future__ import annotations
 
 from engines import financials as fin
 
+RULE_VERSION = "1"  # bump when a rule's behaviour changes; stored with every recognised row
+
 HEADINGS = {"SHARE CAPITAL AND RESERVES", "NON CURRENT LIABILITIES", "CURRENT LIABILITIES",
             "NON CURRENT ASSETS", "CURRENT ASSETS"}
 
@@ -89,13 +91,17 @@ def analyse(lines: list[str], *, statement: str, columns: list[str], page: int) 
                 matches.append(run)
         rec = {"text": e["text"], "values": e["values"], "page": page, "index": i}
         if len(matches) == 1:
-            rec.update(status="recognised", rule="R1_block_sum", covers=matches[0], code=None)
+            rec.update(status="recognised", rule="R1_block_sum", covers=matches[0], code=None,
+                       rule_version=RULE_VERSION)
             contributor[i] = e["values"]
         else:
-            rec.update(status="unresolved", rule=None, covers=[], code=None,
+            rec.update(status="unresolved", rule=None, covers=[], code=None, rule_version=None,
                        reason="no unique block sum" if not matches else "ambiguous block sum")
         results.append(rec)
     _assign_positions(els, results, statement=statement, columns=columns)
+    for r in results:  # every recognised row carries the version of the rule that recognised it
+        if r["status"] == "recognised":
+            r["rule_version"] = RULE_VERSION
     return results
 
 

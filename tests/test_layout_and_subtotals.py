@@ -282,8 +282,8 @@ def test_intake_stores_structural_totals_with_their_rule_and_page(db, tmp_path):
     vault = di.vault_dir(tmp_path / "vault")
     pdf = _pdf(tmp_path, [side_by_side_bs()])
     r = di.intake(db, pdf, _meta(), vault=vault, importer="owner", rights_attestation=SYNTH)
-    assert r["import"]["checks"][0]["check"] == "balance_sheet"
-    assert r["import"]["checks"][0]["result"] == "pass"  # 4,500 = 1,000 + 3,500, from recognised totals
+    bs = next(c for c in r["import"]["checks"] if c["check"] == "balance_sheet")
+    assert bs["result"] == "pass"  # 4,500 = 1,000 + 3,500, from recognised totals
     rows = db.execute(
         "SELECT canonical_code, raw_label, value, page FROM financial_line_items "
         "WHERE canonical_code IN ('total_assets','total_equity')"
@@ -319,3 +319,103 @@ def test_current_assets_and_current_liabilities_are_named_only_under_their_headi
     assert _by_text(named, "129,304 152,903")["code"] == "current_liabilities"
     unnamed = st.analyse(cl[1:], statement="BS", columns=COLS_BS, page=1)
     assert _by_text(unnamed, "129,304 152,903")["code"] is None
+
+
+# ---------------------------------------------------------------- audit trail, dates, vault and atomicity
+def test_structural_audit_keeps_text_rule_version_and_label_origin(db, tmp_path):
+    vault = di.vault_dir(tmp_path / "vault")
+    r = di.intake(
+        db,
+        _pdf(tmp_path, [side_by_side_bs()]),
+        _meta(),
+        vault=vault,
+        importer="owner",
+        rights_attestation=SYNTH,
+    )
+    audit = r["dates"] and None
+    rec = db.execute("SELECT source_metadata_json FROM source_items WHERE external_id LIKE 'doc:%'")[0]
+    import json as _json
+
+    meta = _json.loads(rec["source_metadata_json"])
+    rows = meta["structural_audit"]
+    assert audit is None and rows
+    recognised = [a for a in rows if a["status"] == "recognised"]
+    assert recognised and all(
+        a["label_origin"] == "structurally_inferred"
+        and a["explicit_label"] is None
+        and a["rule_version"] == "1"
+        and a["original_text"]
+        for a in recognised
+    )
+    assert any(a["derived_label"] == "total_assets" for a in recognised)
+
+
+def test_date_only_receipt_is_recorded_with_its_precision_not_as_a_time(db, tmp_path):
+    vault = di.vault_dir(tmp_path / "vault")
+    r = di.intake(
+        db,
+        _pdf(tmp_path, [side_by_side_bs()]),
+        _meta(receipt_at_utc="2026-11-09"),
+        vault=vault,
+        importer="owner",
+        rights_attestation=SYNTH,
+    )
+    assert r["dates"]["receipt_precision"] == "date_only" and r["dates"]["receipt_at_utc"].startswith(
+        "2026-11-09"
+    )
+
+
+def test_symbolic_link_input_is_refused(db, tmp_path):
+    real = _pdf(tmp_path, [side_by_side_bs()])
+    link = tmp_path / "link.pdf"
+    link.symlink_to(real)
+    vault = di.vault_dir(tmp_path / "vault")
+    with pytest.raises(di.IntakeError, match="symbolic links"):
+        di.intake(db, link, _meta(), vault=vault, importer="owner", rights_attestation=SYNTH)
+
+
+def test_a_group_readable_vault_is_refused(tmp_path):
+    v = tmp_path / "open_vault"
+    v.mkdir(mode=0o755)
+    v.chmod(0o755)
+    with pytest.raises(di.IntakeError, match="private"):
+        di.vault_dir(v)
+
+
+def test_a_failed_import_leaves_no_source_record(db, tmp_path):
+    """An unknown canonical code is refused before any write: no orphan source item is created."""
+    before = db.execute("SELECT COUNT(*) n FROM source_items")[0]["n"]
+    rec = {
+        "company_ticker": "OGDC",
+        "doc_type": "quarterly",
+        "period_end": "2026-09-30",
+        "scope": "unconsolidated",
+        "currency": "PKR",
+        "unit_scale": 1000,
+        "audit_status": "unaudited",
+        "filed_at_utc": "2026-10-30T00:00:00Z",
+        "document_sha256": "e" * 64,
+        "source": "synthetic_test",
+        "original_url": None,
+        "source_note": "x",
+        "lines": [
+            {
+                "statement": "IS",
+                "raw_label": "Revenue",
+                "column_period_end": "2026-09-30",
+                "value": 1.0,
+                "page": 1,
+                "canonical_code": "made_up_code",
+            }
+        ],
+    }
+    with pytest.raises(fin.ImportError_):
+        fin.import_report(db, rec, importer="o", rights_attestation="s")
+    assert db.execute("SELECT COUNT(*) n FROM source_items")[0]["n"] == before
+
+
+def test_a_label_crossing_the_gutter_is_flagged_not_split(tmp_path):
+    items = side_by_side_bs() + [at(280, 300, "Wide label across the gutter")]
+    info, parts = pr.split_page(_pdf(tmp_path, [items]), 1)
+    assert info["layout"] == "uncertain" and "gutter" in info["reason"]
+    assert parts[0].layout_flag == "uncertain"

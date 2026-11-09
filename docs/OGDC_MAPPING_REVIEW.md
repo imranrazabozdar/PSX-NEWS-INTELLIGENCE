@@ -1,110 +1,159 @@
-# OGDC account mapping review (D7)
+# OGDC account mapping review (D7, finalised)
 
-Status: **review only. Nothing here is approved or loaded.** Each proposal needs the owner's decision, and any approved mapping is a new versioned entry (`add_mapping`), never an edit to the seed file.
+Status: the owner approved the mappings and codes below in this batch. **Approved OGDC mappings are applied through a versioned, company-specific overlay (`config/company_mappings/ogdc.json`), never through the universal seed.** Nothing here is a universal PSX mapping.
 
-Source: the 88 distinct ordinary labels in the unconsolidated Q1 FY27 interim report (document C, pages 10–15), extracted by the approved reader. Labels that the structural rules already name (for example the cost-of-sales and total-asset subtotals) are not in this list. Confidence reflects the wording and the statement context, not accuracy.
-
-Decision key: **Propose** = existing standard code, owner approval needed. **Keep** = no standard code applies; stays unmapped and is not used by any check.
-
-| # | Statement | Page | Original label | Decision | Proposed standard code | Financial meaning | Confidence | Affects reconciliation | Reusable or OGDC-specific |
-|---|---|---|---|---|---|---|---|---|---|
-| 1 | BS | 10 | Reserves | Keep | — | Balance sheet component: no standard total code applies; kept unmapped | High | No | Reusable |
-| 2 | BS | 10 | Unappropriated profit | Keep | — | Balance sheet component: no standard total code applies; kept unmapped | High | No | Reusable |
-| 3 | BS | 10 | Deferred taxation | Keep | — | Balance sheet component: no standard total code applies; kept unmapped | High | No | Reusable |
-| 4 | BS | 10 | Deferred employee benefits | Keep | — | Balance sheet component: no standard total code applies; kept unmapped | High | No | Reusable |
-| 5 | BS | 10 | Provision for decommissioning cost | Keep | — | Balance sheet component: no standard total code applies; kept unmapped | High | No | Reusable |
-| 6 | BS | 10 | Short term lease liability | Keep | — | Balance sheet component: no standard total code applies; kept unmapped | High | No | Reusable |
-| 7 | BS | 10 | Trade and other payables | Keep | — | Balance sheet component: no standard total code applies; kept unmapped | High | No | Reusable |
-| 8 | BS | 10 | Unpaid dividend | Keep | — | Balance sheet component: no standard total code applies; kept unmapped | High | No | Reusable |
-| 9 | BS | 10 | Unclaimed dividend | Keep | — | Balance sheet component: no standard total code applies; kept unmapped | High | No | Reusable |
-| 10 | BS | 11 | Property, plant and equipment | Keep | — | Balance sheet component: no standard total code applies; kept unmapped | High | No | Reusable |
-| 11 | BS | 11 | Development and production assets | Keep | — | Balance sheet component: no standard total code applies; kept unmapped | High | No | Reusable |
-| 12 | BS | 11 | Exploration and evaluation assets | Keep | — | Balance sheet component: no standard total code applies; kept unmapped | High | No | Reusable |
-| 13 | BS | 11 | Long term investments in subsidiary and associates | Keep | — | Balance sheet component: no standard total code applies; kept unmapped | High | No | Reusable |
-| 14 | BS | 11 | Long term investments at amortized cost | Keep | — | Balance sheet component: no standard total code applies; kept unmapped | High | No | Reusable |
-| 15 | BS | 11 | Long term loans- secured | Keep | — | Balance sheet component: no standard total code applies; kept unmapped | High | No | Reusable |
-| 16 | BS | 11 | Long term advances and prepayments | Keep | — | Balance sheet component: no standard total code applies; kept unmapped | High | No | Reusable |
-| 17 | BS | 11 | Lease receivables | Keep | — | Balance sheet component: no standard total code applies; kept unmapped | High | No | Reusable |
-| 18 | BS | 11 | Stores, spare parts and loose tools | Keep | — | Balance sheet component: no standard total code applies; kept unmapped | High | No | Reusable |
-| 19 | BS | 11 | Loans and advances | Keep | — | Balance sheet component: no standard total code applies; kept unmapped | High | No | Reusable |
-| 20 | BS | 11 | Deposits and short term prepayments | Keep | — | Balance sheet component: no standard total code applies; kept unmapped | High | No | Reusable |
-| 21 | BS | 11 | Other receivables | Keep | — | Balance sheet component: no standard total code applies; kept unmapped | High | No | Reusable |
-| 22 | BS | 11 | Income tax- advance | Keep | — | Balance sheet component: no standard total code applies; kept unmapped | High | No | Reusable |
-| 23 | BS | 11 | Current portion of long term investments | Keep | — | Balance sheet component: no standard total code applies; kept unmapped | High | No | Reusable |
-| 24 | BS | 11 | Current portion of lease receivables | Keep | — | Balance sheet component: no standard total code applies; kept unmapped | High | No | Reusable |
-| 25 | BS | 11 | Other financial assets | Keep | — | Balance sheet component: no standard total code applies; kept unmapped | High | No | Reusable |
-| 26 | CF | 15 | Profit before income tax | Keep | — | Starting point of the cash flow; same measure as the income statement line, not mapped twice | High | No | Reusable |
-| 27 | CF | 15 | Amortization of development and production assets | Propose | depreciation_amortisation | Amortisation charge added back in operating cash flow | Medium | No | Reusable; wording OGDC-specific |
-| 28 | CF | 15 | Amortization of premium on Pakistan Investment Bonds | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 29 | CF | 15 | Amortization of prepaid employee benefit | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 30 | CF | 15 | Unwinding of loss on modification in terms of TFCs | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 31 | CF | 15 | Unwinding of present value of interest free loan to employees | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 32 | CF | 15 | Royalty | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 33 | CF | 15 | Workers’ profit participation fund | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 34 | CF | 15 | Provision for deferred employee benefits | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 35 | CF | 15 | Unwinding of discount on provision for decommissioning cost | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 36 | CF | 15 | Interest income on investments and bank deposits | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 37 | CF | 15 | Interest income on lease | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 38 | CF | 15 | Unwinding of lease liability | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 39 | CF | 15 | Un-realized gain on investments at fair value through profit or loss | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 40 | CF | 15 | Realized gain on investments at fair value through profit or loss | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 41 | CF | 15 | Exchange loss on lease | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 42 | CF | 15 | Exchange loss on foreign currency investments and deposit accounts | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 43 | CF | 15 | Dividend income from investment at fair value through profit or loss | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 44 | CF | 15 | Gain on disposal of property, plant and equipment | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 45 | CF | 15 | Share of profit in associates - net of taxation | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 46 | CF | 15 | Stores inventory written off | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 47 | CF | 15 | Cost of dry and abandoned wells during the quarter | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 48 | CF | 15 | Reversal of trade debts provision | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 49 | CF | 15 | Stores, spare parts and loose tools | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 50 | CF | 15 | Stock in trade | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 51 | CF | 15 | Trade debts | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 52 | CF | 15 | Deposits and short term prepayments | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 53 | CF | 15 | Loan and advances and other receivables | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 54 | CF | 15 | Trade and other payables | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 55 | CF | 15 | Cash generated from operations | Keep | — | Operating cash before tax payments; no standard code. New code would need approval | High | No | Reusable |
-| 56 | CF | 15 | Royalty paid | Keep | — | Royalty paid in cash; no standard code | High | No | Reusable |
-| 57 | CF | 15 | Deferred employee benefits paid | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 58 | CF | 15 | Long term advances and prepayments | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 59 | CF | 15 | Decommissioning cost paid | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 60 | CF | 15 | Payment to workers’ profit participation fund-net | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 61 | CF | 15 | Income taxes paid | Keep | — | Tax paid in cash; no standard code (taxation is the P&L charge) | High | No | Reusable |
-| 62 | CF | 15 | Interest received | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 63 | CF | 15 | Lease payments received | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 64 | CF | 15 | Dividends received | Keep | — | Dividends received (inflow); distinct from dividends_paid (outflow): not mapped to avoid a sign error | High | No | Reusable |
-| 65 | CF | 15 | Term Finance Certificates interest received | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 66 | CF | 15 | Investments at fair value through profit or loss - net | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 67 | CF | 15 | Investment in associates | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 68 | CF | 15 | Proceeds from disposal of property, plant and equipment | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 69 | CF | 15 | Net cash (used in) /generated from investing activities | Keep | — | Net investing cash flow; no standard code. New code 'cfi' would need owner approval | High | No | Reusable |
-| 70 | CF | 15 | Lease payments made | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 71 | CF | 15 | Net cash used in financing activities | Keep | — | Net financing cash flow; no standard code. New code 'cff' would need owner approval | High | No | Reusable |
-| 72 | CF | 15 | Net increase /(decrease) in cash and cash equivalents | Keep | — | Net change in cash; no standard code. Useful for the cash identity; new code would need approval | High | No | Reusable |
-| 73 | CF | 15 | Cash and cash equivalents at beginning of the quarter | Keep | — | Opening cash for the cash flow; no standard code, a new code would need approval | High | No | Reusable |
-| 74 | CF | 15 | Effect of movements in exchange rate on cash and cash equivalents | Keep | — | Cash flow line: no standard code; kept unmapped | High | No | Reusable |
-| 75 | CF | 15 | Cash and cash equivalents at end of the quarter | Keep | — | Closing cash in the cash flow (321,457,827) is NOT the balance sheet cash line (39,711,514): mapping both to one code would conflict. Kept unmapped; definition to be confirmed from the notes | High | No | Reusable |
-| 76 | IS | 12 | Royalty | Keep | — | Cost of sales component (royalty); covered by the structural cost-of-sales subtotal | High | No | Reusable |
-| 77 | IS | 12 | Operating expenses | Keep | — | Cost of sales component; covered by the structural cost-of-sales subtotal | High | No | Reusable |
-| 78 | IS | 12 | Transportation charges | Keep | — | Cost of sales component; covered by the structural cost-of-sales subtotal | High | No | Reusable |
-| 79 | IS | 12 | Finance and other income | Keep | — | Other income: no standard code exists; a new code would need owner approval | High | No | Reusable |
-| 80 | IS | 12 | Exploration and prospecting expenditure | Keep | — | Income statement component: no standard code; kept unmapped | High | No | Reusable |
-| 81 | IS | 12 | General and administration expenses | Keep | — | Income statement component: no standard code; kept unmapped | High | No | Reusable |
-| 82 | IS | 12 | Workers’ profit participation fund | Keep | — | Statutory fund charge; OGDC presentation; no standard code | High | No | Reusable |
-| 83 | IS | 12 | Share of profit in associates -net of taxation | Keep | — | Income statement component: no standard code; kept unmapped | High | No | Reusable |
-| 84 | IS | 12 | Profit before income tax and final taxes | Keep | — | Subtotal before final levies: a different measure from profit before income tax; ambiguous, kept unmapped | High | No | Reusable |
-| 85 | IS | 12 | Final taxes -levies | Keep | — | Final levies, separate from income tax expense; mapping it to taxation would misstate tax | High | No | Reusable |
-| 86 | IS | 12 | Profit before income tax | Propose | profit_before_tax | Profit before income tax after final taxes; the figure that reconciles to profit after tax | High | Yes: profit_after_tax identity | Reusable |
-| 87 | IS | 12 | Profit for the quarter | Propose | profit_after_tax | Profit for the period after taxation | High | Yes: profit_after_tax identity | Reusable |
-| 88 | IS | 12 | Earnings per share- basic and diluted (Rupees) | Propose | eps_basic | Basic and diluted EPS in rupees | High | No (EPS consistency only, not yet checked) | Reusable |
+Source: the 88 distinct ordinary labels in the unconsolidated Q1 FY27 interim report (document C, pages 10–15). Labels the structural rules name are not in this list.
 
 ## Summary
-- Distinct ordinary labels reviewed: 88
-- Proposed for owner approval: 4
-- Kept unmapped (no standard code): 84
-- Unresolved figure rows (not labels): the cash-flow subtotal '105,987,076 72,895,745' on page 15 has no structural rule and stays unresolved.
+- Ordinary labels reviewed: 88
+- Owner-approved and applied (OGDC overlay): 11
+- Rejected mapping: 1 (amortisation to depreciation_amortisation)
+- Remaining unmapped (kept, no explicit canonical meaning): 77
+- Unresolved figure rows (not labels): cash-flow subtotal '105,987,076 72,895,745' stays unresolved.
 
-## New canonical codes needed (owner decision, not proposed as mappings)
-`cfi` (net investing cash flow), `cff` (net financing cash flow), `net_change_in_cash`, `cash_opening`, `cash_generated_from_operations`, `income_tax_paid`, `other_income`. Adding any of these changes the schema or config and needs approval.
+## 1. Owner-approved mappings (applied)
 
-## What approval unlocks (tested in a disposable database only)
-Applying the three proposed profit and EPS mappings (test overlay, not approved) makes the profit-after-tax identity pass (58,513,345 = 87,988,861 − 29,475,516) and enables net margin 44.19%, ROE 14.84% (annualised), ROA 12.40% (annualised) and cash conversion 0.588. Those values were checked by hand against the page figures.
+| Statement | Original label (exact) | Canonical code | Status | Context and scope |
+|---|---|---|---|---|
+| IS | Profit before income tax | `profit_before_tax` | Approved (owner). Applied to OGDC only. | any period; OGDC only |
+| IS | Profit for the quarter | `profit_after_tax` | Approved (owner). Applied to OGDC quarterly statements only. | quarterly only; OGDC only |
+| IS | Earnings per share- basic and diluted (Rupees) | `eps_basic` | Approved (owner). Combined basic and diluted wording kept; no diluted EPS derived. | quarterly only; OGDC only |
+| CF | Amortization of development and production assets | `amortisation_expense` | Approved as a NEW code (owner). Replaces the rejected mapping to depreciation_amortisation. | any period; OGDC only |
+| CF | Cash and cash equivalents at beginning of the quarter | `cash_opening` | New code approved (owner); exact-label mapping applied to OGDC quarterly cash flows. | quarterly only; OGDC only |
+| CF | Cash and cash equivalents at end of the quarter | `cash_closing` | New code approved (owner). Cash-flow closing balance; NOT the balance-sheet cash line. | quarterly only; OGDC only |
+| CF | Net cash (used in) /generated from investing activities | `cfi` | New code approved (owner). | any period; OGDC only |
+| CF | Net cash used in financing activities | `cff` | New code approved (owner). | any period; OGDC only |
+| CF | Net increase /(decrease) in cash and cash equivalents | `net_change_in_cash` | New code approved (owner). | any period; OGDC only |
+| CF | Cash generated from operations | `cash_generated_from_operations` | New code approved (owner); definition per the source statement. | any period; OGDC only |
+| CF | Income taxes paid | `income_tax_paid` | New code approved (owner). Cash tax paid, not tax expense. | any period; OGDC only |
+
+## 2. Rejected mapping
+
+| Original label | Rejected code | Reason | Replacement |
+|---|---|---|---|
+| Amortization of development and production assets | `depreciation_amortisation` | Amortisation is not reported as combined depreciation and amortisation in this line. | `amortisation_expense` (section 1) |
+
+## 3. New canonical codes (owner-approved definitions)
+
+Full definitions and validation are in `config/canonical_codes.json`. Spelling convention: British, matching `depreciation_amortisation`.
+
+| Code | Definition |
+|---|---|
+| `cfi` | Net cash flow from investing activities. |
+| `cff` | Net cash flow from financing activities. |
+| `net_change_in_cash` | Net change in cash and cash equivalents during the period. |
+| `cash_opening` | Opening cash and cash equivalents for the cash-flow period. |
+| `cash_closing` | Closing cash and cash equivalents in the cash-flow statement. NOT balance-sheet cash. |
+| `cash_generated_from_operations` | Cash generated from operations, per the source definition. |
+| `income_tax_paid` | Actual cash income tax paid, not tax expense. |
+| `other_income` | Only an explicitly reported other-income line. Not applied to OGDC: its only candidate, 'Finance and other income', is a combined line. |
+| `amortisation_expense` | Amortisation reported explicitly as amortisation. |
+
+## 4. Cash closing versus balance-sheet cash (must stay distinct)
+
+| Measure | Canonical code | Q1 FY27 value (Rs '000) |
+|---|---|---|
+| Balance-sheet cash and bank balances | `cash_and_equivalents` | 39,711,514 (unconsolidated); 39,711,614 (consolidated) |
+| Cash-flow closing balance | `cash_closing` | 321,457,827 |
+
+They are reported as different measures and are never forced to agree. The gap is an open accounting question (see section 7).
+
+## 5. Unmapped labels (77), grouped by statement and analytical importance
+
+| # | Statement | Page | Original label | Category | Affects profitability / cash / debt / working capital / valuation | Decision |
+|---|---|---|---|---|---|---|
+| 1 | BS | 10 | Reserves | balance sheet component | none (component) | Keep unmapped; needs owner decision on a code |
+| 2 | BS | 10 | Unappropriated profit | balance sheet component | none (component) | Keep unmapped; needs owner decision on a code |
+| 3 | BS | 10 | Deferred taxation | balance sheet component | none (component) | Keep unmapped; needs owner decision on a code |
+| 4 | BS | 10 | Deferred employee benefits | balance sheet component | none (component) | Keep unmapped; needs owner decision on a code |
+| 5 | BS | 10 | Provision for decommissioning cost | balance sheet component | none (component) | Keep unmapped; needs owner decision on a code |
+| 6 | BS | 10 | Short term lease liability | balance sheet component | none (component) | Keep unmapped; needs owner decision on a code |
+| 7 | BS | 10 | Trade and other payables | working capital | working capital | Keep unmapped; needs owner decision on a code |
+| 8 | BS | 10 | Unpaid dividend | balance sheet component | none (component) | Keep unmapped; needs owner decision on a code |
+| 9 | BS | 10 | Unclaimed dividend | balance sheet component | none (component) | Keep unmapped; needs owner decision on a code |
+| 10 | BS | 11 | Property, plant and equipment | balance sheet component | none (component) | Keep unmapped; needs owner decision on a code |
+| 11 | BS | 11 | Development and production assets | balance sheet component | none (component) | Keep unmapped; needs owner decision on a code |
+| 12 | BS | 11 | Exploration and evaluation assets | balance sheet component | none (component) | Keep unmapped; needs owner decision on a code |
+| 13 | BS | 11 | Long term investments in subsidiary and associates | balance sheet component | none (component) | Keep unmapped; needs owner decision on a code |
+| 14 | BS | 11 | Long term investments at amortized cost | balance sheet component | none (component) | Keep unmapped; needs owner decision on a code |
+| 15 | BS | 11 | Long term loans- secured | balance sheet component | none (component) | Keep unmapped; needs owner decision on a code |
+| 16 | BS | 11 | Long term advances and prepayments | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 17 | BS | 11 | Lease receivables | balance sheet component | none (component) | Keep unmapped; needs owner decision on a code |
+| 18 | BS | 11 | Stores, spare parts and loose tools | working capital | working capital | Keep unmapped; needs owner decision on a code |
+| 19 | BS | 11 | Loans and advances | balance sheet component | none (component) | Keep unmapped; needs owner decision on a code |
+| 20 | BS | 11 | Deposits and short term prepayments | working capital | working capital | Keep unmapped; needs owner decision on a code |
+| 21 | BS | 11 | Other receivables | balance sheet component | none (component) | Keep unmapped; needs owner decision on a code |
+| 22 | BS | 11 | Income tax- advance | balance sheet component | none (component) | Keep unmapped; needs owner decision on a code |
+| 23 | BS | 11 | Current portion of long term investments | balance sheet component | none (component) | Keep unmapped; needs owner decision on a code |
+| 24 | BS | 11 | Current portion of lease receivables | balance sheet component | none (component) | Keep unmapped; needs owner decision on a code |
+| 25 | BS | 11 | Other financial assets | balance sheet component | none (component) | Keep unmapped; needs owner decision on a code |
+| 26 | CF | 15 | Profit before income tax | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 27 | CF | 15 | Amortization of premium on Pakistan Investment Bonds | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 28 | CF | 15 | Amortization of prepaid employee benefit | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 29 | CF | 15 | Unwinding of loss on modification in terms of TFCs | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 30 | CF | 15 | Unwinding of present value of interest free loan to employees | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 31 | CF | 15 | Royalty | profitability | profitability, cash | Keep unmapped; needs owner decision on a code |
+| 32 | CF | 15 | Workers’ profit participation fund | profitability | profitability, cash | Keep unmapped; needs owner decision on a code |
+| 33 | CF | 15 | Provision for deferred employee benefits | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 34 | CF | 15 | Unwinding of discount on provision for decommissioning cost | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 35 | CF | 15 | Interest income on investments and bank deposits | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 36 | CF | 15 | Interest income on lease | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 37 | CF | 15 | Unwinding of lease liability | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 38 | CF | 15 | Un-realized gain on investments at fair value through profit or loss | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 39 | CF | 15 | Realized gain on investments at fair value through profit or loss | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 40 | CF | 15 | Exchange loss on lease | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 41 | CF | 15 | Exchange loss on foreign currency investments and deposit accounts | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 42 | CF | 15 | Dividend income from investment at fair value through profit or loss | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 43 | CF | 15 | Gain on disposal of property, plant and equipment | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 44 | CF | 15 | Share of profit in associates - net of taxation | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 45 | CF | 15 | Stores inventory written off | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 46 | CF | 15 | Cost of dry and abandoned wells during the quarter | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 47 | CF | 15 | Reversal of trade debts provision | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 48 | CF | 15 | Stores, spare parts and loose tools | working capital | cash, working capital | Keep unmapped; needs owner decision on a code |
+| 49 | CF | 15 | Stock in trade | working capital | cash, working capital | Keep unmapped; needs owner decision on a code |
+| 50 | CF | 15 | Trade debts | working capital | cash, working capital | Keep unmapped; needs owner decision on a code |
+| 51 | CF | 15 | Deposits and short term prepayments | working capital | cash, working capital | Keep unmapped; needs owner decision on a code |
+| 52 | CF | 15 | Loan and advances and other receivables | working capital | cash, working capital | Keep unmapped; needs owner decision on a code |
+| 53 | CF | 15 | Trade and other payables | working capital | cash, working capital | Keep unmapped; needs owner decision on a code |
+| 54 | CF | 15 | Royalty paid | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 55 | CF | 15 | Deferred employee benefits paid | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 56 | CF | 15 | Long term advances and prepayments | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 57 | CF | 15 | Decommissioning cost paid | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 58 | CF | 15 | Payment to workers’ profit participation fund-net | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 59 | CF | 15 | Interest received | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 60 | CF | 15 | Lease payments received | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 61 | CF | 15 | Dividends received | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 62 | CF | 15 | Term Finance Certificates interest received | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 63 | CF | 15 | Investments at fair value through profit or loss - net | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 64 | CF | 15 | Investment in associates | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 65 | CF | 15 | Proceeds from disposal of property, plant and equipment | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 66 | CF | 15 | Lease payments made | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 67 | CF | 15 | Effect of movements in exchange rate on cash and cash equivalents | cash flow | cash | Keep unmapped; needs owner decision on a code |
+| 68 | IS | 12 | Royalty | profitability | profitability | Keep unmapped; needs owner decision on a code |
+| 69 | IS | 12 | Operating expenses | profitability | profitability | Keep unmapped; needs owner decision on a code |
+| 70 | IS | 12 | Transportation charges | profitability | profitability | Keep unmapped; needs owner decision on a code |
+| 71 | IS | 12 | Finance and other income | profitability | profitability | Keep unmapped; needs owner decision on a code |
+| 72 | IS | 12 | Exploration and prospecting expenditure | profitability | profitability | Keep unmapped; needs owner decision on a code |
+| 73 | IS | 12 | General and administration expenses | profitability | profitability | Keep unmapped; needs owner decision on a code |
+| 74 | IS | 12 | Workers’ profit participation fund | profitability | profitability | Keep unmapped; needs owner decision on a code |
+| 75 | IS | 12 | Share of profit in associates -net of taxation | profitability | profitability | Keep unmapped; needs owner decision on a code |
+| 76 | IS | 12 | Profit before income tax and final taxes | profitability | profitability | Keep unmapped; needs owner decision on a code |
+| 77 | IS | 12 | Final taxes -levies | profitability | profitability | Keep unmapped; needs owner decision on a code |
+
+## 6. Recommended manual-review priorities
+
+1. **Profitability:** 'Profit before income tax and final taxes' (an ambiguous subtotal), 'Final taxes -levies', 'Finance and other income' (combined), royalty and operating cost lines (covered by the structural cost-of-sales total).
+2. **Cash flow:** 'Cash generated from operations' is now applied; the remaining operating add-backs and payments need a decision on codes before any cash analysis.
+3. **Working capital:** receivable, inventory and payable movements in the cash flow (not yet coded).
+4. **Debt:** no borrowings line is mapped in these statements, so debt-to-equity stays unavailable. Total liabilities are never treated as borrowings.
+5. **Valuation:** no market or share-price input is in these documents; the M5 valuation items remain insufficient_data.
+
+## 7. Open accounting question
+
+The cash-flow closing balance (321,457,827) differs from balance-sheet cash and bank (39,711,514). The notes may define cash and cash equivalents to include other items (for example short-term investments). This needs confirmation from the notes before any reconciliation between the two.
+
+## 8. Reusability
+
+- Reusable (standard statement lines): profit before tax, profit after tax, EPS, cash-flow totals, cash opening and closing, income tax paid.
+- OGDC-specific presentation (not evidence for a universal mapping): 'Royalty', 'Workers’ profit participation fund', 'Term Finance Certificates interest received', 'Amortization of premium on Pakistan Investment Bonds', 'Cost of dry and abandoned wells during the quarter'.
+- No OGDC-specific mapping has been promoted to a universal PSX mapping.

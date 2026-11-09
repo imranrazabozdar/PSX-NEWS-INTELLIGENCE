@@ -85,3 +85,8 @@ Critical path: M1 → M2 → M3 → M5. Owner decisions U1–U11 are listed in `
 None approved. Proposed next: owner review of the master programme, decisions U1–U4, and approval of M1
 (source access and universe). In parallel: the M0 evidence, an optional intelligence activation
 (`docs/INTELLIGENCE_ACTIVATION.md`) and labelling (`data/validation/labels.json`).
+
+## Update (OGDC pilot finalisation)
+
+- Done in this batch: owner-approved OGDC mappings (versioned overlay), seven approved cash-flow codes plus the amortisation code, M3 hardening, bounded Tesseract evaluation.
+- Next, in order: owner decision on the open cash-measure definition; approval to promote balance-sheet comparatives so average-balance ratios can run; review of 77 unmapped labels; a decision on OCR for the annual annexure.

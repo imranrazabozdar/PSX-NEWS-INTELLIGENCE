@@ -411,7 +411,7 @@ def test_negative_numerator_is_flagged_and_zero_denominator_is_not_applicable(db
                             ("Total liabilities", "2024-06-30"): 450.0})  # assets = liabilities + equity
     fin.promote(db, _imp(db, zero)["report_id"])
     z = fu.analyse(db, "cmp-ogdc", period_end="2024-06-30", as_of=AS_OF)["ratios"]
-    assert z["roe"]["state"] == "not_applicable" and z["roe"]["value"] is None
+    assert z["roe"]["state"] == "not_computable" and z["roe"]["value"] is None
 
 
 def test_same_day_revision_is_rejected_not_silently_ordered(db):
