@@ -12,9 +12,12 @@ Flow (MASTER_ARCHITECTURE.md workstream A):
 4. Promotion writes the report's own-period mapped values to `financial_metrics` (basis `reported`, or
    `restated` for a restating report), scaled by the report's unit scale.
 
-Rules: a blank or dash is `not_reported` (NULL), never zero. Comparative columns are stored but never
-promoted from a later report; a comparative that differs from the earlier report's value is flagged as a
-possible restatement. Estimates are never substituted for reported values.
+Rules: a blank or dash is `not_reported` (NULL), never zero. Share counts are absolute numbers (not scaled
+by the report's unit scale). `extracted` (no identity checkable) may be promoted, and its metrics record
+`;extracted` in calculation_method so unreconciled values stay identifiable.
+Comparative columns are stored but never promoted from a later report; a comparative that differs from the
+earlier report's value is flagged as a possible restatement.
+Estimates are never substituted for reported values.
 """
 
 from __future__ import annotations
@@ -183,7 +186,7 @@ def import_report(db, rec: dict, *, importer: str, rights_attestation: str) -> d
     framework = framework_for(db, company_id)
     item = repo.record_source_item(
         db, source_id=SOURCE_ID, collected_at_utc=_now(), url=rec.get("original_url"),
-        external_id=f"doc:{rec['document_sha256']}", content_hash=rec["document_sha256"],
+        external_id=f"doc:{rec['document_sha256']}:{rec['scope']}", content_hash=rec["document_sha256"],
         title=rec.get("title") or f"{rec['company_ticker']} {rec['doc_type']} {rec['period_end']}",
         published_at_utc=rec.get("filed_at_utc"),
         provenance={"retrieval_method": "manual", "document_type": rec["doc_type"],
@@ -195,7 +198,8 @@ def import_report(db, rec: dict, *, importer: str, rights_attestation: str) -> d
                           "period_end = ? AND scope = ? AND source_item_id = ?",
                           (company_id, rec["doc_type"], rec["period_end"], rec["scope"], sid))
     if existing:
-        return {"report_id": existing[0]["report_id"], "status": "duplicate"}
+        rr = reconcile(db, existing[0]["report_id"])  # recompute: a crash may have left it unreconciled
+        return {"report_id": existing[0]["report_id"], "status": "duplicate", "reconciliation": rr["status"]}
     restates = None
     if rec.get("restates_period_end"):
         r = db.execute("SELECT report_id FROM financial_reports WHERE company_id = ? AND period_end = ? AND "
@@ -216,17 +220,20 @@ def import_report(db, rec: dict, *, importer: str, rights_attestation: str) -> d
                "period_end = ? AND scope = ? AND source_item_id = ?)")
     rkey = (company_id, rec["doc_type"], rec["period_end"], rec["scope"], sid)
     unmapped = []
+    line_no: dict[tuple[str, str], int] = {}
     for ln in rec["lines"]:
+        k = (ln["statement"], ln["column_period_end"])
+        line_no[k] = line_no.get(k, 0) + 1
         code = mapping.get((ln["statement"], normalise_label(ln["raw_label"])))
         if code is None:
             unmapped.append(ln["raw_label"])
         v = ln.get("value")
         state = "reported" if v is not None else ln.get("value_state", "not_reported")
         stmts.append((
-            "INSERT INTO financial_line_items(report_id, statement, raw_label, canonical_code, "
+            "INSERT INTO financial_line_items(report_id, statement, line_no, raw_label, canonical_code, "
             "column_period_end, is_comparative, value, value_state, page, extraction_method, confidence) "
-            "VALUES (" + rid_sql + ",?,?,?,?,?,?,?,?,?,?)",
-            (*rkey, ln["statement"], ln["raw_label"], code, ln["column_period_end"],
+            "VALUES (" + rid_sql + ",?,?,?,?,?,?,?,?,?,?,?)",
+            (*rkey, ln["statement"], line_no[k], ln["raw_label"], code, ln["column_period_end"],
              int(ln["column_period_end"] != rec["period_end"]), v, state, ln.get("page"), method,
              ln.get("confidence")),
         ))
@@ -240,12 +247,24 @@ def import_report(db, rec: dict, *, importer: str, rights_attestation: str) -> d
 
 
 # ---------------------------------------------------------------- reconciliation
-def _values(db, report_id: int, period_end: str) -> dict[str, float | None]:
-    rows = db.execute("SELECT canonical_code, value FROM financial_line_items WHERE report_id = ? AND "
-                      "column_period_end = ? AND canonical_code IS NOT NULL", (report_id, period_end))
-    out: dict[str, float | None] = {}
+def _values(db, report_id: int, period_end: str, conflicts: list | None = None) -> dict[str, float | None]:
+    """Canonical values for one column. A code mapped from two lines with different values is a conflict:
+    it is reported and left out (never resolved by picking one)."""
+    rows = db.execute("SELECT canonical_code, value, raw_label FROM financial_line_items WHERE report_id = ? "
+                      "AND column_period_end = ? AND canonical_code IS NOT NULL ORDER BY statement, line_no",
+                      (report_id, period_end))
+    seen: dict[str, list] = {}
     for r in rows:
-        out.setdefault(r["canonical_code"], r["value"])
+        seen.setdefault(r["canonical_code"], []).append(r)
+    out: dict[str, float | None] = {}
+    for code, rs in seen.items():
+        vals = {x["value"] for x in rs}
+        if len(vals) > 1:
+            if conflicts is not None:
+                conflicts.append({"canonical_code": code, "lines": [x["raw_label"] for x in rs],
+                                  "values": sorted(vals, key=lambda v: (v is None, v))})
+            continue
+        out[code] = rs[0]["value"]
     return out
 
 
@@ -264,8 +283,9 @@ IDENTITIES = (
 
 def reconcile(db, report_id: int) -> dict:
     rep = db.execute("SELECT period_end FROM financial_reports WHERE report_id = ?", (report_id,))[0]
-    v = _values(db, report_id, rep["period_end"])
-    checks = []
+    conflicts: list = []
+    v = _values(db, report_id, rep["period_end"], conflicts)
+    checks = [{"check": "single_value_per_code", "result": "fail", **c} for c in conflicts]
     for name, total, (a, b), f in IDENTITIES:
         if total not in v and a not in v:
             continue  # identity not relevant to this report's lines
@@ -290,7 +310,8 @@ def reconcile(db, report_id: int) -> dict:
 
 def comparative_changes(db, report_id: int) -> list[dict]:
     """Comparative figures that differ from the value an earlier report stated for that period."""
-    rep = db.execute("SELECT company_id, scope FROM financial_reports WHERE report_id = ?", (report_id,))[0]
+    rep = db.execute("SELECT company_id, scope, period_months FROM financial_reports WHERE report_id = ?",
+                     (report_id,))[0]
     out = []
     for r in db.execute(
         "SELECT l.canonical_code, l.column_period_end, l.value, e.value AS earlier, "
@@ -299,8 +320,9 @@ def comparative_changes(db, report_id: int) -> list[dict]:
         "AND er.period_end = l.column_period_end AND er.report_id <> l.report_id "
         "JOIN financial_line_items e ON e.report_id = er.report_id AND e.canonical_code = l.canonical_code "
         "AND e.column_period_end = l.column_period_end "
-        "WHERE l.report_id = ? AND l.is_comparative = 1 AND l.canonical_code IS NOT NULL",
-        (rep["company_id"], rep["scope"], report_id),
+        "WHERE l.report_id = ? AND l.is_comparative = 1 AND l.canonical_code IS NOT NULL "
+        "AND (l.statement = 'BS' OR er.period_months = ?)",  # flows compare only like-for-like periods
+        (rep["company_id"], rep["scope"], report_id, rep["period_months"]),
     ):
         if r["value"] is not None and r["earlier"] is not None and abs(r["value"] - r["earlier"]) > _tol(
                 r["value"], r["earlier"]):
@@ -330,8 +352,9 @@ def _bad(k: int) -> str:
 
 def promote(db, report_id: int) -> dict:
     """Write own-period mapped values to financial_metrics. Refused for reports needing review."""
+    rec_status = reconcile(db, report_id)["status"]  # never trust a stored status
     rep = db.execute("SELECT * FROM financial_reports WHERE report_id = ?", (report_id,))[0]
-    if rep["extraction_status"] in ("needs_review", "failed"):
+    if rec_status in ("needs_review", "failed"):
         return {"promoted": 0, "refused": f"report is {rep['extraction_status']}"}
     ptype = _period_type(db, rep["company_id"], rep["period_end"], rep["period_months"])
     basis = "restated" if rep["restates_report_id"] else "reported"
@@ -344,19 +367,24 @@ def promote(db, report_id: int) -> dict:
         elif code in PERCENT:
             val, unit = v, "%"
         elif code in COUNTS:
-            val, unit = v * rep["unit_scale"], "shares"
+            val, unit = v, "shares"  # share counts are entered as absolute numbers, never scaled
         else:
             val, unit = v * rep["unit_scale"], rep["currency"]
         stmts.append((
             "INSERT INTO financial_metrics(company_id, period_end, period_type, metric, value, unit, "
             "currency, basis, calculation_method, source_item_id, recorded_at_utc, report_id, scope) "
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT DO NOTHING",
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (rep["company_id"], rep["period_end"], ptype, code, val, unit, rep["currency"], basis,
-             f"line_item:{rep['extraction_method']}", rep["source_item_id"], _now(), report_id, rep["scope"]),
+             f"line_item:{rep['extraction_method']};{rec_status}", rep["source_item_id"], _now(), report_id,
+             rep["scope"]),
         ))
+    done = {r["metric"] for r in db.execute("SELECT metric FROM financial_metrics WHERE report_id = ?",
+                                             (report_id,))}
+    stmts = [st for st in stmts if st[1][3] not in done]  # re-promotion is a no-op, never a silent drop
     if stmts:
         db.batch(stmts, transactional=True)
-    return {"promoted": len(stmts), "period_type": ptype, "basis": basis}
+    return {"promoted": len(stmts), "already_promoted": len(done), "period_type": ptype, "basis": basis,
+            "reconciliation": rec_status}
 
 
 def document_sha256(path: Path | str) -> str:

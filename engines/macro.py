@@ -69,11 +69,17 @@ def import_observations(db, series_code: str, rows: list[dict], *, importer: str
         except (KeyError, TypeError, ValueError) as exc:
             rejected.append({"row": r, "reason": str(exc)})
             continue
-        prev = db.execute("SELECT value, vintage FROM macro_observations WHERE series_code = ? AND "
+        prev = db.execute("SELECT value, vintage, release_date FROM macro_observations WHERE series_code = "
+                          "? AND "
                           "reference_period = ? ORDER BY vintage DESC LIMIT 1",
                           (series_code, r["reference_period"]))
         if prev and prev[0]["value"] == v:
             unchanged.append(r["reference_period"])
+            continue
+        if prev and r["release_date"] < prev[0]["release_date"]:
+            rejected.append({"row": r, "reason": "release_date is earlier than the stored latest vintage "
+                             f"({prev[0]['release_date']}): out-of-order revisions break "
+                             "point-in-time reads"})
             continue
         vintage = prev[0]["vintage"] + 1 if prev else 1
         db.execute("INSERT INTO macro_observations(series_code, reference_period, value, release_date, "

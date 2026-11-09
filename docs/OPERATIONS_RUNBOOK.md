@@ -39,13 +39,17 @@ Turso. Each activation below needs a separate, explicit owner approval. A merged
 
   There is no scheduled job for these modules, and none should be added without approval.
 
-## 4. Monitoring
+## 4. Point-in-time use
+Backtests must call `engines.valuation.value(..., strict_point_in_time=True)`. That excludes reports with no
+recorded filing date. Outside strict mode such reports are used and flagged as a possible look-ahead.
+
+## 5. Monitoring
 * Collection health uses the existing operations tab (schedule health, gaps, readiness).
 * Manual imports record a `collector_runs` row (`x_manual_import`) or a `source_items` row with
   `retrieval_method = 'manual'`, with the importer and attestation in `source_metadata_json`.
 * Report snapshots can be re-verified with `engines.reports.verify_snapshot`. `inputs_changed` means the stored
   inputs changed after the snapshot was taken.
 
-## 5. Must stay disabled
+## 6. Must stay disabled
 X automated collection, EIA / World Bank automation, PSX / SBP / SECP automation, any paid provider, the optional
 AI gateway, and order execution (never built).

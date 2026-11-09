@@ -2,6 +2,9 @@
 -- A report is one financial document for one period and scope. Line items keep the raw label, page and
 -- extraction method; canonical values are promoted to financial_metrics only after mapping and
 -- reconciliation. Line items, corporate actions and approved mappings are append-only.
+-- One document holding consolidated and unconsolidated statements is recorded as one source item per
+-- scope (same document SHA-256, linked as duplicate content), because financial_metrics (0003) is unique on
+-- source_item_id without scope.
 
 CREATE TABLE financial_reports (
     report_id        INTEGER PRIMARY KEY,
@@ -31,6 +34,7 @@ CREATE TABLE financial_line_items (
     line_id          INTEGER PRIMARY KEY,
     report_id        INTEGER NOT NULL REFERENCES financial_reports(report_id),
     statement        TEXT NOT NULL CHECK (statement IN ('IS','BS','CF','EQ','note')),
+    line_no          INTEGER NOT NULL CHECK (line_no >= 1),   -- order within the statement: labels repeat
     raw_label        TEXT NOT NULL,
     canonical_code   TEXT,
     column_period_end TEXT NOT NULL,
@@ -42,7 +46,7 @@ CREATE TABLE financial_line_items (
     confidence       REAL CHECK (confidence IS NULL OR confidence BETWEEN 0 AND 1),
     review_status    TEXT NOT NULL DEFAULT 'pending' CHECK (review_status IN ('pending','accepted','rejected')),
     CHECK ((value IS NULL) = (value_state <> 'reported')),
-    UNIQUE (report_id, statement, raw_label, column_period_end)
+    UNIQUE (report_id, statement, line_no, column_period_end)
 );
 CREATE INDEX ix_fin_lines_report ON financial_line_items(report_id, statement);
 CREATE INDEX ix_fin_lines_code ON financial_line_items(canonical_code);
@@ -72,7 +76,9 @@ CREATE TABLE corporate_actions (
     action_type      TEXT NOT NULL CHECK (action_type IN ('cash_dividend','bonus','split','rights','consolidation')),
     ex_date          TEXT NOT NULL CHECK (ex_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
     record_date      TEXT,
-    ratio            REAL CHECK (ratio IS NULL OR ratio > 0),     -- new shares per existing share
+    -- bonus / rights: NEW shares per existing share (0.25 = 1 for 4);
+    -- split / consolidation: shares held AFTER per share held before (2 = 2-for-1 split, 0.1 = 1-for-10)
+    ratio            REAL CHECK (ratio IS NULL OR ratio > 0),
     amount_per_share REAL CHECK (amount_per_share IS NULL OR amount_per_share >= 0),
     subscription_price REAL CHECK (subscription_price IS NULL OR subscription_price > 0),
     currency         TEXT,

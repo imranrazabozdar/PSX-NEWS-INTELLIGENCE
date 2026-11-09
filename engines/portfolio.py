@@ -3,7 +3,10 @@
 * Lives in a SEPARATE database (`database/portfolio_migrations`, credentials PSXNI_PORTFOLIO_DATABASE_URL /
   PSXNI_PORTFOLIO_AUTH_TOKEN). `connect_portfolio` refuses the research database URL. The research database
   is only read (prices, assessments, events); nothing about holdings is written to it.
-* Every read and write is scoped by owner_id; one owner's data is never returned to another. Whether the
+* Every portfolio write path re-checks that the target holds no research tables (`assert_portfolio_db`), so
+  passing the research database by mistake fails before any write.
+* Every read and write is scoped by owner_id; one owner's data is never returned to another. owner_id is a
+  caller-supplied key, NOT authentication: nothing here authenticates a user. Whether the
   platform is single- or multi-user, and how owners authenticate, is owner decision U8: until then this is
   used single-owner from the CLI / tests only, and no dashboard page exposes it.
 * Thesis conditions use owner-set thresholds only (none is defaulted, U9). A condition whose data is missing
@@ -33,22 +36,52 @@ def _now() -> str:
     return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def _norm_url(url: str) -> str:
+    """Compare database identities, not spellings: libsql:// and https:// name the same Turso database."""
+    u = url.strip().rstrip("/").lower()
+    for scheme in ("libsql://", "https://", "wss://", "http://"):
+        if u.startswith(scheme):
+            return "turso:" + u[len(scheme):].split("?")[0]
+    return u
+
+
+RESEARCH_TABLES = ("source_items", "companies", "events", "market_bars")
+
+
+def assert_portfolio_db(pdb) -> None:
+    """Refuse any database that holds the research schema (defence against misconfiguration)."""
+    found = [r["name"] for r in pdb.execute(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN (?,?,?,?)", RESEARCH_TABLES)]
+    if found:
+        raise DatabaseConfigError(f"refusing: this database holds research tables {found}; the portfolio "
+                                  "database must be separate")
+
+
 def connect_portfolio(url: str | None = None, auth_token: str | None = None):
     url = url if url is not None else os.environ.get("PSXNI_PORTFOLIO_DATABASE_URL", "")
     if not url:
         raise DatabaseConfigError("PSXNI_PORTFOLIO_DATABASE_URL is not set")
     research = os.environ.get("PSXNI_TURSO_DATABASE_URL", "")
-    if research and url.rstrip("/") == research.rstrip("/") and "memory" not in url:
+    if research and _norm_url(url) == _norm_url(research) and "memory" not in url:
         raise DatabaseConfigError("the portfolio database must be separate from the research database")
+    # never fall back to the research token
     token = auth_token if auth_token is not None else os.environ.get("PSXNI_PORTFOLIO_AUTH_TOKEN", "")
-    return connect(url, token)
+    pdb = connect(url, token)
+    try:
+        assert_portfolio_db(pdb)
+    except DatabaseConfigError:
+        pdb.close()
+        raise
+    return pdb
 
 
 def migrate_portfolio(pdb) -> list[str]:
+    assert_portfolio_db(pdb)
     return migrate(pdb, directory=PORTFOLIO_MIGRATIONS)
 
 
 def create_portfolio(pdb, owner_id: str, name: str) -> int:
+    assert_portfolio_db(pdb)
     if not owner_id.strip():
         raise PortfolioError("owner_id is required")
     pdb.execute("INSERT INTO portfolios(owner_id, name, created_at_utc) VALUES (?,?,?) ON CONFLICT DO "
@@ -59,6 +92,7 @@ def create_portfolio(pdb, owner_id: str, name: str) -> int:
 
 
 def _own(pdb, owner_id: str, portfolio_id: int) -> None:
+    assert_portfolio_db(pdb)
     if not pdb.execute("SELECT 1 FROM portfolios WHERE portfolio_id = ? AND owner_id = ?",
                        (portfolio_id, owner_id)):
         raise PortfolioError("portfolio not found for this owner")
@@ -142,6 +176,7 @@ def add_thesis(pdb, owner_id: str, *, ticker: str, title: str, statement: str, c
         if c["kind"] in ("ratio", "dimension_state", "liquidity_state") and (
                 c.get("threshold") in (None, "") or (c["kind"] == "ratio" and c.get("operator") not in OPS)):
             raise PortfolioError(f"condition {c} needs an owner-set operator and threshold")
+    assert_portfolio_db(pdb)
     pdb.execute("INSERT INTO theses(owner_id, ticker, title, statement, created_at_utc) VALUES (?,?,?,?,?)",
                 (owner_id, ticker, title, statement, _now()))
     tid = pdb.execute("SELECT MAX(thesis_id) AS t FROM theses WHERE owner_id = ?", (owner_id,))[0]["t"]
@@ -214,6 +249,7 @@ def check_theses(pdb, rdb, owner_id: str, *, as_of: str) -> list[dict]:
 
 
 def add_alert_rule(pdb, owner_id: str, *, kind: str, ticker: str | None = None) -> int:
+    assert_portfolio_db(pdb)
     pdb.execute("INSERT INTO alert_rules(owner_id, kind, ticker, created_at_utc) VALUES (?,?,?,?)",
                 (owner_id, kind, ticker, _now()))
     return pdb.execute("SELECT MAX(rule_id) AS r FROM alert_rules WHERE owner_id = ?", (owner_id,))[0]["r"]
@@ -223,6 +259,7 @@ def run_alerts(pdb, rdb, owner_id: str, *, as_of: str) -> list[dict]:
     """Create alert rows for new matches; each match alerts once (dedupe key)."""
     from engines import universe
 
+    assert_portfolio_db(pdb)
     new = []
 
     def emit(rule, key, msg, ev):

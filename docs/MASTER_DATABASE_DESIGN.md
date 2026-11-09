@@ -109,6 +109,15 @@ Estimates use the measured ~3 billed rows per row inserted (table plus two index
   `data/validation/labels.json`, and market measures are computed on demand.
 * `report_snapshots` moved into 0014.
 * `financial_metrics.supersedes_metric_id` and `state` were not added. Restatements use `basis = 'restated'`
-  plus `financial_reports.restates_report_id`, and missing values have no metric row.
+  plus `financial_reports.restates_report_id`, and missing values have no metric row. Nothing is overwritten:
+  the original reported row and the restated row both remain, each linked to its own report and source item.
+  Readers prefer `restated`.
+* `financial_line_items` is unique on `(report_id, statement, line_no, column_period_end)`, because a label
+  such as "Others" can repeat within one statement. A canonical code mapped from two lines with different
+  values fails reconciliation, so it is never resolved by picking one.
+* `financial_metrics` (0003) is unique on `source_item_id` without scope. A document holding both
+  consolidated and unconsolidated statements is therefore stored as one source item per scope, each carrying
+  the same document SHA-256. Changing the 0003 constraint would need a table rebuild, which the additive-only
+  policy rules out.
 
 Each migration is additive, with append-only triggers where history matters.

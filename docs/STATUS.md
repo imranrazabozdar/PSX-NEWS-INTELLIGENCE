@@ -146,7 +146,8 @@ has run in production, and no migration has been applied to Turso.
 | M2 financial reports: import, text parsing, mapping, reconciliation, promotion | `engines/financials.py`, migration 0011, `config/account_mappings.json` | `tests/test_m2_m3_financials.py` | TESTED offline; PDF extraction BLOCKED (U3) |
 | M3 fundamentals, dimensions A–C | `engines/fundamentals.py`, migration 0012 | `tests/test_m2_m3_financials.py` | TESTED offline; bands BLOCKED (U9) |
 | M4 market intelligence, dimensions I–J | `engines/market_intel.py` | `tests/test_m4_m5_market_valuation.py` | TESTED offline; benchmark BLOCKED (U5) |
-| M5 valuation | `engines/valuation.py`, migration 0012 | `tests/test_m4_m5_market_valuation.py` | TESTED offline; consensus BLOCKED (U6) |
+| M5 valuation, dimension D | `engines/valuation.py`, migration 0012 | `tests/test_m4_m5_market_valuation.py`, `tests/test_pr40_review_regressions.py` | TESTED offline; consensus BLOCKED (U6) |
+| Dimensions E, F, G, H, K, L in `dimension_assessments` | not implemented (F, G and K exist only as Stage 2 impact assessments) | — | NOT STARTED |
 | M6 macro series and vintages | `engines/macro.py`, migration 0013, `config/macro_series.json` | `tests/test_m6_m9_macro_validation_portfolio_reports.py` | TESTED offline; automation BLOCKED (U2) |
 | M7 validation runs, walk-forward, event study | `engines/backtest.py`, migration 0014 | same | TESTED offline; no labels (U10) |
 | M8 portfolio, theses, alerts (separate database) | `engines/portfolio.py`, `database/portfolio_migrations/` | same | TESTED offline; U8 open |
