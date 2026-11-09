@@ -152,3 +152,32 @@ authorised access yet, and their identity is unverified.
 | x | Nasir_dar101 | https://x.com/Nasir_dar101 | pakistan_policy_economy_politics | Pakistan policy, economic and political monitoring | Added by owner (master programme instruction, 2026-11-08); identity to be verified |
 | x | awais_hameed | https://x.com/awais_hameed | pakistan_policy_economy_politics | Pakistan policy, economic and political monitoring | Added by owner (master programme instruction, 2026-11-08); identity to be verified |
 | x | 81ShahbazRana | https://x.com/81ShahbazRana | pakistan_policy_economy_politics | Pakistan policy, economic and political monitoring | Added by owner (master programme instruction, 2026-11-08); identity to be verified |
+
+## Recorded 2026-11-09: SCS Trade written permission (owner-supplied copy)
+
+| Field | Value |
+|---|---|
+| Source | SCS Trade (Standard Capital Securities), `scstrade.com` |
+| Granted by | Tariq Mahmood, Head of IT & Compliance, SCS Trade |
+| Sender address | compliance@scstrade.com |
+| Email subject | RE: Authorization for Data Access – PSX-INTELLIGENCE-NEW-2026 |
+| Email date | 2026-11-09 |
+| Recorded on | 2026-11-09 (UTC) |
+| Verification | **Owner-supplied copy pasted into the session.** Original email headers were not seen, so authenticity is not independently verified. Owner to save the original `.eml` to the owner vault and confirm by reply from compliance@scstrade.com. |
+| Robots.txt | `https://scstrade.com/robots.txt` and `https://www.scstrade.com/robots.txt` return HTTP 404 (no robots rules published). `https://chart.scstrade.com/robots.txt` returns 404. Checked 2026-11-09. |
+
+### Approved scope (as stated by SCS)
+1. Data: company profiles, official PDFs, financial statements, historical and daily prices, corporate announcements.
+2. Automated retrieval permitted. Maximum rate **1 request per 3 seconds**.
+3. Local storage for the project's lifetime; internal analysis permitted, including LLM processing for technical indicators and analysis.
+4. Internal research and non-commercial development only. Must attribute "SCS Trade" as the source on the Streamlit dashboard.
+5. Valid until **2028-11-09**. Scope or rate changes require written agreement from compliance@scstrade.com.
+
+### Limits and open points (recorded, not resolved)
+- **This permission is from SCS Trade only.** SCS is a broker, not the owner of PSX data. Content originating from PSX (prices, announcements, official filings, company PDFs issued through PSX) remains subject to PSX's Terms of Use, which prohibit automated retrieval and systematic databases. This permission does not license PSX-originated content.
+- **Official PDFs and financial statements** may be published by the companies or PSX; SCS cannot license them. Treat their use as unresolved until each owner's terms are checked.
+- **LLM processing:** SCS permits it. PSX's terms do not address it and fall under "any other purpose" (prohibited without permission), so it stays unresolved for PSX-originated content.
+- **Scope of the existing `scs_chart` source** (PSX OHLCV via SCS's chart feed, approved 2026-11-08) is unchanged by this entry; the 1-request-per-3-seconds limit applies to all SCS requests from this project.
+
+### Status
+- Collector for SCS: **not built and not activated** in this entry. No collection has been performed under this permission.
