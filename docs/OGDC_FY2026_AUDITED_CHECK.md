@@ -69,7 +69,7 @@ These are resolved as far as the audited documents allow. The previous "unresolv
 | Net cash from operations / profit ex prior-year tax effect | 0.84 | — |
 | Free cash flow (operations − capital expenditure) | 52,345,203 | (32,433,449) |
 
-Interpretation: FY2026 cash conversion improved materially, but the reported ratio is still flattered by the prior-year tax credit in the denominator (profit is higher than the underlying profit, so the ratio is lower, not higher, after adjustment). After excluding the tax credit, operating cash covers 0.84 times underlying profit. Free cash flow turned positive. Both figures are calculated, not reported.
+Interpretation: FY2026 cash conversion improved materially. The reported 0.66 is understated, not overstated: the prior-year tax credit raises the profit denominator, so on underlying profit the ratio is about 0.84. Free cash flow turned positive. Both figures are calculated, not reported.
 
 ## G. Receivables and circular debt
 
