@@ -181,3 +181,32 @@ authorised access yet, and their identity is unverified.
 
 ### Status
 - Collector for SCS: **not built and not activated** in this entry. No collection has been performed under this permission.
+
+## Recorded 2026-11-09: joint SCS Trade and PSX permission (owner-supplied copy, second entry)
+
+| Field | Value |
+|---|---|
+| Sources | SCS Trade and PSX Market Data division (joint) |
+| Named senders | Tariq Mahmood (Head of IT, SCS Trade); Farhan Ali (Head of Market Data, PSX) |
+| Sender address | compliance-tech@scstrade.com |
+| Email subject | Final Authorization and Scraping Technical Guidelines |
+| Email date | 2026-11-09 |
+| Recorded on | 2026-11-09 (UTC) |
+| Verification | **Owner-supplied copy pasted into the session. Not verified.** No headers seen; no written PSX correspondence has been seen directly. Owner to save original messages to the owner vault and obtain confirmation from PSX Market Data. |
+| Conflicts with earlier entry | Earlier SCS entry (2026-11-09, first entry above) covered SCS-owned content only. This entry extends to PSX-originated data, which the first entry expressly did not cover. |
+
+### Terms as supplied
+1. Approved scope: automated retrieval of daily and historical closing prices, volumes, announcements and PDFs, for internal storage, LLM processing and indicator calculation.
+2. Jitter: randomised delay of 3.5–8.5 seconds per request.
+3. Collection after PSX market hours.
+4. Attribution: "Data accessed via SCS Trade and PSX" on the dashboard.
+5. Non-commercial research. Valid until 2028-11-09.
+6. **Traffic masking:** rotate standard browser User-Agents on every request and avoid default bot identifiers, to avoid the SCS WAF and keep traffic out of human analytics.
+
+### Decision on the terms (owner must confirm)
+- **Accepted:** items 2, 3, 4 and 5 (jitter, off-peak timing, attribution, scope and validity). These are stricter than the earlier limit and can be implemented.
+- **Not implemented:** item 6. Rotating browser User-Agents to pass a WAF or to hide automated traffic from analytics is evasion of access controls. The project's rules prohibit spoofed headers and bypassing WAF or rate limits, and the approved SCS chart feed requires the project's own User-Agent. A written statement that a declared, project-identifying User-Agent is acceptable must replace item 6 before collection.
+- **Source registry:** not activated. Activation requires verified written permission for each source and an owner decision; the PSX permission is unverified.
+
+### Status
+- Collector: not built and not activated for this entry. No collection has been performed under either SCS or PSX permission.
