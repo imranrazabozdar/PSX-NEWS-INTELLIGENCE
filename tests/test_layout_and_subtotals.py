@@ -415,7 +415,16 @@ def test_a_failed_import_leaves_no_source_record(db, tmp_path):
 
 
 def test_a_label_crossing_the_gutter_is_flagged_not_split(tmp_path):
-    items = side_by_side_bs() + [at(280, 300, "Wide label across the gutter")]
+    items = side_by_side_bs() + [at(280, 300, "Wide label across the gutter"), at_right(560, 300, "1,000")]
     info, parts = pr.split_page(_pdf(tmp_path, [items]), 1)
     assert info["layout"] == "uncertain" and "gutter" in info["reason"]
     assert parts[0].layout_flag == "uncertain"
+
+
+def test_a_page_wide_signature_or_rule_does_not_make_the_layout_uncertain(tmp_path):
+    """Regression: the footer signature row and the dashed header rule span the gutter on the real annexure
+    B. They are not table rows and must not block the split."""
+    items = side_by_side_bs() + [at(60, 300, "Chief Financial Officer"), at(330, 300, "Chief Executive"),
+                                 at(60, 90, "-" * 40 + "(Rupees)" + "-" * 10)]
+    info, parts = pr.split_page(_pdf(tmp_path, [items]), 1)
+    assert info["layout"] == "two_column", info

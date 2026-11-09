@@ -156,8 +156,11 @@ def split_page(path: Path | str, number: int) -> tuple[dict, list[Page]]:
     words, repairs = join_touching_figures(words, number)
     info = detect_columns(words, width)
     info["repairs"] = len(repairs)
-    if info["layout"] == "two_column" and any(w["x0"] < info["gutter_x"] - 0.5 < w["x1"] for w in words):
-        info = {**info, "layout": "uncertain", "reason": "a label or figure crosses the gutter"}
+    if info["layout"] == "two_column":
+        # only table rows (rows with figures) matter: headings, rules and signature lines may span the page
+        table_words = [w for row in _rows(words) if any(_VALUE.match(w["text"]) for w in row) for w in row]
+        if any(w["x0"] < info["gutter_x"] - 0.5 < w["x1"] for w in table_words):
+            info = {**info, "layout": "uncertain", "reason": "a label or figure crosses the gutter"}
     if info["layout"] == "two_column":
         g = info["gutter_x"]
         left = [w for w in words if w["x0"] < g]
