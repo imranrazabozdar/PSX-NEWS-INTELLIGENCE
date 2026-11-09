@@ -116,3 +116,27 @@ Until the owner decides these, no SCS or PSX source is enabled, and no live coll
 - Approved by the owner in this entry; the runner is built and tested offline (`collectors/pilot_runner.py`, `tests/test_pilot_runner.py`).
 - **Not run live. No requests have been made. No data has been stored.**
 - Next steps are a dry run with no network (the runner prints the planned URLs and windows), then a separate owner approval for the first live run.
+
+## Run record: pilot PILOT-2026-11-09-01, live run (2026-11-09)
+
+| Item | Recorded value |
+|---|---|
+| Run time (UTC) | 2026-11-09T11:07:41Z (non-trading day; off-peak) |
+| Requests made | 5 in total: 1 robots.txt (HTTP 404, no rules) and 4 UDF `/history` requests (HTTP 200) |
+| Request cap | 10; not exceeded |
+| Symbols requested | APL, BAHL, PACE, DFML (one request each) |
+| Host | `chart.scstrade.com` only |
+| Resolution / window | `resolution=D`; `to` = run time minus 15 minutes; `from` = `to` minus 30 days |
+| User-Agent | `PSX-NEWS-INTELLIGENCE research bot, contact owner` on all 5 requests; no other headers |
+| Jitter | 5 delays before requests: 6.70, 7.09, 3.76, 8.11, 4.76 seconds (all within 3.5–8.5 s) |
+| Off-peak | Yes (non-trading day) |
+| Rows kept | 80 daily rows (20 per symbol); sessions 2026-10-12 to 2026-11-06 |
+| 15-minute rule | 0 rows dated 2026-11-08 or later; 0 dropped as unsettled, live, future or invalid; latest permitted cutoff 2026-11-09T10:53:14Z |
+| Raw artefact | `pilot_run.json` in the build session's scratchpad (outside the repository): rows, request metadata and delays. **Response bodies were not stored**, so open, high and low values are not in the artefact. |
+
+### Database ingestion: not performed
+- The approval for ingestion was given, but the write could not be completed safely:
+  1. `market_bars` requires `open`, `high` and `low` (NOT NULL, with OHLC consistency checks). The saved rows have only `close` and `volume`. Filling those fields would invent market data, so it was not done.
+  2. The raw responses containing the missing fields were not saved. Obtaining them needs another live fetch, which is outside the one-run approval; the pilot cap of 10 requests covered one run.
+- No rows were written to `market_bars` or any other table.
+- To proceed, the owner must decide either (a) a new live fetch under a new approval that stores the full UDF response (or the OHLC fields), or (b) a schema decision for a close-and-volume table. Both are separate decisions.
