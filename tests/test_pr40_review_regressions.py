@@ -432,3 +432,18 @@ def test_same_day_revision_is_rejected_not_silently_ordered(db):
     assert later["added"]
     assert macro.as_known_at(db, "sbp_policy_rate", "2026-09-19")["value"] == 10.0
     assert macro.as_known_at(db, "sbp_policy_rate", "2026-09-20")["value"] == 10.5
+
+
+@pytest.mark.parametrize("raw", ["1e3", "1,234", "n/a", "(10.0)", "nan", "inf", "", "1.2.3", True, None])
+def test_macro_value_must_be_a_plain_decimal(raw):
+    """Review finding: a macro value went through a bare float(), so '1e3' from a spreadsheet was accepted
+    as 1000. Values must be plain decimals; anything else is refused."""
+    from engines import macro
+    with pytest.raises((ValueError, TypeError)):
+        macro._strict_value(raw)
+
+
+@pytest.mark.parametrize("raw,value", [("10.5", 10.5), ("-2", -2.0), (10, 10.0), (10.5, 10.5), ("0", 0.0)])
+def test_macro_plain_decimal_values_are_read_exactly(raw, value):
+    from engines import macro
+    assert macro._strict_value(raw) == value

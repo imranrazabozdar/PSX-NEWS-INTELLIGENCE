@@ -239,3 +239,15 @@ def test_priority_never_removed_by_liquidity(db):
     master = db.execute("SELECT COUNT(*) AS n FROM company_identifiers WHERE id_type = 'psx_ticker' "
                         "AND valid_to IS NULL")[0]["n"]
     assert len(rows) == master + 1  # the whole current-ticker master plus the priority-only ticker
+
+
+def test_zero_volume_session_counts_as_a_traded_session_not_a_missing_one(db):
+    """A thin stock can trade a day with zero volume. That is a real observation: it counts as one of the
+    20 sessions and lowers ADV. It must never be treated as a missing session, which would stop the stock from
+    qualifying at all. ADV here is (19 x 200,000 + 0) / 20 = 190,000."""
+    days = sorted(_days(20))
+    _bars(db, "THIN", days[:19], 200_000)
+    _bars(db, "THIN", [days[19]], 0)
+    liq = uv.liquidity(db, "THIN", as_of=days[19])
+    assert liq.state == "qualified" and liq.sessions == 20
+    assert liq.adv_shares == 190_000.0

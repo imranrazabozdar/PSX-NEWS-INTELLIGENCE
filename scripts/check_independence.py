@@ -63,6 +63,8 @@ THIRD_PARTY_IMPORTS = {
     "pytest": {"pytest", "_pytest"},
     "ruff": set(),
     "pip-audit": set(),
+    # owner-approved PDF reader (decision U3), exact pin in requirements.txt
+    "pdfplumber": {"pdfplumber"},
 }
 
 # Local top-level packages/modules of THIS project (spec section 13 layout). Adding a new

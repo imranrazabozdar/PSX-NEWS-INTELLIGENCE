@@ -3,3 +3,7 @@
 # (see docs/adr/0001-independence-from-technical-engine.md); scripts/check_independence.py enforces this.
 streamlit>=1.40,<2
 python-dotenv>=1.0,<2
+# PDF text and table extraction for financial reports (owner-approved, M2). Exact pin; MIT licence
+# (pdfplumber). Its dependencies pdfminer.six (MIT), pypdfium2 (BSD-3/Apache-2.0) and Pillow (MIT-CMU) are
+# resolved from PyPI and audited with pip-audit.
+pdfplumber==0.11.10
