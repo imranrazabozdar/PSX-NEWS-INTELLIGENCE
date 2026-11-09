@@ -58,6 +58,8 @@ READ_PASSES = 2  # one full count scan in pre-flight, one in post-flight (pre-fl
 READ_RESERVE_ROWS = 2_000  # ledger/schema reads, runner dry-run and integrity check
 READ_HEADROOM = 1.25  # refuse unless the budget covers the estimate with 25% to spare
 REHEARSAL_HOST_PREFIX = "psxni-migration-rehearsal-"
+# Owner-approved exception: ONE exact host that lacks the prefix. Never overrides the production deny-list.
+HOST_OVERRIDE_VAR = "PSXNI_A2_REHEARSAL_HOST_OVERRIDE"
 
 Statement = tuple[str, Sequence[Any]]
 
@@ -284,7 +286,10 @@ def target_problem(target: str, env: dict[str, str] | os._Environ[str]) -> str:
         url = env.get("PSXNI_TURSO_DISPOSABLE_DATABASE_URL", "").strip()
         if not url:
             return "PSXNI_TURSO_DISPOSABLE_DATABASE_URL is not set"
-        if not _host(url).startswith(REHEARSAL_HOST_PREFIX):
+        override = env.get(HOST_OVERRIDE_VAR, "").strip().lower()
+        if override and override != _host(url):
+            return f"{HOST_OVERRIDE_VAR} does not match the disposable host exactly: refusing"
+        if not override and not _host(url).startswith(REHEARSAL_HOST_PREFIX):
             return (f"the disposable host must start with {REHEARSAL_HOST_PREFIX!r} "
                     "(the rehearsal database naming convention): refusing")
         same_host = bool(prod_url) and _host(url) == _host(prod_url)

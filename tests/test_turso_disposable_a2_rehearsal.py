@@ -127,6 +127,10 @@ def _state(db: Database):
     return (a2.table_counts(db), [r["version"] for r in db.execute("SELECT version FROM schema_migrations")])
 
 
+def _host_of(url):
+    return url.split("://", 1)[-1]
+
+
 def test_00_embedded_foreign_migration_is_the_recorded_one():
     assert hashlib.sha256(FOREIGN_SQL.encode()).hexdigest() == RECORDED_CHECKSUM
     assert a2.FOREIGN_CHECKSUM == RECORDED_CHECKSUM
@@ -239,6 +243,16 @@ def test_10_the_script_refuses_production_as_a_disposable_target(monkeypatch):
     assert "token equals the production token" in a2.target_problem("disposable", reused_token)
     same_host = {**good, "PSXNI_TURSO_DATABASE_URL": good["PSXNI_TURSO_DISPOSABLE_DATABASE_URL"]}
     assert "production database" in a2.target_problem("disposable", same_host)
+    odd = {**other, "PSXNI_TURSO_DISPOSABLE_DATABASE_URL": "libsql://odd-name-org.aws-us-east-1.turso.io"}
+    host = "odd-name-org.aws-us-east-1.turso.io"
+    assert a2.target_problem("disposable", {**odd, a2.HOST_OVERRIDE_VAR: host}) == ""      # exact host only
+    assert "exactly" in a2.target_problem("disposable", {**odd, a2.HOST_OVERRIDE_VAR: "other.turso.io"})
+    prod_env = {**odd, "PSXNI_TURSO_DATABASE_URL": odd["PSXNI_TURSO_DISPOSABLE_DATABASE_URL"],
+                a2.HOST_OVERRIDE_VAR: host}
+    assert "production database" in a2.target_problem("disposable", prod_env)         # deny-list still wins
+    prod_host = {**prod_env, "PSXNI_TURSO_DISPOSABLE_DATABASE_URL": prod,
+                 a2.HOST_OVERRIDE_VAR: _host_of(prod)}
+    assert "production database" in a2.target_problem("disposable", prod_host)
     with pytest.raises(SystemExit):
         a2.main([])                                              # --target is required
 
