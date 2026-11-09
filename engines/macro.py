@@ -76,10 +76,12 @@ def import_observations(db, series_code: str, rows: list[dict], *, importer: str
         if prev and prev[0]["value"] == v:
             unchanged.append(r["reference_period"])
             continue
-        if prev and r["release_date"] < prev[0]["release_date"]:
-            rejected.append({"row": r, "reason": "release_date is earlier than the stored latest vintage "
-                             f"({prev[0]['release_date']}): out-of-order revisions break "
-                             "point-in-time reads"})
+        # strictly later: a same-day revision has no knowable order, so it cannot be placed point-in-time
+        if prev and r["release_date"] <= prev[0]["release_date"]:
+            rejected.append({"row": r, "reason": (
+                "a revision must be released after the stored latest vintage "
+                f"({prev[0]['release_date']}); a same-day or earlier revision has no known order and would "
+                "break point-in-time reads")})
             continue
         vintage = prev[0]["vintage"] + 1 if prev else 1
         db.execute("INSERT INTO macro_observations(series_code, reference_period, value, release_date, "
