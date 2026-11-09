@@ -174,3 +174,20 @@ def test_spec_local_packages_are_allowed_but_forbidden_names_are_not(tmp_path):
     root2 = _make(tmp_path / "b", {"x.py": "import backend\n"})
     assert "forbidden-import" in _rules(root2)
     assert not (ci.LOCAL_MODULES & ci.FORBIDDEN_MODULES)
+
+
+def test_undeclared_third_party_import_is_still_refused(tmp_path):
+    """Adding pdfplumber to the reviewed list must not weaken the guard: unreviewed packages stay refused."""
+    root = _make(tmp_path, {"app.py": "import some_unreviewed_pkg\n"})
+    assert "undeclared-import" in _rules(root)
+
+
+def test_sys_path_edit_is_still_refused(tmp_path):
+    root = _make(tmp_path, {"app.py": "import sys\nsys.path.insert(0, 'elsewhere')\n"})
+    assert "sys-path" in _rules(root)
+
+
+def test_pdfplumber_is_the_only_reviewed_addition_for_m2():
+    """The reviewed import list grows only by the approved PDF reader (owner decision U3)."""
+    added = set(ci.THIRD_PARTY_IMPORTS) - {"streamlit", "python-dotenv", "pytest", "ruff", "pip-audit"}
+    assert added == {"pdfplumber"}

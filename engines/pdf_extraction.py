@@ -138,12 +138,19 @@ def to_statement_lines(doc: DocumentText, statement: str, pages: list[int], *, c
 
 
 def reader_available() -> bool:
-    """True only when an approved reader is importable. No reader is approved yet (U3)."""
-    return False
+    """True when the approved reader (pdfplumber, owner decision U3) is installed."""
+    from engines import pdf_reader
+
+    return pdf_reader.available()
 
 
 def extract(path: Path | str, reader: Callable[[Path], DocumentText] | None = None) -> DocumentText:
-    """Run the injected reader. Without one, raise ExtractionUnavailable: never fall back to guessing."""
+    """Run the injected reader, or the approved pdfplumber reader when none is given. If no reader is
+    available, raise ExtractionUnavailable: never fall back to guessing."""
     if reader is None:
-        raise ExtractionUnavailable("no PDF reader is approved (decision U3); record manual review instead")
+        if not reader_available():
+            raise ExtractionUnavailable("no PDF reader is installed; record manual review instead")
+        from engines import pdf_reader
+
+        reader = pdf_reader.read
     return reader(Path(path))

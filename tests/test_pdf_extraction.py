@@ -21,10 +21,12 @@ def _doc(*pages):
                             for i, (lines, has_text) in enumerate(pages)])
 
 
-def test_no_reader_is_approved_and_extraction_never_guesses():
-    assert pe.reader_available() is False
-    with pytest.raises(pe.ExtractionUnavailable):
-        pe.extract("report.pdf")  # no silent fallback to guessing
+def test_extraction_never_guesses_when_the_file_cannot_be_read():
+    """The approved reader is installed (owner decision U3). The property that remains: an unreadable
+    input is refused, never returned as an empty document."""
+    assert pe.reader_available() is True
+    with pytest.raises(ValueError):  # the reader refuses a missing file rather than guessing
+        pe.extract("report.pdf")
 
 
 def test_hash_is_of_the_original_bytes(tmp_path):

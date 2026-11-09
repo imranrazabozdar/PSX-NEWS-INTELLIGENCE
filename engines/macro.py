@@ -26,6 +26,26 @@ _PERIOD = {
 }
 
 
+_DECIMAL = re.compile(r"^-?[0-9]+(\.[0-9]+)?$")
+
+
+def _strict_value(raw) -> float:
+    """A macro value is a plain decimal: a float, or a string such as "10.5" or "-2". Exponent notation,
+    grouping separators, non-finite values and blanks are refused, so no value is accepted in an unexpected
+    format (for example 1e3 from a spreadsheet)."""
+    if isinstance(raw, bool):
+        raise ValueError("boolean is not a value")
+    if isinstance(raw, (int, float)):
+        v = float(raw)
+    elif isinstance(raw, str) and _DECIMAL.match(raw.strip()):
+        v = float(raw.strip())
+    else:
+        raise ValueError(f"not a plain decimal value: {raw!r}")
+    if v != v or v in (float("inf"), float("-inf")):
+        raise ValueError("non-finite value refused")
+    return v
+
+
 def _now() -> str:
     return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -65,7 +85,7 @@ def import_observations(db, series_code: str, rows: list[dict], *, importer: str
             if not re.fullmatch(pat, str(r["reference_period"])):
                 raise ValueError(f"reference_period must match {pat}")
             date.fromisoformat(r["release_date"])
-            v = float(r["value"])
+            v = _strict_value(r["value"])
         except (KeyError, TypeError, ValueError) as exc:
             rejected.append({"row": r, "reason": str(exc)})
             continue
