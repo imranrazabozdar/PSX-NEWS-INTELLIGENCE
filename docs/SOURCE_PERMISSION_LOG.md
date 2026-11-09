@@ -80,3 +80,39 @@ Activating `scstrade` and `psx_dps` requires two governance changes that are an 
 2. `psx_dps` (PSX) is currently `terms_status = prohibits_automation`; it must be changed only with the owner's decision on the recorded PSX permission.
 
 Until the owner decides these, no SCS or PSX source is enabled, and no live collection has been performed.
+
+## Owner decision: pilot approval PILOT-2026-11-09-01 (recorded 2026-11-09)
+
+| Field | Value |
+|---|---|
+| Approval ID | `PILOT-2026-11-09-01` (the runner refuses any other ID) |
+| Date | 2026-11-09 |
+| Decided by | Project owner (Imran) |
+| Source (as directed) | "SCS portal & PSX-originated historical data" |
+| Source actually used by the runner | SCS chart feed only, `https://chart.scstrade.com`, UDF `/history` endpoint (the approved `scs_chart` source). **No PSX host is in the pilot allow-list.** |
+| Fields | Symbol, Date (PKT session), Close Price, Volume |
+| Target symbols | APL, BAHL, PACE, DFML (runner refuses any other symbol) |
+| Maximum requests | 10 in total, counting the robots.txt check (the pilot uses at most 5: one robots check and one history request per symbol) |
+| User-Agent | `PSX-NEWS-INTELLIGENCE research bot, contact owner` (exact; no other headers) |
+| Timing | 3.5–8.5 s jitter before every request; off-peak only (after PSX market close, PKT) |
+| 15-minute rule | Rows are dropped unless their session has settled at least 15 minutes before the run. Live, future, unsettled and non-integer timestamps are dropped and counted. The request window ends 15 minutes before the run. |
+| Storage | None in this entry. The runner writes nothing. Storage needs a further decision (see below). |
+| Attribution | "Data accessed via SCS Trade and PSX" on any dashboard |
+
+### PSX permission status
+- **Owner attestation: "Verified by Owner."** The owner states the original `.eml` files and replies are held in the owner's Windows vault. The build session could not see them (the vault is not mounted there) and records this as owner-attested, not independently verified.
+- The PSX host is not used by this pilot, so the PSX attestation does not change what the pilot does. It would be needed before any PSX host is added.
+
+### Registry changes requested but NOT made, and why
+1. **`psx_dps` terms_status → `automation_permitted`:** not a value the schema accepts. The `sources.terms_status` CHECK (migration 0006) allows only `not_reviewed`, `not_found`, `reviewed_ok`, `restricted`, `prohibits_automation` and a short list of others. Changing it requires a schema migration, which needs separate approval.
+2. **retention mode → `stored_local_permitted`:** not accepted. The `sources.retention_mode` CHECK allows only `metadata_only`, `excerpt`, `full_text_permitted`. Same migration requirement.
+3. Neither source's `enabled` flag was changed. The pilot does not read the registry.
+
+### Symbols not confirmed
+- **APL** and **BAHL** are in the company master (`database/seed/companies.json`).
+- **PACE** and **DFML** are not in the 51-entry master. The owner must confirm they are listed PSX symbols before the first run.
+
+### Status
+- Approved by the owner in this entry; the runner is built and tested offline (`collectors/pilot_runner.py`, `tests/test_pilot_runner.py`).
+- **Not run live. No requests have been made. No data has been stored.**
+- Next steps are a dry run with no network (the runner prints the planned URLs and windows), then a separate owner approval for the first live run.
