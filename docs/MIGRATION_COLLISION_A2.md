@@ -66,6 +66,14 @@ execute refused, guard aborts with a decision row / wrong checksum / higher vers
 verifies, a re-run is refused, and migrations 0011-0014 then apply. Tests 10-16 use private in-memory databases (not Turso).
 The database was reached through the proxy-injected credential; production was never touched. The database and its token are deleted by the owner afterwards.
 
+## Production execution record (2026-11-09)
+Executed by the owner-authorized session (approval reference OWNER-APPROVED-2026-11-09-chat) after the owner invalidated every token and issued
+new ones. Backup: SHA-256 `2085ec5101dde7dafb4f33718b7f0a9ebb710e3c571cd223fac1146c53cd823e` (56+1 tables, 14,959 rows; restore-tested into SQLite).
+Pre-flight digest `6ddfff76…928d` matched the earlier snapshot. Result `remediated_verified`: ledger 1..10, the five foreign objects and the guard
+table gone, counts digest `af4c6881…12bf4` as expected (only `schema_migrations` 11 -> 10), `integrity.check` ok, runner dry run lists
+0011-0014 as pending, and a separate `--verify-only` run in a fresh process also verified. 34,701 rows read, 4 written. Migrations 0011-0014
+were NOT applied by this change.
+
 ## Tests
 * `pytest tests/test_turso_disposable_a2_rehearsal.py`: SQLite leg only without disposable variables (17 passed, 9 skipped).
 * Turso leg (not yet run): create a FRESH database named `psxni-migration-rehearsal-<date>...` in the production region with a
