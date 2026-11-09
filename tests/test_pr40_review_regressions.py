@@ -267,3 +267,15 @@ def test_roe_closing_and_average_bases(db):
     body = reports.company_report(db, "cmp-ogdc", as_of=AS_OF)
     fp = body["fundamental_performance"]
     assert "closing" in fp["roe"]["formula"] and fp["roe_average_equity"]["basis"] == "average equity"
+
+
+def test_report_respects_filing_dates(db):
+    from engines import reports
+
+    fin.promote(db, _imp(db, _corp(filed_at_utc="2026-12-01T00:00:00Z"))["report_id"])
+    body = reports.company_report(db, "cmp-ogdc", as_of=AS_OF)  # filed after as_of: not yet known
+    assert body["fundamental_performance"] == {"state": "data_unavailable"}
+    fin.promote(db, _imp(db, _corp(period="2024-06-30", prev="2023-06-30", sha="b" * 64))["report_id"])
+    body = reports.company_report(db, "cmp-ogdc", as_of=AS_OF)
+    assert body["executive_summary"]["fundamentals"]["period_end"] == "2024-06-30"
+    assert any("filing date" in m for m in body["confidence_and_missing_data"]["missing"])

@@ -32,8 +32,18 @@ DISCLAIMER = ("Research support only. Not investment advice; no buy/sell recomme
 
 
 def _latest_fy(db, company_id: str, as_of: str) -> str | None:
-    return db.execute("SELECT MAX(period_end) AS p FROM financial_metrics WHERE company_id = ? AND "
-                      "period_type = 'FY' AND period_end <= ?", (company_id, as_of))[0]["p"]
+    """Latest fiscal year known on `as_of`: period ended and, where recorded, filed by then (as valuation)."""
+    return db.execute(
+        "SELECT MAX(m.period_end) AS p FROM financial_metrics m LEFT JOIN financial_reports r "
+        "USING(report_id) "
+        "WHERE m.company_id = ? AND m.period_type = 'FY' AND m.period_end <= ? AND "
+        "(r.filed_at_utc IS NULL OR substr(r.filed_at_utc, 1, 10) <= ?)", (company_id, as_of, as_of))[0]["p"]
+
+
+def _filing_unknown(db, company_id: str, period_end: str) -> bool:
+    return bool(db.execute("SELECT 1 FROM financial_metrics m LEFT JOIN financial_reports r USING(report_id) "
+                           "WHERE m.company_id = ? AND m.period_end = ? AND m.period_type = 'FY' AND "
+                           "r.filed_at_utc IS NULL LIMIT 1", (company_id, period_end)))
 
 
 def _ticker(db, company_id: str) -> str | None:
@@ -66,6 +76,9 @@ def company_report(db, company_id: str, *, as_of: str) -> dict | None:
     missing = []
     if fa is None:
         missing.append("financial statements: no reported fiscal-year metrics imported")
+    elif _filing_unknown(db, company_id, fy):
+        missing.append(f"filing date of the FY{fy[:4]} report not recorded: assumed known from its "
+                       "period end (possible look-ahead for past as-of dates)")
     if not vals:
         missing.append("valuation: not run for this as-of date")
     if mkt is None or mkt["consecutive_sessions"] == 0:

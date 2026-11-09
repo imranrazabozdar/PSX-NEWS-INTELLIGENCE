@@ -71,3 +71,38 @@ fiscal year has been imported. Reports show both, each with its formula.
 ## 6. Must stay disabled
 X automated collection, EIA / World Bank automation, PSX / SBP / SECP automation, any paid provider, the optional
 AI gateway, and order execution (never built).
+
+## 7. Evidence: disposable Turso rehearsal, 2026-11-09 (owner-authorised; production untouched)
+* **Database:** `psxni-migration-rehearsal-20261109`, host
+  `psxni-migration-rehearsal-20261109-imranrazabozdar.aws-us-east-1.turso.io`.
+  * Created by the Turso Platform API in group `us-group` (the same region as production, but a separate
+    database).
+  * Access used a database-scoped full-access token with a 2-hour expiry. The token was held in a private
+    scratch file and never printed, committed or logged.
+* **Runner:** the repository's own `database.migrate.migrate`, run through `tests/test_turso_disposable.py` and
+  `tests/test_turso_disposable_0011_0014.py`. The `tests/turso_guard.py` gate refuses production by host, marker
+  and token.
+* **Results:**
+  * 18/18 tests passed, 9 in each module: the existing gate-3 checks and the new 0011–0014 checks.
+  * Migrations 0001–0014 applied in order, and a rerun skipped all of them.
+  * libSQL reports SQLite 3.47.0, with foreign keys enforced.
+* **Schema check:** 67 tables, 101 indexes, 100 triggers and 15 views. All 233 object definitions are identical to
+  a local SQLite migration of the same files.
+* **Protections verified over HTTP:**
+  * **Uniqueness:** duplicate line positions, corporate actions and macro vintages are rejected.
+  * **Immutability:** updates are refused on line-item values, mappings, dimension assessments, valuations,
+    snapshots and validation runs, and deletes are refused on line items, corporate actions and macro
+    observations.
+  * **Integrity rules:** a NULL value marked `reported`, a bonus issue without a ratio, and an invalid foreign key
+    are all rejected.
+  * **Transactions:** a failing batch rolled back completely.
+  * **Migration failure:** a failing migration left no table and no `schema_migrations` row, and a corrected retry
+    then applied (throwaway version 15).
+  * **End to end:** report import, reconciliation, promotion, fundamentals, valuation and snapshot verification
+    all ran over HTTP.
+* **Cleanup:**
+  * The database was deleted through the API and is no longer listed (only `psx-news-intelligence` remains), and
+    its host returns 404.
+  * The token file was shredded, and the temporary allowlist entry was removed from the environment.
+  * No credentials were written to the repository, CI or the production configuration.
+* **Not done:** no migration was applied to production. Production activation still needs separate approval.
