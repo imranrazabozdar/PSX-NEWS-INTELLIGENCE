@@ -4,9 +4,11 @@ Status: **NOT PERFORMED. Blocked on the owner's read-only production credential.
 
 ## Status log
 * 2026-11-09 (first request): not supplied.
-* 2026-11-09 (second request, owner-authorised): the secure form was denied at the approval step. This is recorded
-  as a denied approval, not a withdrawn permission. No token was received, no connection was made, and no retry
-  loop was run.
+* 2026-11-09 (second request, owner-authorised): the secure form was denied at the approval step.
+* 2026-11-09 (third request, owner-authorised, owner confirmed the earlier denial was not theirs): denied at the
+  approval step again. Recorded as an approval-step denial, NOT an owner refusal. Permission to request the
+  credential has not been withdrawn. No token was received, no connection was made, and no retry loop was run.
+  The owner's decision is awaited.
 
 ## Blocker (2026-11-09)
 The credential was NOT supplied. The owner has clarified that the earlier secure request was **not** an owner
