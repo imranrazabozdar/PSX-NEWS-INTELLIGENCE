@@ -33,13 +33,22 @@ from database import repositories as repo
 SOURCE_ID = "company_reports_manual"
 MAPPINGS_PATH = Path(__file__).resolve().parents[1] / "config" / "account_mappings.json"
 SEED_APPROVER = "seed (pending owner review)"
+# synthetic_test: hand-built fixtures only, never real research. Every other source is a real document or
+# entry and must carry its source, scope and a page for every line.
+SOURCES = ("synthetic_test", "pdf", "manual_pdf", "text_entry")
 DOC_MONTHS = {"annual": 12, "half_yearly": 6, "nine_month": 9, "quarterly": 3}
 PER_SHARE = {"eps_basic"}
 PERCENT = {"car_pct"}
 COUNTS = {"shares_outstanding"}
 BANK_SECTORS = {"COMMERCIAL BANKS"}
 INSURER_SECTORS = {"INSURANCE"}
-_NUM = re.compile(r"^\(?-?[0-9][0-9,]*(\.[0-9]+)?\)?$")
+# A number is an optional sign or bracket pair, digits with EITHER western (1,234,567) or South Asian lakh
+# (1,23,45,678) grouping, or no grouping, and an optional decimal part. Irregular grouping such as 12,34 or
+# 1,2,3 is refused: silently reading it would change the value by a factor of 100 or more.
+_NUM = re.compile(
+    r"^(?:\((?P<b>[0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?|[0-9]{1,3}(?:,[0-9]{2})*,[0-9]{3}"
+    r"(?:\.[0-9]+)?|[0-9]+(?:\.[0-9]+)?)\)|(?P<p>-?[0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?|"
+    r"-?[0-9]{1,3}(?:,[0-9]{2})*,[0-9]{3}(?:\.[0-9]+)?|-?[0-9]+(?:\.[0-9]+)?))$")
 _BLANK = {"-", "–", "—", "nil", "n/a"}
 
 
@@ -115,11 +124,12 @@ def parse_number(tok: str) -> float | None:
     t = tok.strip()
     if not t or t.casefold() in _BLANK:
         return None
-    if not _NUM.match(t):
-        raise ValueError(f"not a number: {tok!r}")
-    neg = t.startswith("(") and t.endswith(")")
-    v = float(t.strip("()").replace(",", ""))
-    return -v if neg else v
+    m = _NUM.match(t)
+    if not m:
+        raise ValueError(f"not a number: {tok!r}")  # includes unpaired brackets and irregular grouping
+    if m.group("b") is not None:  # (1,234) reads as negative; a bare sign inside brackets is refused above
+        return -float(m.group("b").replace(",", ""))
+    return float(m.group("p").replace(",", ""))
 
 
 def parse_statement_text(text: str, *, statement: str, columns: list[str], page: int | None = None) -> dict:
@@ -165,9 +175,20 @@ def _validate(rec: dict) -> None:
     date.fromisoformat(rec["period_end"])
     if not re.fullmatch(r"[0-9a-f]{64}", rec["document_sha256"]):
         raise ImportError_("document_sha256 must be the SHA-256 of the original file")
+    source = rec.get("source")
+    if source not in SOURCES:  # no implicit default: omitting `source` must not bypass the document rules
+        raise ImportError_(f"source must be one of {sorted(SOURCES)}")
+    pdf_sourced = source != "synthetic_test"  # real imports: page, source and scope are required
+    if pdf_sourced:  # real documents: every value must trace to a page of the original file
+        if not rec.get("original_url") and not rec.get("source_note"):
+            raise ImportError_("a document import needs its source: original_url or source_note")
+        if rec.get("scope") not in ("consolidated", "unconsolidated"):
+            raise ImportError_("scope must be stated for a document import")
     for ln in rec["lines"]:
         if ln.get("statement") not in ("IS", "BS", "CF", "EQ", "note") or not ln.get("raw_label"):
             raise ImportError_(f"bad line: {ln}")
+        if pdf_sourced and not isinstance(ln.get("page"), int):
+            raise ImportError_(f"document line without a page reference: {ln.get('raw_label')!r}")
         date.fromisoformat(ln.get("column_period_end") or "")
         if ln.get("value") is not None and not isinstance(ln["value"], (int, float)):
             raise ImportError_(f"value must be a number or null: {ln}")
