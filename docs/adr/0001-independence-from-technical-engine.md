@@ -1,6 +1,6 @@
 # ADR-0001: Permanent independence from the existing technical engine
 
-* **Status:** Accepted (permanent architectural requirement); amended 2026-11-08 to record one expired, one-time audit exception
+* **Status:** Accepted (permanent architectural requirement); amended 2026-11-08 to record one expired, one-time audit exception, and 2026-11-09 to record one scoped, time-limited porting exception
 * **Date:** 2026-11-07
 * **Spec reference:** Master Implementation Specification v2.0, sections 1.2, 1.3, 3.18, 14 (Phase 0) and 20
 
@@ -65,6 +65,34 @@ The rule above was not changed. This section records the only exception to it so
   scraping, undocumented endpoints, spoofed browser headers or bypassing access controls. No
   data source may be activated here without documented permission and the owner's approval.
 
+## Recorded exception: scoped port of `fundamental_engine/` (2026-11-09, active until completion or 2026-12-09)
+
+The rule above was not changed. This section records a second, narrow exception.
+
+* **What:** reading and copying the files under `fundamental_engine/` in the technical engine's repository
+  (`imranrazabozdar/psx-intelligence-new-2026`, local checkout, commit `b81c26c`, the head of its open pull request #66).
+  That directory holds fundamental and news-intelligence work (LLM provider routing, relevance pre-filter, extraction
+  with grounded quotes, review workflow, deduplication, extraction evaluation) that was built in the wrong repository.
+* **Authorised by:** the owner, explicitly, on 2026-11-09 ("Go with option 1"), after the options and the conflict with this ADR
+  were put to them.
+* **Purpose:** to move that fundamental and news-intelligence work into this project, where it belongs, instead of rebuilding it.
+* **Scope (everything else stays forbidden):**
+  * only `fundamental_engine/` may be read or copied. Nothing else in that repository may be opened: no technical-analysis code,
+    scripts, workflows, data, databases, credentials or secrets;
+  * copied code is merged into this project's own modules and conventions, one reviewed pull request per piece, not as a
+    second package. Its own copies of database, migration and configuration code are not ported: this project's
+    `database/` and migration runner are used;
+  * ported files must pass `scripts/check_independence.py` unchanged: no reference to the technical engine, no `sys.path`
+    changes, no undeclared dependencies, secrets only with the `PSXNI_` prefix;
+  * no runtime, build, data or credential dependency between the projects is created, and nothing is imported from it;
+  * migrations for the ported work are written fresh in this project's numbering after `0014`. The technical engine's
+    own `0011_extraction_reviews` and its baseline snapshot are not copied;
+  * source governance is unchanged: sources stay `metadata_only` unless the owner records otherwise.
+* **Status: active, and limited.** It ends when the last ported piece is merged or on 2026-12-09, whichever is first, and it
+  is not a precedent. Any further access needs new explicit owner authorisation, recorded here.
+* **Unchanged:** every rule in the Decision table still applies in full. No migration is applied to production, and no module is
+  activated, without the owner's separate approval under `docs/OPERATIONS_RUNBOOK.md`.
+
 ## Enforcement
 
 `scripts/check_independence.py` runs in CI on every push and pull request (`.github/workflows/ci.yml`),
@@ -109,5 +137,5 @@ check script. That forces a deliberate review of each one.
 * Credentials and quotas (Turso, LLM, YouTube, X) are paid for and tracked separately.
 * A failure, outage or schema change in either project can't affect the other.
 * Contributors, including AI coding agents, must not open the technical engine's repository
-  for this project's work. The only exception so far is the expired one-time audit recorded
-  above; any further access needs new explicit owner authorisation. `CLAUDE.md` repeats this rule for Claude Code sessions.
+  for this project's work. The exceptions so far are the expired one-time audit and the scoped port of
+  `fundamental_engine/` recorded above; any further access needs new explicit owner authorisation. `CLAUDE.md` repeats this rule for Claude Code sessions.
