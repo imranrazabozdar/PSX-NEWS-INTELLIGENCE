@@ -165,9 +165,17 @@ def _validate(rec: dict) -> None:
     date.fromisoformat(rec["period_end"])
     if not re.fullmatch(r"[0-9a-f]{64}", rec["document_sha256"]):
         raise ImportError_("document_sha256 must be the SHA-256 of the original file")
+    pdf_sourced = rec.get("source") in ("pdf", "manual_pdf")
+    if pdf_sourced:  # real documents: every value must trace to a page of the original file
+        if not rec.get("original_url") and not rec.get("source_note"):
+            raise ImportError_("a document import needs its source: original_url or source_note")
+        if rec.get("scope") not in ("consolidated", "unconsolidated"):
+            raise ImportError_("scope must be stated for a document import")
     for ln in rec["lines"]:
         if ln.get("statement") not in ("IS", "BS", "CF", "EQ", "note") or not ln.get("raw_label"):
             raise ImportError_(f"bad line: {ln}")
+        if pdf_sourced and not isinstance(ln.get("page"), int):
+            raise ImportError_(f"document line without a page reference: {ln.get('raw_label')!r}")
         date.fromisoformat(ln.get("column_period_end") or "")
         if ln.get("value") is not None and not isinstance(ln["value"], (int, float)):
             raise ImportError_(f"value must be a number or null: {ln}")
