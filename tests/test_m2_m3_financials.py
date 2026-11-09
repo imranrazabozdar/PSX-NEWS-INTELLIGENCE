@@ -62,6 +62,7 @@ def _corp(period="2025-06-30", prev="2024-06-30", sha=SHA, overrides=None, filed
         from datetime import date, timedelta
         filed_at_utc = (date.fromisoformat(period) + timedelta(days=90)).isoformat() + "T00:00:00Z"
     kw["filed_at_utc"] = filed_at_utc
+    kw.setdefault("source", "synthetic_test")  # hand-built fixture: never a real document
     lines = []
     for col in (period, prev):
         for (st, lab), v in zip(ORDER, YEARS[col], strict=True):
@@ -75,7 +76,9 @@ def _corp(period="2025-06-30", prev="2024-06-30", sha=SHA, overrides=None, filed
 
 
 def _imp(db, rec):
-    return fin.import_report(db, rec, importer="owner", rights_attestation="downloaded from company website")
+    # synthetic fixture: the attestation says so, so it cannot be mistaken for a real document's provenance
+    return fin.import_report(db, rec, importer="test fixture",
+                             rights_attestation="synthetic hand-built fixture (not a real document)")
 
 
 # ---------------------------------------------------------------- parsing

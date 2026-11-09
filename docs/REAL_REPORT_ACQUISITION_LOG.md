@@ -25,3 +25,13 @@ attempted, so that no later session repeats an attempt the policy already ruled 
 3. **PDF library approval (U3):** `pdfplumber` 0.11.10 (MIT) is recommended as the single reader. `pypdf` 7.0.0
    (BSD-3-Clause) is optional. Both pass the known-vulnerability check, and both support the project's Python
    3.12. Not installed.
+
+## Review corrections (M2 PR review, 2026-11-09)
+* **Document-import gate:** the page, source and scope requirements previously applied only when `source` was
+  `pdf` or `manual_pdf`, so an import that omitted `source` bypassed them. `source` is now required on every import
+  and must be one of `synthetic_test`, `pdf`, `manual_pdf` or `text_entry`. Only `synthetic_test` skips the document
+  rules, and it is for hand-built fixtures only.
+* **Number parsing:** an unpaired bracket was read as a positive figure, and irregular comma grouping (for example
+  `12,34`) was read as 1234. Both are now refused. Western and South Asian lakh grouping are accepted.
+* **Vulnerability check:** the pip-audit result applies to the versions named above (`pdfplumber` 0.11.10,
+  `pypdf` 7.0.0) at the time of review. It must be re-run against any version actually approved.

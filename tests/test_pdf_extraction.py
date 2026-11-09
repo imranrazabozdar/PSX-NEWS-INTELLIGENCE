@@ -95,3 +95,60 @@ def test_legacy_synthetic_imports_still_need_no_page():
     load(db)
     fin.load_mappings(db)
     assert fin.import_report(db, _corp(), importer="o", rights_attestation="fixture")["report_id"]
+
+
+def test_omitting_or_misdeclaring_source_cannot_bypass_document_rules():
+    """Review finding: the page/source/scope gate used to apply only when source was 'pdf'. An import with no
+    source, or an unknown one, must now be refused outright, never treated as a synthetic test."""
+    db = SQLiteDatabase()
+    migrate(db)
+    load(db)
+    fin.load_mappings(db)
+    rec = _corp(filed_at_utc="2026-09-30T00:00:00Z")
+    rec.pop("source", None)
+    with pytest.raises(fin.ImportError_, match="source must be one of"):
+        fin.import_report(db, rec, importer="o", rights_attestation="own download")
+    rec["source"] = "pdf_real"  # a typo or unknown value is refused, not defaulted
+    with pytest.raises(fin.ImportError_, match="source must be one of"):
+        fin.import_report(db, rec, importer="o", rights_attestation="own download")
+
+
+def test_real_source_without_a_scope_is_refused_even_if_pages_are_present():
+    db = SQLiteDatabase()
+    migrate(db)
+    load(db)
+    fin.load_mappings(db)
+    rec = _corp(filed_at_utc="2026-09-30T00:00:00Z", source="text_entry")
+    for ln in rec["lines"]:
+        ln["page"] = 3
+    rec["scope"] = None
+    with pytest.raises(fin.ImportError_, match="scope"):
+        fin.import_report(db, rec, importer="o", rights_attestation="own download")
+
+
+def test_synthetic_fixture_is_labelled_and_real_imports_keep_their_page():
+    db = SQLiteDatabase()
+    migrate(db)
+    load(db)
+    fin.load_mappings(db)
+    rec = _corp(filed_at_utc="2026-09-30T00:00:00Z", source="synthetic_test")
+    fin.import_report(db, rec, importer="o", rights_attestation="own download")
+    row = db.execute("SELECT extraction_method FROM financial_reports")[0]
+    assert row["extraction_method"] == "manual"  # fixture extraction method, unaffected by the source gate
+    assert db.execute("SELECT COUNT(*) n FROM financial_line_items WHERE page IS NULL")[0]["n"] > 0
+
+
+@pytest.mark.parametrize("tok,value", [
+    ("1,234", 1234.0), ("(1,234)", -1234.0), ("1,234,567", 1234567.0),
+    ("1,23,456", 123456.0), ("(1,23,456)", -123456.0), ("(12.5)", -12.5), ("-5", -5.0), ("0", 0.0),
+])
+def test_valid_number_formats_read_exactly(tok, value):
+    assert fin.parse_number(tok) == value
+
+
+@pytest.mark.parametrize("tok", ["(12", "12)", "12,34", "1,2,3", "12a", "1e5", "--", "(-5)", "(1,2,3)"])
+def test_malformed_or_ambiguous_numbers_are_refused_not_guessed(tok):
+    """Review finding: an unpaired bracket was read as a positive figure, and irregular grouping (12,34)
+    was read as 1234. Both now raise rather than produce a value that could be off by 100x or more."""
+    with pytest.raises(ValueError):
+        fin.parse_number(tok)
