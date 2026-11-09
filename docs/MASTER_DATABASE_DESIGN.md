@@ -129,3 +129,11 @@ Each migration is additive, with append-only triggers where history matters.
 - **Mappings:** the universal seed (`account_mappings`, versioned and append-only) is unchanged. Owner-approved, company-specific mappings live in `config/company_mappings/<ticker>.json`, carry their version and approver, apply only to that company, and are recorded in each report's provenance.
 - **Sign convention:** expenses and outflows are stored as negative numbers when the source shows them in brackets. Dashes and blanks are `not_reported`, never zero. Values are stored in the source unit and scaled by the report's unit to PKR. The cash identity (operating + investing + financing = net change) is checked; its failure is reported, never forced.
 - **No schema change** was made in this batch.
+
+
+## Update (2026-11-09): point-in-time balance comparatives
+
+- Verified balance-sheet comparatives are promoted to `financial_metrics` only at fiscal year-end dates, with period type
+  `FY` (the only balance-compatible value the existing CHECK allows), basis `reported` or `restated`, and the source label
+  and page in `calculation_method`. A conflicting value at the same date refuses the promotion; nothing is overwritten.
+- No schema change was made. A dedicated balance-point table would need a migration; not applied.

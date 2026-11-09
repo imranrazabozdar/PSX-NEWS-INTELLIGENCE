@@ -298,3 +298,12 @@ Missing is never zero.
 | U9 | Policy thresholds: fundamentals bands, impact magnitude A/B, outlier bounds, valuation assumptions |
 | U10 | Labelling capacity: who labels, how many items per month |
 | U11 | Optional AI provider and budget |
+
+
+## Update (2026-11-09): CFA-style analysis layer and sector applicability
+
+- Added `engines/sector_applicability.py` (applicability classes per ratio and PSX sector; calculation guard; company
+  sector link) and `engines/earnings_quality.py` (review indicators with evidence and limits).
+- The CFA-style layer reuses the existing financial, fundamentals and valuation modules. Its status by layer is in
+  `docs/CFA_STYLE_ANALYSIS_DESIGN.md`. It is not a certified analysis and issues no investment instruction.
+- Independence is unchanged: no import from, or data shared with, the separate technical-analysis project.

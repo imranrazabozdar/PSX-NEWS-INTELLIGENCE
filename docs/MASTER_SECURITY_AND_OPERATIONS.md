@@ -67,3 +67,10 @@ Status: DESIGN (main `012a6bf`). These controls keep their current form; none is
 - OCR, where evaluated, runs locally through fixed command lines. No cloud OCR, no third-party AI, no document upload.
 - Tesseract was installed only in the development container for evaluation. It is not part of any production environment; installing it there would need its own approval.
 - No production database was touched in this batch; all tests use in-memory or local databases.
+
+
+## Update (2026-11-09): merge controls
+
+- PR merges are approved by the owner and executed with the exact head SHA pinned. A merge is stopped if a check is pending
+  or failing; no check is bypassed. The merge of PR #48 is currently blocked by a pending CodeQL gate.
+- No production database, collector, scheduler or deployment was touched in this batch.

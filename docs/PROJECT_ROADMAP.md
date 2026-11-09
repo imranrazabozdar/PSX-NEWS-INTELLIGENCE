@@ -90,3 +90,11 @@ None approved. Proposed next: owner review of the master programme, decisions U1
 
 - Done in this batch: owner-approved OGDC mappings (versioned overlay), seven approved cash-flow codes plus the amortisation code, M3 hardening, bounded Tesseract evaluation.
 - Next, in order: owner decision on the open cash-measure definition; approval to promote balance-sheet comparatives so average-balance ratios can run; review of 77 unmapped labels; a decision on OCR for the annual annexure.
+
+
+## Update (2026-11-09)
+
+- Done: controlled merge of #47; accounting validation of OGDC (cash, subtotal, comparatives); sector applicability matrix;
+  earnings-quality indicators; M5 gap analysis; sector test-data specification.
+- Next, in order: owner decision on the 30 June 2026 residuals and on U6; owner-supplied sector documents (see
+  `SECTOR_TEST_DATA_SPEC.md`); scenario framework for valuation; driver-based forecast layer for one sector.

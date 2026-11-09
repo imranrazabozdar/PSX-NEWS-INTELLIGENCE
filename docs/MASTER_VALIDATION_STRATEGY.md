@@ -55,3 +55,10 @@ Status: DESIGN (main `012a6bf`). This extends the existing harness `engines/vali
 - M3 ratios are verified by hand from the stored inputs. Each result states its formula, its period basis (annualised or day-scaled), and whether it is an approximation.
 - OCR figures are validated only against manually verified truth and are never promoted automatically.
 - Synthetic fixtures are never counted as real-world accuracy.
+
+
+## Update (2026-11-09): sector validation status
+
+- Each sector's validation status is in `docs/SECTOR_TEST_DATA_SPEC.md`. Only the OGDC oil and gas pilot has real documents.
+- Synthetic tests check logic and are never reported as real accuracy. Real-data claims require manually verified figures.
+- Ratio applicability is checked by tests against the matrix (banks, insurers and industrials).
