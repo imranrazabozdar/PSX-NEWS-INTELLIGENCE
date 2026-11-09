@@ -59,6 +59,13 @@ conditional on the `COMMIT` step not succeeding. Consequences for the guard:
   `remediated_check_failed` (never "verified") and the message says the change COMMITTED; run `--verify-only --expect-post-digest <hex>`
   in a fresh process (fresh budget). Do not re-run `--execute`.
 
+## Rehearsal result (2026-11-09)
+Fresh disposable Turso database (empty, 2-hour token, exact-host override): `pytest tests/test_turso_disposable_a2_rehearsal.py` gave
+26 passed. The Turso leg (tests 01-09) covered: collision reproduced (runner and integrity check fail), pre-flight, incomplete
+execute refused, guard aborts with a decision row / wrong checksum / higher version and everything rolls back, A2 executes and
+verifies, a re-run is refused, and migrations 0011-0014 then apply. Tests 10-16 use private in-memory databases (not Turso).
+The database was reached through the proxy-injected credential; production was never touched. The database and its token are deleted by the owner afterwards.
+
 ## Tests
 * `pytest tests/test_turso_disposable_a2_rehearsal.py`: SQLite leg only without disposable variables (17 passed, 9 skipped).
 * Turso leg (not yet run): create a FRESH database named `psxni-migration-rehearsal-<date>...` in the production region with a

@@ -160,4 +160,4 @@ has run in production, and no migration has been applied to Turso.
 ## Migration collision remediation (version 11), 2026-11-09
 | Item | Code | Tests | Status |
 |---|---|---|---|
-| A2 remediation script (retire the foreign version 11) | `scripts/remediate_migration_collision_a2.py` | `tests/test_turso_disposable_a2_rehearsal.py` (SQLite leg) | TESTED offline (Option B guard); Turso rehearsal NOT RUN; production NOT EXECUTED (`docs/MIGRATION_COLLISION_A2.md`) |
+| A2 remediation script (retire the foreign version 11) | `scripts/remediate_migration_collision_a2.py` | `tests/test_turso_disposable_a2_rehearsal.py` (SQLite leg) | TESTED offline (Option B guard); Turso rehearsal PASSED 2026-11-09 on a disposable database (26 passed; guard Option B proven on Turso); production NOT EXECUTED (`docs/MIGRATION_COLLISION_A2.md`) |
