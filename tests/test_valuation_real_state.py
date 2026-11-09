@@ -27,3 +27,25 @@ def test_market_data_alone_produces_no_valuation_number():
     assert states["justified_pb"] in ("needs_assumptions", "not_applicable")
     assert out["inputs"]["price"] == 70  # the price is shown, honestly, as the only market input
     d.close()
+
+
+def test_missing_price_and_stale_price_never_produce_a_multiple():
+    """A price dated after the as-of date must not be used (no look-ahead), and no price means no multiple."""
+    from database.connection import SQLiteDatabase
+    from database.migrate import migrate
+    from database.seed_loader import load
+    from engines import valuation as va
+    from tests.test_m1_universe_and_x_watchlist import _bars, _days
+    d = SQLiteDatabase()
+    migrate(d)
+    load(d)
+    days = sorted(_days(3))
+    _bars(d, "OGDC", days, 200_000, close=70)  # prices exist only up to days[-1]
+    before = va.value(d, "cmp-ogdc", as_of=days[0], store=False)
+    assert before["inputs"]["price"] == 70 and before["inputs"]["price_date"] == days[0]
+    assert not any("look" in str(n) for n in before["inputs"].get("notes", []))
+    none = va.value(d, "cmp-ogdc", as_of="2020-01-01", store=False)  # before any stored price
+    assert none["inputs"]["price"] is None
+    for r in none["results"]:
+        assert r["base"] is None, r["method"]
+    d.close()
