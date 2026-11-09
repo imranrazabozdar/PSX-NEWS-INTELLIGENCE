@@ -6,6 +6,8 @@ their period and source rows, and a state:
   ok | insufficient_data (an input is not reported; the missing inputs are listed) | not_applicable
   (the ratio does not apply to the framework, or its denominator is zero or negative).
 Ratios use closing balances (stated in each formula); averages are not invented from one balance sheet.
+ROE is reported on both bases: `roe` (closing equity, unchanged) and `roe_average_equity` (opening and closing
+equity), which is `insufficient_data` when the prior fiscal year's equity is not imported.
 
 Dimensions written to `dimension_assessments`:
   A fundamental quality (margins, returns), B financial strength (leverage, coverage, liquidity),
@@ -28,7 +30,8 @@ RATIOS: dict[str, tuple[tuple[str, ...], str, tuple[str, ...], tuple[str, ...]]]
     "gross_margin": (("corporate",), "gross_profit / revenue", ("gross_profit",), ("revenue",)),
     "operating_margin": (("corporate",), "operating_profit / revenue", ("operating_profit",), ("revenue",)),
     "net_margin": (("corporate",), "profit_after_tax / revenue", ("profit_after_tax",), ("revenue",)),
-    "roe": (("corporate", "bank", "insurer"), "profit_after_tax / closing total_equity",
+    "roe": (("corporate", "bank", "insurer"),
+            "profit_after_tax / closing total_equity (closing-equity basis: overstates ROE when equity grew)",
             ("profit_after_tax",), ("total_equity",)),
     "roa": (("corporate", "bank", "insurer"), "profit_after_tax / closing total_assets",
             ("profit_after_tax",), ("total_assets",)),
@@ -53,7 +56,8 @@ RATIOS: dict[str, tuple[tuple[str, ...], str, tuple[str, ...], tuple[str, ...]]]
 REPORTED = {"car_pct": ("bank",)}  # shown as reported by the company, not recalculated
 GROWTH = ("revenue", "profit_after_tax", "eps_basic", "net_interest_income", "net_premium", "total_assets")
 DIMENSIONS = {
-    "A": ("gross_margin", "operating_margin", "net_margin", "roe", "roa", "cash_conversion", "claims_ratio",
+    "A": ("gross_margin", "operating_margin", "net_margin", "roe", "roe_average_equity", "roa",
+          "cash_conversion", "claims_ratio",
           "nii_share_of_income", "cost_to_income"),
     "B": ("debt_to_equity", "current_ratio", "interest_cover", "liabilities_to_assets",
           "advances_to_deposits",
@@ -157,9 +161,35 @@ def analyse(db, company_id: str, *, period_end: str, period_type: str = "FY") ->
     prior = _prior_period(db, company_id, period_end, period_type, scope)
     pm = metrics(db, company_id, prior, period_type, scope) if prior else None
     g = {k: growth(m, pm, k) for k in GROWTH}
+    ratios["roe_average_equity"] = roe_average(m, pm, framework)
     return {"company_id": company_id, "framework": framework, "period_end": period_end,
             "period_type": period_type, "scope": scope, "prior_period_end": prior, "ratios": ratios,
             "growth": g, "fcf": _fcf(m)}
+
+
+def roe_average(cur: dict, prev: dict | None, framework: str) -> dict:
+    """PAT / average of opening (prior FY closing) and closing equity. Kept separate from `roe`, which
+    uses closing equity only and is unchanged for compatibility."""
+    res = {"ratio": "roe_average_equity", "formula": "profit_after_tax / ((total_equity(t) + "
+                                                     "total_equity(t-1)) / 2)",
+           "basis": "average equity", "state": "ok", "value": None, "inputs": {}, "missing": []}
+    need = [("profit_after_tax", cur), ("total_equity", cur)]
+    res["missing"] = [k for k, d in need if k not in d]
+    if prev is None or "total_equity" not in prev:
+        res["missing"].append("opening total_equity (prior fiscal year)")
+    if res["missing"]:
+        return {**res, "state": "insufficient_data",
+                "note": "use `roe` (closing-equity basis) and its stated limitation"}
+    avg = (cur["total_equity"]["value"] + prev["total_equity"]["value"]) / 2
+    def ref(d, k):
+        return {"value": d[k]["value"], "metric_id": d[k]["metric_id"]}
+
+    res["inputs"] = {"profit_after_tax": ref(cur, "profit_after_tax"),
+                     "closing_equity": ref(cur, "total_equity"),
+                     "opening_equity": ref(prev, "total_equity")}
+    if avg <= 0:
+        return {**res, "state": "not_applicable", "reason": "average equity is zero or negative"}
+    return {**res, "value": cur["profit_after_tax"]["value"] / avg}
 
 
 def _fcf(m: dict) -> dict:

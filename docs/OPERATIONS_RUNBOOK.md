@@ -43,6 +43,24 @@ Turso. Each activation below needs a separate, explicit owner approval. A merged
 Backtests must call `engines.valuation.value(..., strict_point_in_time=True)`. That excludes reports with no
 recorded filing date. Outside strict mode such reports are used and flagged as a possible look-ahead.
 
+**DCF basis.** `assumptions["dcf"]["basis"]` must be declared, as `"fcff"` or `"fcfe"`. It is never inferred from
+statement labels. The base cash flow is an owner-prepared FCFF or FCFE figure; the engine does not derive one from
+CFO − capex, because companies treat interest differently in those lines.
+
+| Basis | Discounted at | Gives | Equity value |
+|---|---|---|---|
+| FCFF | `wacc` | Enterprise value | EV − net debt − other claims. Net debt comes from reported borrowings and cash, or from an owner input. Other claims must always be stated (0 is allowed). |
+| FCFE | `cost_of_equity` | Equity value directly | Net debt is not deducted again. |
+
+* **Mixed rates are refused:** supplying the other basis's rate returns `insufficient_data`.
+* **Terminal value:** a Gordon value on the final explicit-year cash flow, at the same rate and terminal growth.
+  The rate must exceed terminal growth, otherwise the result is `not_applicable`.
+* **Sensitivity:** every cell of the grid applies the same EV-to-equity conversion.
+
+**ROE.** `roe` uses closing equity and is unchanged; it overstates ROE when equity grew during the year.
+`roe_average_equity` uses the average of opening and closing equity. It is `insufficient_data` until the prior
+fiscal year has been imported. Reports show both, each with its formula.
+
 ## 5. Monitoring
 * Collection health uses the existing operations tab (schedule health, gaps, readiness).
 * Manual imports record a `collector_runs` row (`x_manual_import`) or a `source_items` row with

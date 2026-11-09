@@ -10,7 +10,9 @@ Methods and states:
   (EV/EBITDA for banks and insurers); `insufficient_data` with the missing inputs otherwise.
 * forward_pe: needs consensus estimates, which have no approved source (U6). Always `insufficient_data`;
   internal scenarios are never presented as consensus.
-* ddm, dcf, justified_pb (banks): model values per share computed ONLY from owner-supplied assumptions,
+* dcf: explicit owner-declared basis only (see `dcf`): FCFF at WACC -> enterprise value -> less net debt
+  and other claims -> equity; FCFE at cost of equity -> equity directly. Never inferred from CFO / capex.
+* ddm, justified_pb (banks): model values per share computed ONLY from owner-supplied assumptions,
   each given as (low, base, high). Without them the state is `needs_assumptions` and the required keys are
   listed. conservative / base / optimistic use the pessimistic, central and optimistic combination, and a
   sensitivity grid is stored. These are model outputs under stated assumptions, not forecasts or targets.
@@ -26,7 +28,6 @@ from engines.financials import framework_for
 ENGINE_VERSION = "valuation/1"
 REQUIRED = {
     "ddm": ("cost_of_equity", "dividend_growth"),
-    "dcf": ("discount_rate", "fcf_growth", "terminal_growth", "years"),
     "justified_pb": ("cost_of_equity", "sustainable_growth"),
 }
 
@@ -189,14 +190,110 @@ def _gordon(d0, r, g):
     return None if r <= g else d0 * (1 + g) / (r - g)
 
 
-def _dcf(fcf0, r, g, tg, years):
-    if r <= tg:
+DCF_BASES = {
+    # basis: (discount-rate key, what the present value is)
+    "fcff": ("wacc", "enterprise_value"),
+    "fcfe": ("cost_of_equity", "equity_value"),
+}
+DCF_RANGES = ("cash_flow_growth", "terminal_growth")
+
+
+def _dcf_pv(cf0: float, r: float, g: float, tg: float, years: int) -> float | None:
+    """PV of `years` explicit cash flows growing at g from cf0, plus a Gordon terminal value on the final
+    year's cash flow at the SAME rate r and terminal growth tg. None when r <= tg or r <= -1."""
+    if r <= tg or r <= -1:
         return None
-    pv, f = 0.0, fcf0
-    for t in range(1, int(years) + 1):
+    pv, f = 0.0, cf0
+    for t in range(1, years + 1):
         f *= 1 + g
         pv += f / (1 + r) ** t
-    return pv + f * (1 + tg) / (r - tg) / (1 + r) ** int(years)
+    return pv + f * (1 + tg) / (r - tg) / (1 + r) ** years
+
+
+def dcf(i: dict, a: dict | None) -> dict:
+    """Discounted cash flow with an EXPLICIT owner-declared basis. Never inferred from statement labels.
+
+    Required owner inputs (`assumptions["dcf"]`):
+      basis: "fcff" or "fcfe"
+      base_cash_flow: the latest annual FCFF or FCFE in currency units (an owner-prepared figure; the
+        engine does not derive it from CFO and capex, whose interest treatment varies by presentation)
+      wacc (fcff) or cost_of_equity (fcfe), cash_flow_growth, terminal_growth: (low, base, high)
+      years: integer explicit-forecast years
+      fcff only: other_claims (minority interest, preference capital, etc.; 0 must be stated explicitly),
+        and net_debt unless both borrowings and cash are reported (then net debt = borrowings - cash).
+    FCFF at WACC gives enterprise value; equity = EV - net debt - other claims. FCFE at cost of equity gives
+    equity value directly; net debt is NOT deducted again. Per-share = equity value / shares.
+    """
+    a = (a or {}).get("dcf")
+    if not a:
+        return _res("dcf", "needs_assumptions",
+                    missing=["basis", "base_cash_flow", "rate", *DCF_RANGES, "years"],
+                    note="owner-declared basis (fcff or fcfe) and inputs required")
+    basis = a.get("basis")
+    if basis not in DCF_BASES:
+        return _res("dcf", "insufficient_data", missing=["basis (fcff or fcfe)"],
+                    note="cash-flow basis must be declared explicitly; it is never inferred")
+    rate_key, pv_kind = DCF_BASES[basis]
+    wrong = "cost_of_equity" if basis == "fcff" else "wacc"
+    if wrong in a:
+        return _res("dcf", "insufficient_data", missing=[rate_key],
+                    note=f"{basis.upper()} must be discounted at {rate_key}, not {wrong}: "
+                         "the inputs mix bases")
+    need = [k for k in ("base_cash_flow", rate_key, *DCF_RANGES, "years") if k not in a]
+    if basis == "fcff" and "other_claims" not in a:
+        need.append("other_claims")
+    if i.get("shares") is None:
+        need.append("shares")
+    if need:
+        return _res("dcf", "insufficient_data", missing=need)
+    try:
+        rng = {k: tuple(float(x) for x in a[k]) for k in (rate_key, *DCF_RANGES)}
+        years = int(a["years"])
+        cf0 = float(a["base_cash_flow"])
+    except (TypeError, ValueError):
+        return _res("dcf", "insufficient_data", missing=["numeric (low, base, high) inputs"])
+    if any(len(v) != 3 or not v[0] <= v[1] <= v[2] for v in rng.values()) or years < 1:
+        return _res("dcf", "insufficient_data", missing=["(low, base, high) ordered ranges and years >= 1"])
+    if cf0 <= 0:
+        return _res("dcf", "not_applicable", note="base cash flow is zero or negative")
+    net_debt = claims = None
+    if basis == "fcff":
+        claims = float(a["other_claims"])
+        if "net_debt" in a:
+            net_debt, nd_src = float(a["net_debt"]), "owner input"
+        elif None not in (_v(i, "long_term_borrowings"), _v(i, "short_term_borrowings"),
+                          _v(i, "cash_and_equivalents")):
+            net_debt = (_v(i, "long_term_borrowings") + _v(i, "short_term_borrowings")
+                        - _v(i, "cash_and_equivalents"))
+            nd_src = "reported: long + short borrowings - cash (latest FY)"
+        else:
+            return _res("dcf", "insufficient_data", missing=["net_debt (or reported borrowings and cash)"])
+
+    def per_share(r, g, tg):
+        pv = _dcf_pv(cf0, r, g, tg, years)
+        if pv is None:
+            return None
+        equity = pv - net_debt - claims if basis == "fcff" else pv
+        return equity / i["shares"]
+
+    r, g, tg = rng[rate_key], rng["cash_flow_growth"], rng["terminal_growth"]
+    vals = (per_share(r[2], g[0], tg[0]), per_share(r[1], g[1], tg[1]), per_share(r[0], g[2], tg[2]))
+    if any(v is None for v in vals):
+        return _res("dcf", "not_applicable", assumptions={"basis": basis, **rng, "years": years},
+                    note=f"{rate_key} must exceed terminal growth in every case")
+    grid = {f"{rate_key}={rr:.4f}": {f"tg={t:.4f}": per_share(rr, g[1], t) for t in tg} for rr in r}
+    base_pv = _dcf_pv(cf0, r[1], g[1], tg[1], years)
+    inputs_ = {"basis": basis, "discounted_at": rate_key, "present_value_kind": pv_kind,
+               "base_cash_flow": cf0, "years": years, "shares": i["shares"],
+               "base_present_value": base_pv,
+               "base_equity_value": base_pv - net_debt - claims if basis == "fcff" else base_pv}
+    if basis == "fcff":
+        inputs_.update(net_debt=net_debt, net_debt_source=nd_src, other_claims=claims)
+    return _res("dcf", "ok", cons=vals[0], base=vals[1], opt=vals[2], inputs_=inputs_,
+                assumptions={"basis": basis, **rng, "years": years}, sensitivity=grid,
+                note=("FCFF at WACC = enterprise value, less net debt and other claims = equity value"
+                      if basis == "fcff" else "FCFE at cost of equity = equity value (no net-debt deduction)")
+                + "; per-share model value under stated assumptions, not a forecast or target")
 
 
 def models(i: dict, assumptions: dict | None) -> list[dict]:
@@ -221,22 +318,6 @@ def models(i: dict, assumptions: dict | None) -> list[dict]:
             vals = (_gordon(i["dps_ttm"], r[2], g[0]), _gordon(i["dps_ttm"], r[1], g[1]),
                     _gordon(i["dps_ttm"], r[0], g[2]))
             grid = {f"r={rr:.4f}": {f"g={gg:.4f}": _gordon(i["dps_ttm"], rr, gg) for gg in g} for rr in r}
-        elif method == "dcf":
-            miss = _need(i, ("cfo", "capex", "shares"))
-            if miss:
-                out.append(_res(method, "insufficient_data", missing=miss, assumptions=aa))
-                continue
-            fcf_ps = (_v(i, "cfo") - abs(_v(i, "capex"))) / i["shares"]
-            if fcf_ps <= 0:
-                out.append(_res(method, "not_applicable", note="latest free cash flow is zero or negative",
-                                assumptions=aa))
-                continue
-            r, g, tg, n = aa["discount_rate"], aa["fcf_growth"], aa["terminal_growth"], aa["years"][1]
-            vals = (_dcf(fcf_ps, r[2], g[0], tg[0], n), _dcf(fcf_ps, r[1], g[1], tg[1], n),
-                    _dcf(fcf_ps, r[0], g[2], tg[2], n))
-            grid = {f"r={rr:.4f}": {f"tg={t:.4f}": _dcf(fcf_ps, rr, g[1], t, n) for t in tg} for rr in r}
-            note = ("free cash flow per share discounted; net debt is not deducted (stated); "
-                    "model value under the stated assumptions, not a forecast or target")
         else:  # justified_pb for banks
             miss = _need(i, ("profit_after_tax", "total_equity", "shares"))
             if miss:
@@ -263,7 +344,7 @@ def value(db, company_id: str, *, as_of: str, assumptions: dict | None = None, s
           strict_point_in_time: bool = False) -> dict:
     """Run every method; with `store`, write the valuations rows and dimension D (no band, U9)."""
     i = inputs(db, company_id, as_of=as_of, strict_point_in_time=strict_point_in_time)
-    results = multiples(i) + models(i, assumptions)
+    results = multiples(i) + models(i, assumptions) + [dcf(i, assumptions)]
     if store:
         for r in results:
             db.execute(

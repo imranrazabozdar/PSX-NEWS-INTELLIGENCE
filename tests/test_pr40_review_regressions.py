@@ -183,3 +183,87 @@ def test_connect_portfolio_refuses_a_research_schema(tmp_path):
     r.close()
     with pytest.raises(DatabaseConfigError):
         pf.connect_portfolio(f"sqlite://{path}")
+
+
+# ---------------------------------------------------------------- DCF basis (FCFF vs FCFE)
+def _dcf(db, **a):
+    rng = {"cash_flow_growth": (0.0, 0.0, 0.0), "terminal_growth": (0.0, 0.0, 0.0), "years": 1,
+           "base_cash_flow": 100_000.0}
+    out = va.value(db, "cmp-ogdc", as_of=AS_OF, assumptions={"dcf": {**rng, **a}}, store=False)
+    return {x["method"]: x for x in out["results"]}["dcf"]
+
+
+def test_fcff_at_wacc_gives_ev_then_equity(db):
+    _val_setup(db)  # shares derived 10,000; borrowings 80,000 + 20,000, cash 40,000 (PKR)
+    d = _dcf(db, basis="fcff", wacc=(0.10, 0.10, 0.10), other_claims=50_000.0)
+    # PV = 100,000/1.1 + 100,000/0.1/1.1 = 1,000,000 (enterprise value); net debt 60,000 (reported)
+    assert d["state"] == "ok" and d["inputs"]["present_value_kind"] == "enterprise_value"
+    assert d["inputs"]["base_present_value"] == pytest.approx(1_000_000)
+    assert d["inputs"]["net_debt"] == pytest.approx(60_000) and "reported" in d["inputs"]["net_debt_source"]
+    assert d["base"] == pytest.approx((1_000_000 - 60_000 - 50_000) / 10_000)
+
+
+def test_fcfe_at_cost_of_equity_is_equity_without_net_debt(db):
+    _val_setup(db)
+    d = _dcf(db, basis="fcfe", cost_of_equity=(0.10, 0.10, 0.10), net_debt=999_999.0)
+    assert d["inputs"]["present_value_kind"] == "equity_value" and "net_debt" not in d["inputs"]
+    assert d["base"] == pytest.approx(1_000_000 / 10_000)  # net debt never deducted from FCFE value
+
+
+def test_dcf_refuses_missing_or_mixed_inputs(db):
+    _val_setup(db)
+    assert _dcf(db, wacc=(0.1, 0.1, 0.1), other_claims=0)["state"] == "insufficient_data"  # no basis
+    assert "other_claims" in _dcf(db, basis="fcff", wacc=(0.1, 0.1, 0.1))["missing"]
+    mixed = _dcf(db, basis="fcff", cost_of_equity=(0.1, 0.1, 0.1), other_claims=0)
+    assert mixed["state"] == "insufficient_data" and "mix bases" in mixed["note"]
+    assert _dcf(db, basis="fcfe", wacc=(0.1, 0.1, 0.1))["state"] == "insufficient_data"
+    unordered = _dcf(db, basis="fcfe", cost_of_equity=(0.12, 0.10, 0.11))
+    assert unordered["state"] == "insufficient_data"
+    none = va.value(db, "cmp-ogdc", as_of=AS_OF, store=False)
+    assert {x["method"]: x for x in none["results"]}["dcf"]["state"] == "needs_assumptions"
+
+
+def test_dcf_net_debt_required_when_not_reported(db):
+    _val_setup(db, short_term=False)
+    d = _dcf(db, basis="fcff", wacc=(0.1, 0.1, 0.1), other_claims=0)
+    assert d["state"] == "insufficient_data" and d["base"] is None
+    assert _dcf(db, basis="fcff", wacc=(0.1, 0.1, 0.1), other_claims=0, net_debt=0.0)["state"] == "ok"
+
+
+def test_dcf_invalid_rate_and_terminal_consistency(db):
+    _val_setup(db)
+    bad = _dcf(db, basis="fcfe", cost_of_equity=(0.02, 0.03, 0.04), terminal_growth=(0.03, 0.03, 0.03))
+    assert bad["state"] == "not_applicable" and bad["base"] is None
+    # 2 explicit years at 10% growth, terminal growth 2%, discount 12%: hand calculation
+    d = _dcf(db, basis="fcfe", cost_of_equity=(0.12, 0.12, 0.12), years=2, cash_flow_growth=(0.1, 0.1, 0.1),
+             terminal_growth=(0.02, 0.02, 0.02))
+    c1, c2 = 110_000, 121_000
+    pv = c1 / 1.12 + c2 / 1.12 ** 2 + c2 * 1.02 / (0.12 - 0.02) / 1.12 ** 2
+    assert d["inputs"]["base_present_value"] == pytest.approx(pv)
+
+
+def test_dcf_sensitivity_keeps_basis_and_conversion(db):
+    _val_setup(db)
+    d = _dcf(db, basis="fcff", wacc=(0.09, 0.10, 0.11), other_claims=0.0)
+    assert set(d["sensitivity"]) == {"wacc=0.0900", "wacc=0.1000", "wacc=0.1100"}
+    cell = d["sensitivity"]["wacc=0.1000"]["tg=0.0000"]
+    assert cell == pytest.approx((1_000_000 - 60_000) / 10_000)  # every cell converts EV to equity
+    assert d["conservative"] < d["base"] < d["optimistic"]
+
+
+# ---------------------------------------------------------------- ROE bases
+def test_roe_closing_and_average_bases(db):
+    from engines import fundamentals as fu
+    from engines import reports
+
+    fin.promote(db, _imp(db, _corp())["report_id"])
+    one = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30")["ratios"]
+    assert one["roe"]["value"] == pytest.approx(0.7) and "closing" in one["roe"]["formula"]
+    assert one["roe_average_equity"]["state"] == "insufficient_data"  # no opening equity imported
+    fin.promote(db, _imp(db, _corp(period="2024-06-30", prev="2023-06-30", sha="b" * 64))["report_id"])
+    two = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30")["ratios"]
+    assert two["roe"]["value"] == pytest.approx(0.7)  # unchanged formula
+    assert two["roe_average_equity"]["value"] == pytest.approx(140 / ((200 + 170) / 2))
+    body = reports.company_report(db, "cmp-ogdc", as_of=AS_OF)
+    fp = body["fundamental_performance"]
+    assert "closing" in fp["roe"]["formula"] and fp["roe_average_equity"]["basis"] == "average equity"
