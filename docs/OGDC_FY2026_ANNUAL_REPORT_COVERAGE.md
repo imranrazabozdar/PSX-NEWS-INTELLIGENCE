@@ -12,6 +12,30 @@ This file is pages 1–100 of the annual report. It does **not** contain:
 
 The audited-statement analysis, notes analysis, auditor analysis and the 30 June 2026 residual resolution therefore cannot be performed from this upload. They are blocked on the remaining pages of the report.
 
+## Correction and update (supersedes the scope finding above for the audited statements)
+
+The audited statements, auditors' reports and notes are present in the separate upload `1e47a7a0-283468_compressed-101-229_1.pdf` (SHA-256 not recorded here; 60 PDF pages, printed report pages 101–229 in spread form). The scope finding above remains true for this 100-page file only.
+
+### Statement of Changes in Equity (verified)
+
+| Scope | Printed report page | PDF page of 1e47a7a0 file | Opening equity 1 Jul 2025 (Rs '000) | Profit (Rs '000) | OCI (Rs '000) | Distributions (Rs '000) | Closing equity 30 Jun 2026 (Rs '000) |
+|---|---|---|---|---|---|---|---|
+| Unconsolidated | 214 | 9 | 1,348,237,696 | 242,373,646 | (2,246,324) | (68,814,854) | 1,519,550,164 |
+| Consolidated | 312 | 58 (left half of spread) | 1,348,236,596 | 242,371,881 | (2,246,324) | (68,814,854) | 1,519,547,299 |
+
+Verification method:
+- **Image verified:** both spreads were rendered and visually inspected. The statements are rotated. The consolidated statement sits on the left half of PDF page 58, although that page's text header reads "Statement of Cash Flows" (the cash-flow statement is on the right half, printed page 313).
+- **Text-layer verified:** the decoded text layer agrees with the visually checked headings and key totals. Individual cells were **not** visually rechecked. Column sums and roll-forwards were checked arithmetically against the text layer (unconsolidated closing column sum; opening 2025 column sum; dividends; unappropriated-profit roll-forward; consolidated closing equity agrees with the consolidated Statement of Financial Position on PDF page 56 of the 1e47a7a0 file; printed page not verified).
+
+Cross-scope differences (Rs '000, consolidated minus unconsolidated):
+- Opening equity 1 Jul 2025: −1,100.
+- Profit for the year: −1,765.
+- Closing equity 30 Jun 2026: −2,865.
+
+These differences are internally consistent: the closing difference equals the opening difference plus the profit difference (−1,100 − 1,765 = −2,865). Amounts are in Rupees thousand; they are not million or billion figures.
+
+Scope note: the 100-page file (`f1bebdd8…pdf`) contains no equity statement, and the 558d1d1a file contains none either. Only the 1e47a7a0 file does.
+
 ## Page register
 
 | Page | Section (from opening lines) | Extraction status | Analysis status |
