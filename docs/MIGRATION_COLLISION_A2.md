@@ -20,8 +20,8 @@ as applied without creating its tables.
 | `tests/test_turso_disposable_a2_rehearsal.py` | Harness: SQLite leg (always) + Turso leg (gated, disposable database only) |
 | `docs/MIGRATION_COLLISION_A2.md` | This document |
 
-## The transaction (A2), as delivered and left unchanged
-One transaction: a guard (TEMP table whose CHECK fails unless `extraction_reviews` has 0 rows, version 11 has exactly the
+## The transaction (A2), Option B guard
+One transaction: a guard (permanent `_a2_guard` table, created and dropped inside the transaction, whose CHECK fails unless `extraction_reviews` has 0 rows, version 11 has exactly the
 expected name and checksum, and 11 is the highest version), then `DROP VIEW v_review_queue`, `DROP TRIGGER`
 x2, `DROP INDEX`, `DROP TABLE extraction_reviews`, `DELETE FROM schema_migrations` (name and checksum matched), `DROP TABLE` guard.
 The foreign migration's SQL is embedded verbatim in the test and its SHA-256 is asserted, so the checksum cannot drift.
@@ -34,15 +34,14 @@ conditional on the `COMMIT` step not succeeding. Consequences for the guard:
   `batch` raises `DatabaseError`. A missing `extraction_reviews` table (a re-run) also errors and aborts.
 * **Already proven on Turso by this repository's own rehearsals:** DDL inside this batch pattern is transactional
   (a failing migration leaves no table and no `schema_migrations` row).
-* **NOT proven on Turso:** that a `CREATE TEMP TABLE` is accepted and behaves as on SQLite inside that stream. SQLite
-  passing does not establish this. The Turso leg of the harness is the test; until it runs, the guard is unverified on Turso.
-* **Rule:** if Turso rejects the guard, the guard is NOT changed in this repository by the person running the rehearsal.
-  Stop and report; the alternatives below are for the owner to approve.
+* **Why Option B:** the earlier TEMP-table guard could not be assumed to work on Turso's stream. The permanent guard table uses only
+  ordinary DDL. It is still **NOT proven on Turso until the Turso leg of the harness has run**; SQLite passing does not establish it.
+* **Rule:** if Turso rejects it, stop and report. Another guard is accepted only with proven database-enforced rollback;
+  an application-only guard is never substituted.
 
-### Alternatives (proposals for approval; NOT implemented; each checked on SQLite only)
+### Alternatives (fallbacks only if Option B fails on Turso; NOT implemented)
 | | Guard | Notes |
 |---|---|---|
-| B | A permanent `_a2_guard` table (same CHECK) created and dropped inside the transaction | Uses only DDL already proven transactional on Turso; no TEMP schema |
 | C | `SELECT json(CASE WHEN <conditions> THEN '1' ELSE 'guard failed' END)` as the first step | No objects at all; the error skips the later steps; depends on libSQL's JSON functions |
 | E | No in-transaction guard: rely on the read-only pre-flight run immediately before, the writer freeze and the backup | Weakest; only if A-C are all rejected |
 
@@ -53,17 +52,19 @@ conditional on the `COMMIT` step not succeeding. Consequences for the guard:
 * Targeting production is blocked twice: the existing `tests/turso_guard.py` deny-list (host, marker, token) and a positive
   allow-list in this change: the host must start with `psxni-migration-rehearsal-`. The script applies the same checks to `--target disposable`.
 * The script is a dry run unless `--execute --confirm retire-migration-11 --backup-sha256 <64 hex> --approval-id <ref>` are all given.
-* Read budget: the production run reads about three full passes of the data (counts before, counts after, and the foreign-key scan inside
-  `integrity.check`; the script runs no other foreign-key scan). It estimates this (3 x total rows, about 45,000 at 14,959 rows) and
-  refuses when it exceeds the per-run budget (default 50,000). Raising the budget needs the owner's approval (runbook section 1). If verification
-  fails after the COMMIT (for example on budget), the status is `remediated_check_failed`, never an unhandled error.
+* Read budget: two full count passes only (pre-flight, whose result is reused for the expected digest, and post-flight) plus a
+  2,000-row reserve for the ledger, runner dry-run and integrity check: about 32,000 reads at 14,959 rows (previously ~45,000).
+  Execution is refused unless the estimate with 25% headroom fits the per-run budget (default 50,000) AND enough budget remains
+  after the pre-flight reads for the post-flight. If verification still cannot finish after the COMMIT, the status is
+  `remediated_check_failed` (never "verified") and the message says the change COMMITTED; run `--verify-only --expect-post-digest <hex>`
+  in a fresh process (fresh budget). Do not re-run `--execute`.
 
 ## Tests
-* `pytest tests/test_turso_disposable_a2_rehearsal.py`: SQLite leg only without disposable variables (13 passed, 9 skipped).
+* `pytest tests/test_turso_disposable_a2_rehearsal.py`: SQLite leg only without disposable variables (17 passed, 9 skipped).
 * Turso leg (not yet run): create a FRESH database named `psxni-migration-rehearsal-<date>...` in the production region with a
   database-scoped token expiring in about 2 hours, keep the token in a private scratch file, then
   `PSXNI_TURSO_DISPOSABLE_DATABASE_URL=... PSXNI_TURSO_DISPOSABLE_AUTH_TOKEN=... pytest tests/test_turso_disposable_a2_rehearsal.py -rs`.
-  Expect 22 passed. Do not reuse the database of the other gate-3 modules. Afterwards delete the database, confirm its host returns 404,
+  Expect 26 passed. Do not reuse the database of the other gate-3 modules. Afterwards delete the database, confirm its host returns 404,
   shred the token file, and record the evidence (names, times, results, no secrets) in `docs/OPERATIONS_RUNBOOK.md` section 7.
 * If the Turso leg fails on the guard (tests 04-07): stop, record the exact error, and take the alternatives above to the owner.
 

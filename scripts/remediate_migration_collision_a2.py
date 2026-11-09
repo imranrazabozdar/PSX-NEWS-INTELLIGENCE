@@ -11,7 +11,8 @@ Safety:
 * Default is a read-only dry run: it checks the pre-conditions and prints the plan.
 * `--execute` also needs `--confirm retire-migration-11`, `--backup-sha256 <64 hex>` (the recorded
   SHA-256 of the backup, runbook step 1) and `--approval-id <text>` (the owner's approval reference).
-* The transaction starts with an atomic guard: a TEMP table whose CHECK fails unless
+* The transaction starts with an atomic guard: a permanent (non-TEMP) `_a2_guard` table, created and
+  dropped inside the transaction, whose CHECK fails unless
   (a) extraction_reviews has 0 rows, (b) version 11 has exactly the expected name and checksum, and
   (c) 11 is the highest version. If the guard fails, the whole transaction rolls back.
 * `--target` is required (no default): `disposable` reads PSXNI_TURSO_DISPOSABLE_* and must be a database
@@ -53,7 +54,9 @@ CONFIRM_PHRASE = "retire-migration-11"
 REPO_VERSIONS_AFTER = (11, 12, 13, 14)
 # Full-table reads in one execute run: counts before, counts after, and the foreign-key scan inside
 # integrity.check. The script itself runs no other foreign-key scan, to stay inside the per-run budget.
-READ_PASSES = 3
+READ_PASSES = 2  # one full count scan in pre-flight, one in post-flight (pre-flight result is reused)
+READ_RESERVE_ROWS = 2_000  # ledger/schema reads, runner dry-run and integrity check
+READ_HEADROOM = 1.25  # refuse unless the budget covers the estimate with 25% to spare
 REHEARSAL_HOST_PREFIX = "psxni-migration-rehearsal-"
 
 Statement = tuple[str, Sequence[Any]]
@@ -62,7 +65,7 @@ Statement = tuple[str, Sequence[Any]]
 def remediation_statements(expected_checksum: str = FOREIGN_CHECKSUM) -> list[Statement]:
     """The exact transaction. The first two statements are the atomic guard."""
     return [
-        ("CREATE TEMP TABLE _a2_guard(ok INTEGER CHECK (ok = 1))", ()),
+        ("CREATE TABLE _a2_guard(ok INTEGER NOT NULL CHECK (ok = 1))", ()),
         (
             "INSERT INTO _a2_guard SELECT CASE WHEN "
             "(SELECT COUNT(*) FROM extraction_reviews) = 0 "
@@ -124,6 +127,10 @@ def preflight(db: Database) -> dict[str, Any]:
     present = {(r["type"], r["name"]) for r in db.execute(
         "SELECT type, name FROM sqlite_master WHERE name LIKE '%extraction_reviews%' "
         "OR name = 'v_review_queue'")}
+    if any(r["name"] == "_a2_guard" for r in db.execute(
+            "SELECT name FROM sqlite_master WHERE name = '_a2_guard'")):
+        problems.append("a leftover _a2_guard table exists: inspect before running")
+    present.discard(("table", "_a2_guard"))
     if present != set(FOREIGN_OBJECTS):
         problems.append(f"foreign objects differ from the expected five: {sorted(present)}")
     rows = None
@@ -137,12 +144,21 @@ def preflight(db: Database) -> dict[str, Any]:
     if dependents:
         problems.append(f"other objects reference extraction_reviews: {dependents}")
     counts = table_counts(db)
-    estimate = READ_PASSES * sum(counts.values())
+    estimate = READ_PASSES * sum(counts.values()) + READ_RESERVE_ROWS
     limit = getattr(db, "max_rows_read", None)
-    if limit is not None and estimate > limit:
+    if limit is not None and estimate * READ_HEADROOM > limit:
         problems.append(
-            f"estimated rows read {estimate} exceeds the per-run read budget {limit}: raising "
-            "PSXNI_DB_MAX_ROWS_READ for this run needs the owner's approval (runbook section 1)")
+            f"estimated rows read {estimate} (x{READ_HEADROOM} headroom) exceeds the per-run read budget "
+            f"{limit}: raising PSXNI_DB_MAX_ROWS_READ for this run needs the owner's approval "
+            "(runbook section 1)")
+    used = getattr(db, "usage", None)
+    if callable(used) and limit is not None:
+        # what the post-COMMIT verification still needs must remain after the pre-flight reads
+        remaining = limit - int(used().get("rows_read", 0))
+        needed = sum(counts.values()) + READ_RESERVE_ROWS
+        if remaining < needed * READ_HEADROOM:
+            problems.append(f"only {remaining} rows of read budget remain after pre-flight; the "
+                            f"post-flight verification needs about {needed}: refusing")
     return {
         "estimated_rows_read": estimate,
         "ledger_versions": [r["version"] for r in ledger],
@@ -166,7 +182,7 @@ def postflight(db: Database, pre: dict[str, Any]) -> dict[str, Any]:
     if left:
         problems.append(f"foreign objects still present: {left}")
     counts = table_counts(db)
-    if counts != expected_post_counts(pre["counts"]):
+    if pre["counts"] is not None and counts != expected_post_counts(pre["counts"]):
         diff = {k: (pre["counts"].get(k), counts.get(k)) for k in set(pre["counts"]) | set(counts)
                 if pre["counts"].get(k) != counts.get(k)}
         problems.append(f"row counts differ beyond the expected change: {diff}")
@@ -183,6 +199,8 @@ def postflight(db: Database, pre: dict[str, Any]) -> dict[str, Any]:
     if report["problems"]:
         problems.append(f"integrity check: {report['problems']}")
     digest = counts_digest(counts)
+    if digest != pre["expected_post_digest"]:
+        problems.append("row-count digest differs from the expected post-remediation digest")
     return {"ledger_versions": versions, "runner_would_apply": would, "integrity_state": report["state"],
             "digest": digest, "digest_matches_expected": digest == pre["expected_post_digest"],
             "problems": problems}
@@ -224,13 +242,34 @@ def run(db: Database, *, execute: bool = False, backup_sha256: str = "", approva
         post = postflight(db, pre)
     except DatabaseError as exc:  # the transaction COMMITTED; only the verification could not finish
         report["status"] = "remediated_check_failed"
-        report["error"] = f"post-flight verification did not finish: {str(exc)[:200]}"
+        report["error"] = (
+            f"the transaction COMMITTED but post-flight verification did not finish: {str(exc)[:200]}. "
+            "Do NOT treat this as verified and do NOT re-run --execute; run --verify-only in a fresh "
+            "process with --expect-post-digest")
         return report
     report["postflight"] = post
     report["status"] = "remediated_verified" if not post["problems"] else "remediated_check_failed"
     usage = getattr(db, "usage", None)
     if callable(usage):
         report["usage"] = usage()
+    return report
+
+
+def verify_only(db: Database, expect_post_digest: str) -> dict[str, Any]:
+    """Read-only post-remediation verification in a fresh process (fresh read budget)."""
+    report: dict[str, Any] = {"mode": "verify_only"}
+    if not re.fullmatch(r"[0-9a-f]{64}", expect_post_digest):
+        report["status"] = "refused"
+        report["problems"] = ["--verify-only needs the 64-hex --expect-post-digest from the approved plan"]
+        return report
+    try:
+        post = postflight(db, {"counts": None, "expected_post_digest": expect_post_digest})
+    except DatabaseError as exc:
+        report["status"] = "verify_failed"
+        report["error"] = str(exc)[:200]
+        return report
+    report["postflight"] = post
+    report["status"] = "verified" if not post["problems"] else "verify_failed"
     return report
 
 
@@ -279,7 +318,14 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--approval-id", default="")
     p.add_argument("--expect-pre-digest", default="")
     p.add_argument("--expect-post-digest", default="")
+    p.add_argument("--verify-only", action="store_true",
+                   help="read-only post-remediation check in a fresh process (needs --expect-post-digest)")
     a = p.parse_args(argv)
+    if a.verify_only:
+        report = verify_only(_connect(a.target), a.expect_post_digest)
+        report["target"] = a.target
+        print(json.dumps(report, indent=1, sort_keys=True, default=str))
+        return 0 if report["status"] == "verified" else 3
     report = run(_connect(a.target), execute=a.execute, backup_sha256=a.backup_sha256,
                  approval_id=a.approval_id, confirm=a.confirm, expect_pre_digest=a.expect_pre_digest,
                  expect_post_digest=a.expect_post_digest)

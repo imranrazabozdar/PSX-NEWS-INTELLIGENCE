@@ -267,3 +267,65 @@ def test_12_post_flight_failure_after_commit_is_reported_not_raised(tmp_path, mo
     assert report["status"] == "remediated_check_failed" and "did not finish" in report["error"]
     # the change DID commit even though verification could not finish
     assert not d.execute("SELECT 1 FROM sqlite_master WHERE name = 'extraction_reviews'")
+
+
+def test_13_failed_guard_leaves_no_guard_table_and_no_partial_change(tmp_path):
+    d = SQLiteDatabase(":memory:")
+    _build_collision_state(d, tmp_path)
+    before = a2.table_counts(d)
+    with pytest.raises(DatabaseError):
+        d.batch(a2.remediation_statements("0" * 64), transactional=True)    # wrong checksum: guard fails
+    assert not d.execute("SELECT 1 FROM sqlite_master WHERE name = '_a2_guard'")
+    assert a2.table_counts(d) == before
+    assert d.execute("SELECT 1 FROM schema_migrations WHERE version = 11")
+    assert len(d.execute("SELECT 1 FROM sqlite_master WHERE name LIKE '%extraction_reviews%' "
+                         "OR name = 'v_review_queue'")) == 5
+
+
+def test_14_leftover_guard_table_is_refused_by_preflight(tmp_path):
+    d = SQLiteDatabase(":memory:")
+    _build_collision_state(d, tmp_path)
+    d.execute("CREATE TABLE _a2_guard(ok INTEGER)")
+    assert any("_a2_guard" in p for p in a2.preflight(d)["problems"])
+
+
+def test_15_verify_only_confirms_a_remediated_database_and_rejects_others(tmp_path):
+    d = SQLiteDatabase(":memory:")
+    _build_collision_state(d, tmp_path)
+    pre = a2.preflight(d)
+    assert a2.verify_only(d, "bad")["status"] == "refused"
+    assert a2.verify_only(d, pre["expected_post_digest"])["status"] == "verify_failed"   # not remediated yet
+    report = a2.run(d, execute=True, confirm=a2.CONFIRM_PHRASE, backup_sha256="f" * 64, approval_id="A")
+    assert report["status"] == "remediated_verified"
+    assert a2.verify_only(d, pre["expected_post_digest"])["status"] == "verified"
+    assert a2.verify_only(d, "0" * 64)["status"] == "verify_failed"
+
+
+def test_16_budget_exhausted_after_commit_is_never_reported_as_verified(tmp_path):
+    class Budgeted(SQLiteDatabase):
+        max_rows_read = 10_000
+        used = 0
+        armed = False
+
+        def usage(self):
+            return {"requests": 0, "rows_read": self.used, "rows_written": 0}
+
+        def batch(self, statements, transactional=True):
+            result = super().batch(statements, transactional=transactional)
+            if transactional and self.armed:
+                self.used = self.max_rows_read              # the remediation consumed the whole budget
+                self.exhausted = True
+            return result
+
+        def execute(self, sql, params=()):
+            if getattr(self, "exhausted", False):
+                raise DatabaseError("per-run database budget exhausted")
+            return super().execute(sql, params)
+
+    d = Budgeted(":memory:")
+    _build_collision_state(d, tmp_path)
+    d.armed = True
+    report = a2.run(d, execute=True, confirm=a2.CONFIRM_PHRASE, backup_sha256="f" * 64, approval_id="A")
+    assert report["status"] == "remediated_check_failed"
+    assert "COMMITTED" in report["error"] and "--verify-only" in report["error"]
+    assert report["status"] != "remediated_verified"
