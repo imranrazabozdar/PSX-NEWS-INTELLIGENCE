@@ -303,7 +303,13 @@ def test_efficiency_and_dividend_ratios(db):
     r = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30", as_of=AS_OF)["ratios"]
     assert r["asset_turnover"]["value"] == pytest.approx(2.0)
     assert r["receivable_days"]["value"] == pytest.approx(365 * 50 / 1000)
-    assert r["inventory_days"]["value"] == pytest.approx(365 * 60 / 600)
+    # OGDC is upstream oil and gas: the sector matrix makes inventory days conditional, so no value is shown.
+    assert r["inventory_days"]["state"] == "conditional_unverified" and r["inventory_days"]["value"] is None
+    # the arithmetic itself is unchanged and is checked on the ratio function directly
+    inv = {"value": 60.0, "metric_id": 1, "basis": "reported"}
+    cos = {"value": -600.0, "metric_id": 2, "basis": "reported"}
+    raw = fu.ratio("inventory_days", {"inventory": inv, "cost_of_sales": cos}, "corporate", 12)
+    assert raw["value"] == pytest.approx(365 * 60 / 600)
     assert r["payout_ratio"]["value"] == pytest.approx(0.25)
     assert r["dividend_cover_fcf"]["value"] == pytest.approx((175 - 70) / 35)
     fin.promote(db, _imp(db, _corp(period="2024-06-30", prev="2023-06-30", sha="b" * 64))["report_id"])

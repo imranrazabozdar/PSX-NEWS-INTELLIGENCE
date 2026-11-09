@@ -234,3 +234,14 @@ M10 follows each module separately.
 - M3 ratios: hardened (interim periods, approximations, average-balance ratios available when an opening balance is promoted, scope isolation). Profit-based ratios depend on the owner-approved OGDC mappings.
 - M5 valuation: not validated. No market price, share count history or forecast in the documents.
 - OCR: bounded Tesseract evaluation completed on 2 scanned pages; not approved for production.
+
+
+## Update (2026-11-09): status after the OGDC accounting validation and multi-sector step
+
+- M2 intake and layout: merged (#47); #48 blocked by a CodeQL gate at time of writing (see the final report).
+- OGDC accounting validation: consolidated/unconsolidated schedule, cash definition (note 23), cash-flow adjustments
+  subtotal (structural), controlled comparative balance promotion: implemented and tested; real-data results in
+  `docs/OGDC_ACCOUNTING_RECONCILIATION.md`. Two 30 June 2026 residuals remain unresolved.
+- M3: sector applicability and average-balance ratios implemented; real-data validation only for OGDC.
+- CFA-style layer: F2 indicators implemented (synthetic, hand-calculated); F1, F3, F5 partly; F4, F6, F7 not started.
+- M5: gap analysis in `docs/M5_VALUATION_GAP_ANALYSIS.md`; not validated.

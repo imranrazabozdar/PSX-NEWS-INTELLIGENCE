@@ -296,8 +296,22 @@ def analyse(db, company_id: str, *, period_end: str, as_of: str, period_type: st
     g = {k: growth(m, pm, k) for k in GROWTH}
     ratios["roe_average_equity"] = roe_average(m, pm, framework)
     ratios["dividend_cover_fcf"] = _dividend_cover(m)
+    from engines import sector_applicability as _sa
+
+    applicability = _sa.company_applicability(db, company_id, sorted(RATIOS))
+    # The sector matrix gates the calculation: a not-applicable measure is excluded, and a conditional measure
+    # stays conditional (no value) until its stated condition is verified.
+    for name in RATIOS:
+        klass = (applicability.get("ratios") or {}).get(name)
+        if klass == "not_applicable":
+            ratios[name] = {**ratios[name], "state": "not_applicable", "value": None,
+                            "gated_by": "sector_applicability"}
+        elif klass == "conditional" and ratios[name].get("value") is not None:
+            ratios[name] = {**ratios[name], "state": "conditional_unverified", "value": None,
+                            "gated_by": "sector_applicability"}
     return {"company_id": company_id, "framework": framework, "period_end": period_end, "as_of": as_of,
             "period_type": period_type, "scope": scope, "prior_period_end": prior, "ratios": ratios,
+            "applicability": applicability,
             "growth": g, "fcf": _fcf(m), "filing_dates_unknown": unknown, "strict": strict,
             "state": "ok" if not unknown or strict else "ok_with_unknown_filing_dates"}
 
