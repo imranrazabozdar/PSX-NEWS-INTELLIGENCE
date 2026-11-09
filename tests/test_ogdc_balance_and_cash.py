@@ -257,3 +257,39 @@ def test_average_ratios_are_insufficient_when_the_opening_balance_is_missing(db)
     a = fu.analyse(db, "cmp-ogdc", period_end=CLOSE, as_of="2026-11-09", period_type="Q1")["ratios"]
     assert a["asset_turnover_average"]["state"] == "insufficient_data"
     assert a["asset_turnover_average"]["missing"] == ["opening total_assets"]
+
+
+def test_a_balance_point_comparative_never_becomes_the_latest_fiscal_year(db):
+    """Review defect: a promoted 30 June balance (stored as FY) became the latest fiscal year, so the
+    report would show balances with no performance. The latest year must be a full fiscal year."""
+    from engines import reports
+
+    full = fin.import_report(
+        db,
+        _rec(
+            [
+                {
+                    "statement": "IS",
+                    "raw_label": "Revenue",
+                    "column_period_end": "2025-06-30",
+                    "value": 1000.0,
+                    "page": 1,
+                    "canonical_code": "revenue",
+                }
+            ],
+            period="2025-06-30",
+            doc_type="annual",
+            sha="1" * 64,
+        ),
+        importer="o",
+        rights_attestation="s",
+    )["report_id"]
+    fin.promote(db, full)
+    interim = fin.import_report(
+        db,
+        _rec([_bs("total_assets", CLOSE, 2000.0), _bs("total_assets", OPEN, 1600.0)], sha="2" * 64),
+        importer="o",
+        rights_attestation="s",
+    )["report_id"]
+    assert fin.promote_balance_comparative(db, interim, OPEN)["promoted"] == 1
+    assert reports._latest_fy(db, "cmp-ogdc", "2026-11-09", strict=True) == "2025-06-30"

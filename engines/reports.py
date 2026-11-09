@@ -38,6 +38,8 @@ def _latest_fy(db, company_id: str, as_of: str, strict: bool = True) -> str | No
         "SELECT MAX(m.period_end) AS p FROM financial_metrics m "
         "LEFT JOIN financial_reports r USING(report_id) "
         "WHERE m.company_id = ? AND m.period_type = 'FY' AND m.period_end <= ? AND "
+        # a point-in-time balance comparative is not a fiscal year of performance: it must not become 'latest'
+        "(m.calculation_method IS NULL OR m.calculation_method NOT LIKE 'balance_point_comparative%') AND "
         "((r.filed_at_utc IS NULL AND ? = 0) OR (r.filed_at_utc IS NOT NULL AND "
         "substr(r.filed_at_utc, 1, 10) <= ?))", (company_id, as_of, int(strict), as_of))[0]["p"]
 
