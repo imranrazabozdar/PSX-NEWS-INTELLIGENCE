@@ -213,7 +213,7 @@ def import_report(db, rec: dict, *, importer: str, rights_attestation: str) -> d
     company_id = comp[0]["company_id"]
     framework = framework_for(db, company_id)
     item = repo.record_source_item(
-        db, source_id=SOURCE_ID, collected_at_utc=rec.get("retrieved_at_utc") or _now(),
+        db, source_id=SOURCE_ID, collected_at_utc=rec.get("receipt_at_utc") or _now(),
         url=rec.get("original_url"),
         external_id=f"doc:{rec['document_sha256']}:{rec['scope']}", content_hash=rec["document_sha256"],
         title=rec.get("title") or f"{rec['company_ticker']} {rec['doc_type']} {rec['period_end']}",
@@ -221,7 +221,8 @@ def import_report(db, rec: dict, *, importer: str, rights_attestation: str) -> d
         provenance={"retrieval_method": "manual", "document_type": rec["doc_type"],
                     "source_metadata_json": json.dumps({
                         "importer": importer, "rights_attestation": rights_attestation,
-                        "extraction_method": rec.get("extraction_method", "manual")})})
+                        "extraction_method": rec.get("extraction_method", "manual"),
+                        **(rec.get("provenance_extra") or {})})})
     sid = item.source_item_id
     existing = db.execute("SELECT report_id FROM financial_reports WHERE company_id = ? AND doc_type = ? AND "
                           "period_end = ? AND scope = ? AND source_item_id = ?",
@@ -253,7 +254,8 @@ def import_report(db, rec: dict, *, importer: str, rights_attestation: str) -> d
     for ln in rec["lines"]:
         k = (ln["statement"], ln["column_period_end"])
         line_no[k] = line_no.get(k, 0) + 1
-        code = mapping.get((ln["statement"], normalise_label(ln["raw_label"])))
+        # a structurally recognised total carries its code from its rule; an explicit label is mapped by name
+        code = ln.get("canonical_code") or mapping.get((ln["statement"], normalise_label(ln["raw_label"])))
         if code is None:
             unmapped.append(ln["raw_label"])
         v = ln.get("value")

@@ -59,6 +59,9 @@ class Page:
     lines: list[str]
     has_text: bool
     tables: list[list[list[str]]] = field(default_factory=list)  # optional, reader-specific
+    column: str | None = None  # "L" or "R" when a side-by-side page was split into statement columns
+    layout_flag: str | None = None  # "uncertain" when the layout could not be established: manual review
+    repairs: list[dict] = field(default_factory=list)  # touching-glyph joins, each with its original text
 
 
 @dataclass
@@ -130,10 +133,15 @@ def to_statement_lines(doc: DocumentText, statement: str, pages: list[int], *, c
         if not pg.has_text:
             unparsed.append({"page": pg.number, "line": None, "reason": "no text layer: OCR required"})
             continue
+        if pg.layout_flag == "uncertain":
+            unparsed.append({"page": pg.number, "line": None, "reason": (
+                "layout uncertain: side-by-side boundary not established, manual review")})
+            continue
         parsed = parse_statement_text("\n".join(pg.lines), statement=statement, columns=columns,
                                       page=pg.number)
-        lines.extend(parsed["lines"])
-        unparsed.extend({**u, "page": pg.number} for u in parsed["unparsed"])
+        tag = {"column": pg.column} if pg.column else {}
+        lines.extend({**ln, **tag} for ln in parsed["lines"])
+        unparsed.extend({**u, "page": pg.number, **tag} for u in parsed["unparsed"])
     return {"lines": lines, "unparsed": unparsed}
 
 

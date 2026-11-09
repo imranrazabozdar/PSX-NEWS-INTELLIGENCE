@@ -34,7 +34,7 @@ def _meta(**kw):
     m = {"company_ticker": "OGDC", "doc_type": "annual", "period_end": "2025-06-30",
          "scope": "unconsolidated",
          "currency": "PKR", "unit_scale": 1000, "audit_status": "audited", "columns": COLS,
-         "retrieved_at_utc": "2026-11-09T10:00:00Z", "filed_at_utc": "2025-09-30T00:00:00Z",
+         "receipt_at_utc": "2026-11-09T10:00:00Z", "filed_at_utc": "2025-09-30T00:00:00Z",
          "original_url": "https://example.invalid/synthetic-report.pdf"}
     m.update(kw)
     return m
@@ -110,11 +110,25 @@ def test_scanned_page_is_flagged_and_no_figures_are_invented(db, tmp_path, vault
     assert all(x["page"] == 1 for x in db.execute("SELECT page FROM financial_line_items"))
 
 
-def test_retrieval_date_is_kept_separately_from_the_import_time(db, tmp_path, vault):
+def test_receipt_date_is_kept_and_an_unknown_download_date_is_never_filled_in(db, tmp_path, vault):
+    """The upload/receipt date is recorded as receipt; a download date that was not supplied is 'unknown',
+    never the receipt date."""
     pdf = _pdf(tmp_path, "t.pdf", [["Statement of profit or loss", "Revenue 1,000 800"]])
-    di.intake(db, pdf, _meta(), vault=vault, importer="owner", rights_attestation=SYNTH)
-    row = db.execute("SELECT collected_at_utc FROM source_items WHERE external_id LIKE 'doc:%'")[0]
+    r = di.intake(db, pdf, _meta(), vault=vault, importer="owner", rights_attestation=SYNTH)
+    row = db.execute("SELECT collected_at_utc, source_metadata_json FROM source_items "
+                     "WHERE external_id LIKE 'doc:%'")[0]
     assert row["collected_at_utc"] == "2026-11-09T10:00:00Z"
+    assert '"download_at_utc": "unknown"' in row["source_metadata_json"]
+    assert r["dates"]["download_at_utc"] == "unknown"
+
+
+def test_a_supplied_download_date_is_recorded_as_supplied(db, tmp_path, vault):
+    pdf = _pdf(tmp_path, "d.pdf", [["Statement of profit or loss", "Revenue 1,000 800"]])
+    di.intake(db, pdf, _meta(download_at_utc="2026-11-08T18:30:00Z"), vault=vault, importer="owner",
+              rights_attestation=SYNTH)
+    meta_json = db.execute("SELECT source_metadata_json FROM source_items WHERE external_id LIKE 'doc:%'")[0][
+        "source_metadata_json"]
+    assert '"download_at_utc": "2026-11-08T18:30:00Z"' in meta_json
 
 
 def test_source_and_metadata_are_required(db, tmp_path, vault):
@@ -123,6 +137,9 @@ def test_source_and_metadata_are_required(db, tmp_path, vault):
         di.intake(db, pdf, _meta(original_url=None), vault=vault, importer="owner", rights_attestation=SYNTH)
     with pytest.raises(di.IntakeError, match="missing metadata"):
         di.intake(db, pdf, _meta(currency=None), vault=vault, importer="owner", rights_attestation=SYNTH)
+    with pytest.raises(di.IntakeError, match="receipt_at_utc"):
+        di.intake(db, pdf, _meta(receipt_at_utc=None), vault=vault, importer="owner",
+                  rights_attestation=SYNTH)
     with pytest.raises(di.IntakeError, match="not in the company master"):
         di.intake(db, pdf, _meta(company_ticker="NOPE"), vault=vault, importer="owner",
                   rights_attestation=SYNTH)

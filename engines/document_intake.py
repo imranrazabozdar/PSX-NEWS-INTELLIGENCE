@@ -1,18 +1,26 @@
-"""Owner-assisted document intake (M2): owner-downloaded PDFs to a reproducible, page-referenced import.
+"""Owner-assisted document intake (M2): owner-supplied PDFs to a reproducible, page-referenced import.
 
-The owner downloads a document in their own browser and supplies the file. This module never fetches
-anything. It:
+The owner supplies a document they downloaded in their own browser. This module never fetches anything. It:
 
 * checks the file is a readable PDF (pdfplumber, the approved reader) before storing anything;
-* stores the ORIGINAL bytes in a vault directory OUTSIDE the Git repository, named by SHA-256, never
-  overwritten with different content;
-* detects an identical document (same SHA-256 already imported) and a possible revised version (same
-  company, report type, period and scope, different bytes), which is reported and NOT imported;
-* extracts statement lines with page references and records unparsed lines and scanned pages for review;
-* hands the result to engines/financials.import_report, which keeps the existing reconciliation,
-  page-reference and promotion gates. Nothing is promoted here.
+* stores the ORIGINAL bytes in a vault OUTSIDE the Git repository, named by SHA-256; a file with the same
+  hash and different bytes is never overwritten;
+* treats a document as a duplicate only when the same bytes were already imported for the same company,
+  report type, period AND scope; the same file may legitimately hold consolidated and unconsolidated
+  statements;
+* reports a possible revision (same company, report type, period and scope, different bytes) and does NOT
+  import it;
+* reads side-by-side pages only when they are listed in `split_pages`, and then via layout detection;
+* extracts statement lines with page references, adds subtotal rows recognised by deterministic rules
+  (engines/subtotals.py, rule recorded in the stored label), and flags everything else for review;
+* imports through engines/financials.import_report, which keeps the reconciliation, page-reference and
+  promotion gates. Nothing is promoted here.
 
-No OCR, no external processing, no network access.
+Dates are kept separate: publication (filed_at_utc), owner download (download_at_utc, or "unknown" when not
+supplied), receipt by the project (receipt_at_utc, the upload date) and the financial import time. A missing
+download date is never replaced by the receipt date.
+
+No OCR, no network access, no external processing.
 """
 
 from __future__ import annotations
@@ -24,12 +32,12 @@ from pathlib import Path
 
 from engines import financials as fin
 from engines import pdf_extraction as pe
-from engines import pdf_reader
+from engines import pdf_reader, subtotals
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 VAULT_ENV = "PSXNI_DOCUMENT_VAULT"
 _REQUIRED = ("company_ticker", "doc_type", "period_end", "scope", "currency", "unit_scale", "audit_status",
-             "columns", "retrieved_at_utc", "filed_at_utc")
+             "columns", "receipt_at_utc", "filed_at_utc")
 STATEMENTS = ("IS", "BS", "CF", "EQ")
 
 
@@ -66,7 +74,7 @@ def store_original(pdf: Path | str, vault: Path) -> tuple[Path, str]:
     sha = pe.sha256_file(src)
     dest = vault / f"{sha}.pdf"
     if dest.exists():
-        if dest.read_bytes() != data:  # a SHA-256 collision or a corrupted vault: never overwrite
+        if dest.read_bytes() != data:  # never overwrite with different bytes
             raise IntakeError("vault file with this hash has different bytes; refusing to overwrite")
         return dest, sha
     fd, tmp = tempfile.mkstemp(dir=vault, suffix=".part")
@@ -94,11 +102,14 @@ def _ticker_company(db, ticker: str) -> str:
     return row[0]["company_id"]
 
 
-def _existing_by_hash(db, sha: str) -> dict | None:
+def _existing_same_document(db, sha: str, company_id: str, meta: dict) -> dict | None:
+    """Same bytes for the same company, report type, period AND scope: a duplicate."""
     row = db.execute(
-        "SELECT fr.report_id, fr.company_id, fr.doc_type, fr.period_end, fr.scope FROM financial_reports fr "
-        "JOIN source_items si ON si.source_item_id = fr.source_item_id WHERE si.content_sha256 = ? "
-        "ORDER BY fr.report_id LIMIT 1", (sha,))
+        "SELECT fr.report_id FROM financial_reports fr "
+        "JOIN source_items si ON si.source_item_id = fr.source_item_id "
+        "WHERE si.content_sha256 = ? AND fr.company_id = ? AND fr.doc_type = ? AND fr.period_end = ? "
+        "AND fr.scope = ? ORDER BY fr.report_id LIMIT 1",
+        (sha, company_id, meta["doc_type"], meta["period_end"], meta["scope"]))
     return dict(row[0]) if row else None
 
 
@@ -112,6 +123,40 @@ def _revisions(db, company_id: str, meta: dict, sha: str) -> list[dict]:
             if r["content_sha256"] != sha]
 
 
+def _date_provenance(meta: dict) -> dict:
+    download = meta.get("download_at_utc") or "unknown"  # never substituted by the receipt date
+    return {"download_at_utc": download, "receipt_at_utc": meta["receipt_at_utc"],
+            "filed_at_utc": meta["filed_at_utc"]}
+
+
+def _statement_lines(doc, st: str, pages: list[int], columns: list[str]) -> tuple[list, list]:
+    """Labelled lines plus recognised and unresolved subtotal rows for one statement."""
+    labelled = pe.to_statement_lines(doc, st, pages, columns=columns)
+    lines = list(labelled["lines"])
+    unparsed = list(labelled["unparsed"])
+    recognised_text: set[tuple[int, str]] = set()
+    for part in doc.pages:
+        if part.number not in pages or not part.has_text or part.layout_flag == "uncertain":
+            continue
+        for res in subtotals.analyse(part.lines, statement=st, columns=columns, page=part.number):
+            tag = {"column": part.column} if part.column else {}
+            if res["status"] == "recognised":
+                label = f"[structural {res['rule']}] {res['text']}"
+                conf = 0.9
+                recognised_text.add((part.number, res["text"]))
+            else:
+                label = f"[unlabelled, unresolved] {res['text']}"
+                conf = None
+                unparsed.append({"page": part.number, "line": res["text"], "reason": res["reason"], **tag})
+            for c in columns:
+                lines.append({"statement": st, "raw_label": label, "column_period_end": c,
+                              "value": res["values"][c], "page": part.number, "confidence": conf,
+                              "canonical_code": res["code"] if res["status"] == "recognised" else None,
+                              **tag})
+    unparsed = [u for u in unparsed if (u.get("page"), u.get("line")) not in recognised_text]
+    return lines, unparsed
+
+
 def intake(db, pdf: Path | str, meta: dict, *, vault: Path, importer: str, rights_attestation: str) -> dict:
     """Store, extract and import one owner-supplied document. Returns a review record; never promotes."""
     if not importer.strip() or not rights_attestation.strip():
@@ -122,42 +167,47 @@ def intake(db, pdf: Path | str, meta: dict, *, vault: Path, importer: str, right
     if not (meta.get("original_url") or meta.get("source_note")):
         raise IntakeError("a document needs its source: original_url or source_note")
     stored, sha = store_original(pdf, vault)
-    prior = _existing_by_hash(db, sha)
+    company_id = _ticker_company(db, meta["company_ticker"])
+    prior = _existing_same_document(db, sha, company_id, meta)
     if prior:
         return {"status": "duplicate", "sha256": sha, "report_id": prior["report_id"],
-                "stored_as": stored.name}
-    company_id = _ticker_company(db, meta["company_ticker"])
+                "stored_as": stored.name, "scope": meta["scope"]}
     revisions = _revisions(db, company_id, meta, sha)
-    if revisions:  # a different file for the same period: a possible revision, reported and not imported
+    if revisions:
         return {"status": "possible_revision", "sha256": sha, "stored_as": stored.name,
-                "existing_reports": revisions,
+                "existing_reports": revisions, "scope": meta["scope"],
                 "note": "same company, report type, period and scope with different bytes; "
                         "confirm whether this is a restatement before importing"}
-    doc = pe.extract(stored)
-    located = pe.locate_statements(doc)
-    pages_by_stmt = meta.get("statement_pages") or located
+    split = list(meta.get("split_pages") or [])
+    doc = pdf_reader.read_with_layout(stored, split) if split else pe.extract(stored)
+    pages_by_stmt = meta.get("statement_pages") or pe.locate_statements(doc)
     lines, unparsed, used = [], [], {}
     for st in STATEMENTS:
         pages = pages_by_stmt.get(st)
         if not pages:
             continue
-        r = pe.to_statement_lines(doc, st, pages, columns=_columns_for(meta, st))
-        lines.extend({**ln, "statement": st} for ln in r["lines"])
-        unparsed.extend({**u, "statement": st} for u in r["unparsed"])
+        l_, u_ = _statement_lines(doc, st, pages, _columns_for(meta, st))
+        lines.extend({**x, "statement": x.get("statement", st)} for x in l_)
+        unparsed.extend({**u, "statement": st} for u in u_)
         used[st] = pages
     scanned = [pg.number for pg in doc.pages if not pg.has_text]
+    repairs = [r for pg in doc.pages for r in pg.repairs]
     if not lines:  # nothing extracted: store nothing, so no empty report can be mistaken for a real one
         return {"status": "extraction_failed", "sha256": sha, "stored_as": stored.name,
                 "pages": len(doc.pages), "statement_pages": used, "scanned_pages": scanned,
-                "lines_extracted": 0, "unparsed": unparsed}
+                "lines_extracted": 0, "unparsed": unparsed, "text_repairs": repairs}
     rec = {k: meta[k] for k in ("company_ticker", "doc_type", "period_end", "scope", "currency", "unit_scale",
-                                "audit_status", "filed_at_utc", "retrieved_at_utc") if k in meta}
+                                "audit_status", "filed_at_utc") if k in meta}
     rec.update({"document_sha256": sha, "source": "manual_pdf", "extraction_method": "pdf_text",
                 "original_url": meta.get("original_url"), "source_note": meta.get("source_note"),
                 "auditor_opinion": meta.get("auditor_opinion"), "title": meta.get("title"),
+                "receipt_at_utc": meta["receipt_at_utc"],
+                "provenance_extra": {"dates": _date_provenance(meta), "layout_split_pages": split,
+                                     "text_repairs": repairs},
                 "lines": lines})
     result = fin.import_report(db, rec, importer=importer, rights_attestation=rights_attestation)
-    review = bool(unparsed or scanned or not lines or result["status"] != "reconciled")
+    review = bool(unparsed or scanned or result["status"] != "reconciled")
     return {"status": "needs_review" if review else "reconciled", "sha256": sha, "stored_as": stored.name,
             "pages": len(doc.pages), "statement_pages": used, "scanned_pages": scanned,
-            "lines_extracted": len(lines), "unparsed": unparsed, "import": result}
+            "lines_extracted": len(lines), "unparsed": unparsed, "text_repairs": repairs,
+            "dates": _date_provenance(meta), "scope": meta["scope"], "import": result}
