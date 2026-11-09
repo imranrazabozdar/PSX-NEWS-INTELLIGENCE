@@ -296,8 +296,12 @@ def analyse(db, company_id: str, *, period_end: str, as_of: str, period_type: st
     g = {k: growth(m, pm, k) for k in GROWTH}
     ratios["roe_average_equity"] = roe_average(m, pm, framework)
     ratios["dividend_cover_fcf"] = _dividend_cover(m)
+    from engines import sector_applicability as _sa  # display-only: values are never suppressed here
+
+    applicability = _sa.company_applicability(db, company_id, sorted(RATIOS))
     return {"company_id": company_id, "framework": framework, "period_end": period_end, "as_of": as_of,
             "period_type": period_type, "scope": scope, "prior_period_end": prior, "ratios": ratios,
+            "applicability": applicability,
             "growth": g, "fcf": _fcf(m), "filing_dates_unknown": unknown, "strict": strict,
             "state": "ok" if not unknown or strict else "ok_with_unknown_filing_dates"}
 
