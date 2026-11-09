@@ -206,7 +206,8 @@ def import_report(db, rec: dict, *, importer: str, rights_attestation: str) -> d
     company_id = comp[0]["company_id"]
     framework = framework_for(db, company_id)
     item = repo.record_source_item(
-        db, source_id=SOURCE_ID, collected_at_utc=_now(), url=rec.get("original_url"),
+        db, source_id=SOURCE_ID, collected_at_utc=rec.get("retrieved_at_utc") or _now(),
+        url=rec.get("original_url"),
         external_id=f"doc:{rec['document_sha256']}:{rec['scope']}", content_hash=rec["document_sha256"],
         title=rec.get("title") or f"{rec['company_ticker']} {rec['doc_type']} {rec['period_end']}",
         published_at_utc=rec.get("filed_at_utc"),
