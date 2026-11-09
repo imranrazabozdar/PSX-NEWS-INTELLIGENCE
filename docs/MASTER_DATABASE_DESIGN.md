@@ -121,3 +121,11 @@ Estimates use the measured ~3 billed rows per row inserted (table plus two index
   policy rules out.
 
 Each migration is additive, with append-only triggers where history matters.
+
+## Update (OGDC pilot finalisation): financial codes and mapping versions
+
+- **Canonical codes:** new definitions in `config/canonical_codes.json` (`cfi`, `cff`, `net_change_in_cash`, `cash_opening`, `cash_closing`, `cash_generated_from_operations`, `income_tax_paid`, `other_income`, `amortisation_expense`). A stored code must be a known code; an unknown code is refused before any write.
+- **Cash measures:** `cash_closing` (cash-flow statement) and `cash_and_equivalents` (balance sheet) are distinct codes. They are never forced to agree.
+- **Mappings:** the universal seed (`account_mappings`, versioned and append-only) is unchanged. Owner-approved, company-specific mappings live in `config/company_mappings/<ticker>.json`, carry their version and approver, apply only to that company, and are recorded in each report's provenance.
+- **Sign convention:** expenses and outflows are stored as negative numbers when the source shows them in brackets. Dashes and blanks are `not_reported`, never zero. Values are stored in the source unit and scaled by the report's unit to PKR. The cash identity (operating + investing + financing = net change) is checked; its failure is reported, never forced.
+- **No schema change** was made in this batch.

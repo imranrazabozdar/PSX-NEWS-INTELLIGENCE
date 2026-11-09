@@ -109,6 +109,41 @@ def add_mapping(db, *, framework: str, statement: str, label: str, canonical_cod
     return v
 
 
+COMPANY_MAPPINGS_DIR = Path(__file__).resolve().parents[1] / "config" / "company_mappings"
+CANONICAL_CODES_PATH = Path(__file__).resolve().parents[1] / "config" / "canonical_codes.json"
+CONTEXT_BY_DOC = {"annual": "annual", "half_yearly": "half_yearly", "quarterly": "quarterly",
+                  "nine_month": "nine_month"}
+
+
+def known_canonical_codes(db=None) -> set[str]:
+    """Every code that may be stored: the standard seed codes plus the owner-approved definitions."""
+    seed = json.loads(MAPPINGS_PATH.read_text(encoding="utf-8"))["mappings"]
+    codes = {c for stmts in seed.values() for codes_ in stmts.values() for c in codes_}
+    codes |= set(json.loads(CANONICAL_CODES_PATH.read_text(encoding="utf-8"))["codes"])
+    return codes
+
+
+def company_overlay(ticker: str, doc_type: str) -> tuple[dict[tuple[str, str], str], dict | None]:
+    """Owner-approved, company-specific mappings for this report context. Never applied to another company."""
+    path = COMPANY_MAPPINGS_DIR / f"{ticker.lower()}.json"
+    if not path.exists():
+        return {}, None
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    if raw.get("company_ticker") != ticker:
+        raise ImportError_("company mapping file does not match the ticker it was loaded for")
+    known = known_canonical_codes()
+    ctx = CONTEXT_BY_DOC.get(doc_type)
+    out: dict[tuple[str, str], str] = {}
+    for m in raw["mappings"]:
+        if m["canonical_code"] not in known:
+            raise ImportError_(f"unknown canonical code in company mapping: {m['canonical_code']}")
+        if m["context"] not in ("any", ctx):
+            continue  # a quarterly label is not applied to annual statements, or the reverse
+        out[(m["statement"], normalise_label(m["raw_label"]))] = m["canonical_code"]
+    return out, {"file": path.name, "version": raw["version"], "approved_by": raw["approved_by"],
+                 "approved_on": raw["approved_on"], "applied_count": len(out)}
+
+
 def _mapping(db, framework: str) -> dict[tuple[str, str], str]:
     rows = db.execute(
         "SELECT m.statement, m.raw_label_normalised, m.canonical_code FROM account_mappings m "
@@ -152,6 +187,13 @@ def parse_statement_text(text: str, *, statement: str, columns: list[str], page:
         if len(vals) == n + 1 and re.fullmatch(r"[0-9]{1,2}(\.[0-9]{1,2})?", vals[0]):
             vals = vals[1:]  # note reference
         label = " ".join(toks)
+        if any(re.search(r"\d", t) for t in toks):  # figure inside a label: side-by-side, never guessed
+            unparsed.append({"line": s, "reason": "numbers inside the label: possible side-by-side layout"})
+            continue
+        if re.search(r"\b[A-Z]{3,} [A-Z]{3,}\b.*\b[a-z]", label):  # section heading from the other column
+            unparsed.append({"line": s,
+                             "reason": "section heading inside the label: possible side-by-side layout"})
+            continue
         if not label or len(vals) != n:
             if vals or label:
                 unparsed.append({"line": s, "reason": f"expected {n} values, found {len(vals)}"})
@@ -190,6 +232,8 @@ def _validate(rec: dict) -> None:
         if pdf_sourced and not isinstance(ln.get("page"), int):
             raise ImportError_(f"document line without a page reference: {ln.get('raw_label')!r}")
         date.fromisoformat(ln.get("column_period_end") or "")
+        if ln.get("canonical_code") and ln["canonical_code"] not in known_canonical_codes():
+            raise ImportError_(f"unknown canonical code: {ln['canonical_code']}")  # refused before any write
         if ln.get("value") is not None and not isinstance(ln["value"], (int, float)):
             raise ImportError_(f"value must be a number or null: {ln}")
 
@@ -205,8 +249,9 @@ def import_report(db, rec: dict, *, importer: str, rights_attestation: str) -> d
         raise ImportError_(f"ticker {rec['company_ticker']!r} is not in the company master (U4: not added)")
     company_id = comp[0]["company_id"]
     framework = framework_for(db, company_id)
+    overlay, overlay_info = company_overlay(rec["company_ticker"], rec["doc_type"])
     item = repo.record_source_item(
-        db, source_id=SOURCE_ID, collected_at_utc=rec.get("retrieved_at_utc") or _now(),
+        db, source_id=SOURCE_ID, collected_at_utc=rec.get("receipt_at_utc") or _now(),
         url=rec.get("original_url"),
         external_id=f"doc:{rec['document_sha256']}:{rec['scope']}", content_hash=rec["document_sha256"],
         title=rec.get("title") or f"{rec['company_ticker']} {rec['doc_type']} {rec['period_end']}",
@@ -214,7 +259,9 @@ def import_report(db, rec: dict, *, importer: str, rights_attestation: str) -> d
         provenance={"retrieval_method": "manual", "document_type": rec["doc_type"],
                     "source_metadata_json": json.dumps({
                         "importer": importer, "rights_attestation": rights_attestation,
-                        "extraction_method": rec.get("extraction_method", "manual")})})
+                        "extraction_method": rec.get("extraction_method", "manual"),
+                        "company_mapping": overlay_info,
+                        **(rec.get("provenance_extra") or {})})})
     sid = item.source_item_id
     existing = db.execute("SELECT report_id FROM financial_reports WHERE company_id = ? AND doc_type = ? AND "
                           "period_end = ? AND scope = ? AND source_item_id = ?",
@@ -230,6 +277,7 @@ def import_report(db, rec: dict, *, importer: str, rights_attestation: str) -> d
         restates = r[0]["report_id"] if r else None
     method = rec.get("extraction_method", "manual")
     mapping = _mapping(db, framework)
+    mapping = {**mapping, **overlay}  # owner-approved company mapping takes precedence for its labels
     stmts = [(
         "INSERT INTO financial_reports(company_id, source_item_id, doc_type, period_end, period_months, "
         "scope, currency, unit_scale, audit_status, auditor_opinion, filed_at_utc, restates_report_id, "
@@ -246,7 +294,10 @@ def import_report(db, rec: dict, *, importer: str, rights_attestation: str) -> d
     for ln in rec["lines"]:
         k = (ln["statement"], ln["column_period_end"])
         line_no[k] = line_no.get(k, 0) + 1
-        code = mapping.get((ln["statement"], normalise_label(ln["raw_label"])))
+        # a structurally recognised total carries its code from its rule; an explicit label is mapped by name
+        if ln.get("canonical_code") and ln["canonical_code"] not in known_canonical_codes():
+            raise ImportError_(f"unknown canonical code: {ln['canonical_code']}")
+        code = ln.get("canonical_code") or mapping.get((ln["statement"], normalise_label(ln["raw_label"])))
         if code is None:
             unmapped.append(ln["raw_label"])
         v = ln.get("value")
@@ -303,11 +354,24 @@ IDENTITIES = (
 )
 
 
+def _cash_movement_check(v: dict) -> dict:
+    """Operating + investing + financing = net change in cash (signed; outflows negative)."""
+    need = ("cfo", "cfi", "cff", "net_change_in_cash")
+    missing = [k for k in need if v.get(k) is None]
+    if missing:
+        return {"check": "cash_movement", "result": "not_checkable", "missing": missing}
+    total = v["cfo"] + v["cfi"] + v["cff"]
+    ok = abs(total - v["net_change_in_cash"]) <= _tol(v["net_change_in_cash"], total)
+    return {"check": "cash_movement", "result": "pass" if ok else "fail", "reported": v["net_change_in_cash"],
+            "expected": total}
+
+
 def reconcile(db, report_id: int) -> dict:
     rep = db.execute("SELECT period_end FROM financial_reports WHERE report_id = ?", (report_id,))[0]
     conflicts: list = []
     v = _values(db, report_id, rep["period_end"], conflicts)
     checks = [{"check": "single_value_per_code", "result": "fail", **c} for c in conflicts]
+    checks.append(_cash_movement_check(v))
     for name, total, (a, b), f in IDENTITIES:
         if total not in v and a not in v:
             continue  # identity not relevant to this report's lines

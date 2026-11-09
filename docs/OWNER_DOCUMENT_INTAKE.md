@@ -35,3 +35,14 @@ order the PDF prints them), `retrieved_at_utc` (when the owner downloaded it), `
 - Accuracy on real documents is **not measured**. Validation requires documents the owner supplies and
   manually checked figures.
 - Nothing from this workflow is stored in production, and no production migration is applied.
+
+## Update (OGDC pilot finalisation): what intake now records
+
+- **Layout:** side-by-side pages are split only when at least three rows agree on the same gutter, and no label or figure crosses it. Otherwise the page is flagged `uncertain` and never parsed. Each column keeps its own comparative periods.
+- **Touching glyphs:** a 1–3 digit fragment joins a comma-grouped figure only when the glyph boxes touch (gap 0.0 pt). Every join is recorded with its original text in the report's provenance.
+- **Structural subtotals:** recognised only by the rules in `engines/subtotals.py`, each with a rule version. The provenance carries one audit record per subtotal row: original text, explicit label (none), derived label, rule identifier and version, status, confidence and `label_origin` (`structurally_inferred` or `unresolved`).
+- **Dates, kept separate:** `receipt_at_utc` (the upload date), `download_at_utc` (`unknown` unless supplied), `filed_at_utc` (the letter or publication date, not verified as the PUCARS timestamp) and the financial import time. A date-only receipt is recorded with `receipt_precision: date_only`; midnight is never presented as the upload time.
+- **Duplicates:** same bytes for the same company, report type, period and scope is a duplicate. The same file for a different scope is imported. Same scope with different bytes is a possible revision and is not imported.
+- **Vault and paths:** the vault must be absolute, outside the repository, and private (mode 0700). Symbolic links are refused as inputs and in the vault.
+- **Atomicity:** an unknown canonical code is refused before any write, so a failed import leaves no source record.
+- **Company mappings:** owner-approved OGDC mappings apply only to OGDC reports and only in their reporting context (see `docs/OGDC_MAPPING_REVIEW.md`).

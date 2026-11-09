@@ -1,0 +1,17 @@
+{
+  "dataset": "canonical_codes",
+  "version": 1,
+  "status": "owner-approved definitions for new codes; existing codes are defined by config/account_mappings.json",
+  "spelling_convention": "British spelling, as in the existing code depreciation_amortisation",
+  "codes": {
+    "cfi": {"statement": "CF", "definition": "Net cash flow from investing activities for the period, signed (outflows negative)."},
+    "cff": {"statement": "CF", "definition": "Net cash flow from financing activities for the period, signed (outflows negative)."},
+    "net_change_in_cash": {"statement": "CF", "definition": "Net change in cash and cash equivalents during the period, signed. Equals operating + investing + financing before any exchange effect."},
+    "cash_opening": {"statement": "CF", "definition": "Cash and cash equivalents at the beginning of the cash-flow period, as stated in the cash-flow statement."},
+    "cash_closing": {"statement": "CF", "definition": "Cash and cash equivalents at the end of the cash-flow period, as stated in the cash-flow statement. NOT the balance-sheet cash line (cash_and_equivalents), which the statements report separately."},
+    "cash_generated_from_operations": {"statement": "CF", "definition": "Cash generated from operations before the cash payments of tax, royalty and similar items, as defined by the source statement."},
+    "income_tax_paid": {"statement": "CF", "definition": "Actual cash income tax paid in the period. Not income-tax expense (taxation)."},
+    "other_income": {"statement": "IS", "definition": "An other-income line that the source reports explicitly as other income. Never a catch-all for unidentified income; combined lines such as 'finance and other income' are not mapped to it."},
+    "amortisation_expense": {"statement": "CF", "definition": "Amortisation charge (non-cash add-back) reported explicitly as amortisation. Not combined depreciation and amortisation unless the source reports both."}
+  }
+}

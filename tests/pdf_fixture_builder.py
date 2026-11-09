@@ -24,20 +24,39 @@ def _page_stream(lines: list[str]) -> bytes:
 
 def write_pdf(path: Path, pages: list[list[str]] | list[None]) -> Path:
     """A `None` page has NO text layer (an image-only page, standing in for a scanned page)."""
+    contents = [None if lines is None else _page_stream(lines) for lines in pages]
+    return _assemble(path, contents)
+
+
+def _positioned_stream(items: list[tuple[float, float, str]]) -> bytes:
+    """Text placed at (x, y-from-top) in points: lets a fixture reproduce a real column layout."""
+    ops = ["BT", "/F1 10 Tf"]
+    for x, top, text in items:
+        ops.append(f"1 0 0 1 {x:.2f} {792 - top:.2f} Tm ({_escape(text)}) Tj")
+    ops.append("ET")
+    return "\n".join(ops).encode("latin-1")
+
+
+def write_positioned_pdf(path: Path, pages: list[list[tuple[float, float, str]]]) -> Path:
+    """A synthetic page per list: each item is (x, top, text), in points on a 612 x 792 page."""
+    return _assemble(path, [_positioned_stream(items) for items in pages])
+
+
+def _assemble(path: Path, contents: list[bytes | None]) -> Path:
     objs: list[bytes] = []
     page_ids, content_ids = [], []
-    for i in range(len(pages)):
+    for i in range(len(contents)):
         page_ids.append(4 + 2 * i)
         content_ids.append(5 + 2 * i)
     kids = " ".join(f"{p} 0 R" for p in page_ids)
     objs.append(b"<< /Type /Catalog /Pages 2 0 R >>")
-    objs.append(f"<< /Type /Pages /Kids [{kids}] /Count {len(pages)} >>".encode())
+    objs.append(f"<< /Type /Pages /Kids [{kids}] /Count {len(contents)} >>".encode())
     objs.append(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>")
-    for i, lines in enumerate(pages):
-        content = b"" if lines is None else _page_stream(lines)
-        res = b"" if lines is None else b" /Resources << /Font << /F1 3 0 R >> >>"
+    for i, content in enumerate(contents):
+        res = b"" if content is None else b" /Resources << /Font << /F1 3 0 R >> >>"
         objs.append(f"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792]{res.decode()} "
                     f"/Contents {content_ids[i]} 0 R >>".encode())
+        content = b"" if content is None else content
         objs.append(f"<< /Length {len(content)} >>\nstream\n".encode() + content + b"\nendstream")
     out = bytearray(b"%PDF-1.4\n%synthetic fixture: not a real document\n")
     offsets = []

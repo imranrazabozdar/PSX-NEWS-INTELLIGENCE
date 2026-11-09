@@ -35,6 +35,11 @@ RATIOS: dict[str, tuple[tuple[str, ...], str, tuple[str, ...], tuple[str, ...]]]
             ("profit_after_tax",), ("total_equity",)),
     "roa": (("corporate", "bank", "insurer"), "profit_after_tax / closing total_assets",
             ("profit_after_tax",), ("total_assets",)),
+    "asset_turnover_average": (("corporate",), "revenue / average(opening, closing) total_assets",
+                               ("revenue",), ("total_assets",)),
+    "roa_average_assets": (("corporate", "bank", "insurer"),
+                           "profit_after_tax / average(opening, closing) total_assets",
+                           ("profit_after_tax",), ("total_assets",)),
     "debt_to_equity": (("corporate",), "(long_term_borrowings + short_term_borrowings) / total_equity",
                        ("long_term_borrowings", "short_term_borrowings"), ("total_equity",)),
     "current_ratio": (("corporate",), "current_assets / current_liabilities", ("current_assets",),
@@ -123,12 +128,57 @@ def metrics(db, company_id: str, period_end: str, period_type: str, scope: str, 
     return out
 
 
-def ratio(name: str, m: dict[str, dict], framework: str) -> dict:
+# Ratios that divide a flow by a balance, or count days, depend on the length of the period. For an interim
+# period they are scaled to a full year (flows) or to the days in the period (day counts); FY is unchanged.
+ANNUALISE = {"asset_turnover", "roe", "roa", "asset_turnover_average", "roa_average_assets"}
+PERIOD_MONTHS = {"FY": 12, "9M": 9, "H1": 6, "H2": 6, "Q1": 3, "Q2": 3, "Q3": 3, "Q4": 3}
+
+
+# Ratios that divide a period flow by a balance use the average of opening and closing balances when the
+# opening balance is available as a promoted metric; otherwise the closing balance, labelled as approximation.
+# The existing ratios keep their closing-balance definitions (a documented contract). Average-balance versions
+# are separate ratios; they are not computed without a promoted opening balance, never from a guess.
+AVERAGE_RATIOS = {"asset_turnover_average": "total_assets", "roa_average_assets": "total_assets"}
+CLOSING_APPROX = {"asset_turnover", "roe", "roa"}
+# Day counts that use closing receivables or inventory are proxies, not exact collection or holding periods.
+PROXY_DAYS = {"receivable_days", "inventory_days"}
+
+
+def _months_before(period_end: str, months: int) -> str:
+    """The last day of the month `months` before `period_end` (a balance date, e.g. 30 Jun for a Q1)."""
+    from calendar import monthrange
+
+    d = date.fromisoformat(period_end)
+    y, mo = d.year, d.month - months
+    while mo <= 0:
+        mo += 12
+        y -= 1
+    return date(y, mo, monthrange(y, mo)[1]).isoformat()
+
+
+def ratio(name: str, m: dict[str, dict], framework: str, period_months: int = 12,
+          opening: dict[str, dict] | None = None) -> dict:
     fws, formula, num, den = RATIOS[name]
     res = {"ratio": name, "formula": formula, "state": "ok", "value": None, "inputs": {}, "missing": []}
     if framework not in fws:
         res["state"] = "not_applicable"
         return res
+    if name in AVERAGE_RATIOS:
+        key = AVERAGE_RATIOS[name]
+        if not (opening and key in opening and key in m):
+            res["state"] = "insufficient_data"
+            res["missing"] = [f"opening {key}"]  # no opening balance promoted for this scope: not estimated
+            return res
+        den = (key,)
+        res["average_balance"] = {"opening": opening[key]["value"], "closing": m[key]["value"]}
+        res["basis"] = "average of opening and closing balance"
+    elif name in CLOSING_APPROX:
+        res["approximation"] = "closing balance used; see the average-balance ratio where available"
+    if name == "payout_ratio" and period_months != 12:
+        res["period_note"] = "interim period: compare only with other interim periods"
+    if name in PROXY_DAYS:
+        res["approximation"] = ("proxy: closing balance over period revenue or cost; "
+                                "not an exact collection or holding period")
     for k in num + den:
         if k not in m:
             res["missing"].append(k)
@@ -140,15 +190,24 @@ def ratio(name: str, m: dict[str, dict], framework: str) -> dict:
         return res
     n = sum(m[k]["value"] for k in num)
     d = sum(m[k]["value"] for k in den)
+    if "average_balance" in res:
+        d = (res["average_balance"]["opening"] + res["average_balance"]["closing"]) / 2
     if name in ABS_NUM:
         n = abs(n)  # expenses and outflows may be presented as negatives
     if name in ABS_DEN:
         d = abs(d)
     if d <= 0:
-        res["state"] = "not_applicable"
+        res["state"] = "not_computable"  # a zero or negative denominator: never shown as a ratio
         res["reason"] = "denominator is zero or negative"
         return res
-    res["value"] = n / d * (365 if name in DAYS else 1)
+    value = n / d
+    if name in DAYS:
+        value *= 365 * period_months / 12  # days in the period, not a fixed 365 for a quarter
+        res["period_basis"] = f"days in a {period_months}-month period"
+    elif name in ANNUALISE and period_months != 12:
+        value *= 12 / period_months  # annual equivalent of a flow over a balance
+        res["period_basis"] = f"annualised from a {period_months}-month period"
+    res["value"] = value
     if res["value"] < 0:
         # A loss-making numerator is shown as a negative value with an explicit flag, never as a strong ratio.
         res["sign"] = "negative_numerator"
@@ -186,6 +245,22 @@ def growth(cur: dict, prev: dict | None, key: str) -> dict:
     return {**res, "value": a / b - 1, "current": a, "prior": b}
 
 
+def _opening_balances(db, company_id: str, scope: str, period_end: str, months: int, *, as_of: str,
+                      strict: bool) -> dict[str, dict]:
+    """Promoted balances at the opening date of this period, for the same scope only."""
+    opening_end = _months_before(period_end, months)
+    rows = db.execute(
+        "SELECT m.metric, m.value, m.metric_id, m.basis "
+        "FROM financial_metrics m LEFT JOIN financial_reports r USING(report_id) "
+        "WHERE m.company_id = ? AND m.period_end = ? AND m.scope = ? "
+        "AND m.metric IN ('total_assets','total_equity') AND m.basis IN ('reported','restated') "
+        "AND ((r.filed_at_utc IS NULL AND ? = 0) OR (r.filed_at_utc IS NOT NULL "
+        "AND substr(r.filed_at_utc, 1, 10) <= ?))",
+        (company_id, opening_end, scope, int(strict), as_of))
+    return {r["metric"]: {"value": r["value"], "metric_id": r["metric_id"], "basis": r["basis"]}
+            for r in rows}
+
+
 def analyse(db, company_id: str, *, period_end: str, as_of: str, period_type: str = "FY",
             strict: bool = True) -> dict:
     """Ratios for one period, using only reports filed by `as_of` (required).
@@ -197,7 +272,9 @@ def analyse(db, company_id: str, *, period_end: str, as_of: str, period_type: st
         return {"company_id": company_id, "state": "insufficient_data", "reason": "no reported metrics filed "
                 "by the as-of date", "framework": framework, "as_of": as_of}
     m = metrics(db, company_id, period_end, period_type, scope, as_of=as_of, strict=strict)
-    ratios = {name: ratio(name, m, framework) for name in RATIOS}
+    months = PERIOD_MONTHS.get(period_type, 12)
+    opening = _opening_balances(db, company_id, scope, period_end, months, as_of=as_of, strict=strict)
+    ratios = {name: ratio(name, m, framework, months, opening) for name in RATIOS}
     for k, fws in REPORTED.items():
         ratios[k] = ({"ratio": k, "formula": "as reported", "state": "ok", "value": m[k]["value"],
                       "inputs": {k: {"metric_id": m[k]["metric_id"]}}, "missing": []}

@@ -60,3 +60,10 @@ Status: DESIGN (main `012a6bf`). These controls keep their current form; none is
 | Moon-dependent holidays and Ramadan hours | Manual entry pending |
 | Intelligence pipeline activation | Awaiting a separate owner approval |
 | Saved test-host credential from the lock verification | Owner to remove manually |
+
+## Update (OGDC pilot finalisation): document vault and local tools
+
+- The vault holds original PDFs outside the repository, private (0700). Intake refuses symbolic links and group- or world-accessible vault folders.
+- OCR, where evaluated, runs locally through fixed command lines. No cloud OCR, no third-party AI, no document upload.
+- Tesseract was installed only in the development container for evaluation. It is not part of any production environment; installing it there would need its own approval.
+- No production database was touched in this batch; all tests use in-memory or local databases.

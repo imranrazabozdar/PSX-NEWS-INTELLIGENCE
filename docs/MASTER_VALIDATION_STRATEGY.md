@@ -46,3 +46,12 @@ Status: DESIGN (main `012a6bf`). This extends the existing harness `engines/vali
 * **Double labelling:** a 10% sample is labelled twice to measure agreement.
 * **Pace:** labelling starts now, in parallel with M1. At 30 per metric, the first measured scores need at least
   about 30 labelled events with impacts.
+
+## Update (OGDC pilot finalisation): real-document validation rules
+
+- Figures are compared only with values read from the original page image. The reader's own output is never the ground truth.
+- Every identity check reports its own result: pass, fail, or `not_checkable` when a component is missing. A missing component is never treated as zero.
+- Consolidated and unconsolidated reports are checked independently. A difference between them is recorded, not assumed immaterial.
+- M3 ratios are verified by hand from the stored inputs. Each result states its formula, its period basis (annualised or day-scaled), and whether it is an approximation.
+- OCR figures are validated only against manually verified truth and are never promoted automatically.
+- Synthetic fixtures are never counted as real-world accuracy.

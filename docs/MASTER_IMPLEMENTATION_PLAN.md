@@ -227,3 +227,10 @@ M10 follows each module separately.
 * **Small PRs per component;** run the fast checks locally before pushing.
 * **Use recorded fixtures,** never live sources, in tests.
 * **Record decisions in the documents** so later sessions don't re-litigate them.
+
+## Update (OGDC pilot finalisation): status
+
+- M2 document intake: implemented and tested with synthetic fixtures and three real OGDCL documents. Two of the three are processed; the scanned FY2026 annexure is refused until OCR is approved.
+- M3 ratios: hardened (interim periods, approximations, average-balance ratios available when an opening balance is promoted, scope isolation). Profit-based ratios depend on the owner-approved OGDC mappings.
+- M5 valuation: not validated. No market price, share count history or forecast in the documents.
+- OCR: bounded Tesseract evaluation completed on 2 scanned pages; not approved for production.
