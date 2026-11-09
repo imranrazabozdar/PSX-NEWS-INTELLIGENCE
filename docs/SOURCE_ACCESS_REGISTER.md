@@ -160,7 +160,7 @@ authorised access yet, and their identity is unverified.
 | Source | SCS Trade (Standard Capital Securities), `scstrade.com` |
 | Granted by | Tariq Mahmood, Head of IT & Compliance, SCS Trade |
 | Sender address | compliance@scstrade.com |
-| Email subject | RE: Authorization for Data Access – PSX-INTELLIGENCE-NEW-2026 |
+| Email subject | RE: Authorization for Data Access – [project name redacted: references a separate project; original subject kept in owner vault] |
 | Email date | 2026-11-09 |
 | Recorded on | 2026-11-09 (UTC) |
 | Verification | **Owner-supplied copy pasted into the session.** Original email headers were not seen, so authenticity is not independently verified. Owner to save the original `.eml` to the owner vault and confirm by reply from compliance@scstrade.com. |
