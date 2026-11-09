@@ -1,0 +1,15 @@
+{
+ "dataset": "macro_series",
+ "version": 1,
+ "note": "Series definitions only: no values. Values enter by owner-attested manual import of official releases. Automated EIA / World Bank access is blocked pending owner decision U2; SBP automation is blocked (HTTP 403, permission R3).",
+ "series": [
+  {"series_code": "sbp_policy_rate", "name": "SBP policy rate", "unit": "%", "frequency": "irregular", "source_id": "sbp", "mechanisms": ["T3"], "definition": "Policy (target) rate announced in the SBP monetary policy statement; reference period = effective date."},
+  {"series_code": "kibor_6m", "name": "6-month KIBOR (offer)", "unit": "%", "frequency": "daily", "source_id": "sbp", "mechanisms": ["T3"], "definition": "6-month Karachi Interbank Offered Rate, offer side, as published by SBP."},
+  {"series_code": "pkr_usd_interbank", "name": "PKR per USD, interbank", "unit": "PKR/USD", "frequency": "daily", "source_id": "sbp", "mechanisms": ["T4"], "definition": "Interbank closing or weighted-average rate as published by SBP (record which in the import note)."},
+  {"series_code": "sbp_fx_reserves", "name": "SBP liquid foreign exchange reserves", "unit": "USD million", "frequency": "weekly", "source_id": "sbp", "mechanisms": ["T4", "T9"], "definition": "Liquid FX reserves held by SBP, week-ending figure."},
+  {"series_code": "cpi_yoy_national", "name": "National CPI inflation, year on year", "unit": "%", "frequency": "monthly", "source_id": "pbs", "mechanisms": ["T5"], "definition": "National CPI general index, YoY change, PBS monthly release."},
+  {"series_code": "brent_spot", "name": "Brent crude spot", "unit": "USD/bbl", "frequency": "daily", "source_id": "eia", "mechanisms": ["T1", "T7"], "definition": "Europe Brent spot price FOB, as published by EIA."},
+  {"series_code": "urea_world_bank", "name": "Urea (World Bank Pink Sheet)", "unit": "USD/mt", "frequency": "monthly", "source_id": "worldbank", "mechanisms": ["T7"], "definition": "Monthly urea price as published in the World Bank commodity price data (Pink Sheet); record the grade/location the release states."},
+  {"series_code": "coal_world_bank", "name": "Coal (World Bank Pink Sheet)", "unit": "USD/mt", "frequency": "monthly", "source_id": "worldbank", "mechanisms": ["T7"], "definition": "Monthly coal price as published in the World Bank commodity price data; record the grade/location the release states."}
+ ]
+}

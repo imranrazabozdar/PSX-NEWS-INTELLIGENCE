@@ -75,7 +75,15 @@ Every milestone also has these standing items, not repeated below:
 * **Risks:** scanned PDFs; format drift; write budget during backfill (estimate in the database design §6).
 * **Evidence:** pilot report, spot-check sheet.
 
-### M3 — Fundamentals (dimensions B–F)
+> **Dimension letters (corrected 2026-11-09).** `MASTER_ARCHITECTURE.md` §5 defines the dimensions, and this plan
+> follows it:
+> * M3 writes A–C, M5 writes D, and M4 writes I–J.
+> * The earlier labels "M3 B–F" and "M5 G" contradicted §5 and were a labelling error.
+> * E (sector outlook), F (macro conditions), G (geopolitical), H (market sentiment), K (event opportunity) and L
+>   (risk) are not yet written to `dimension_assessments`. F, G and K exist only as Stage 2 impact assessments
+>   (T1–T9).
+
+### M3 — Fundamentals (dimensions A–C)
 * **Objective:** framework-specific ratios and dimension assessments with stated components.
 * **Components:**
   * bank, insurer and general frameworks, plus sector overlays;
@@ -106,7 +114,7 @@ Every milestone also has these standing items, not repeated below:
 * **Acceptance:** adjusted series match a hand-adjusted fixture; the write budget is measured.
 * **Risks:** no benchmark (market-relative checks stay `not_evaluable`).
 
-### M5 — Valuation (dimension G; critical path)
+### M5 — Valuation (dimension D; critical path)
 * **Objective:** method-appropriate valuation ranges with assumptions and sensitivity, not price targets.
 * **Components:**
   * P/E, P/B, EV/EBITDA, dividend yield, P/B–ROE for banks;
