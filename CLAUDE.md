@@ -5,7 +5,8 @@ This project is completely independent of the owner's existing technical engine.
 open, clone, read, modify, import, connect to, or reuse anything from that project. That includes
 its code, database, credentials, GitHub Actions, dependencies and deployment. All secrets use
 the `PSXNI_` prefix. `python scripts/check_independence.py` must pass before every commit.
-See `docs/adr/0001-independence-from-technical-engine.md`.
+See `docs/adr/0001-independence-from-technical-engine.md`. The only active exception is the owner-approved, scoped port of
+`fundamental_engine/` recorded there (expires on completion or 2026-12-09); nothing else in that project may be touched.
 
 ## How to work
 - Build one approved phase at a time (spec section 14). Stop at each acceptance gate and wait for the
