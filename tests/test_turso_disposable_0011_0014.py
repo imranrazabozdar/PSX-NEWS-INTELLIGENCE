@@ -77,7 +77,7 @@ def test_engines_end_to_end_over_http(db):
         r = fin.import_report(db, rec, importer="rehearsal", rights_attestation="synthetic test fixture")
         assert r["status"] in ("reconciled", "duplicate")
         fin.promote(db, r["report_id"])
-    a = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30")
+    a = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30", as_of="2026-11-09")
     assert a["ratios"]["roe_average_equity"]["state"] == "ok"
     fu.assess(db, "cmp-ogdc", period_end="2025-06-30", as_of_date="2026-11-09")
     va.value(db, "cmp-ogdc", as_of="2026-11-09")

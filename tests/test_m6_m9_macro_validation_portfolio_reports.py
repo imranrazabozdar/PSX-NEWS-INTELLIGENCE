@@ -145,7 +145,10 @@ def test_thesis_needs_owner_thresholds_and_reports_missing_data(pdb, db):
                                "threshold": "1.5", "description": "current ratio at least 1.5"}])
     t = pf.check_theses(pdb, db, "owner-a", as_of=AS_OF)[0]
     assert t["state"] == "needs_review" and t["conditions"][0]["state"] == "not_evaluable"
-    fin.promote(db, _imp(db, _corp())["report_id"])
+    fin.promote(db, _imp(db, _corp())["report_id"])  # no filing date: a thesis test must not use it
+    t = pf.check_theses(pdb, db, "owner-a", as_of=AS_OF)[0]
+    assert t["conditions"][0]["state"] == "not_evaluable"
+    db.execute("UPDATE financial_reports SET filed_at_utc = '2025-09-30T00:00:00Z'")  # now filed and known
     t = pf.check_theses(pdb, db, "owner-a", as_of=AS_OF)[0]
     assert t["state"] == "holds" and t["conditions"][0]["value"] == pytest.approx(2.0)
     assert pf.check_theses(pdb, db, "owner-b", as_of=AS_OF) == []

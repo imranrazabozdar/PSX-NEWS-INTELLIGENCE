@@ -32,7 +32,8 @@ def _data_script():
     load(db)
     fin.load_mappings(db)
     macro.load_registry(db)
-    for rec in (_corp(period="2024-06-30", prev="2023-06-30", sha="b" * 64), _corp()):
+    older = _corp(period="2024-06-30", prev="2023-06-30", sha="b" * 64, filed_at_utc="2025-09-30T00:00:00Z")
+    for rec in (older, _corp(filed_at_utc="2026-09-30T00:00:00Z")):
         r = fin.import_report(db, rec, importer="test", rights_attestation="synthetic")
         fin.promote(db, r["report_id"])
     import streamlit as st
@@ -59,5 +60,7 @@ def test_pages_render_with_data_and_do_not_write():
     assert len(at.dataframe) >= 6
     assert at.session_state["statuses"] == ["reconciled", "reconciled"]
     texts = " ".join(c.value for c in at.caption)
-    assert "closing equity" in texts and "not evidence about fundamentals" in texts
+    assert "fiscal year(s) filed by" in texts and "needs the prior year" in texts
+    assert "not evidence about fundamentals" in texts
+    assert any("filed by then" in t.label for t in at.text_input)
     assert not any("Awaiting migration" in w.value for w in at.warning)

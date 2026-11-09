@@ -257,11 +257,11 @@ def test_roe_closing_and_average_bases(db):
     from engines import reports
 
     fin.promote(db, _imp(db, _corp())["report_id"])
-    one = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30")["ratios"]
+    one = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30", as_of=AS_OF)["ratios"]
     assert one["roe"]["value"] == pytest.approx(0.7) and "closing" in one["roe"]["formula"]
     assert one["roe_average_equity"]["state"] == "insufficient_data"  # no opening equity imported
     fin.promote(db, _imp(db, _corp(period="2024-06-30", prev="2023-06-30", sha="b" * 64))["report_id"])
-    two = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30")["ratios"]
+    two = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30", as_of=AS_OF)["ratios"]
     assert two["roe"]["value"] == pytest.approx(0.7)  # unchanged formula
     assert two["roe_average_equity"]["value"] == pytest.approx(140 / ((200 + 170) / 2))
     body = reports.company_report(db, "cmp-ogdc", as_of=AS_OF)
@@ -289,12 +289,115 @@ def test_efficiency_and_dividend_ratios(db):
                      _line("BS", "Stock in trade", "2025-06-30", 60.0),
                      _line("CF", "Dividends paid", "2025-06-30", -35.0)]
     fin.promote(db, _imp(db, rec)["report_id"])
-    r = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30")["ratios"]
+    r = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30", as_of=AS_OF)["ratios"]
     assert r["asset_turnover"]["value"] == pytest.approx(2.0)
     assert r["receivable_days"]["value"] == pytest.approx(365 * 50 / 1000)
     assert r["inventory_days"]["value"] == pytest.approx(365 * 60 / 600)
     assert r["payout_ratio"]["value"] == pytest.approx(0.25)
     assert r["dividend_cover_fcf"]["value"] == pytest.approx((175 - 70) / 35)
     fin.promote(db, _imp(db, _corp(period="2024-06-30", prev="2023-06-30", sha="b" * 64))["report_id"])
-    assert fu.analyse(db, "cmp-ogdc", period_end="2024-06-30")["ratios"]["payout_ratio"]["state"] == \
-        "insufficient_data"
+    later = fu.analyse(db, "cmp-ogdc", period_end="2024-06-30", as_of=AS_OF)["ratios"]
+    assert later["payout_ratio"]["state"] == "insufficient_data"
+
+
+# ---------------------------------------------------------------- point-in-time fundamentals (PR #41 review)
+def _pit_setup(db):
+    """FY2024 filed 2025-09-30 (revenue 800); FY2025 filed 2026-09-30 (revenue 1000); FY2024 restated later
+    (filed 2026-12-01: revenue 790 and gross profit 290, kept consistent so it reconciles). Shared by the
+    point-in-time tests below."""
+    from engines import financials as fin  # noqa: F401 - used by callers through promote
+
+    fin.promote(db, _imp(db, _corp(period="2024-06-30", prev="2023-06-30", sha="b" * 64,
+                                   filed_at_utc="2025-09-30T00:00:00Z"))["report_id"])
+    fin.promote(db, _imp(db, _corp(filed_at_utc="2026-09-30T00:00:00Z"))["report_id"])
+    fin.promote(db, _imp(db, _corp(period="2024-06-30", prev="2023-06-30", sha="c" * 64,
+                                   overrides={("Net sales", "2024-06-30"): 790.0,
+                                              ("Gross profit", "2024-06-30"): 290.0},
+                                   filed_at_utc="2026-12-01T00:00:00Z"))["report_id"])
+
+
+def test_report_filed_after_as_of_is_invisible(db):
+    from engines import fundamentals as fu
+
+    _pit_setup(db)
+    a = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30", as_of="2026-06-30")
+    assert a["state"] == "insufficient_data"  # FY2025 was filed 2026-09-30: not known on 2026-06-30
+    assert a["reason"] and "filed" in a["reason"]
+
+
+def test_later_restatement_does_not_leak_into_earlier_date(db):
+    from engines import fundamentals as fu
+
+    _pit_setup(db)  # FY2024 revenue 800 (filed 2025-09-30); restated to 790 on 2026-12-01
+    before = fu.analyse(db, "cmp-ogdc", period_end="2024-06-30", as_of="2026-06-30")
+    assert before["ratios"]["gross_margin"]["inputs"]["revenue"]["value"] == 800_000.0  # unit scale 1000
+    after = fu.analyse(db, "cmp-ogdc", period_end="2024-06-30", as_of="2026-12-31")
+    assert after["ratios"]["gross_margin"]["inputs"]["revenue"]["value"] == 790_000.0  # now filed
+
+
+def test_unknown_filing_date_is_visible_and_excluded_when_strict(db):
+    from engines import fundamentals as fu
+
+    fin.promote(db, _imp(db, _corp())["report_id"])  # no filing date
+    lenient = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30", as_of=AS_OF)
+    assert lenient["filing_dates_unknown"] and lenient["state"] == "ok_with_unknown_filing_dates"
+    strict = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30", as_of=AS_OF, strict=True)
+    assert strict["state"] == "insufficient_data"
+
+
+def test_prior_period_roe_and_growth_respect_as_of(db):
+    from engines import fundamentals as fu
+
+    _pit_setup(db)
+    early = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30", as_of="2025-12-31")
+    assert early["state"] == "insufficient_data"  # FY2025 not filed yet
+    mid = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30", as_of="2026-10-01")
+    assert mid["prior_period_end"] == "2024-06-30"
+    assert mid["growth"]["revenue"]["prior"] == 800_000.0  # pre-restatement value (unit scale 1000)
+    assert mid["ratios"]["roe_average_equity"]["state"] == "ok"
+    late = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30", as_of="2026-12-31")
+    assert late["growth"]["revenue"]["prior"] == 790_000.0  # restated prior year, once filed
+
+
+def test_restatement_takes_precedence_once_filed_and_scope_is_kept(db):
+    from engines import fundamentals as fu
+
+    _pit_setup(db)
+    rows = db.execute("SELECT basis, r.filed_at_utc FROM financial_metrics m "
+                      "JOIN financial_reports r USING(report_id) WHERE m.metric = 'revenue' "
+                      "AND m.period_end = '2024-06-30' ORDER BY r.filed_at_utc")
+    assert [r["basis"] for r in rows] == ["reported", "reported"]  # both kept: history is not overwritten
+    later = fu.analyse(db, "cmp-ogdc", period_end="2024-06-30", as_of="2026-12-31")
+    assert later["ratios"]["gross_margin"]["inputs"]["revenue"]["value"] == 790_000.0
+    assert later["scope"] == "unconsolidated"
+
+
+def test_ratio_missing_zero_negative_and_units(db):
+    from engines import fundamentals as fu
+
+    rec = _corp()
+    rec["lines"] = [ln for ln in rec["lines"] if ln["raw_label"] != "Total current liabilities"]
+    fin.promote(db, _imp(db, rec)["report_id"])
+    a = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30", as_of=AS_OF)["ratios"]
+    cr = a["current_ratio"]
+    assert cr["state"] == "insufficient_data" and cr["value"] is None  # missing is never zero
+    assert cr["missing"] == ["current_liabilities"]
+    # Units: the same ratio is unit-free; amounts carry the unit scale, so the result is scale-invariant.
+    assert a["gross_margin"]["value"] == pytest.approx(0.4)
+    assert a["roe"]["inputs"]["profit_after_tax"]["value"] == 140_000.0  # PKR, scaled from thousands
+
+
+def test_negative_numerator_is_flagged_and_zero_denominator_is_not_applicable(db):
+    from engines import fundamentals as fu
+
+    rec = _corp(overrides={("Operating profit", "2025-06-30"): -50.0})
+    fin.promote(db, _imp(db, rec)["report_id"])
+    a = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30", as_of=AS_OF)["ratios"]
+    assert a["operating_margin"]["value"] < 0 and a["operating_margin"]["sign"] == "negative_numerator"
+    assert "sign" not in a["gross_margin"]
+    zero = _corp(period="2024-06-30", prev="2023-06-30", sha="d" * 64,
+                 overrides={("Total equity", "2024-06-30"): 0.0,
+                            ("Total liabilities", "2024-06-30"): 450.0})  # assets = liabilities + equity
+    fin.promote(db, _imp(db, zero)["report_id"])
+    z = fu.analyse(db, "cmp-ogdc", period_end="2024-06-30", as_of=AS_OF)["ratios"]
+    assert z["roe"]["state"] == "not_applicable" and z["roe"]["value"] is None

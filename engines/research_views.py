@@ -116,27 +116,45 @@ def _reconcile_readonly(db, report_id: int) -> dict:
 
 # ---------------------------------------------------------------- M3
 def fundamentals_view(db) -> None:
+    """Fundamentals as known on a chosen date. Only reports FILED by then are used. The page says how many
+    fiscal years were filed, how many later years are hidden, and which reports had no filing date."""
     if not _ready(db, ("financial_reports",), "0011"):
         return
     cid = _company_picker(db, "fu_company")
     if not cid:
         return
-    periods = _run(db.execute, "SELECT DISTINCT period_end FROM financial_metrics WHERE company_id = ? AND "
-                   "period_type = 'FY' ORDER BY period_end DESC", (cid,))
-    if not periods:
-        st.info("No reported fiscal-year metrics: import and promote a reconciled annual report first.")
+    as_of = st.text_input("As of (YYYY-MM-DD): only reports filed by then are used", _today(), key="fu_asof")
+    strict = st.toggle("Exclude reports with no recorded filing date", value=True, key="fu_strict")
+    filed = _run(db.execute, "SELECT m.period_end, COUNT(*) AS n FROM financial_metrics m "
+                 "LEFT JOIN financial_reports r USING(report_id) WHERE m.company_id = ? AND "
+                 "m.period_type = 'FY' AND m.period_end <= ? AND "
+                 "((r.filed_at_utc IS NULL AND ? = 0) OR (r.filed_at_utc IS NOT NULL AND "
+                 "substr(r.filed_at_utc, 1, 10) <= ?)) GROUP BY m.period_end ORDER BY m.period_end DESC",
+                 (cid, as_of, int(strict), as_of))
+    if not filed:
+        st.info("No fiscal-year figures are available on this date" + (
+            " (reports with no recorded filing date are excluded)." if strict else "."))
         return
-    pe = st.selectbox("Fiscal year end", [p["period_end"] for p in periods], key="fu_period")
+    later = _run(db.execute, "SELECT COUNT(DISTINCT m.period_end) AS n FROM financial_metrics m "
+                 "LEFT JOIN financial_reports r USING(report_id) WHERE m.company_id = ? AND "
+                 "m.period_type = 'FY' AND m.period_end > ? AND r.filed_at_utc IS NOT NULL", (cid, as_of))
+    st.caption(f"{len(filed)} fiscal year(s) filed by {as_of}."
+               + (f" {later[0]['n']} later-filed year(s) are hidden, so they cannot influence this view."
+                  if later and later[0]["n"] else ""))
+    pe = st.selectbox("Fiscal year end", [p["period_end"] for p in filed], key="fu_period")
     from engines import fundamentals as fu
 
-    a = _run(fu.analyse, db, cid, period_end=pe)
+    a = _run(fu.analyse, db, cid, period_end=pe, as_of=as_of, strict=strict)
     if not a or a.get("state") == "insufficient_data":
         st.info("Insufficient reported data for this period.")
         return
+    if a.get("filing_dates_unknown"):
+        st.warning("Reports with no recorded filing date were used (their period end is not a publication "
+                   "date, so this may look ahead): " + ", ".join(str(x) for x in a["filing_dates_unknown"]))
     prior = a["prior_period_end"] or "none"
-    st.caption(f"Framework: {a['framework']} · scope: {a['scope']} · prior year: {prior}"
-               ". No bands are shown: thresholds are an owner decision (U9). `roe` uses closing equity; "
-               "`roe_average_equity` uses opening and closing equity.")
+    st.caption(f"Framework: {a['framework']} · scope: {a['scope']} · prior year: {prior}. No bands are "
+               "shown (thresholds are an owner decision, U9). `roe` uses closing equity; "
+               "`roe_average_equity` uses opening and closing equity and needs the prior year.")
     st.markdown("**Ratios**")
     st.dataframe(_states(a["ratios"]), use_container_width=True)
     st.markdown("**Growth (year on year, same period type)**")

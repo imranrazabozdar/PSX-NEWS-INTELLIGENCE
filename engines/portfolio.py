@@ -201,11 +201,15 @@ def _check(rdb, c: dict, ticker: str, cid: str | None, since: str, as_of: str) -
     if cid is None:
         return {**res, "state": "not_evaluable", "reason": "ticker not in the company master"}
     if c["kind"] == "ratio":
-        fy = rdb.execute("SELECT MAX(period_end) AS p FROM financial_metrics WHERE company_id = ? AND "
-                         "period_type = 'FY' AND period_end <= ?", (cid, as_of))[0]["p"]
-        if not fy:
-            return {**res, "state": "not_evaluable", "reason": "no reported fiscal-year metrics"}
-        r = fundamentals.analyse(rdb, cid, period_end=fy)["ratios"].get(c["subject"])
+        fy = rdb.execute(
+            "SELECT MAX(m.period_end) AS p FROM financial_metrics m "
+            "LEFT JOIN financial_reports r USING(report_id) WHERE m.company_id = ? AND "
+            "m.period_type = 'FY' AND m.period_end <= ? AND r.filed_at_utc IS NOT NULL AND "
+            "substr(r.filed_at_utc, 1, 10) <= ?", (cid, as_of, as_of))[0]["p"]
+        if not fy:  # a thesis test uses only reports with a known, reached filing date (strict)
+            return {**res, "state": "not_evaluable", "reason": "no report with a known filing date"}
+        r = fundamentals.analyse(rdb, cid, period_end=fy, as_of=as_of,
+                                 strict=True)["ratios"].get(c["subject"])
         if not r or r["state"] != "ok":
             return {**res, "state": "not_evaluable", "reason": f"ratio state {r and r['state']}",
                     "period_end": fy}

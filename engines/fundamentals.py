@@ -81,14 +81,42 @@ def _now() -> str:
     return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def metrics(db, company_id: str, period_end: str, period_type: str, scope: str) -> dict[str, dict]:
-    """Latest non-superseded value per metric: restated beats reported; never estimated."""
-    rows = db.execute(
-        "SELECT metric_id, metric, value, unit, basis, source_item_id, report_id FROM financial_metrics "
-        "WHERE company_id = ? AND period_end = ? AND period_type = ? AND scope = ? "
-        "AND basis IN ('reported','restated') "
-        "ORDER BY CASE basis WHEN 'restated' THEN 0 ELSE 1 END, metric_id DESC",
-        (company_id, period_end, period_type, scope))
+def _known(as_of: str, strict: bool) -> tuple[str, tuple]:
+    """Filing gate for a report: filed on or before as_of. With `strict`, a report with NO filing date is
+    excluded; otherwise it is kept and flagged by the caller. The SQL text is constant: the mode is a
+    parameter, so no SQL is assembled from strings."""
+    return ("((r.filed_at_utc IS NULL AND ? = 0) OR (r.filed_at_utc IS NOT NULL AND "
+            "substr(r.filed_at_utc, 1, 10) <= ?))", (int(strict), as_of))
+
+
+# The filing gate is written out in each query (constant SQL text). Parameters: (strict flag, as_of).
+_GATE = ("((r.filed_at_utc IS NULL AND ? = 0) OR (r.filed_at_utc IS NOT NULL AND "
+         "substr(r.filed_at_utc, 1, 10) <= ?))")
+_METRICS_SQL = (
+    "SELECT m.metric_id, m.metric, m.value, m.unit, m.basis, m.source_item_id, m.report_id, r.filed_at_utc "
+    "FROM financial_metrics m LEFT JOIN financial_reports r USING(report_id) "
+    "WHERE m.company_id = ? AND m.period_end = ? AND m.period_type = ? AND m.scope = ? "
+    "AND m.basis IN ('reported','restated') "
+    "AND ((r.filed_at_utc IS NULL AND ? = 0) OR (r.filed_at_utc IS NOT NULL "
+    "AND substr(r.filed_at_utc, 1, 10) <= ?)) "
+    "ORDER BY CASE m.basis WHEN 'restated' THEN 0 ELSE 1 END, m.metric_id DESC")
+_SCOPES_SQL = (
+    "SELECT DISTINCT m.scope FROM financial_metrics m LEFT JOIN financial_reports r USING(report_id) "
+    "WHERE m.company_id = ? AND m.period_end = ? AND m.period_type = ? AND m.scope IS NOT NULL "
+    "AND ((r.filed_at_utc IS NULL AND ? = 0) OR (r.filed_at_utc IS NOT NULL "
+    "AND substr(r.filed_at_utc, 1, 10) <= ?))")
+_PRIOR_SQL = (
+    "SELECT DISTINCT m.period_end FROM financial_metrics m LEFT JOIN financial_reports r USING(report_id) "
+    "WHERE m.company_id = ? AND m.period_type = ? AND m.scope = ? AND m.period_end < ? "
+    "AND ((r.filed_at_utc IS NULL AND ? = 0) OR (r.filed_at_utc IS NOT NULL "
+    "AND substr(r.filed_at_utc, 1, 10) <= ?))")
+
+
+def metrics(db, company_id: str, period_end: str, period_type: str, scope: str, *, as_of: str,
+            strict: bool = False) -> dict[str, dict]:
+    """Latest value per metric among reports FILED by `as_of`: restated beats reported, never estimated.
+    A restatement filed after as_of is invisible, so it cannot change an earlier analysis."""
+    rows = db.execute(_METRICS_SQL, (company_id, period_end, period_type, scope, int(strict), as_of))
     out: dict[str, dict] = {}
     for r in rows:
         out.setdefault(r["metric"], dict(r))
@@ -121,21 +149,23 @@ def ratio(name: str, m: dict[str, dict], framework: str) -> dict:
         res["reason"] = "denominator is zero or negative"
         return res
     res["value"] = n / d * (365 if name in DAYS else 1)
+    if res["value"] < 0:
+        # A loss-making numerator is shown as a negative value with an explicit flag, never as a strong ratio.
+        res["sign"] = "negative_numerator"
     return res
 
 
-def choose_scope(db, company_id: str, period_end: str, period_type: str) -> str | None:
-    scopes = {r["scope"] for r in db.execute(
-        "SELECT DISTINCT scope FROM financial_metrics WHERE company_id = ? AND period_end = ? AND "
-        "period_type = ? AND scope IS NOT NULL", (company_id, period_end, period_type))}
+def choose_scope(db, company_id: str, period_end: str, period_type: str, *, as_of: str,
+                 strict: bool = False) -> str | None:
+    scopes = {r["scope"] for r in db.execute(_SCOPES_SQL, (company_id, period_end, period_type,
+                                                           int(strict), as_of))}
     return "consolidated" if "consolidated" in scopes else ("unconsolidated" if scopes else None)
 
 
-def _prior_period(db, company_id: str, period_end: str, period_type: str, scope: str) -> str | None:
+def _prior_period(db, company_id: str, period_end: str, period_type: str, scope: str, *, as_of: str,
+                  strict: bool = False) -> str | None:
     target = date.fromisoformat(period_end) - timedelta(days=365)
-    rows = db.execute("SELECT DISTINCT period_end FROM financial_metrics WHERE company_id = ? "
-                      "AND period_type = ? "
-                      "AND scope = ? AND period_end < ?", (company_id, period_type, scope, period_end))
+    rows = db.execute(_PRIOR_SQL, (company_id, period_type, scope, period_end, int(strict), as_of))
     for r in rows:
         if abs((date.fromisoformat(r["period_end"]) - target).days) <= 10:
             return r["period_end"]
@@ -156,13 +186,17 @@ def growth(cur: dict, prev: dict | None, key: str) -> dict:
     return {**res, "value": a / b - 1, "current": a, "prior": b}
 
 
-def analyse(db, company_id: str, *, period_end: str, period_type: str = "FY") -> dict:
+def analyse(db, company_id: str, *, period_end: str, as_of: str, period_type: str = "FY",
+            strict: bool = False) -> dict:
+    """Ratios for one period, using only reports filed by `as_of` (required).
+    Unknown filing dates are kept unless `strict`; `filing_dates_unknown` lists the reports relying on them.
+    """
     framework = framework_for(db, company_id)
-    scope = choose_scope(db, company_id, period_end, period_type)
+    scope = choose_scope(db, company_id, period_end, period_type, as_of=as_of, strict=strict)
     if scope is None:
-        return {"company_id": company_id, "state": "insufficient_data", "reason": "no reported metrics",
-                "framework": framework}
-    m = metrics(db, company_id, period_end, period_type, scope)
+        return {"company_id": company_id, "state": "insufficient_data", "reason": "no reported metrics filed "
+                "by the as-of date", "framework": framework, "as_of": as_of}
+    m = metrics(db, company_id, period_end, period_type, scope, as_of=as_of, strict=strict)
     ratios = {name: ratio(name, m, framework) for name in RATIOS}
     for k, fws in REPORTED.items():
         ratios[k] = ({"ratio": k, "formula": "as reported", "state": "ok", "value": m[k]["value"],
@@ -170,14 +204,20 @@ def analyse(db, company_id: str, *, period_end: str, period_type: str = "FY") ->
                      if k in m and framework in fws else
                      {"ratio": k, "state": "not_applicable" if framework not in fws else "insufficient_data",
                       "value": None, "missing": [] if framework not in fws else [k]})
-    prior = _prior_period(db, company_id, period_end, period_type, scope)
-    pm = metrics(db, company_id, prior, period_type, scope) if prior else None
+    prior = _prior_period(db, company_id, period_end, period_type, scope, as_of=as_of, strict=strict)
+    pm = metrics(db, company_id, prior, period_type, scope, as_of=as_of, strict=strict) if prior else None
+    unknown = sorted({r["report_id"] for r in db.execute(
+        "SELECT DISTINCT m.report_id FROM financial_metrics m LEFT JOIN financial_reports r USING(report_id) "
+        "WHERE m.company_id = ? AND m.scope = ? AND m.period_type = ? AND m.period_end IN (?, ?) "
+        "AND r.filed_at_utc IS NULL AND m.report_id IS NOT NULL", (company_id, scope, period_type, period_end,
+                                                                  prior or period_end))})
     g = {k: growth(m, pm, k) for k in GROWTH}
     ratios["roe_average_equity"] = roe_average(m, pm, framework)
     ratios["dividend_cover_fcf"] = _dividend_cover(m)
-    return {"company_id": company_id, "framework": framework, "period_end": period_end,
+    return {"company_id": company_id, "framework": framework, "period_end": period_end, "as_of": as_of,
             "period_type": period_type, "scope": scope, "prior_period_end": prior, "ratios": ratios,
-            "growth": g, "fcf": _fcf(m)}
+            "growth": g, "fcf": _fcf(m), "filing_dates_unknown": unknown, "strict": strict,
+            "state": "ok" if not unknown or strict else "ok_with_unknown_filing_dates"}
 
 
 def roe_average(cur: dict, prev: dict | None, framework: str) -> dict:
@@ -232,11 +272,12 @@ def _state(items: list[dict]) -> str:
     return "ok" if ok == len(app) else ("partial" if ok else "insufficient_data")
 
 
-def assess(db, company_id: str, *, period_end: str, period_type: str = "FY",
-           as_of_date: str | None = None) -> dict:
-    """Write dimensions A, B and C for one period. Re-running the same version and date is a no-op."""
-    a = analyse(db, company_id, period_end=period_end, period_type=period_type)
-    as_of = as_of_date or datetime.now(UTC).date().isoformat()
+def assess(db, company_id: str, *, period_end: str, as_of_date: str, period_type: str = "FY",
+           strict: bool = False) -> dict:
+    """Write dimensions A, B and C for one period as known on `as_of_date` (required). Re-running the same
+    version and date is a no-op."""
+    as_of = as_of_date
+    a = analyse(db, company_id, period_end=period_end, period_type=period_type, as_of=as_of, strict=strict)
     if a.get("state") == "insufficient_data":
         dims = {d: ([], "insufficient_data") for d in "ABC"}
     else:

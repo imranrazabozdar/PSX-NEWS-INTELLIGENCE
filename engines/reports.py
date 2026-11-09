@@ -66,7 +66,7 @@ def company_report(db, company_id: str, *, as_of: str) -> dict | None:
         return None
     t = _ticker(db, company_id)
     fy = _latest_fy(db, company_id, as_of)
-    fa = fundamentals.analyse(db, company_id, period_end=fy) if fy else None
+    fa = fundamentals.analyse(db, company_id, period_end=fy, as_of=as_of) if fy else None
     vals = _stored_valuations(db, company_id, as_of)
     mkt = market_intel.measures(db, t, as_of=as_of) if t else None
     mechs = sorted({m for m in base.get("impact_by_mechanism", {})})

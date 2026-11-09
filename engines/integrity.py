@@ -17,13 +17,33 @@ from database.connection import DatabaseError, SQLiteDatabase
 from database.migrate import discover, migrate
 
 
-def expected_objects() -> dict[str, set[str]]:
+def expected_objects(versions: set[int] | None = None) -> dict[str, set[str]]:
+    """Objects (tables, indexes, triggers, views) the repository's migrations define, by type.
+
+    `versions` limits the set to the given migrations (default: all). Names come from a real migration run on
+    an in-memory database, so they are exact, not text matches."""
     ref = SQLiteDatabase()
-    migrate(ref)
-    q = "SELECT name FROM sqlite_master WHERE type = ? AND name NOT LIKE 'sqlite_%'"
-    out = {t: {r["name"] for r in ref.execute(q, (t,))} for t in ("trigger", "index")}
-    ref.close()
-    return out
+    try:
+        if versions is None:
+            migrate(ref)
+        else:
+            migrate(ref, directory=_subset_dir(versions))
+        q = "SELECT name FROM sqlite_master WHERE type = ? AND name NOT LIKE 'sqlite_%'"
+        return {t: {r["name"] for r in ref.execute(q, (t,))} for t in ("table", "index", "trigger", "view")}
+    finally:
+        ref.close()
+
+
+def _subset_dir(versions: set[int]):
+    import shutil
+    import tempfile
+    from pathlib import Path
+
+    tmp = Path(tempfile.mkdtemp())
+    for m in discover():
+        if m.version in versions:
+            shutil.copy(m.path, tmp / m.path.name)
+    return tmp
 
 
 def check(db) -> dict:
@@ -45,14 +65,18 @@ def check(db) -> dict:
     pending = sorted(set(repo) - set(done))
     if pending:
         notes.append(f"pending migrations (not applied): {pending}")
-    exp = expected_objects()
-    for t, names in exp.items():
+    applied_versions = set(done) & set(repo)
+    have_all = expected_objects(applied_versions) if applied_versions else {}
+    for t, names in have_all.items():
         have = {r["name"] for r in db.execute("SELECT name FROM sqlite_master WHERE type = ?", (t,))}
-        # objects of pending migrations are not expected yet
-        pending_defs = " ".join(repo[v].sql for v in pending)
-        missing = sorted(n for n in names - have if n not in pending_defs)
+        missing = sorted(names - have)
         if missing:
-            problems.append(f"missing {t}s: {missing}")
+            problems.append(f"missing {t}s from applied migrations: {missing}")
+        extra = sorted(have - names)
+        if extra:
+            notes.append(f"{t}s not defined by the applied migrations (review): {extra}")
+    if pending:
+        notes.append("objects of pending migrations are not checked until they are applied")
     try:
         fk = db.execute("PRAGMA foreign_key_check")
         if fk:

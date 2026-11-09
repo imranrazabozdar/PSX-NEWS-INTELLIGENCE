@@ -170,7 +170,7 @@ def _two_years(db):
 
 def test_ratios_hand_calculated(db):
     _two_years(db)
-    a = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30")
+    a = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30", as_of="2026-11-09")
     r = {k: v["value"] for k, v in a["ratios"].items()}
     assert r["gross_margin"] == pytest.approx(0.4) and r["net_margin"] == pytest.approx(0.14)
     assert r["roe"] == pytest.approx(0.7) and r["current_ratio"] == pytest.approx(2.0)
@@ -186,7 +186,7 @@ def test_missing_inputs_are_insufficient_not_zero(db):
     rec = _corp()
     rec["lines"] = [ln for ln in rec["lines"] if ln["raw_label"] != "Total current liabilities"]
     fin.promote(db, _imp(db, rec)["report_id"])
-    a = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30")
+    a = fu.analyse(db, "cmp-ogdc", period_end="2025-06-30", as_of="2026-11-09")
     cr = a["ratios"]["current_ratio"]
     assert cr["state"] == "insufficient_data" and cr["value"] is None
     assert cr["missing"] == ["current_liabilities"]
@@ -204,4 +204,5 @@ def test_assess_writes_dimensions_without_bands(db):
 
 
 def test_no_metrics_gives_insufficient_data(db):
-    assert fu.analyse(db, "cmp-hbl", period_end="2025-12-31")["state"] == "insufficient_data"
+    r = fu.analyse(db, "cmp-hbl", period_end="2025-12-31", as_of="2026-11-09")
+    assert r["state"] == "insufficient_data"
