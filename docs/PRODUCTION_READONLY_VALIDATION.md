@@ -3,9 +3,9 @@
 Status: **NOT PERFORMED. Blocked on the owner's read-only production credential.**
 
 ## Blocker (2026-11-09)
-The secure credential request for a database-specific, read-only production token was declined by the owner.
-No production connection was made, and no production read or write occurred. Per the instruction, no other
-credential was used as a fallback.
+The credential was NOT supplied. The owner has clarified that the earlier secure request was **not** an owner
+refusal: permission to request it has not been withdrawn, and the request will be made again. No production
+connection was made, and no production read or write occurred. No other credential was used as a fallback.
 
 ## Target (verified from the repository and platform, names and hosts only)
 * Database: `psx-news-intelligence`
