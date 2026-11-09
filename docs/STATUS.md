@@ -156,3 +156,8 @@ has run in production, and no migration has been applied to Turso.
 | M10 read-only integrity check | `engines/integrity.py` | `tests/test_integrity.py` | TESTED offline |
 | M9 dashboard pages: financial statements, fundamentals, valuation, market behaviour, macro, integrated report | `engines/research_views.py`, `app.py` | `tests/test_research_views.py` | TESTED offline; pages show "awaiting migration" until 0011–0014 are approved for production |
 | M3 efficiency and dividend sustainability (asset turnover, receivable / inventory days, payout, FCF dividend cover) | `engines/fundamentals.py` | `tests/test_pr40_review_regressions.py` | TESTED offline |
+
+## Migration collision remediation (version 11), 2026-11-09
+| Item | Code | Tests | Status |
+|---|---|---|---|
+| A2 remediation script (retire the foreign version 11) | `scripts/remediate_migration_collision_a2.py` | `tests/test_turso_disposable_a2_rehearsal.py` (SQLite leg) | TESTED offline (Option B guard); Turso rehearsal PASSED 2026-11-09 on a disposable database (26 passed; guard Option B proven on Turso); production EXECUTED 2026-11-09 and verified (`docs/MIGRATION_COLLISION_A2.md`) |
