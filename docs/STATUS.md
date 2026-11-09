@@ -152,4 +152,7 @@ has run in production, and no migration has been applied to Turso.
 | M7 validation runs, walk-forward, event study | `engines/backtest.py`, migration 0014 | same | TESTED offline; no labels (U10) |
 | M8 portfolio, theses, alerts (separate database) | `engines/portfolio.py`, `database/portfolio_migrations/` | same | TESTED offline; U8 open |
 | M9 integrated reports and snapshots | `engines/reports.py`, migration 0014 | same | TESTED offline |
-| M10 activation runbook | `docs/OPERATIONS_RUNBOOK.md` | — | IMPLEMENTED (documentation) |
+| M10 activation runbook and rehearsal evidence | `docs/OPERATIONS_RUNBOOK.md` | disposable Turso, 18/18 (2026-11-09) | IMPLEMENTED; nothing activated |
+| M10 read-only integrity check | `engines/integrity.py` | `tests/test_integrity.py` | TESTED offline |
+| M9 dashboard pages: financial statements, fundamentals, valuation, market behaviour, macro, integrated report | `engines/research_views.py`, `app.py` | `tests/test_research_views.py` | TESTED offline; pages show "awaiting migration" until 0011–0014 are approved for production |
+| M3 efficiency and dividend sustainability (asset turnover, receivable / inventory days, payout, FCF dividend cover) | `engines/fundamentals.py` | `tests/test_pr40_review_regressions.py` | TESTED offline |

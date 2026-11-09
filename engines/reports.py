@@ -31,13 +31,21 @@ DISCLAIMER = ("Research support only. Not investment advice; no buy/sell recomme
               "Scenarios are conditional, not forecasts.")
 
 
-def _latest_fy(db, company_id: str, as_of: str) -> str | None:
-    """Latest fiscal year known on `as_of`: period ended and, where recorded, filed by then (as valuation)."""
+def _latest_fy(db, company_id: str, as_of: str, strict: bool = True) -> str | None:
+    """Latest fiscal year known on `as_of`. Strict: filed by then, and a report with no filing date is
+    excluded. Lenient: an unknown filing date is allowed (the caller labels it)."""
     return db.execute(
-        "SELECT MAX(m.period_end) AS p FROM financial_metrics m LEFT JOIN financial_reports r "
-        "USING(report_id) "
+        "SELECT MAX(m.period_end) AS p FROM financial_metrics m "
+        "LEFT JOIN financial_reports r USING(report_id) "
         "WHERE m.company_id = ? AND m.period_type = 'FY' AND m.period_end <= ? AND "
-        "(r.filed_at_utc IS NULL OR substr(r.filed_at_utc, 1, 10) <= ?)", (company_id, as_of, as_of))[0]["p"]
+        "((r.filed_at_utc IS NULL AND ? = 0) OR (r.filed_at_utc IS NOT NULL AND "
+        "substr(r.filed_at_utc, 1, 10) <= ?))", (company_id, as_of, int(strict), as_of))[0]["p"]
+
+
+def _excluded_unknown_dates(db, company_id: str, as_of: str) -> int:
+    """Financial reports with no filing date. Strict mode excludes them from every historical figure."""
+    return db.execute("SELECT COUNT(*) AS n FROM financial_reports WHERE company_id = ? AND "
+                      "filed_at_utc IS NULL", (company_id,))[0]["n"]
 
 
 def _filing_unknown(db, company_id: str, period_end: str) -> bool:
@@ -60,13 +68,22 @@ def _stored_valuations(db, company_id: str, as_of: str) -> list[dict]:
              "assumptions": json.loads(r["assumptions_json"])} for r in rows]
 
 
-def company_report(db, company_id: str, *, as_of: str) -> dict | None:
+def company_report(db, company_id: str, *, as_of: str, mode: str = "strict") -> dict | None:
+    """13-section report as known on `as_of`. mode 'strict' (default) uses only reports filed by that date and
+    excludes reports with no filing date. mode 'lenient' is for exploratory reading only: unknown-date reports
+    are used but labelled, and the report says so; it must not be read as historically available."""
+    if mode not in ("strict", "lenient"):
+        raise ValueError("mode must be 'strict' or 'lenient'")
+    strict = mode == "strict"
     base = research.company_report(db, company_id)
     if base is None:
         return None
     t = _ticker(db, company_id)
-    fy = _latest_fy(db, company_id, as_of)
-    fa = fundamentals.analyse(db, company_id, period_end=fy) if fy else None
+    fy = _latest_fy(db, company_id, as_of, strict=strict)
+    fa = fundamentals.analyse(db, company_id, period_end=fy, as_of=as_of, strict=strict) if fy else None
+    if fa is not None and "ratios" not in fa:  # period not filed by as_of: unavailable, not a crash
+        fa = None
+    excluded = _excluded_unknown_dates(db, company_id, as_of)
     vals = _stored_valuations(db, company_id, as_of)
     mkt = market_intel.measures(db, t, as_of=as_of) if t else None
     mechs = sorted({m for m in base.get("impact_by_mechanism", {})})
@@ -98,6 +115,14 @@ def company_report(db, company_id: str, *, as_of: str) -> dict | None:
     }
     body = {
         "company": base["company"], "ticker": t, "as_of": as_of, "disclaimer": DISCLAIMER,
+        "point_in_time": {"mode": mode, "excluded_unknown_filing_date_reports": excluded,
+                          "unknown_filing_date_used": bool(not strict and fa
+                                                           and fa.get("filing_dates_unknown")),
+                          "statement": (
+                              "Only reports filed by the as-of date are used; reports with no filing "
+                              "date are excluded.") if strict else (
+                              "EXPLORATORY: reports with no filing date were used. They must not be read as "
+                              "historically available on the as-of date.")},
         "executive_summary": {
             "events": base["executive_summary"],
             "fundamentals": {"period_end": fy, "framework": (fa or {}).get("framework"),
@@ -152,8 +177,8 @@ def _canonical(body: dict) -> str:
     return json.dumps(strip(body), sort_keys=True, ensure_ascii=False, default=str)
 
 
-def snapshot(db, company_id: str, *, as_of: str) -> dict:
-    body = company_report(db, company_id, as_of=as_of)
+def snapshot(db, company_id: str, *, as_of: str, mode: str = "strict") -> dict:
+    body = company_report(db, company_id, as_of=as_of, mode=mode)
     if body is None:
         raise ValueError("unknown company")
     text = _canonical(body)
@@ -166,13 +191,14 @@ def snapshot(db, company_id: str, *, as_of: str) -> dict:
     return {"subject": company_id, "as_of": as_of, "sha256": sha}
 
 
-def verify_snapshot(db, company_id: str, *, as_of: str) -> dict:
+def verify_snapshot(db, company_id: str, *, as_of: str, mode: str = "strict") -> dict:
     stored = db.execute("SELECT content_sha256 FROM report_snapshots WHERE kind = 'company' AND subject = ? "
                         "AND "
                         "as_of_date = ? ORDER BY snapshot_id DESC LIMIT 1", (company_id, as_of))
     if not stored:
         return {"state": "no_snapshot"}
-    now = hashlib.sha256(_canonical(company_report(db, company_id, as_of=as_of)).encode()).hexdigest()
+    body = company_report(db, company_id, as_of=as_of, mode=mode)
+    now = hashlib.sha256(_canonical(body).encode()).hexdigest()
     return {"state": "reproduced" if now == stored[0]["content_sha256"] else "inputs_changed",
             "stored": stored[0]["content_sha256"], "rebuilt": now}
 

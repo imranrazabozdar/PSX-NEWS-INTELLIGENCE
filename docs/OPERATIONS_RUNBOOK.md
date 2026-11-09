@@ -40,6 +40,12 @@ Turso. Each activation below needs a separate, explicit owner approval. A merged
   There is no scheduled job for these modules, and none should be added without approval.
 
 ## 4. Point-in-time use
+Every fundamentals read takes an explicit `as_of` date (there is no implicit "today"). Only reports **filed** by that
+date are used, for the current year and for the prior year, so a later report or restatement cannot change an earlier
+analysis. A restatement counts only from its own filing date; both the original and restated figures are kept.
+`strict=True` also excludes reports with no recorded filing date. Without it such reports are used, and
+`filing_dates_unknown` lists them as possible look-ahead.
+The portfolio thesis check and the integrated report use the same filing gate.
 Backtests must call `engines.valuation.value(..., strict_point_in_time=True)`. That excludes reports with no
 recorded filing date. Outside strict mode such reports are used and flagged as a possible look-ahead.
 
@@ -62,6 +68,12 @@ CFO − capex, because companies treat interest differently in those lines.
 fiscal year has been imported. Reports show both, each with its formula.
 
 ## 5. Monitoring
+* **Integrity check:** `python -m engines.integrity` is read-only. It also flags a missing table, a dropped object of an
+  applied migration (even when a pending migration's text mentions it) and an index or trigger that no migration
+  defines. It checks that applied migration checksums
+  match the repository, that every trigger and index the migrations define exists, and that
+  `PRAGMA foreign_key_check` is clean. Pending migrations are listed as notes. Run it before and after any backup
+  restore, rehearsal or approved migration.
 * Collection health uses the existing operations tab (schedule health, gaps, readiness).
 * Manual imports record a `collector_runs` row (`x_manual_import`) or a `source_items` row with
   `retrieval_method = 'manual'`, with the importer and attestation in `source_metadata_json`.
@@ -106,3 +118,20 @@ AI gateway, and order execution (never built).
   * The token file was shredded, and the temporary allowlist entry was removed from the environment.
   * No credentials were written to the repository, CI or the production configuration.
 * **Not done:** no migration was applied to production. Production activation still needs separate approval.
+
+## 8. Evidence: disposable Turso recheck with the point-in-time filing gate, 2026-11-09 (production untouched)
+* **Database:** `psxni-migration-rehearsal-20261109d` on its own host (not production). Created through the Turso
+  Platform API in group `us-group`, with a database-scoped 2-hour full-access token that was never printed or
+  committed. Earlier attempts (`…20261109b` and `…20261109c`) were discarded: each was left in a partial state by a
+  failed run, so the clean verification used a fresh database.
+* **Result:** 19/19 passed (9 gate-3 checks and 10 migration and engine checks, including the new point-in-time
+  test), exit 0.
+* **Schema:** `schema_migrations` holds 1–14 (the test's rollback probe, version 15, is removed by the test itself
+  now), and libSQL reports SQLite 3.47.0 with foreign keys enforced. The schema matches the repository's migrations
+  object for object, after the probe is removed.
+* **New SQL verified on real libSQL:** strict and lenient filing gates; a restatement hidden until its filing date
+  and then visible; an unknown filing date excluded in strict mode and kept in the database; and the prior-period
+  query.
+* **Cleanup:** database deleted (only `psx-news-intelligence` remains); its host returns 404; the token file was
+  shredded; the temporary allowlist entries were removed.
+* **Not done:** no migration was applied to production.
