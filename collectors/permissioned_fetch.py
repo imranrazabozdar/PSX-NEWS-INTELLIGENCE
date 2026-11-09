@@ -31,6 +31,7 @@ APPROVED_USER_AGENT = "PSX-NEWS-INTELLIGENCE research bot, contact owner"
 JITTER_MIN_SECONDS = 3.5
 JITTER_MAX_SECONDS = 8.5
 PKT = timezone(timedelta(hours=5))
+DATA_DELAY_MINUTES = 15  # only data settled at least this long ago may be requested
 MAX_BYTES = 5_000_000
 
 Transport = Callable[[str, dict[str, str], float], tuple[int, bytes]]
@@ -38,6 +39,10 @@ Transport = Callable[[str, dict[str, str], float], tuple[int, bytes]]
 
 class PermissionRefused(RuntimeError):
     """A request was refused by policy before any network access."""
+
+
+class DelayRefused(PermissionRefused):
+    """Requested data is not yet settled for the mandatory exchange delay."""
 
 
 class OffPeakRefused(PermissionRefused):
@@ -128,9 +133,24 @@ class PermissionedFetcher:
             raise PermissionRefused(f"response larger than {MAX_BYTES} bytes: {url}")
         return status, body
 
-    def fetch(self, url: str) -> bytes:
-        """Return the body of an allowed, off-peak, robots-compliant GET request."""
+    def _check_delay(self, data_as_of_utc: datetime) -> None:
+        """Refuse any request for data not yet settled for DATA_DELAY_MINUTES."""
+        if data_as_of_utc.tzinfo is None:
+            raise ValueError("data_as_of_utc must be timezone-aware")
+        latest = self.now() - timedelta(minutes=DATA_DELAY_MINUTES)
+        if data_as_of_utc > latest:
+            raise DelayRefused(
+                f"data as of {data_as_of_utc.isoformat()} is inside the {DATA_DELAY_MINUTES}-minute "
+                f"exchange delay (latest permitted {latest.isoformat()})")
+
+    def fetch(self, url: str, *, data_as_of_utc: datetime) -> bytes:
+        """Return the body of an allowed, delayed, off-peak, robots-compliant GET request.
+
+        `data_as_of_utc` is the latest timestamp of the data requested. It is required, so
+        every request states what it is asking for, and it must be at least 15 minutes old.
+        """
         host = self._check_host(url)
+        self._check_delay(data_as_of_utc)
         self._check_time()
         if not self._robots_allows(host, url):
             raise PermissionRefused(f"robots.txt disallows this path for the approved agent: {url}")
