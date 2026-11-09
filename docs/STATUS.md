@@ -108,7 +108,7 @@ criteria are met. The rows marked BLOCKED below remain open and are not part of 
 | Importance and confidence with explanations; human-review flags | `engines/extraction.py` | `test_extraction_keeps_only_quoted_facts_and_explains_confidence` | TESTED |
 | Duplicate / near-duplicate detection, clustering across publications | `engines/similarity.py` | `test_near_duplicate_and_same_story_clustering` | TESTED |
 | Credibility, corroboration, contradiction, timeline | `engines/verification.py` | `test_primary_confirmation_*`, `test_syndicated_*`, `test_contradictions_*`, `test_timeline_*` | TESTED |
-| Persistence with provenance (migration 0007, append-only) | `engines/pipeline.py`, `0007_intelligence_engine.sql` | `test_pipeline_*` (local SQLite) | TESTED (not applied to production Turso) |
+| Persistence with provenance (migration 0007, append-only) | `engines/pipeline.py`, `0007_intelligence_engine.sql` | `test_pipeline_*` (local SQLite) | TESTED (applied to production Turso; no live extraction yet) |
 | Live extraction on real items | | needs live provider and ACTIVE sources | BLOCKED |
 
 ## Phase 4 checklist
@@ -117,8 +117,7 @@ Owner approved and merged on 2026-11-07 (PR #15, merge commit `0bdfb1a08de7dae9e
 passed: test, secret-scan, and CodeQL for Python and Actions.
 
 Open limitations:
-- Turso compatibility is unverified on a real Turso server.
-- Migration 0008 is not applied to production.
+- Migration 0008 is applied to production Turso (ledger verified 2026-11-09). Exposure candidates remain synthetic only.
 - No approved real company-evidence source exists, so real mappings remain unverified.
 - Protection against relationship cycles deeper than A↔B is application-level only.
 - Consumers must read `exposure_candidates_current`.
@@ -138,8 +137,9 @@ Open limitations:
 The full matrix, covering every section of the specification, is in [`TRACEABILITY.md`](TRACEABILITY.md).
 
 ## Master programme modules (M2–M10), 2026-11-08
-All rows below are **TESTED offline only**, using in-memory SQLite and synthetic hand-calculated fixtures. Nothing
-has run in production, and no migration has been applied to Turso.
+All rows below are **TESTED offline only**, using in-memory SQLite and synthetic hand-calculated fixtures. No module has
+run in production. As of 2026-11-09 the production schema holds migrations 0001-0014 (see "Production schema state"
+below): the new tables exist, no module has written to them, and no module is activated.
 
 | Module | Code | Tests | Status |
 |---|---|---|---|
@@ -157,7 +157,15 @@ has run in production, and no migration has been applied to Turso.
 | M9 dashboard pages: financial statements, fundamentals, valuation, market behaviour, macro, integrated report | `engines/research_views.py`, `app.py` | `tests/test_research_views.py` | TESTED offline; pages show "awaiting migration" until 0011–0014 are approved for production |
 | M3 efficiency and dividend sustainability (asset turnover, receivable / inventory days, payout, FCF dividend cover) | `engines/fundamentals.py` | `tests/test_pr40_review_regressions.py` | TESTED offline |
 
+## Production schema state, 2026-11-09 (verified read-only)
+* `schema_migrations` holds versions 1-14 with the repository's own names and checksums; version 11 is `financial_documents`.
+  The foreign `extraction_reviews` objects are gone. `integrity.check` is ok and `PRAGMA foreign_key_check` is clean.
+* Migrations 0011-0014 created tables only (row counts of the new tables were not checked). No module, job or import using them has run or been approved for activation:
+  each activation still needs the owner's approval under `docs/OPERATIONS_RUNBOOK.md` section 1.
+* Credentials were rotated on 2026-11-09 (all database tokens invalidated, new tokens issued). Pre-migration backups
+  (SHA-256 `2085ec51…823e` before A2, `34b539f6…ba40e` after A2) were handed to the owner and are not in this repository.
+
 ## Migration collision remediation (version 11), 2026-11-09
 | Item | Code | Tests | Status |
 |---|---|---|---|
-| A2 remediation script (retire the foreign version 11) | `scripts/remediate_migration_collision_a2.py` | `tests/test_turso_disposable_a2_rehearsal.py` (SQLite leg) | TESTED offline (Option B guard); Turso rehearsal PASSED 2026-11-09 on a disposable database (26 passed; guard Option B proven on Turso); production EXECUTED 2026-11-09 and verified (`docs/MIGRATION_COLLISION_A2.md`) |
+| A2 remediation script (retire the foreign version 11) | `scripts/remediate_migration_collision_a2.py` | `tests/test_turso_disposable_a2_rehearsal.py` (SQLite leg) | TESTED offline (Option B guard); Turso rehearsal PASSED 2026-11-09 on a disposable database (26 passed; guard Option B proven on Turso); production EXECUTED 2026-11-09 and verified (ledger 1-10, then 0011-0014 applied) (`docs/MIGRATION_COLLISION_A2.md`) |
