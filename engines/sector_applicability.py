@@ -231,8 +231,10 @@ def company_sector(db, company_id: str) -> str | None:
     rows = db.execute(
         "SELECT s.name FROM company_classifications cc JOIN sectors s USING(sector_id) "
         "WHERE cc.company_id = ? AND cc.valid_to IS NULL", (company_id,))
-    names = {r["name"] for r in rows}
-    return next((n for n in names if n in SECTORS), None)
+    names = sorted({r["name"] for r in rows if r["name"] in SECTORS})
+    if len(names) > 1:
+        return None  # conflicting classifications: refuse to guess a sector
+    return names[0] if names else None
 
 
 def company_applicability(db, company_id: str, ratios: list[str]) -> dict:

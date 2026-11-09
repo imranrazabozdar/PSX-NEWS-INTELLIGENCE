@@ -129,3 +129,61 @@ def test_analysis_output_reports_applicability_without_changing_values(db):
     a = fu.analyse(db, "cmp-ogdc", period_end="2026-06-30", as_of="2026-11-09")
     assert a["applicability"]["sector"] == "OIL & GAS EXPLORATION COMPANIES"
     assert a["ratios"]["gross_margin"]["state"] == "insufficient_data"  # value logic unchanged
+
+
+def test_sector_matrix_gates_the_calculation_not_just_the_label(db):
+    """Review defect: the matrix marked inventory_days conditional, yet the engine computed it."""
+    rid = fin.import_report(
+        db,
+        {
+            "company_ticker": "OGDC",
+            "doc_type": "annual",
+            "period_end": "2026-06-30",
+            "scope": "unconsolidated",
+            "currency": "PKR",
+            "unit_scale": 1000,
+            "audit_status": "audited",
+            "filed_at_utc": "2026-09-04T00:00:00Z",
+            "document_sha256": "7" * 64,
+            "source": "synthetic_test",
+            "original_url": None,
+            "source_note": "s",
+            "lines": [
+                {
+                    "statement": "IS",
+                    "raw_label": "Revenue",
+                    "column_period_end": "2026-06-30",
+                    "value": 1000.0,
+                    "page": 1,
+                    "canonical_code": "revenue",
+                },
+                {
+                    "statement": "IS",
+                    "raw_label": "Cost of sales",
+                    "column_period_end": "2026-06-30",
+                    "value": -600.0,
+                    "page": 1,
+                    "canonical_code": "cost_of_sales",
+                },
+                {
+                    "statement": "BS",
+                    "raw_label": "Stock in trade",
+                    "column_period_end": "2026-06-30",
+                    "value": 100.0,
+                    "page": 2,
+                    "canonical_code": "inventory",
+                },
+            ],
+        },
+        importer="o",
+        rights_attestation="s",
+    )["report_id"]
+    fin.promote(db, rid)
+    a = fu.analyse(db, "cmp-ogdc", period_end="2026-06-30", as_of="2026-11-09")["ratios"]["inventory_days"]
+    assert (
+        a["state"] == "conditional_unverified"
+        and a["value"] is None
+        and a["gated_by"] == "sector_applicability"
+    )
+
+
