@@ -239,7 +239,7 @@ def test_turso_append_only_triggers(turso_test_db):
     gate.apply(
         turso_test_db, dry_run=False, purpose=gate.PURPOSE, env={gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE}
     )
-    h = _sha("trigger-probe")
+    h = _sha("trigger-probe-" + _run_id())  # unique per run: the disposable database keeps rows between runs
     turso_test_db.batch(
         [
             (
@@ -359,7 +359,7 @@ def test_turso_tuple_insert_is_idempotent(turso_test_db):
     gate.apply(
         turso_test_db, dry_run=False, purpose=gate.PURPOSE, env={gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE}
     )
-    h = _sha("idempotent-probe")
+    h = _sha("idempotent-probe-" + _run_id())
     report = (
         "INSERT INTO archive_reports(report_sha256, vault_ref, company_id, doc_type, period_end, scope, "
         "currency, unit_scale, audit_status, reconciliation, archived_at_utc) "

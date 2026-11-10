@@ -54,7 +54,8 @@ def require_archive_ready(adb) -> dict:
     if not report["fully_migrated"]:
         raise ArchiveNotReady(
             f"archive is not ready: ledger {report['state']['ledger_versions']}, "
-            f"drift {report['structure_drift_for_ledger_state']}"
+            f"ledger checksums match the repository: {report['ledger_checksums_match_repository']}, "
+            f"structure drift: {report['structure_drift_for_ledger_state']}"
         )
     return report
 
