@@ -18,7 +18,6 @@ from collections import defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
 
-from database.migrate import migrate
 from engines import financials as fin
 from engines.financial_series import year_gaps
 
@@ -39,10 +38,25 @@ def require_role(db, role: str) -> None:
         raise ArchiveRoutingError(f"this operation needs the {role!r} database handle, got {got!r}")
 
 
-def migrate_archive(adb) -> list[str]:
-    """Apply archive migrations with the archive's own ledger. Refuses a non-archive handle."""
+class ArchiveNotReady(RuntimeError):
+    """The archive is not fully migrated, or its schema has drifted. Nothing is applied from a repository."""
+
+
+def require_archive_ready(adb) -> dict:
+    """Refuse unless the archive is fully migrated and matches the reference schema. Never applies DDL.
+
+    DDL is applied only by the approved gate (database/archive_migrations/archive_gate.py and
+    scripts/archive_migrate). A repository that could apply DDL would bypass the approval string."""
     require_role(adb, "archive")
-    return migrate(adb, directory=ARCHIVE_MIGRATIONS)
+    from database.archive_migrations import archive_gate as gate
+
+    report = gate.probe(adb)
+    if not report["fully_migrated"]:
+        raise ArchiveNotReady(
+            f"archive is not ready: ledger {report['state']['ledger_versions']}, "
+            f"drift {report['structure_drift_for_ledger_state']}"
+        )
+    return report
 
 
 def archive_promoted(main_db, archive_db, report_id: int) -> dict:

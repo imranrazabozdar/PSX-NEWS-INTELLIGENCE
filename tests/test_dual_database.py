@@ -43,9 +43,16 @@ def files(tmp_path):
     fin.load_mappings(m)
     m.close()
     a = SQLiteDatabase(str(arc_path))
-    repo.migrate_archive(_as_role(a, "archive"))
+    _apply_approved(_as_role(a, "archive"))
     a.close()
     return main_path, arc_path
+
+
+def _apply_approved(db):
+    """Test setup applies the schema through the approved gate, with the approval string."""
+    from database.archive_migrations import archive_gate as gate
+    env = {gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE}
+    return gate.apply(db, dry_run=False, purpose=gate.PURPOSE, env=env)
 
 
 def _as_role(db, role):
@@ -123,7 +130,7 @@ def test_repositories_refuse_a_handle_with_the_wrong_role(files):
         with pytest.raises(repo.ArchiveRoutingError):
             repo.archive_promoted(a, a, 1)  # the operational side must be the main handle
         with pytest.raises(repo.ArchiveRoutingError):
-            repo.migrate_archive(m)  # archive migrations never run on the main database
+            repo.require_archive_ready(m)  # the operational database is refused before anything else
     finally:
         m.close()
         a.close()

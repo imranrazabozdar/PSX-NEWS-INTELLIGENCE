@@ -79,7 +79,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.write:
             adb = connect_archive()
-            repo.migrate_archive(adb)
+            repo.require_archive_ready(adb)  # never applies DDL: the approved gate does
         results = load_directory(mdb, adb, args.dir, write=args.write, allow_synthetic=args.allow_synthetic)
     finally:
         mdb.close()

@@ -53,7 +53,9 @@ def main():
 @pytest.fixture
 def archive():
     d = SQLiteDatabase()
-    repo.migrate_archive(_as(d))
+    from database.archive_migrations import archive_gate as gate
+
+    gate.apply(_as(d), dry_run=False, purpose=gate.PURPOSE, env={gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE})
     yield d
     d.close()
 
