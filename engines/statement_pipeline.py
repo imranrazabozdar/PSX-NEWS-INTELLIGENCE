@@ -21,9 +21,11 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
+from engines import audit_extraction as ae
 from engines import comparative_reconciliation as cmp_mod
 from engines import financials as fin
 from engines import institutional_metrics as metrics
+from engines import notes_extraction as ne
 from engines import pdf_extraction as pe
 from engines import statement_reconciliation as rec
 
@@ -82,6 +84,7 @@ def extract(path_or_doc, *, columns: list[str], statement_pages: dict[str, list[
         lines.extend({**ln, "statement": st} for ln in r["lines"])
         unparsed.extend({**u, "statement": st} for u in r["unparsed"])
     scanned = [p.number for p in doc.pages if not p.has_text]
+    nx = ne.extract_notes(doc, columns=columns)
     return {
         "lines": lines,
         "unparsed": unparsed,
@@ -90,6 +93,10 @@ def extract(path_or_doc, *, columns: list[str], statement_pages: dict[str, list[
         "pages": len(doc.pages),
         "notes": locate_notes(doc),
         "auditor": auditor_opinion(doc),
+        "note_lines": nx["lines"],
+        "note_index": nx["notes"],
+        "note_unparsed": nx["unparsed"],
+        "audit": ae.audit_summary(doc),
     }
 
 
@@ -137,7 +144,7 @@ def tag(extracted: dict, *, document: dict, extractor_version: str, mapping) -> 
         raise ValueError(f"document evidence missing: {missing}")
     counters: dict[str, int] = defaultdict(int)
     tagged = []
-    for ln in extracted["lines"]:
+    for ln in list(extracted["lines"]) + list(extracted.get("note_lines", [])):
         st = ln["statement"]
         counters[st] += 1
         if ln.get("canonical_code") is not None:  # set by a rule-based extractor (e.g. notes)
@@ -290,6 +297,28 @@ def compute_metrics(tagged: dict, *, period_end: str, prior: dict | None = None)
 # ------------------------------------------------------------------ 5. store (archive repository only)
 
 
+def audit_payload(audit: dict) -> dict:
+    """The audit trail kept in the archive: the opinion class, exact excerpts and pages, and KAM headings with
+    their excerpts. No full text of the report is stored."""
+    op = audit["opinion"]
+    return {
+        "opinion": op.get("opinion"),
+        "opinion_evidence": op.get("evidence", []),
+        "opinion_candidates": op.get("candidates", {}),
+        "emphasis_of_matter": audit["emphasis_of_matter"],
+        "going_concern_material_uncertainty": audit["going_concern_material_uncertainty"],
+        "key_audit_matters": [
+            {
+                "heading": k["heading"],
+                "page": k["page"],
+                "excerpt": k["excerpt"],
+                "confidence": k["confidence"],
+            }
+            for k in audit["kams"]
+        ],
+    }
+
+
 def store(
     archive_db,
     *,
@@ -298,6 +327,7 @@ def store(
     tagged: dict,
     reconciliation: dict,
     extractor_version: str,
+    audit: dict | None = None,
 ) -> dict:
     from database import financial_repo as repo
 
@@ -319,11 +349,23 @@ def store(
         reconciliation["checks"],
         consolidation=tagged["lines"][0]["consolidation"] if tagged["lines"] else "unconsolidated",
     )
+    audit_stored = None
+    if audit is not None:
+        audit_stored = repo.archive_disclosure(
+            archive_db,
+            company_id=registry_meta["company_id"],
+            kind="financial_statement",
+            published_at_utc=registry_meta.get("publication_date") or registry_meta["retrieved_at_utc"],
+            title=f"Auditor's report {registry_meta['period_end']} ({registry_meta['psx_symbol']})",
+            payload=audit_payload(audit),
+            pdf_sha256=sha,
+        )
     status = "reconciled" if reconciliation["overall"] in (rec.RECONCILED, rec.ROUNDED) else "needs_review"
     repo.record_processing(
         archive_db, sha, status, f"extractor {extractor_version}: {reconciliation['overall']}"
     )
     return {
+        "audit_disclosure": audit_stored,
         "registration": reg["status"],
         "run": run["status"],
         "run_id": run["run_id"],

@@ -44,7 +44,13 @@ GOING_CONCERN = re.compile(
     re.I | re.S,
 )
 KAM_SECTION = re.compile(r"key audit matters?", re.I)
-KAM_END = re.compile(r"other information|responsibilities of management|other legal and regulatory", re.I)
+KAM_END = re.compile(
+    r"other information|responsibilities of management|other legal and regulatory|independent auditor|"
+    r"statement of financial position|statement of profit or loss|statement of cash flows|"
+    r"statement of changes in equity|balance sheet|income statement",
+    re.IGNORECASE,
+)
+NOTE_LINE = re.compile(r"^\s*(?:note\s+\d{1,2}\b|\d{1,2}\s*[\.\)]\s+[A-Za-z])", re.IGNORECASE)
 
 
 def _excerpt(text: str, match: re.Match, width: int = 160) -> str:
@@ -103,7 +109,7 @@ def key_audit_matters(doc) -> list[dict]:
                 continue
             if not in_section:
                 continue
-            if KAM_END.search(line):
+            if KAM_END.search(line) or NOTE_LINE.match(line):
                 in_section = False
                 current = None
                 continue

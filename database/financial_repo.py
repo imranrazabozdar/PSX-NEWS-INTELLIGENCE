@@ -333,6 +333,8 @@ def archive_disclosure(
         }
     key = b"|".join([body.encode(), (pdf_sha256 or "").encode(), company_id.encode(), title.encode()])
     sha = hashlib.sha256(key).hexdigest()
+    if archive_db.execute("SELECT 1 FROM archive_disclosures WHERE disclosure_sha256 = ?", (sha,)):
+        return {"archived": 0, "status": "existing", "disclosure_sha256": sha}
     archive_db.batch(
         [
             (
@@ -344,7 +346,7 @@ def archive_disclosure(
         ],
         transactional=True,
     )
-    return {"archived": 1, "disclosure_sha256": sha}
+    return {"archived": 1, "status": "stored", "disclosure_sha256": sha}
 
 
 def disclosures(archive_db, company_id: str, *, limit: int = 50) -> list[dict]:
