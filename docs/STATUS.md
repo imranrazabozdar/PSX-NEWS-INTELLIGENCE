@@ -157,6 +157,11 @@ has run in production, and no migration has been applied to Turso.
 | M9 dashboard pages: financial statements, fundamentals, valuation, market behaviour, macro, integrated report | `engines/research_views.py`, `app.py` | `tests/test_research_views.py` | TESTED offline; pages show "awaiting migration" until 0011–0014 are approved for production |
 | M3 efficiency and dividend sustainability (asset turnover, receivable / inventory days, payout, FCF dividend cover) | `engines/fundamentals.py` | `tests/test_pr40_review_regressions.py` | TESTED offline |
 
+## Port of fundamental_engine (ADR-0001 scoped exception)
+| Item | Code | Tests | Status |
+|---|---|---|---|
+| Relevance pre-filter, ported from the owner-approved scoped exception (ADR-0001, 2026-11-09) | `engines/relevance_prefilter.py`, `config/relevance_rules.json` (`relevance@v2`) | `tests/test_relevance_prefilter.py` (10 tests) | TESTED offline; not yet wired into extraction |
+
 ## Migration collision remediation (version 11), 2026-11-09
 | Item | Code | Tests | Status |
 |---|---|---|---|

@@ -1,0 +1,118 @@
+{
+  "version": "relevance@v2",
+  "threshold": 2,
+  "entity_points": {
+    "ticker": 4,
+    "company_name": 4,
+    "watchlist_bonus": 1
+  },
+  "notes": [
+    "Deterministic, no model involved. Score = entity points + the highest-weight matched term of EACH keyword group.",
+    "Pass when score >= threshold. Tickers match only as UPPERCASE whole words; company names as whole phrases (>=2 words, >=8 chars) after stripping legal suffixes.",
+    "Weights are starting values: tune against reviewed misses, and bump the version when they change.",
+    "v2: threshold 2 (daily model quota is far larger than the pass rate, so favour recall); ambiguous tickers need corroboration; 'geo' and 'foreign_noise' groups added; per-source bonus (PBS is official statistics, Business Recorder markets feed)."
+  ],
+  "groups": {
+    "corporate": {
+      "dividend": 3,
+      "interim dividend": 3,
+      "final dividend": 3,
+      "right issue": 3,
+      "rights issue": 3,
+      "bonus shares": 3,
+      "earnings": 2,
+      "net profit": 3,
+      "profit after tax": 3,
+      "quarterly results": 3,
+      "financial results": 3,
+      "annual report": 2,
+      "board meeting": 2,
+      "annual general meeting": 2,
+      "agm": 2,
+      "corporate briefing": 3,
+      "merger": 3,
+      "acquisition": 3,
+      "share buyback": 3,
+      "buyback": 3,
+      "credit rating": 2,
+      "sukuk": 2,
+      "ipo": 2,
+      "delisting": 3,
+      "book closure": 3
+    },
+    "regulatory": {
+      "sbp": 2,
+      "state bank": 2,
+      "secp": 2,
+      "fbr": 2,
+      "ogra": 2,
+      "nepra": 3,
+      "imf": 2,
+      "policy rate": 3,
+      "monetary policy": 3,
+      "tariff": 2,
+      "budget": 2,
+      "circular debt": 3,
+      "windfall tax": 3,
+      "capital gains tax": 3,
+      "petroleum levy": 3,
+      "power purchase": 3
+    },
+    "markets": {
+      "psx": 3,
+      "kse": 3,
+      "kse-100": 3,
+      "kse100": 3,
+      "stock exchange": 3,
+      "stock market": 3,
+      "bourse": 3,
+      "benchmark index": 3,
+      "rupee": 2,
+      "inflation": 2,
+      "t-bill": 2,
+      "treasury bill": 2,
+      "remittances": 2,
+      "current account": 2,
+      "forex reserves": 2,
+      "foreign exchange reserves": 2,
+      "kibor": 3,
+      "cpi": 2
+    },
+    "commodities": {
+      "brent": 3,
+      "crude oil": 3,
+      "crude": 2,
+      "lng": 3,
+      "oil prices": 2,
+      "petrol price": 3,
+      "diesel price": 3,
+      "coal": 2,
+      "gas price": 3,
+      "fertiliser": 2,
+      "fertilizer": 2,
+      "cement": 2,
+      "urea": 3,
+      "refinery": 2
+    },
+    "geo": {
+      "pakistan": 1,
+      "pakistani": 1,
+      "karachi": 1
+    },
+    "foreign_noise": {
+      "indian rupee": -2,
+      "rbi": -2,
+      "bank of england": -2,
+      "soybeans": -2,
+      "wheat futures": -2
+    }
+  },
+  "ambiguous_tickers": [
+    "PPP"
+  ],
+  "source_bonus": {
+    "pbs": 3,
+    "brecorder_markets": 1,
+    "brecorder": 1
+  }
+}
