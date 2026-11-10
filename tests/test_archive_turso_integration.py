@@ -130,13 +130,13 @@ def test_ddl_runs_only_with_the_exact_approval_string(empty_archive):
     out = gate.apply(
         empty_archive, dry_run=False, purpose=gate.PURPOSE, env={gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE}
     )
-    assert out["mode"] == "applied" and len(out["log"]) == 4
+    assert out["mode"] == "applied" and len(out["log"]) == 5
     assert gate.probe(empty_archive)["fully_migrated"] is True
 
 
 def test_dry_run_changes_nothing_and_reports_checksums(empty_archive):
     out = gate.apply(empty_archive, dry_run=True)
-    assert out["mode"] == "dry_run" and len(out["pending"]) == 4
+    assert out["mode"] == "dry_run" and len(out["pending"]) == 5
     assert all(len(m["checksum"]) == 64 for m in out["pending"])
     assert empty_archive.execute("SELECT name FROM sqlite_master WHERE type='table'") == []
 
@@ -170,7 +170,7 @@ def test_probe_reads_schema_and_writes_nothing(empty_archive):
     after = gate.probe(empty_archive)
     assert before == after
     assert before["blob_columns"] == [] and before["structure_drift_for_ledger_state"] == {}
-    assert before["fully_migrated"] is True and len(before["ledger"]) == 4
+    assert before["fully_migrated"] is True and len(before["ledger"]) == 5
     assert set(before["row_counts"]) == {
         "archive_reports",
         "archive_financial_tuples",
@@ -181,6 +181,10 @@ def test_probe_reads_schema_and_writes_nothing(empty_archive):
         "archive_notes",
         "archive_reconciliation",
         "archive_line_reviews",
+        "archive_extraction_runs",
+        "archive_line_items_v2",
+        "archive_reconciliation_v2",
+        "archive_document_files",
     } and all(v == 0 for v in before["row_counts"].values())
 
 
@@ -222,6 +226,7 @@ def test_turso_apply_gate_then_schema_and_ledger(turso_test_db):
         "disclosures",
         "document_registry",
         "extraction_evidence",
+        "extractor_versioning",
     ]
     # a second application is a no-op: migrations are not applied twice
     assert (
@@ -508,7 +513,7 @@ def test_live_full_migration_sequence_from_zero(zero):
     out = gate.apply(
         zero, dry_run=False, purpose=gate.PURPOSE, env={gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE}
     )
-    assert out["mode"] == "applied" and len(out["log"]) == 4
+    assert out["mode"] == "applied" and len(out["log"]) == 5
     p = gate.probe(zero)
     assert p["fully_migrated"] is True
     assert [r["name"] for r in p["ledger"]] == [
@@ -516,8 +521,9 @@ def test_live_full_migration_sequence_from_zero(zero):
         "disclosures",
         "document_registry",
         "extraction_evidence",
+        "extractor_versioning",
     ]
-    assert len(p["triggers"]) == 18 and len(p["indexes"]) == 14 and len(p["tables"]) == 9
+    assert len(p["triggers"]) == 26 and len(p["tables"]) == 13
     assert p["structure_drift_for_ledger_state"] == {} and p["blob_columns"] == []
     again = gate.apply(
         zero, dry_run=False, purpose=gate.PURPOSE, env={gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE}
