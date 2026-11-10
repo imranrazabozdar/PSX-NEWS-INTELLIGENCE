@@ -1,295 +1,318 @@
 {
- "dataset": "account_mappings",
- "version": 1,
- "status": "seed: pending owner review (labels from common PSX statement wording; extend as reports are imported)",
- "mappings": {
-  "corporate": {
-   "IS": {
-    "revenue": [
-     "revenue",
-     "net sales",
-     "sales net",
-     "sales",
-     "revenue from contracts with customers",
-     "net revenue",
-     "turnover net",
-     "net turnover"
-    ],
-    "cost_of_sales": [
-     "cost of sales",
-     "cost of revenue",
-     "cost of goods sold"
-    ],
-    "gross_profit": [
-     "gross profit",
-     "gross profit loss"
-    ],
-    "operating_profit": [
-     "operating profit",
-     "profit from operations",
-     "operating profit loss"
-    ],
-    "finance_cost": [
-     "finance cost",
-     "finance costs",
-     "financial charges"
-    ],
-    "profit_before_tax": [
-     "profit before taxation",
-     "profit before tax",
-     "profit loss before taxation"
-    ],
-    "taxation": [
-     "taxation",
-     "income tax expense",
-     "tax expense"
-    ],
-    "profit_after_tax": [
-     "profit after taxation",
-     "profit for the year",
-     "profit for the period",
-     "net profit for the year",
-     "profit loss for the year",
-     "profit loss for the period"
-    ],
-    "eps_basic": [
-     "earnings per share basic",
-     "basic earnings per share",
-     "earnings per share basic and diluted",
-     "earnings loss per share basic and diluted"
-    ]
-   },
-   "BS": {
-    "total_assets": [
-     "total assets"
-    ],
-    "total_liabilities": [
-     "total liabilities"
-    ],
-    "total_equity": [
-     "total equity",
-     "total shareholders equity",
-     "shareholders equity"
-    ],
-    "current_assets": [
-     "total current assets",
-     "current assets"
-    ],
-    "current_liabilities": [
-     "total current liabilities",
-     "current liabilities"
-    ],
-    "cash_and_equivalents": [
-     "cash and bank balances",
-     "cash and cash equivalents"
-    ],
-    "inventory": [
-     "stock in trade",
-     "inventories",
-     "stock-in-trade"
-    ],
-    "trade_receivables": [
-     "trade debts",
-     "trade receivables"
-    ],
-    "long_term_borrowings": [
-     "long term financing",
-     "long term borrowings",
-     "long term loans"
-    ],
-    "short_term_borrowings": [
-     "short term borrowings",
-     "short term financing",
-     "running finance"
-    ],
-    "share_capital": [
-     "issued subscribed and paid up capital",
-     "share capital",
-     "paid up capital"
-    ]
-   },
-   "CF": {
-    "cfo": [
-     "net cash generated from operating activities",
-     "net cash from operating activities",
-     "net cash generated from used in operating activities"
-    ],
-    "capex": [
-     "purchase of property plant and equipment",
-     "fixed capital expenditure",
-     "capital expenditure"
-    ],
-    "dividends_paid": [
-     "dividends paid",
-     "dividend paid"
-    ],
-    "depreciation_amortisation": [
-     "depreciation",
-     "depreciation and amortisation",
-     "depreciation on property plant and equipment",
-     "depreciation and amortization"
-    ]
-   },
-   "note": {
-    "shares_outstanding": [
-     "number of ordinary shares",
-     "weighted average number of ordinary shares"
-    ]
-   }
-  },
-  "bank": {
-   "IS": {
-    "interest_earned": [
-     "mark up return interest earned",
-     "markup return interest earned",
-     "interest earned"
-    ],
-    "interest_expensed": [
-     "mark up return interest expensed",
-     "markup return interest expensed",
-     "interest expensed"
-    ],
-    "net_interest_income": [
-     "net mark up interest income",
-     "net markup interest income",
-     "net interest income"
-    ],
-    "non_markup_income": [
-     "total non mark up interest income",
-     "total non markup interest income",
-     "non interest income"
-    ],
-    "operating_expenses": [
-     "operating expenses",
-     "total non mark up interest expenses"
-    ],
-    "provisions": [
-     "credit loss allowance and write offs net",
-     "provisions and write offs net",
-     "provisions and write offs"
-    ],
-    "profit_before_tax": [
-     "profit before taxation",
-     "profit before tax"
-    ],
-    "taxation": [
-     "taxation"
-    ],
-    "profit_after_tax": [
-     "profit after taxation",
-     "profit for the year",
-     "profit for the period"
-    ],
-    "eps_basic": [
-     "basic earnings per share",
-     "earnings per share basic",
-     "basic and diluted earnings per share"
-    ]
-   },
-   "BS": {
-    "total_assets": [
-     "total assets"
-    ],
-    "total_liabilities": [
-     "total liabilities"
-    ],
-    "total_equity": [
-     "total equity",
-     "net assets"
-    ],
-    "advances_net": [
-     "advances",
-     "advances net"
-    ],
-    "deposits": [
-     "deposits and other accounts"
-    ],
-    "investments": [
-     "investments"
-    ],
-    "cash_and_equivalents": [
-     "cash and balances with treasury banks"
-    ]
-   },
-   "note": {
-    "npl_gross": [
-     "non performing loans",
-     "non performing advances",
-     "stage 3 advances"
-    ],
-    "car_pct": [
-     "capital adequacy ratio",
-     "total capital adequacy ratio"
-    ],
-    "shares_outstanding": [
-     "number of ordinary shares",
-     "weighted average number of ordinary shares"
-    ]
-   }
-  },
-  "insurer": {
-   "IS": {
-    "gross_premium": [
-     "gross premium written",
-     "gross written premium"
-    ],
-    "net_premium": [
-     "net insurance premium",
-     "net premium revenue",
-     "net premium"
-    ],
-    "net_claims": [
-     "net insurance claims",
-     "net claims"
-    ],
-    "underwriting_result": [
-     "underwriting result",
-     "underwriting profit"
-    ],
-    "investment_income": [
-     "investment income"
-    ],
-    "profit_before_tax": [
-     "profit before taxation",
-     "profit before tax"
-    ],
-    "taxation": [
-     "taxation",
-     "income tax expense"
-    ],
-    "profit_after_tax": [
-     "profit after taxation",
-     "profit for the year",
-     "profit for the period"
-    ],
-    "eps_basic": [
-     "earnings per share basic",
-     "basic earnings per share",
-     "earnings per share basic and diluted"
-    ]
-   },
-   "BS": {
-    "total_assets": [
-     "total assets"
-    ],
-    "total_liabilities": [
-     "total liabilities"
-    ],
-    "total_equity": [
-     "total equity",
-     "total shareholders equity"
-    ],
-    "cash_and_equivalents": [
-     "cash and bank",
-     "cash and cash equivalents"
-    ]
-   },
-   "note": {
-    "shares_outstanding": [
-     "number of ordinary shares",
-     "weighted average number of ordinary shares"
-    ]
-   }
+  "dataset": "account_mappings",
+  "version": 1,
+  "status": "seed: pending owner review (labels from common PSX statement wording; extend as reports are imported)",
+  "mappings": {
+    "corporate": {
+      "IS": {
+        "revenue": [
+          "revenue",
+          "net sales",
+          "sales net",
+          "sales",
+          "revenue from contracts with customers",
+          "net revenue",
+          "turnover net",
+          "net turnover"
+        ],
+        "cost_of_sales": [
+          "cost of sales",
+          "cost of revenue",
+          "cost of goods sold"
+        ],
+        "gross_profit": [
+          "gross profit",
+          "gross profit loss"
+        ],
+        "operating_profit": [
+          "operating profit",
+          "profit from operations",
+          "operating profit loss"
+        ],
+        "finance_cost": [
+          "finance cost",
+          "finance costs",
+          "financial charges"
+        ],
+        "profit_before_tax": [
+          "profit before taxation",
+          "profit before tax",
+          "profit loss before taxation"
+        ],
+        "taxation": [
+          "taxation",
+          "income tax expense",
+          "tax expense"
+        ],
+        "profit_after_tax": [
+          "profit after taxation",
+          "profit for the year",
+          "profit for the period",
+          "net profit for the year",
+          "profit loss for the year",
+          "profit loss for the period"
+        ],
+        "eps_basic": [
+          "earnings per share basic",
+          "basic earnings per share",
+          "earnings per share basic and diluted",
+          "earnings loss per share basic and diluted"
+        ]
+      },
+      "BS": {
+        "total_assets": [
+          "total assets"
+        ],
+        "total_liabilities": [
+          "total liabilities"
+        ],
+        "total_equity": [
+          "total equity",
+          "total shareholders equity",
+          "shareholders equity"
+        ],
+        "current_assets": [
+          "total current assets",
+          "current assets"
+        ],
+        "current_liabilities": [
+          "total current liabilities",
+          "current liabilities"
+        ],
+        "cash_and_equivalents": [
+          "cash and bank balances",
+          "cash and cash equivalents"
+        ],
+        "inventory": [
+          "stock in trade",
+          "inventories",
+          "stock-in-trade"
+        ],
+        "trade_receivables": [
+          "trade debts",
+          "trade receivables"
+        ],
+        "long_term_borrowings": [
+          "long term financing",
+          "long term borrowings",
+          "long term loans"
+        ],
+        "short_term_borrowings": [
+          "short term borrowings",
+          "short term financing",
+          "running finance"
+        ],
+        "share_capital": [
+          "issued subscribed and paid up capital",
+          "share capital",
+          "paid up capital"
+        ],
+        "trade_payables": [
+          "trade and other payables",
+          "trade payables",
+          "creditors accrued and other liabilities"
+        ]
+      },
+      "CF": {
+        "cfo": [
+          "net cash generated from operating activities",
+          "net cash from operating activities",
+          "net cash generated from used in operating activities"
+        ],
+        "capex": [
+          "purchase of property plant and equipment",
+          "fixed capital expenditure",
+          "capital expenditure"
+        ],
+        "dividends_paid": [
+          "dividends paid",
+          "dividend paid"
+        ],
+        "depreciation_amortisation": [
+          "depreciation",
+          "depreciation and amortisation",
+          "depreciation on property plant and equipment",
+          "depreciation and amortization"
+        ],
+        "opening_cash": [
+          "cash and cash equivalents at beginning of the year",
+          "cash and cash equivalents at the beginning of the year",
+          "cash at beginning of the year",
+          "cash and cash equivalents at beginning of period"
+        ],
+        "closing_cash": [
+          "cash and cash equivalents at end of the year",
+          "cash and cash equivalents at the end of the year",
+          "cash at end of the year",
+          "cash and cash equivalents at end of period"
+        ],
+        "net_change_in_cash": [
+          "net increase in cash and cash equivalents",
+          "net decrease in cash and cash equivalents",
+          "net increase decrease in cash and cash equivalents",
+          "net change in cash and cash equivalents"
+        ]
+      },
+      "note": {
+        "shares_outstanding": [
+          "number of ordinary shares",
+          "weighted average number of ordinary shares"
+        ]
+      }
+    },
+    "bank": {
+      "IS": {
+        "interest_earned": [
+          "mark up return interest earned",
+          "markup return interest earned",
+          "interest earned"
+        ],
+        "interest_expensed": [
+          "mark up return interest expensed",
+          "markup return interest expensed",
+          "interest expensed"
+        ],
+        "net_interest_income": [
+          "net mark up interest income",
+          "net markup interest income",
+          "net interest income"
+        ],
+        "non_markup_income": [
+          "total non mark up interest income",
+          "total non markup interest income",
+          "non interest income"
+        ],
+        "operating_expenses": [
+          "operating expenses",
+          "total non mark up interest expenses"
+        ],
+        "provisions": [
+          "credit loss allowance and write offs net",
+          "provisions and write offs net",
+          "provisions and write offs"
+        ],
+        "profit_before_tax": [
+          "profit before taxation",
+          "profit before tax"
+        ],
+        "taxation": [
+          "taxation"
+        ],
+        "profit_after_tax": [
+          "profit after taxation",
+          "profit for the year",
+          "profit for the period"
+        ],
+        "eps_basic": [
+          "basic earnings per share",
+          "earnings per share basic",
+          "basic and diluted earnings per share"
+        ]
+      },
+      "BS": {
+        "total_assets": [
+          "total assets"
+        ],
+        "total_liabilities": [
+          "total liabilities"
+        ],
+        "total_equity": [
+          "total equity",
+          "net assets"
+        ],
+        "advances_net": [
+          "advances",
+          "advances net"
+        ],
+        "deposits": [
+          "deposits and other accounts"
+        ],
+        "investments": [
+          "investments"
+        ],
+        "cash_and_equivalents": [
+          "cash and balances with treasury banks"
+        ]
+      },
+      "note": {
+        "npl_gross": [
+          "non performing loans",
+          "non performing advances",
+          "stage 3 advances"
+        ],
+        "car_pct": [
+          "capital adequacy ratio",
+          "total capital adequacy ratio"
+        ],
+        "shares_outstanding": [
+          "number of ordinary shares",
+          "weighted average number of ordinary shares"
+        ]
+      }
+    },
+    "insurer": {
+      "IS": {
+        "gross_premium": [
+          "gross premium written",
+          "gross written premium"
+        ],
+        "net_premium": [
+          "net insurance premium",
+          "net premium revenue",
+          "net premium"
+        ],
+        "net_claims": [
+          "net insurance claims",
+          "net claims"
+        ],
+        "underwriting_result": [
+          "underwriting result",
+          "underwriting profit"
+        ],
+        "investment_income": [
+          "investment income"
+        ],
+        "profit_before_tax": [
+          "profit before taxation",
+          "profit before tax"
+        ],
+        "taxation": [
+          "taxation",
+          "income tax expense"
+        ],
+        "profit_after_tax": [
+          "profit after taxation",
+          "profit for the year",
+          "profit for the period"
+        ],
+        "eps_basic": [
+          "earnings per share basic",
+          "basic earnings per share",
+          "earnings per share basic and diluted"
+        ]
+      },
+      "BS": {
+        "total_assets": [
+          "total assets"
+        ],
+        "total_liabilities": [
+          "total liabilities"
+        ],
+        "total_equity": [
+          "total equity",
+          "total shareholders equity"
+        ],
+        "cash_and_equivalents": [
+          "cash and bank",
+          "cash and cash equivalents"
+        ]
+      },
+      "note": {
+        "shares_outstanding": [
+          "number of ordinary shares",
+          "weighted average number of ordinary shares"
+        ]
+      }
+    }
   }
- }
 }

@@ -1,0 +1,137 @@
+"""Deterministic statement reconciliation. Pure functions: no database, no network, no number is ever changed.
+
+Each check returns its exact discrepancy and one of four statuses:
+  RECONCILED                exact match (discrepancy 0)
+  RECONCILED_WITH_ROUNDING  discrepancy within the rounding allowance, not zero; the exact amount is kept
+  UNRECONCILED              discrepancy beyond the allowance
+  INSUFFICIENT_DATA         a needed value is missing: never treated as zero
+
+Rounding allowance: `ROUNDING_UNITS` printed units (the statement's own unit, e.g. thousands) per identity
+term.
+A check whose inputs are not all reported is INSUFFICIENT_DATA.
+
+Document status (`overall`): UNRECONCILED if any check is UNRECONCILED; otherwise INSUFFICIENT_DATA if no
+check
+could run; otherwise RECONCILED_WITH_ROUNDING if any check needed rounding; otherwise RECONCILED.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+RECONCILED = "RECONCILED"
+ROUNDED = "RECONCILED_WITH_ROUNDING"
+UNRECONCILED = "UNRECONCILED"
+INSUFFICIENT = "INSUFFICIENT_DATA"
+ROUNDING_UNITS = 1.0  # printed units per identity term (one printed unit of rounding per term)
+
+
+@dataclass(frozen=True)
+class Check:
+    name: str
+    column_period_end: str
+    reported: float | None
+    expected: float | None
+    discrepancy: float | None
+    allowance: float
+    status: str
+    missing: tuple[str, ...] = ()
+
+
+def _allowance(terms: int) -> float:
+    """Allowance in the PRINTED unit (the unit the statement is printed in, e.g. thousands). Values are
+    compared in
+    that unit; scaling to currency units happens only at promotion, never here."""
+    return ROUNDING_UNITS * terms
+
+
+def classify(reported: float, expected: float, allowance: float) -> tuple[float, str]:
+    d = reported - expected
+    if d == 0:
+        return d, RECONCILED
+    if abs(d) <= allowance:
+        return d, ROUNDED
+    return d, UNRECONCILED
+
+
+def identity(
+    name: str,
+    period: str,
+    total_name: str,
+    parts: dict[str, float | None],
+    formula,
+    *,
+    terms: int,
+    values: dict[str, float | None],
+) -> Check:
+    """One identity: total == formula(parts). Missing inputs give INSUFFICIENT_DATA, never a zero."""
+    missing = tuple(k for k in (total_name, *parts) if values.get(k) is None)
+    if missing:
+        return Check(name, period, values.get(total_name), None, None, 0.0, INSUFFICIENT, missing)
+    expected = formula({k: values[k] for k in parts})
+    allow = _allowance(terms)
+    d, status = classify(values[total_name], expected, allow)
+    return Check(name, period, values[total_name], expected, d, allow, status)
+
+
+def balance_sheet(period: str, v: dict[str, float | None]) -> Check:
+    """Assets = liabilities + equity. Liabilities are total liabilities as reported."""
+    return identity(
+        "balance_sheet",
+        period,
+        "total_assets",
+        {"total_liabilities": None, "total_equity": None},
+        lambda p: p["total_liabilities"] + p["total_equity"],
+        terms=2,
+        values=v,
+    )
+
+
+def cash_flow(period: str, v: dict[str, float | None]) -> Check:
+    """Opening cash + net movement = closing cash."""
+    return identity(
+        "cash_flow",
+        period,
+        "closing_cash",
+        {"opening_cash": None, "net_change_in_cash": None},
+        lambda p: p["opening_cash"] + p["net_change_in_cash"],
+        terms=2,
+        values=v,
+    )
+
+
+def comparatives(
+    name: str, period: str, prior_reported: float | None, current_comparative: float | None
+) -> Check:
+    """The prior-period value as printed in the prior report must equal the comparative column of the next
+    report.
+    Two different printed amounts for the same period are a restatement or an error, and are flagged, not
+    chosen."""
+    if prior_reported is None or current_comparative is None:
+        return Check(
+            name,
+            period,
+            prior_reported,
+            current_comparative,
+            None,
+            0.0,
+            INSUFFICIENT,
+            tuple(
+                n
+                for n, x in (("prior_reported", prior_reported), ("current_comparative", current_comparative))
+                if x is None
+            ),
+        )
+    allow = _allowance(1)
+    d, status = classify(current_comparative, prior_reported, allow)
+    return Check(name, period, current_comparative, prior_reported, d, allow, status)
+
+
+def overall(checks: list[Check]) -> str:
+    if any(c.status == UNRECONCILED for c in checks):
+        return UNRECONCILED
+    if not any(c.status in (RECONCILED, ROUNDED) for c in checks):
+        return INSUFFICIENT
+    if any(c.status == ROUNDED for c in checks):
+        return ROUNDED
+    return RECONCILED
