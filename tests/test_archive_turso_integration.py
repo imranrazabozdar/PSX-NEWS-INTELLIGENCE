@@ -429,10 +429,14 @@ def _expected_names() -> set[str]:
 
 DROP_ORDER = [
     "archive_line_reviews",
+    "archive_line_items_v2",
+    "archive_reconciliation_v2",
     "archive_line_items",
     "archive_notes",
     "archive_reconciliation",
     "archive_processing_events",
+    "archive_document_files",
+    "archive_extraction_runs",
     "archive_document_registry",
     "archive_financial_tuples",
     "archive_reports",
@@ -1048,3 +1052,223 @@ def test_live_idempotent_registration_lines_and_reconciliation(live):
 def test_live_check_constraints_refuse_bad_rows(live, sql, args):
     with pytest.raises(DatabaseError, match="CHECK|FOREIGN KEY|constraint"):
         live.batch([(sql, args)], rollback=True)
+
+
+# ============================================================================================================
+# LIVE: statement pipeline storage on the disposable database (migration 0005 tables).
+# The PDF is SYNTHETIC; its figures are invented. Each run uses a unique document hash.
+# ============================================================================================================
+
+
+def _pipeline_pdf(tmp_path, name: str, equity: int):
+    from tests.pdf_fixture_builder import write_pdf
+
+    pages = [
+        [
+            "Statement of financial position",
+            "Total assets 1,000 900",
+            "Total liabilities 600 500",
+            f"Total equity {equity} 400",
+            "Trade debts 120 90",
+            "Stock in trade 80 70",
+            "Trade and other payables 60 50",
+            "Cash and bank balances 20 15",
+        ],
+        [
+            "Statement of profit or loss",
+            "Net sales 1,000 800",
+            "Cost of sales (600) (500)",
+            "Gross profit 400 300",
+            "Operating profit 250 200",
+            "Finance cost (50) (40)",
+            "Profit before taxation 200 160",
+            "Taxation (60) (48)",
+            "Profit for the year 140 112",
+        ],
+        [
+            "Statement of cash flows",
+            "Net cash generated from operating activities 150 120",
+            "Purchase of property plant and equipment (40) (30)",
+            "Cash and cash equivalents at beginning of the year 100 90",
+            "Net decrease in cash and cash equivalents (30) 10",
+            "Cash and cash equivalents at end of the year 70 100",
+        ],
+    ]
+    return write_pdf(tmp_path / name, pages)
+
+
+def test_live_pipeline_store_is_idempotent_and_run_keys_are_enforced(live, tmp_path):
+    from database import financial_repo as repo  # noqa: F811
+    from engines import statement_pipeline as sp
+    from engines import statement_reconciliation as rec
+
+    run = _run_id()
+    sha = _sha("pipeline-live-" + run)
+    pdf = _pipeline_pdf(tmp_path, "synthetic.pdf", equity=400)
+    mapping = sp.load_mappings()
+    doc = {
+        "document_id": sha,
+        "file_hash": sha,
+        "symbol": "OGDC",
+        "period_end": "2025-06-30",
+        "currency": "PKR",
+        "unit_scale": 1000,
+        "consolidation": "unconsolidated",
+        "restated_flag": False,
+    }
+    tagged = sp.tag(
+        sp.extract(
+            pdf, columns=["2025-06-30", "2024-06-30"], statement_pages={"BS": [1], "IS": [2], "CF": [3]}
+        ),
+        document=doc,
+        extractor_version="pdfplumber-0.11.10/live-1",
+        mapping=mapping,
+    )
+    recon = sp.reconcile(tagged, period_end="2025-06-30")
+    assert recon["overall"] == rec.RECONCILED
+    meta = {
+        "report_sha256": sha,
+        "psx_symbol": "OGDC",
+        "company_id": "co-live-" + run,
+        "doc_type": "annual",
+        "financial_year": 2025,
+        "period_end": "2025-06-30",
+        "consolidation": "unconsolidated",
+        "audit_status": "audited",
+        "original_filename": "synthetic.pdf",
+        "vault_ref": f"{sha}.pdf",
+        "source_id": "company_reports_manual",
+        "retrieved_at_utc": "2026-11-10T00:00:00Z",
+    }
+    first = sp.store(
+        live,
+        registry_meta=meta,
+        file_size_bytes=pdf.stat().st_size,
+        tagged=tagged,
+        reconciliation=recon,
+        extractor_version="pdfplumber-0.11.10/live-1",
+    )
+    assert first["registration"] == "registered" and first["lines"]["inserted"] == len(tagged["lines"])
+    rows_before = _count(live, "archive_line_items_v2")
+    again = sp.store(
+        live,
+        registry_meta=meta,
+        file_size_bytes=pdf.stat().st_size,
+        tagged=tagged,
+        reconciliation=recon,
+        extractor_version="pdfplumber-0.11.10/live-1",
+    )
+    assert again["registration"] == "duplicate" and again["run"] == "existing"
+    assert again["lines"]["inserted"] == 0 and _count(live, "archive_line_items_v2") == rows_before
+    # a line may not claim an extractor version other than its run's: the composite foreign key refuses it
+    orphan_line = (
+        "INSERT INTO archive_line_items_v2(run_id, extractor_version, document_id, symbol, period_end, "
+        "statement_type, line_no, line_item_name, column_period_end, is_comparative, reported_amount, "
+        "value_state, restated_flag, currency, unit_scale, consolidation, pdf_page_number, "
+        "extraction_method, "
+        "processed_at_utc) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        (
+            first["run_id"],
+            "some-other-extractor",
+            sha,
+            "OGDC",
+            "2025-06-30",
+            "BS",
+            99,
+            "x",
+            "2025-06-30",
+            0,
+            1.0,
+            "reported",
+            0,
+            "PKR",
+            1000,
+            "unconsolidated",
+            1,
+            "pdf_text",
+            "t",
+        ),
+    )
+    with pytest.raises(DatabaseError, match="FOREIGN KEY"):
+        live.batch([orphan_line], rollback=True)
+    # a second extractor version is a separate run; the first run's rows are untouched
+    other = sp.store(
+        live,
+        registry_meta=meta,
+        file_size_bytes=pdf.stat().st_size,
+        tagged=tagged,
+        reconciliation=recon,
+        extractor_version="pdfplumber-0.12.0/live-2",
+    )
+    assert other["run"] == "created" and other["run_id"] != first["run_id"]
+    assert _count(live, "archive_line_items_v2") == rows_before + len(tagged["lines"])
+    assert repo.require_archive_ready(live)["fully_migrated"] is True
+
+
+def test_live_pipeline_stores_one_status_per_check_and_no_zero_for_missing(live, tmp_path):
+    from engines import statement_pipeline as sp
+
+    run = _run_id()
+    sha = _sha("pipeline-unbal-" + run)
+    pdf = _pipeline_pdf(tmp_path, "unbalanced.pdf", equity=350)  # 600 + 350 != 1,000
+    tagged = sp.tag(
+        sp.extract(
+            pdf, columns=["2025-06-30", "2024-06-30"], statement_pages={"BS": [1], "IS": [2], "CF": [3]}
+        ),
+        document={
+            "document_id": sha,
+            "file_hash": sha,
+            "symbol": "OGDC",
+            "period_end": "2025-06-30",
+            "currency": "PKR",
+            "unit_scale": 1000,
+            "consolidation": "unconsolidated",
+            "restated_flag": False,
+        },
+        extractor_version="pdfplumber-0.11.10/live-1",
+        mapping=sp.load_mappings(),
+    )
+    recon = sp.reconcile(tagged, period_end="2025-06-30")
+    meta = {
+        "report_sha256": sha,
+        "psx_symbol": "OGDC",
+        "company_id": "co-live-" + run,
+        "doc_type": "annual",
+        "financial_year": 2025,
+        "period_end": "2025-06-30",
+        "consolidation": "unconsolidated",
+        "audit_status": "audited",
+        "original_filename": "unbalanced.pdf",
+        "vault_ref": f"{sha}.pdf",
+        "source_id": "company_reports_manual",
+        "retrieved_at_utc": "2026-11-10T00:00:00Z",
+    }
+    out = sp.store(
+        live,
+        registry_meta=meta,
+        file_size_bytes=pdf.stat().st_size,
+        tagged=tagged,
+        reconciliation=recon,
+        extractor_version="pdfplumber-0.11.10/live-1",
+    )
+    assert out["status"] == "needs_review" and recon["overall"] == "UNRECONCILED"
+    statuses = {
+        r["status"]
+        for r in live.execute(
+            "SELECT status FROM archive_reconciliation_v2 WHERE run_id = ?", (out["run_id"],)
+        )
+    }
+    assert "UNRECONCILED" in statuses and statuses <= {
+        "RECONCILED",
+        "RECONCILED_WITH_ROUNDING",
+        "UNRECONCILED",
+        "INSUFFICIENT_DATA",
+    }
+    assert (
+        live.execute(
+            "SELECT COUNT(*) AS n FROM archive_line_items_v2 WHERE run_id = ? AND reported_amount IS NULL "
+            "AND value_state = 'reported'",
+            (out["run_id"],),
+        )[0]["n"]
+        == 0
+    )

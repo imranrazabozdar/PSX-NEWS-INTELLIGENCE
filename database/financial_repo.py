@@ -584,3 +584,167 @@ def record_review(
         transactional=True,
     )
     return {"recorded": 1}
+
+
+# ----------------------------------------- migration 0005: versioned extraction records
+def create_extraction_run(
+    archive_db, *, report_sha256: str, extractor_version: str, now: str | None = None
+) -> dict:
+    """Create or reuse the extraction run for one (document, extractor_version).
+
+    The same pair returns the existing run, so reprocessing with the same extractor adds nothing. A new
+    extractor version creates a new run beside the old one.
+    """
+    require_role(archive_db, "archive")
+    if not extractor_version or len(extractor_version) > 120:
+        raise ValueError("extractor_version must be 1 to 120 characters")
+    existing = archive_db.execute(
+        "SELECT run_id FROM archive_extraction_runs WHERE report_sha256 = ? AND extractor_version = ?",
+        (report_sha256, extractor_version),
+    )
+    if existing:
+        return {"run_id": existing[0]["run_id"], "status": "existing"}
+    archive_db.batch(
+        [
+            (
+                "INSERT INTO archive_extraction_runs(report_sha256, extractor_version, started_at_utc) "
+                "VALUES (?,?,?)",
+                (report_sha256, extractor_version, now or _now()),
+            )
+        ],
+        transactional=True,
+    )
+    run = archive_db.execute(
+        "SELECT run_id FROM archive_extraction_runs WHERE report_sha256 = ? AND extractor_version = ?",
+        (report_sha256, extractor_version),
+    )[0]
+    return {"run_id": run["run_id"], "status": "created"}
+
+
+LINE_V2_SQL = (
+    "INSERT INTO archive_line_items_v2(run_id, extractor_version, document_id, symbol, period_end, "
+    "statement_type, line_no, line_item_name, canonical_code, column_period_end, is_comparative, "
+    "reported_amount, value_state, restated_flag, currency, unit_scale, consolidation, pdf_page_number, "
+    "note_ref, extraction_method, confidence, processed_at_utc) "
+    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) "
+    "ON CONFLICT(run_id, statement_type, line_no, column_period_end, consolidation) DO NOTHING"
+)
+
+
+def store_versioned_lines(
+    archive_db,
+    run_id: int,
+    lines: list[dict],
+    *,
+    extractor_version: str,
+    symbol: str,
+    document_id: str,
+    now: str | None = None,
+) -> dict:
+    """Store tagged line items for one run. Every line carries its evidence. Missing values are NULL.
+
+    A line already stored for the run (same natural key) is skipped, so reprocessing adds nothing.
+    """
+    require_role(archive_db, "archive")
+    ts = now or _now()
+    before = archive_db.execute(
+        "SELECT COUNT(*) AS n FROM archive_line_items_v2 WHERE run_id = ?", (run_id,)
+    )[0]["n"]
+    stmts = []
+    for ln in lines:
+        state = ln.get("value_state", "reported" if ln.get("reported_amount") is not None else "not_reported")
+        amount = ln.get("reported_amount")
+        if state == "reported" and amount is None:
+            raise ValueError(f"line {ln.get('line_item_name')!r}: reported state needs an amount")
+        if state != "reported":
+            amount = None
+        args = (
+            run_id,
+            extractor_version,
+            document_id,
+            symbol,
+            ln["period_end"],
+            ln["statement_type"],
+            int(ln["line_no"]),
+            ln["line_item_name"],
+            ln.get("canonical_code"),
+            ln["column_period_end"],
+            int(bool(ln.get("is_comparative"))),
+            amount,
+            state,
+            int(bool(ln.get("restated_flag"))),
+            ln["currency"],
+            int(ln["unit_scale"]),
+            ln["consolidation"],
+            ln.get("pdf_page_number"),
+            ln.get("note_ref"),
+            ln["extraction_method"],
+            ln.get("confidence"),
+            ts,
+        )
+        stmts.append((LINE_V2_SQL, args))
+    archive_db.batch(stmts, transactional=True)
+    after = archive_db.execute("SELECT COUNT(*) AS n FROM archive_line_items_v2 WHERE run_id = ?", (run_id,))[
+        0
+    ]["n"]
+    return {"inserted": after - before, "already_present": len(stmts) - (after - before)}
+
+
+RECON_V2_SQL = (
+    "INSERT INTO archive_reconciliation_v2(run_id, check_name, column_period_end, consolidation, reported, "
+    "expected, discrepancy, tolerance, status, recorded_at_utc) VALUES (?,?,?,?,?,?,?,?,?,?) "
+    "ON CONFLICT DO NOTHING"
+)
+RECON_STATUSES = ("RECONCILED", "RECONCILED_WITH_ROUNDING", "UNRECONCILED", "INSUFFICIENT_DATA")
+
+
+def store_versioned_reconciliation(
+    archive_db, run_id: int, checks: list[dict], *, consolidation: str, now: str | None = None
+) -> dict:
+    """Store reconciliation checks for one run, each with an explicit status.
+
+    The exact discrepancy is kept.
+    """
+    require_role(archive_db, "archive")
+    ts = now or _now()
+    stmts = []
+    for c in checks:
+        if c["status"] not in RECON_STATUSES:
+            raise ValueError(f"unknown reconciliation status {c['status']!r}")
+        args = (
+            run_id,
+            c["check"],
+            c["column_period_end"],
+            consolidation,
+            c.get("reported"),
+            c.get("expected"),
+            c.get("discrepancy"),
+            c.get("allowance", 0.0),
+            c["status"],
+            ts,
+        )
+        stmts.append((RECON_V2_SQL, args))
+    archive_db.batch(stmts, transactional=True)
+    return {"recorded_attempts": len(stmts)}
+
+
+def record_document_file(
+    archive_db, *, report_sha256: str, file_size_bytes: int, now: str | None = None
+) -> dict:
+    """Record the stored file size for a registered document. Once per document (append-only)."""
+    require_role(archive_db, "archive")
+    if file_size_bytes < 0:
+        raise ValueError("file size must not be negative")
+    if archive_db.execute("SELECT 1 FROM archive_document_files WHERE report_sha256 = ?", (report_sha256,)):
+        return {"status": "existing"}
+    archive_db.batch(
+        [
+            (
+                "INSERT INTO archive_document_files(report_sha256, file_size_bytes, stored_at_utc) "
+                "VALUES (?,?,?)",
+                (report_sha256, int(file_size_bytes), now or _now()),
+            )
+        ],
+        transactional=True,
+    )
+    return {"status": "recorded"}
