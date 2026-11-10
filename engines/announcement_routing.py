@@ -30,10 +30,29 @@ from engines import history as hist
 KINDS = ("financial_statement", "material_disclosure", "other")
 FORBIDDEN_KEYS = {"pdf", "pdf_bytes", "content", "body", "file", "file_bytes", "raw", "html"}
 REQUIRED = ("source_id", "external_id", "ticker", "title", "published_at_utc")
-FINANCIAL_WORDS = ("financial statement", "annual report", "half yearly", "half-yearly", "quarterly",
-                   "interim", "financial results", "accounts")
-MATERIAL_WORDS = ("material information", "board meeting", "dividend", "right issue", "bonus", "acquisition",
-                  "merger", "suspension", "auditor", "circular", "notice of meeting")
+FINANCIAL_WORDS = (
+    "financial statement",
+    "annual report",
+    "half yearly",
+    "half-yearly",
+    "quarterly",
+    "interim",
+    "financial results",
+    "accounts",
+)
+MATERIAL_WORDS = (
+    "material information",
+    "board meeting",
+    "dividend",
+    "right issue",
+    "bonus",
+    "acquisition",
+    "merger",
+    "suspension",
+    "auditor",
+    "circular",
+    "notice of meeting",
+)
 
 
 def _now() -> str:
@@ -67,17 +86,33 @@ def route(ann: dict, *, main_db, archive_db=None, permitted_sources: frozenset[s
         return {"status": "refused", "reason": "pdf_sha256 must be the 64-character hash of the vault file"}
 
     kind = classify(ann["title"], ann.get("kind"))
-    meta_hash = hashlib.sha256(json.dumps(
-        {k: ann.get(k) for k in ("source_id", "external_id", "ticker", "title", "published_at_utc",
-                                 "pdf_sha256")},
-        sort_keys=True).encode()).hexdigest()
+    meta_hash = hashlib.sha256(
+        json.dumps(
+            {
+                k: ann.get(k)
+                for k in ("source_id", "external_id", "ticker", "title", "published_at_utc", "pdf_sha256")
+            },
+            sort_keys=True,
+        ).encode()
+    ).hexdigest()
     main = reps.record_source_item(
-        main_db, source_id=ann["source_id"], collected_at_utc=_now(), url=ann.get("url"),
-        external_id=ann["external_id"], content_hash=meta_hash, title=ann["title"],
-        published_at_utc=ann["published_at_utc"], access_status="permitted",
-        provenance={"router": "announcement_routing", "kind": kind, "pdf_sha256": pdf_sha})
-    result = {"status": "routed", "kind": kind, "main": {"outcome": main.outcome},
-              "archive": {"status": "not_configured"}}
+        main_db,
+        source_id=ann["source_id"],
+        collected_at_utc=_now(),
+        url=ann.get("url"),
+        external_id=ann["external_id"],
+        content_hash=meta_hash,
+        title=ann["title"],
+        published_at_utc=ann["published_at_utc"],
+        access_status="permitted",
+        provenance={"router": "announcement_routing", "kind": kind, "pdf_sha256": pdf_sha},
+    )
+    result = {
+        "status": "routed",
+        "kind": kind,
+        "main": {"outcome": main.outcome},
+        "archive": {"status": "not_configured"},
+    }
 
     company = reps.company_by_ticker(main_db, ann["ticker"])
     if company is None:
@@ -94,10 +129,16 @@ def _archive(archive_db, ann: dict, kind: str, company_id: str, pdf_sha: str | N
     parsed = ann.get("parsed") or {}
     if kind == "financial_statement" and parsed.get("summary"):
         out = repo.archive_summary(archive_db, parsed["summary"], company_id=company_id)
-        return {"status": "archived" if out.get("archived") else "refused", **out}
+        return {**out, "status": "archived" if out.get("archived") else "refused"}
     if kind in ("financial_statement", "material_disclosure"):
-        out = repo.archive_disclosure(archive_db, company_id=company_id, kind=kind,
-                                      published_at_utc=ann["published_at_utc"], title=ann["title"],
-                                      payload={"fields": parsed.get("fields", {})}, pdf_sha256=pdf_sha)
-        return {"status": "archived" if out.get("archived") else "refused", **out}
+        out = repo.archive_disclosure(
+            archive_db,
+            company_id=company_id,
+            kind=kind,
+            published_at_utc=ann["published_at_utc"],
+            title=ann["title"],
+            payload={"fields": parsed.get("fields", {})},
+            pdf_sha256=pdf_sha,
+        )
+        return {**out, "status": "archived" if out.get("archived") else "refused"}
     return {"status": "not_archived", "reason": "kind 'other' is kept as metadata only"}
