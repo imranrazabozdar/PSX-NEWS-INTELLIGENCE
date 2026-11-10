@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "note": "Owner-configured source registry. Automated retrieval is blocked unless permission_status is 'permitted' AND enabled is true AND url_pattern is set. Manual PDF upload is always available and needs no entry here. auth_env_var names an environment variable only; the value is never stored in this file.",
+  "sources": []
+}

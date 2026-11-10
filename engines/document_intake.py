@@ -17,7 +17,9 @@ No OCR, no external processing, no network access.
 
 from __future__ import annotations
 
+import hashlib
 import os
+import re
 import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
@@ -28,8 +30,18 @@ from engines import pdf_reader
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 VAULT_ENV = "PSXNI_DOCUMENT_VAULT"
-_REQUIRED = ("company_ticker", "doc_type", "period_end", "scope", "currency", "unit_scale", "audit_status",
-             "columns", "retrieved_at_utc", "filed_at_utc")
+_REQUIRED = (
+    "company_ticker",
+    "doc_type",
+    "period_end",
+    "scope",
+    "currency",
+    "unit_scale",
+    "audit_status",
+    "columns",
+    "retrieved_at_utc",
+    "filed_at_utc",
+)
 STATEMENTS = ("IS", "BS", "CF", "EQ")
 
 
@@ -85,8 +97,11 @@ def verify_vault_file(path: Path | str, sha256: str) -> bool:
 
 
 def _ticker_company(db, ticker: str) -> str:
-    row = db.execute("SELECT company_id FROM company_identifiers WHERE id_type = 'psx_ticker' AND value = ? "
-                     "AND valid_to IS NULL", (ticker,))
+    row = db.execute(
+        "SELECT company_id FROM company_identifiers WHERE id_type = 'psx_ticker' AND value = ? "
+        "AND valid_to IS NULL",
+        (ticker,),
+    )
     if not row:
         raise IntakeError(f"ticker {ticker!r} is not in the company master (not added automatically)")
     return row[0]["company_id"]
@@ -96,7 +111,9 @@ def _existing_by_hash(db, sha: str) -> dict | None:
     row = db.execute(
         "SELECT fr.report_id, fr.company_id, fr.doc_type, fr.period_end, fr.scope FROM financial_reports fr "
         "JOIN source_items si ON si.source_item_id = fr.source_item_id WHERE si.content_sha256 = ? "
-        "ORDER BY fr.report_id LIMIT 1", (sha,))
+        "ORDER BY fr.report_id LIMIT 1",
+        (sha,),
+    )
     return dict(row[0]) if row else None
 
 
@@ -105,9 +122,13 @@ def _revisions(db, company_id: str, meta: dict, sha: str) -> list[dict]:
         "SELECT fr.report_id, si.content_sha256 FROM financial_reports fr JOIN source_items si "
         "ON si.source_item_id = fr.source_item_id WHERE fr.company_id = ? AND fr.doc_type = ? AND "
         "fr.period_end = ? AND fr.scope = ?",
-        (company_id, meta["doc_type"], meta["period_end"], meta["scope"]))
-    return [{"report_id": r["report_id"], "sha256": r["content_sha256"]} for r in rows
-            if r["content_sha256"] != sha]
+        (company_id, meta["doc_type"], meta["period_end"], meta["scope"]),
+    )
+    return [
+        {"report_id": r["report_id"], "sha256": r["content_sha256"]}
+        for r in rows
+        if r["content_sha256"] != sha
+    ]
 
 
 def intake(db, pdf: Path | str, meta: dict, *, vault: Path, importer: str, rights_attestation: str) -> dict:
@@ -122,15 +143,23 @@ def intake(db, pdf: Path | str, meta: dict, *, vault: Path, importer: str, right
     stored, sha = store_original(pdf, vault)
     prior = _existing_by_hash(db, sha)
     if prior:
-        return {"status": "duplicate", "sha256": sha, "report_id": prior["report_id"],
-                "stored_as": stored.name}
+        return {
+            "status": "duplicate",
+            "sha256": sha,
+            "report_id": prior["report_id"],
+            "stored_as": stored.name,
+        }
     company_id = _ticker_company(db, meta["company_ticker"])
     revisions = _revisions(db, company_id, meta, sha)
     if revisions:  # a different file for the same period: a possible revision, reported and not imported
-        return {"status": "possible_revision", "sha256": sha, "stored_as": stored.name,
-                "existing_reports": revisions,
-                "note": "same company, report type, period and scope with different bytes; "
-                        "confirm whether this is a restatement before importing"}
+        return {
+            "status": "possible_revision",
+            "sha256": sha,
+            "stored_as": stored.name,
+            "existing_reports": revisions,
+            "note": "same company, report type, period and scope with different bytes; "
+            "confirm whether this is a restatement before importing",
+        }
     doc = pe.extract(stored)
     columns = list(meta["columns"])
     located = pe.locate_statements(doc)
@@ -145,14 +174,108 @@ def intake(db, pdf: Path | str, meta: dict, *, vault: Path, importer: str, right
         unparsed.extend({**u, "statement": st} for u in r["unparsed"])
         used[st] = pages
     scanned = [pg.number for pg in doc.pages if not pg.has_text]
-    rec = {k: meta[k] for k in ("company_ticker", "doc_type", "period_end", "scope", "currency", "unit_scale",
-                                "audit_status", "filed_at_utc", "retrieved_at_utc") if k in meta}
-    rec.update({"document_sha256": sha, "source": "manual_pdf", "extraction_method": "pdf_text",
-                "original_url": meta.get("original_url"), "source_note": meta.get("source_note"),
-                "auditor_opinion": meta.get("auditor_opinion"), "title": meta.get("title"),
-                "lines": lines})
+    rec = {
+        k: meta[k]
+        for k in (
+            "company_ticker",
+            "doc_type",
+            "period_end",
+            "scope",
+            "currency",
+            "unit_scale",
+            "audit_status",
+            "filed_at_utc",
+            "retrieved_at_utc",
+        )
+        if k in meta
+    }
+    rec.update(
+        {
+            "document_sha256": sha,
+            "source": "manual_pdf",
+            "extraction_method": "pdf_text",
+            "original_url": meta.get("original_url"),
+            "source_note": meta.get("source_note"),
+            "auditor_opinion": meta.get("auditor_opinion"),
+            "title": meta.get("title"),
+            "lines": lines,
+        }
+    )
     result = fin.import_report(db, rec, importer=importer, rights_attestation=rights_attestation)
     review = bool(unparsed or scanned or not lines or result["status"] != "reconciled")
-    return {"status": "needs_review" if review else "reconciled", "sha256": sha, "stored_as": stored.name,
-            "pages": len(doc.pages), "statement_pages": used, "scanned_pages": scanned,
-            "lines_extracted": len(lines), "unparsed": unparsed, "import": result}
+    return {
+        "status": "needs_review" if review else "reconciled",
+        "sha256": sha,
+        "stored_as": stored.name,
+        "pages": len(doc.pages),
+        "statement_pages": used,
+        "scanned_pages": scanned,
+        "lines_extracted": len(lines),
+        "unparsed": unparsed,
+        "import": result,
+    }
+
+
+# ------------------------------------------------------------------ manual upload and verified reads (vault)
+class VaultIntegrityError(IntakeError):
+    """A vault file no longer matches its recorded SHA-256. It is never served, and never overwritten."""
+
+
+_SAFE_NAME = re.compile(r"[^A-Za-z0-9._-]+")
+
+
+def safe_filename(name: str) -> str:
+    """A display name with no path parts and no unsafe characters. Used only as metadata, never as a path."""
+    base = Path(str(name).replace("\\", "/")).name
+    cleaned = _SAFE_NAME.sub("_", base).strip("._")
+    if not cleaned:
+        raise IntakeError("file name is empty after sanitising")
+    return cleaned[:120]
+
+
+def store_manual_upload(pdf: Path | str, vault: Path) -> dict:
+    """Store an owner-supplied PDF in the vault.
+
+    Returns status 'stored' or 'duplicate' (the same bytes already exist, so nothing is written). The write is
+    atomic: a temporary file with permissions 0600, then a rename."""
+    src = Path(pdf)
+    doc = pdf_reader.read(src)  # refuses anything that is not a readable PDF before any write
+    if not doc.pages:
+        raise IntakeError("PDF has no pages")
+    data = src.read_bytes()
+    sha = hashlib.sha256(data).hexdigest()
+    dest = vault / f"{sha}.pdf"
+    if dest.exists():
+        if verify_vault_file(dest, sha):
+            return {
+                "status": "duplicate",
+                "report_sha256": sha,
+                "vault_ref": dest.name,
+                "size_bytes": len(data),
+            }
+        raise VaultIntegrityError(
+            "a vault file with this hash exists but does not match its hash; not overwritten"
+        )
+    fd, tmp = tempfile.mkstemp(dir=vault, suffix=".part")
+    with os.fdopen(fd, "wb") as f:
+        f.write(data)
+        f.flush()
+        os.fsync(f.fileno())
+    os.chmod(tmp, 0o600)
+    os.replace(tmp, dest)
+    return {"status": "stored", "report_sha256": sha, "vault_ref": dest.name, "size_bytes": len(data)}
+
+
+def read_verified(vault: Path, sha256: str) -> bytes:
+    """Read a vault file, re-verifying its hash on EVERY read.
+
+    A mismatch raises, and the bytes are not returned."""
+    if not re.fullmatch(r"[0-9a-f]{64}", sha256):
+        raise IntakeError("invalid hash")
+    path = vault / f"{sha256}.pdf"
+    if not path.is_file():
+        raise VaultIntegrityError("vault file is missing")
+    data = path.read_bytes()
+    if hashlib.sha256(data).hexdigest() != sha256:
+        raise VaultIntegrityError("vault file no longer matches its SHA-256; refusing to serve it")
+    return data
