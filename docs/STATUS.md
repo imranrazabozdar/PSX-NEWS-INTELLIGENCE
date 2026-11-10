@@ -10,10 +10,10 @@ A feature is complete only when code **and** tests prove it. A page or placehold
 | 0 | Specification and repository bootstrap | TESTED, approved and merged (PR #1) | See Phase 0 checklist below |
 | 1 | Data foundation (Turso, migrations, company master) | TESTED, approved and merged (PR #2, merge commit 108cdd6) | See Phase 1 checklist below |
 | 2 | Source collection engine | TESTED, approved and merged (PR #5, merge commit 992e4b0). 2026-11-08: owner approved 11 sources (10 RSS feeds, metadata only, and the SCS chart feed for PSX OHLCV). They are ACTIVE in the seed registry, and real collection is verified locally. Not yet loaded into or applied to production. | See Phase 2 checklist below |
-| 3 | Event extraction and verification | TESTED, approved and merged (PR #11, merge commit 0491deec56adbd10c719eef3039bd7a546c521c6). Offline scope complete; live LLM NOT CONNECTED (BLOCKED, owner decision); 0007 not yet applied to production | See Phase 3 checklist below and `docs/PHASE_3_ACCEPTANCE.md` |
+| 3 | Event extraction and verification | TESTED, approved and merged (PR #11, merge commit 0491deec56adbd10c719eef3039bd7a546c521c6). Offline scope complete; live LLM NOT CONNECTED (provider code TESTED offline in `engines/llm_live.py`; disabled until the owner records terms review and verifies models); 0007 applied to production (ledger verified 2026-11-09) | See Phase 3 checklist below and `docs/PHASE_3_ACCEPTANCE.md` |
 | 4 | Company exposure graph | TESTED with synthetic fixtures, approved and merged (PR #15, merge commit 0bdfb1a08de7dae9ea37899f4d93c10892b32e59); NOT OPERATIONAL: no approved company-evidence source, real mappings unverified; 0008 not applied to production; Turso server compatibility unverified | See Phase 4 checklist below and `docs/PHASE_4_ACCEPTANCE.md` |
-| 5 | Impact analysis and Python calculations | NOT STARTED | |
-| 6 | Streamlit MVP | NOT STARTED | |
+| 5 | Impact analysis and Python calculations | PARTIAL: T1–T9 transmission framework, qualitative fallback and missing-input handling TESTED offline (`engines/impact_intel.py`, migration 0009); sourced-input calculators exist (`engines/financials.py`, `engines/valuation.py`) but no approved company inputs exist yet, so no quantitative impact is claimed | `tests/test_impact_intel.py`, `tests/test_impact_assessments.py` |
+| 6 | Streamlit MVP | PARTIAL: one tabbed app (market, news, event detail, operations, health, macro, research report) TESTED offline via AppTest and view tests. The spec's 14-page layout and mobile checks are not built | `app.py`, `engines/dashboard_views.py`, `tests/test_research_views.py`, `tests/test_app_skeleton.py` |
 | 7 | Scheduling and operations | IN PROGRESS: market run orchestration (lease, abandoned-run recovery, backoff, bounded continuation, trigger tracking, 1-minute-first priority) TESTED offline; external dispatch (repository side), trading calendar, session completeness, gap detection and recovery, cheap coverage and the Collection operations view TESTED offline (PRs #27, #28, Stage 5) | `docs/COLLECTION_ORCHESTRATION.md`, `tests/test_market_orchestration.py` |
 | 8 | Corporate, policy and government modules | NOT STARTED | |
 | 9 | Commodities, sectors, domestic/geopolitical risk | NOT STARTED | |
@@ -138,8 +138,9 @@ Open limitations:
 The full matrix, covering every section of the specification, is in [`TRACEABILITY.md`](TRACEABILITY.md).
 
 ## Master programme modules (M2–M10), 2026-11-08
-All rows below are **TESTED offline only**, using in-memory SQLite and synthetic hand-calculated fixtures. Nothing
-has run in production, and no migration has been applied to Turso.
+All rows below are **TESTED offline only**, using in-memory SQLite and synthetic hand-calculated fixtures. No module
+has run in production. As of 2026-11-09 production holds migrations 0001-0014 (see "Production schema state"):
+the new tables exist, no module has written to them, and no module is activated.
 
 | Module | Code | Tests | Status |
 |---|---|---|---|
@@ -156,6 +157,20 @@ has run in production, and no migration has been applied to Turso.
 | M10 read-only integrity check | `engines/integrity.py` | `tests/test_integrity.py` | TESTED offline |
 | M9 dashboard pages: financial statements, fundamentals, valuation, market behaviour, macro, integrated report | `engines/research_views.py`, `app.py` | `tests/test_research_views.py` | TESTED offline; pages show "awaiting migration" until 0011–0014 are approved for production |
 | M3 efficiency and dividend sustainability (asset turnover, receivable / inventory days, payout, FCF dividend cover) | `engines/fundamentals.py` | `tests/test_pr40_review_regressions.py` | TESTED offline |
+
+## Production schema state, 2026-11-09 (verified read-only)
+* `schema_migrations` holds versions 1-14 with the repository's own names and checksums; version 11 is `financial_documents`.
+  The foreign `extraction_reviews` objects are gone. `integrity.check` is ok and `PRAGMA foreign_key_check` is clean.
+* Migrations 0011-0014 created tables only. Their row counts were not checked. No module using them has run or been activated.
+  Each activation still needs the owner's approval under `docs/OPERATIONS_RUNBOOK.md` section 1.
+* Database tokens were invalidated and reissued on 2026-11-09. Backups (SHA-256 `2085ec51…823e` before A2 and `34b539f6…ba40e`
+  after A2) were handed to the owner and are not in this repository.
+
+## Port of fundamental_engine (ADR-0001 scoped exception, 2026-11-09)
+| Item | Code | Tests | Status |
+|---|---|---|---|
+| Relevance pre-filter (deterministic, reasons recorded, `relevance@v2`) | `engines/relevance_prefilter.py`, `config/relevance_rules.json` | `tests/test_relevance_prefilter.py` (10) | TESTED offline; not yet wired into extraction |
+| LLM providers: OpenAI-compatible Groq, Gemini, OpenRouter; ordered fallback, cooldown, daily call and token quotas from the ledger, key redaction | `engines/llm_live.py`, `config/llm_providers.json` | `tests/test_llm_live.py` (21, fake HTTP) | TESTED offline; NOT ENABLED (owner must record terms review and verify model ids) |
 
 ## Migration collision remediation (version 11), 2026-11-09
 | Item | Code | Tests | Status |
