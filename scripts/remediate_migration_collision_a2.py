@@ -311,7 +311,8 @@ def _connect(target: str) -> Database:
         "production": ("PSXNI_TURSO_DATABASE_URL", "PSXNI_TURSO_AUTH_TOKEN"),
         "disposable": ("PSXNI_TURSO_DISPOSABLE_DATABASE_URL", "PSXNI_TURSO_DISPOSABLE_AUTH_TOKEN"),
     }[target]
-    return connect(os.environ.get(url_var, ""), os.environ.get(token_var, ""))
+    return connect(os.environ.get(url_var, ""), os.environ.get(token_var, ""),
+                   purpose=target)
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -355,7 +355,7 @@ def _fake_turso(monkeypatch, rows_read=10, rows_written=0):
         return {"results": [res] * n + [{"type": "ok", "response": {"type": "close"}}]}
 
     monkeypatch.setattr(TursoHTTPDatabase, "_send", send)
-    return TursoHTTPDatabase("libsql://example.turso.io", "placeholder")
+    return TursoHTTPDatabase("libsql://psxni-test-example.turso.io", "placeholder", purpose="test")
 
 
 def test_turso_usage_is_metered(monkeypatch):

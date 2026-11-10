@@ -32,7 +32,7 @@ NEW_TABLES = ("financial_reports", "financial_line_items", "account_mappings", "
 def db():
     if _STATUS != "ok":
         pytest.fail(_REASON)
-    d = TursoHTTPDatabase(URL, TOKEN)
+    d = TursoHTTPDatabase(URL, TOKEN, purpose="disposable")
     if not d.execute("SELECT COUNT(*) n FROM sqlite_master WHERE type='table'")[0]["n"]:
         migrate(d)
     from database.seed_loader import load
