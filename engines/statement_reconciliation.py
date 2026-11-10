@@ -127,11 +127,17 @@ def comparatives(
     return Check(name, period, current_comparative, prior_reported, d, allow, status)
 
 
-def overall(checks: list[Check]) -> str:
-    if any(c.status == UNRECONCILED for c in checks):
+def _status(c) -> str:
+    return c["status"] if isinstance(c, dict) else c.status
+
+
+def overall(checks: list) -> str:
+    """Document status from checks given as Check objects or as dicts with a 'status' key."""
+    statuses = [_status(c) for c in checks]
+    if UNRECONCILED in statuses:
         return UNRECONCILED
-    if not any(c.status in (RECONCILED, ROUNDED) for c in checks):
+    if not any(s in (RECONCILED, ROUNDED) for s in statuses):
         return INSUFFICIENT
-    if any(c.status == ROUNDED for c in checks):
+    if ROUNDED in statuses:
         return ROUNDED
     return RECONCILED

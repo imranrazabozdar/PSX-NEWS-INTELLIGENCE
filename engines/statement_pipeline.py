@@ -21,6 +21,7 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
+from engines import comparative_reconciliation as cmp_mod
 from engines import financials as fin
 from engines import institutional_metrics as metrics
 from engines import pdf_extraction as pe
@@ -198,6 +199,45 @@ def values_for(tagged_lines: list[dict], column: str) -> tuple[dict[str, float |
     return values, conflicts
 
 
+COMPARATIVE_CODES = (
+    "total_assets",
+    "total_liabilities",
+    "total_equity",
+    "revenue",
+    "profit_after_tax",
+    "cfo",
+    "closing_cash",
+    "cash_and_equivalents",
+    "trade_receivables",
+    "inventory",
+)
+
+
+def comparative_checks(lines: list[dict], prior: dict) -> list[dict]:
+    """Compare the prior period as printed in this filing with the prior filing's own values. Findings are
+    returned as checks; nothing is overwritten. The printed comparative column is read from this document."""
+    prior_own, _ = values_for(prior["lines"], prior["period"])
+    printed_cols = sorted({ln["column_period_end"] for ln in lines if ln["is_comparative"]})
+    printed = printed_cols[0] if len(printed_cols) == 1 else "+".join(printed_cols) or "none"
+    comp_values, _ = values_for(
+        [ln for ln in lines if ln["is_comparative"] and ln["column_period_end"] == printed], printed
+    )
+    keep = set(COMPARATIVE_CODES)
+    prior_own = {k: v for k, v in prior_own.items() if k in keep}
+    comp_values = {k: v for k, v in comp_values.items() if k in keep}
+    cur_unit = lines[0]["unit_scale"] if lines else 1
+    prior_unit = prior["lines"][0]["unit_scale"] if prior["lines"] else 1
+    findings = cmp_mod.compare(
+        prior_own,
+        comp_values,
+        prior_period=prior["period"],
+        printed_period=printed,
+        prior_unit=prior_unit,
+        current_unit=cur_unit,
+    )
+    return cmp_mod.to_checks(findings)
+
+
 # ------------------------------------------------------------------ 3. reconciliation
 
 
@@ -210,35 +250,13 @@ def reconcile(tagged: dict, *, period_end: str, prior: dict | None = None) -> di
     checks = [rec.balance_sheet(period_end, v), rec.cash_flow(period_end, v)]
     comp_checks = []
     if prior is not None:
-        prior_own, _ = values_for(prior["lines"], prior["period"])
-        comparative_col = [
-            ln for ln in lines if ln["is_comparative"] and ln["column_period_end"] == prior["period"]
-        ]
-        comp_values, _ = values_for(comparative_col, prior["period"])
-        for code in sorted(set(prior_own) | set(comp_values)):
-            if code in (
-                "total_assets",
-                "total_liabilities",
-                "total_equity",
-                "revenue",
-                "profit_after_tax",
-                "cfo",
-                "closing_cash",
-                "cash_and_equivalents",
-                "trade_receivables",
-                "inventory",
-            ):
-                comp_checks.append(
-                    rec.comparatives(
-                        f"comparative:{code}", prior["period"], prior_own.get(code), comp_values.get(code)
-                    )
-                )
+        comp_checks = comparative_checks(lines, prior)
     all_checks = checks + comp_checks
     overall = rec.overall(all_checks)
     if conflicts:
         overall = rec.UNRECONCILED
     return {
-        "checks": [_check_dict(c) for c in all_checks],
+        "checks": [_check_dict(c) if isinstance(c, rec.Check) else c for c in all_checks],
         "overall": overall,
         "conflicts": conflicts,
         "unit_scale": unit,
