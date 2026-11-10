@@ -20,6 +20,17 @@ from datetime import date
 GAP_DAYS = 400  # consecutive fiscal year ends further apart than this have a missing year
 
 
+def year_gaps(periods: list[dict]) -> list[dict]:
+    """Missing fiscal years between consecutive annual periods (ordered by period_end)."""
+    gaps = []
+    for a, b in zip(periods, periods[1:], strict=False):
+        days = (date.fromisoformat(b["period_end"]) - date.fromisoformat(a["period_end"])).days
+        if days > GAP_DAYS:
+            gaps.append({"after": a["period_end"], "before": b["period_end"],
+                         "missing_years": max(1, round(days / 365) - 1)})
+    return gaps
+
+
 def annual_series(db, company_id: str, *, scope: str, codes: tuple[str, ...] | None = None) -> dict:
     """Return the promoted annual metrics for one company and scope, one entry per fiscal year end."""
     rows = db.execute(
@@ -46,12 +57,7 @@ def annual_series(db, company_id: str, *, scope: str, codes: tuple[str, ...] | N
                         "basis": "restated" if "restated" in p["basis"] else "reported",
                         "metrics": dict(sorted(p["metrics"].items()))})
 
-    gaps = []
-    for a, b in zip(periods, periods[1:], strict=False):
-        days = (date.fromisoformat(b["period_end"]) - date.fromisoformat(a["period_end"])).days
-        if days > GAP_DAYS:
-            gaps.append({"after": a["period_end"], "before": b["period_end"],
-                         "missing_years": max(1, round(days / 365) - 1)})
+    gaps = year_gaps(periods)
 
     not_promoted = [
         {"report_id": r["report_id"], "period_end": r["period_end"], "status": r["extraction_status"]}
