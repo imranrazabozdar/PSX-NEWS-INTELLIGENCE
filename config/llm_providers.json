@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "_notes": [
+    "NO secrets here: api_key_env names an environment variable with the PSXNI_ prefix. The key lives only in the host secret store.",
+    "Every provider ships DISABLED. A provider is used only when enabled is true, terms_reviewed_utc is set by the OWNER, and model_verified is true.",
+    "Terms attestation is NOT carried over from the technical project. It must be recorded again for this project by the owner.",
+    "Free-tier limits change. Verify them before enabling; max_calls_per_day and max_tokens_per_day are enforced from the llm_calls ledger."
+  ],
+  "providers": [
+    {
+      "name": "groq",
+      "base_url": "https://api.groq.com/openai/v1",
+      "api_key_env": "PSXNI_GROQ_API_KEY",
+      "model": "openai/gpt-oss-20b",
+      "model_verified": false,
+      "enabled": false,
+      "terms_reviewed_utc": null,
+      "json_mode": true,
+      "timeout_s": 60,
+      "max_output_tokens": 2000,
+      "max_calls_per_day": 100,
+      "max_tokens_per_day": 150000,
+      "extra_headers": {},
+      "extra_body": {
+        "reasoning_effort": "low"
+      },
+      "notes": "Copied from the technical project's routing table as a starting point. Owner must verify the model id, free-tier limits and terms for THIS project before enabling."
+    },
+    {
+      "name": "gemini",
+      "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
+      "api_key_env": "PSXNI_GEMINI_API_KEY",
+      "model": "gemini-3.5-flash-lite",
+      "model_verified": false,
+      "enabled": false,
+      "terms_reviewed_utc": null,
+      "json_mode": true,
+      "timeout_s": 120,
+      "max_output_tokens": 4000,
+      "max_calls_per_day": 100,
+      "max_tokens_per_day": 150000,
+      "extra_headers": {},
+      "extra_body": {
+        "reasoning_effort": "low"
+      },
+      "notes": "Copied from the technical project's routing table as a starting point. Owner must verify the model id, free-tier limits and terms for THIS project before enabling."
+    },
+    {
+      "name": "openrouter",
+      "base_url": "https://openrouter.ai/api/v1",
+      "api_key_env": "PSXNI_OPENROUTER_API_KEY",
+      "model": "google/gemma-4-26b-a4b-it:free",
+      "model_verified": false,
+      "enabled": false,
+      "terms_reviewed_utc": null,
+      "json_mode": false,
+      "timeout_s": 90,
+      "max_output_tokens": 2000,
+      "max_calls_per_day": 40,
+      "max_tokens_per_day": 80000,
+      "extra_headers": {
+        "X-Title": "PSX Fundamental Engine"
+      },
+      "extra_body": {},
+      "notes": "Copied from the technical project's routing table as a starting point. Owner must verify the model id, free-tier limits and terms for THIS project before enabling."
+    }
+  ]
+}
