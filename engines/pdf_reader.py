@@ -14,6 +14,7 @@ Honesty rules
 
 from __future__ import annotations
 
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -237,3 +238,26 @@ def read(path: Path | str, mode: str = "auto") -> DocumentText:
             )
         )
     return DocumentText(out, warnings=warnings)
+
+
+def page_words(path: Path | str, page: int) -> list[dict]:
+    """Words of one page with their coordinates (pdfplumber). Raises ValueError for a page outside the
+    document."""
+    if pdfplumber is None:
+        raise RuntimeError("pdfplumber is not installed (approved dependency, requirements.txt)")
+    with pdfplumber.open(Path(path)) as pdf:
+        if not 1 <= page <= len(pdf.pages):
+            raise ValueError(f"page {page} is outside the document (1-{len(pdf.pages)})")
+        return [
+            {
+                "text": w["text"],
+                "x0": float(w["x0"]),
+                "x1": float(w["x1"]),
+                "top": float(w["top"]),
+                "bottom": float(w["bottom"]),
+            }
+            for w in pdf.pages[page - 1].extract_words(
+                x_tolerance=1.2, use_text_flow=False, keep_blank_chars=False
+            )
+            if re.sub(r"\(cid:\d+\)", "", w["text"]).strip()  # unmapped glyph codes carry no text
+        ]

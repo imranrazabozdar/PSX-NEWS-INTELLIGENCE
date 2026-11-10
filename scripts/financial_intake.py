@@ -32,8 +32,10 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
+from engines import audit_extraction as ae
 from engines import document_intake as di
 from engines import notes_extraction as ne
+from engines import page_layout as pl
 from engines import pdf_extraction as pe
 from engines import pdf_reader as pe_reader
 from engines import statement_pipeline as sp
@@ -73,6 +75,8 @@ def _tagged(
     framework: str = "corporate",
     statement_pages: dict[str, list[int]] | None = None,
     statement_regions: dict[str, tuple[int, str]] | None = None,
+    auditor_pages: list[int] | None = None,
+    kam_pages: list[int] | None = None,
 ) -> tuple[dict, dict]:
     doc = pe.extract(path)
     ex = sp.extract(
@@ -82,6 +86,7 @@ def _tagged(
         statement_regions=statement_regions,
         region_reader=lambda page, side: pe_reader.region_lines(path, page, side),
     )
+    ex["audit"] = _audit_layout(path, doc, ex["audit"], auditor_pages, kam_pages)
     document = {
         "document_id": sha,
         "file_hash": sha,
@@ -103,7 +108,82 @@ def _tagged(
     return tagged, ex
 
 
-STATEMENT_CODES = ("BS", "IS", "CF", "EQ")
+STATEMENT_CODES = ("BS", "IS", "OCI", "CF", "EQ")
+PAGE_MAP_KEYS = ("BS", "IS", "OCI", "CF", "EQ", "AUDITOR", "KAM")
+
+
+def parse_page_map(path: Path) -> dict:
+    """Owner's page map for one document (JSON). Keys: BS, IS, OCI, CF, EQ (a page, with L or R for the
+    half of a
+    spread: "45R"), AUDITOR (the auditor's report pages, e.g. "41-42"), KAM (pages holding the KAM table, e.g.
+    "42"). Unknown keys and bad values are refused. Returns the same shapes as parse_statement_spec, plus
+    auditor_pages and kam_pages. When given, it replaces automatic page detection for the run."""
+    raw = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(raw, dict):
+        raise ValueError("page map must be a JSON object")
+    unknown = sorted(set(raw) - set(PAGE_MAP_KEYS))
+    if unknown:
+        raise ValueError(f"unknown page-map keys: {unknown}; allowed: {list(PAGE_MAP_KEYS)}")
+    stmt_spec = ",".join(f"{k}={v}" for k, v in raw.items() if k in STATEMENT_CODES)
+    pages, regions = parse_statement_spec(stmt_spec)
+    auditor = _page_list(raw["AUDITOR"], "AUDITOR") if "AUDITOR" in raw else None
+    kam = _page_list(raw["KAM"], "KAM") if "KAM" in raw else None
+    return {
+        "statement_pages": pages,
+        "statement_regions": regions,
+        "auditor_pages": auditor,
+        "kam_pages": kam,
+    }
+
+
+def _page_list(value: str, key: str) -> list[int]:
+    out: list[int] = []
+    for part in str(value).split(","):
+        part = part.strip()
+        if "-" in part:
+            a, _, b = part.partition("-")
+            if not (a.strip().isdigit() and b.strip().isdigit() and 1 <= int(a) <= int(b)):
+                raise ValueError(f"bad page range for {key}: {value!r}")
+            out.extend(range(int(a), int(b) + 1))
+        elif part.isdigit() and int(part) >= 1:
+            out.append(int(part))
+        else:
+            raise ValueError(f"bad page for {key}: {value!r}")
+    return sorted(set(out))
+
+
+def _audit_layout(path: Path, doc, ex_audit: dict, auditor_pages, kam_pages) -> dict:
+    """The auditor section. With owner auditor pages, the opinion and emphasis are read only from those pages.
+    KAMs come from the KAM table read by word coordinates (column-aware) on the owner's KAM pages, or on every
+    page whose text carries the KAM table header. Falls back to the text-based reading, and says so."""
+    audit = ex_audit
+    if auditor_pages:
+        layout_pages = pe_reader.read_layout_pages(path)
+        audit_doc = pe.DocumentText(
+            [
+                pe.Page(
+                    number=n,
+                    lines=layout_pages[n - 1],
+                    has_text=bool(layout_pages[n - 1]),
+                    extraction_method="pdftotext_layout",
+                )
+                for n in auditor_pages
+            ]
+        )
+        audit = ae.audit_summary(audit_doc)
+    candidates = kam_pages or [
+        p.number for p in doc.pages if any("how the matter was addressed" in ln.lower() for ln in p.lines)
+    ]
+    kams: list[dict] = []
+    for n in candidates:
+        found = pl.parse_kam_table(pe_reader.page_words(path, n), n)
+        if found:
+            kams.extend(found["kams"])
+    if kams:
+        audit = {**audit, "kams": kams, "kam_source": "word_coordinates", "kam_pages_read": candidates}
+    else:
+        audit = {**audit, "kam_source": "text_structural", "kam_pages_read": candidates}
+    return audit
 
 
 def parse_statement_spec(spec: str) -> tuple[dict[str, list[int]] | None, dict[str, tuple[int, str]] | None]:
@@ -146,6 +226,8 @@ def analyse(
     framework: str = "corporate",
     statement_pages: dict[str, list[int]] | None = None,
     statement_regions: dict[str, tuple[int, str]] | None = None,
+    auditor_pages: list[int] | None = None,
+    kam_pages: list[int] | None = None,
 ) -> dict:
     stored, path = _stored_pdf(vault, pdf)
     sha = stored["report_sha256"]
@@ -161,6 +243,8 @@ def analyse(
         framework=framework,
         statement_pages=statement_pages,
         statement_regions=statement_regions,
+        auditor_pages=auditor_pages,
+        kam_pages=kam_pages,
     )
     prior = None
     prior_report = None
@@ -192,7 +276,10 @@ def analyse(
     not_run = sorted(c["check"] for c in recon["checks"] if c["status"] == "INSUFFICIENT_DATA")
     diagnostic["checks_not_run"] = not_run
     diagnostic["statement_pages"] = {
-        "source": "owner" if statement_pages else "detected",
+        "source": "owner" if (statement_pages or auditor_pages or kam_pages) else "detected",
+        "auditor_pages": auditor_pages,
+        "kam_pages": kam_pages,
+        "kam_source": ex["audit"].get("kam_source"),
         "pages": tagged.get("statement_pages", {}),
     }
     diagnostic["extraction"] = {
@@ -251,11 +338,19 @@ def build_diagnostic(tagged: dict, recon: dict, audit: dict, receivables: dict, 
         "reconciliation": {
             "balance_sheet": status.get("balance_sheet", "not_run"),
             "cash_flow": status.get("cash_flow", "not_run"),
+            "comprehensive_income": status.get("comprehensive_income", "not_run"),
             "overall": recon["overall"],
         },
         "auditor_opinion": audit["opinion"].get("opinion"),
         "key_audit_matters": [
-            {"heading": k["heading"], "page": k["page"], "excerpt": k["excerpt"][:160]} for k in audit["kams"]
+            {
+                "heading": k["heading"],
+                "page": k["page"],
+                "excerpt": k["excerpt"][:160],
+                "note_references": k.get("note_references", []),
+                "text_quality": k.get("text_quality"),
+            }
+            for k in audit["kams"]
         ],
         "receivables": {
             "gross": receivables["gross_trade_debts"],
@@ -281,6 +376,7 @@ def render_text(out: dict) -> str:
         f"{d['disclosure_lines']['unmapped']} kept unmapped",
         f"Unparsed lines (for review): {d['unparsed_lines']}",
         f"Reconciliation: balance sheet {rec['balance_sheet']}, cash flow {rec['cash_flow']}, "
+        f"comprehensive income {rec['comprehensive_income']}, "
         f"overall {rec['overall']}"
         + (f" (PARTIAL: not run: {', '.join(d['checks_not_run'])})" if d["checks_not_run"] else ""),
         f"Framework: {d['framework']}",
@@ -369,6 +465,14 @@ def _parse_args(argv):
         "L/R = the half of a two-page spread). Without it, pages are detected automatically "
         "and the source is recorded as detected.",
     )
+    ap.add_argument(
+        "--page-map",
+        type=Path,
+        default=None,
+        help='owner page map (JSON) for this document: BS, IS, OCI, CF, EQ (e.g. "45R"), AUDITOR (e.g. '
+        '"41-42"), KAM (e.g. "42"). Overrides automatic page detection for this run. Use instead of '
+        "--statement-pages.",
+    )
     ap.add_argument("--archive", action="store_true", help="also write the analysis to the archive database")
     ap.add_argument("--text", action="store_true", help="print the diagnostic summary as text, not JSON")
     return ap.parse_args(argv)
@@ -382,6 +486,15 @@ def main(argv: list[str] | None = None) -> int:
         columns = [c.strip() for c in args.columns.split(",") if c.strip()]
         if args.period_end not in columns:
             raise IntakeRefused("--period-end must appear in --columns")
+        if args.page_map and args.statement_pages:
+            raise IntakeRefused("use --page-map or --statement-pages, not both")
+        if args.page_map:
+            pm = parse_page_map(args.page_map)
+            stmt_pages, stmt_regions = pm["statement_pages"], pm["statement_regions"]
+            auditor_pages, kam_pages = pm["auditor_pages"], pm["kam_pages"]
+        else:
+            stmt_pages, stmt_regions = parse_statement_spec(args.statement_pages)
+            auditor_pages, kam_pages = None, None
         prior_spec = None
         if args.prior_file:
             if not (args.prior_period and args.prior_columns and args.prior_unit_scale):
@@ -405,8 +518,10 @@ def main(argv: list[str] | None = None) -> int:
             consolidation=args.consolidation,
             prior_spec=prior_spec,
             framework=args.framework,
-            statement_pages=parse_statement_spec(args.statement_pages)[0],
-            statement_regions=parse_statement_spec(args.statement_pages)[1],
+            statement_pages=stmt_pages,
+            statement_regions=stmt_regions,
+            auditor_pages=auditor_pages,
+            kam_pages=kam_pages,
         )
         if args.archive:
             try:

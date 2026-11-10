@@ -200,7 +200,8 @@
         "profit_after_tax": [
           "profit after taxation",
           "profit for the year",
-          "profit for the period"
+          "profit for the period",
+          "profit after taxation for the year"
         ],
         "eps_basic": [
           "basic earnings per share",
@@ -234,6 +235,32 @@
         "non_markup_expenses": [
           "total non mark up interest expenses",
           "total non markup interest expenses"
+        ],
+        "oci_translation": [
+          "effect of translation of net investment in foreign branches and subsidiaries",
+          "effect of translation of net investment in foreign branches"
+        ],
+        "oci_debt_fvoci": [
+          "movement in surplus on revaluation of debt investments through fvoci net of tax",
+          "movement in surplus on revaluation of debt investments through fvoci"
+        ],
+        "oci_equity_fvoci": [
+          "movement in surplus on revaluation of equity investments through fvoci net of tax",
+          "movement in surplus on revaluation of equity investments through fvoci"
+        ],
+        "oci_remeasurement_defined_benefit": [
+          "remeasurement gain on defined benefit obligations net of tax",
+          "remeasurement gain on defined benefit obligations"
+        ],
+        "oci_ppe_revaluation": [
+          "movement in surplus on revaluation of property and equipment net of tax"
+        ],
+        "oci_non_banking_assets": [
+          "movement in surplus on revaluation of non banking assets net of tax"
+        ],
+        "total_comprehensive_income": [
+          "total comprehensive income for the year",
+          "total comprehensive income"
         ]
       },
       "BS": {

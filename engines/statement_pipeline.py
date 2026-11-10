@@ -190,7 +190,7 @@ def extract(
     regions = statement_regions or {}
     pages = statement_pages or pe.locate_statements(doc)
     lines, unparsed, used = [], [], {}
-    for st in ("BS", "IS", "CF", "EQ"):
+    for st in ("BS", "IS", "OCI", "CF", "EQ"):
         if st in regions:
             if region_reader is None:
                 raise ValueError("statement_regions need a region_reader")
@@ -282,11 +282,15 @@ def tag(extracted: dict, *, document: dict, extractor_version: str, mapping) -> 
     tagged = []
     for ln in list(extracted["lines"]) + list(extracted.get("note_lines", [])):
         st = ln["statement"]
-        counters[st] += 1
+        # OCI is printed in the statement of profit or loss and other comprehensive income. The database's
+        # statement CHECK (migration 0001, immutable) allows IS, BS, CF, EQ and note only, so OCI rows
+        # are stored as IS and keep their section in statement_section.
+        db_st = "IS" if st == "OCI" else st
+        counters[db_st] += 1
         if ln.get("canonical_code") is not None:  # set by a rule-based extractor (e.g. notes)
             code, conf = ln["canonical_code"], ln.get("confidence")
         else:
-            code, conf = map_label(st, ln["raw_label"], mapping)
+            code, conf = map_label(db_st, ln["raw_label"], mapping)
         value = ln.get("value")
         is_comp = ln["column_period_end"] != document["period_end"]
         tagged.append(
@@ -295,8 +299,9 @@ def tag(extracted: dict, *, document: dict, extractor_version: str, mapping) -> 
                 "file_hash": document["file_hash"],
                 "symbol": document["symbol"],
                 "period_end": document["period_end"],
-                "statement_type": st,
-                "line_no": counters[st],
+                "statement_type": db_st,
+                "statement_section": st,
+                "line_no": counters[db_st],
                 "line_item_name": ln["raw_label"],
                 "canonical_code": code,
                 "column_period_end": ln["column_period_end"],
@@ -414,13 +419,40 @@ def comparative_checks(lines: list[dict], prior: dict) -> list[dict]:
 # ------------------------------------------------------------------ 3. reconciliation
 
 
+def _oci_total(lines: list[dict], column: str) -> float | None:
+    """Other comprehensive income for a column: the sum of the mapped OCI components. None when no OCI
+    component
+    was mapped (the check then does not run). A component printed as a dash counts as nil."""
+    parts = [
+        ln["reported_amount"] or 0.0
+        for ln in lines
+        if ln.get("canonical_code") in OCI_COMPONENT_CODES and ln["column_period_end"] == column
+    ]
+    return sum(parts) if parts else None
+
+
+OCI_COMPONENT_CODES = (
+    "oci_translation",
+    "oci_debt_fvoci",
+    "oci_equity_fvoci",
+    "oci_remeasurement_defined_benefit",
+    "oci_ppe_revaluation",
+    "oci_non_banking_assets",
+)
+
+
 def reconcile(tagged: dict, *, period_end: str, prior: dict | None = None) -> dict:
     """Balance sheet, cash flow and comparative checks. `prior` is the tagged result of the prior-year
     report."""
     lines = tagged["lines"]
     unit = lines[0]["unit_scale"] if lines else 1
     v, conflicts = values_for(lines, period_end)
+    oci = _oci_total(lines, period_end)
+    if oci is not None:
+        v["other_comprehensive_income"] = oci
     checks = [rec.balance_sheet(period_end, v), rec.cash_flow(period_end, v)]
+    if oci is not None:
+        checks.append(rec.comprehensive_income(period_end, v))
     comp_checks = []
     if prior is not None:
         comp_checks = comparative_checks(lines, prior)

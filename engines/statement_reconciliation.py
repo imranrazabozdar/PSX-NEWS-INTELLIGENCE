@@ -103,6 +103,20 @@ def cash_flow(period: str, v: dict[str, float | None]) -> Check:
     )
 
 
+def comprehensive_income(period: str, v: dict[str, float | None]) -> Check:
+    """Total comprehensive income = profit after taxation + other comprehensive income (sum of its
+    components)."""
+    return identity(
+        "comprehensive_income",
+        period,
+        "total_comprehensive_income",
+        {"profit_after_tax": None, "other_comprehensive_income": None},
+        lambda p: p["profit_after_tax"] + p["other_comprehensive_income"],
+        terms=2,
+        values=v,
+    )
+
+
 def comparatives(
     name: str, period: str, prior_reported: float | None, current_comparative: float | None
 ) -> Check:
