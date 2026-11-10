@@ -43,6 +43,9 @@ GOING_CONCERN = re.compile(
     r"going concern.{0,120}material uncertainty",
     re.I | re.S,
 )
+# Standard ISA wording says what the auditor WILL report if an uncertainty exists ("If we conclude that a
+# material uncertainty exists..."). That conditional sentence is not a going-concern uncertainty.
+CONDITIONAL_UNCERTAINTY = re.compile(r"if (?:we|such)\b[^.]{0,120}material uncertainty|if we conclude", re.I)
 KAM_SECTION = re.compile(r"key audit matters?", re.I)
 KAM_END = re.compile(
     r"other information|responsibilities of management|other legal and regulatory|independent auditor|"
@@ -78,7 +81,7 @@ def classify_opinion(doc) -> dict:
 
 
 def emphasis_and_uncertainty(doc) -> dict:
-    emphasis, uncertainty = [], []
+    emphasis, uncertainty, boilerplate = [], [], 0
     for pg in doc.pages:
         if not pg.has_text:
             continue
@@ -86,8 +89,16 @@ def emphasis_and_uncertainty(doc) -> dict:
         for m in EMPHASIS.finditer(text):
             emphasis.append({"page": pg.number, "excerpt": _excerpt(text, m)})
         for m in GOING_CONCERN.finditer(text):
+            window = text[max(0, m.start() - 40) : m.end() + 240]
+            if CONDITIONAL_UNCERTAINTY.search(window):
+                boilerplate += 1  # the conditional ISA sentence: counted, never reported as an uncertainty
+                continue
             uncertainty.append({"page": pg.number, "excerpt": _excerpt(text, m, width=240)})
-    return {"emphasis_of_matter": emphasis, "going_concern_material_uncertainty": uncertainty}
+    return {
+        "emphasis_of_matter": emphasis,
+        "going_concern_material_uncertainty": uncertainty,
+        "going_concern_conditional_boilerplate": boilerplate,
+    }
 
 
 def key_audit_matters(doc) -> list[dict]:

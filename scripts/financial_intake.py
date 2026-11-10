@@ -35,6 +35,7 @@ from pathlib import Path
 from engines import document_intake as di
 from engines import notes_extraction as ne
 from engines import pdf_extraction as pe
+from engines import pdf_reader as pe_reader
 from engines import statement_pipeline as sp
 
 EXTRACTOR_VERSION = "pdfplumber-0.11.10/pipeline-2026.11.1"
@@ -69,9 +70,18 @@ def _tagged(
     unit_scale: int,
     currency: str,
     consolidation: str,
+    framework: str = "corporate",
+    statement_pages: dict[str, list[int]] | None = None,
+    statement_regions: dict[str, tuple[int, str]] | None = None,
 ) -> tuple[dict, dict]:
     doc = pe.extract(path)
-    ex = sp.extract(doc, columns=columns)
+    ex = sp.extract(
+        doc,
+        columns=columns,
+        statement_pages=statement_pages,
+        statement_regions=statement_regions,
+        region_reader=lambda page, side: pe_reader.region_lines(path, page, side),
+    )
     document = {
         "document_id": sha,
         "file_hash": sha,
@@ -82,7 +92,44 @@ def _tagged(
         "consolidation": consolidation,
         "restated_flag": False,
     }
-    return sp.tag(ex, document=document, extractor_version=EXTRACTOR_VERSION, mapping=sp.load_mappings()), ex
+    tagged = sp.tag(
+        ex,
+        document=document,
+        extractor_version=EXTRACTOR_VERSION,
+        mapping=sp.load_mappings(framework=framework),
+    )
+    tagged["extraction_methods"] = ex.get("extraction_methods", {})
+    tagged["extraction_warnings"] = ex.get("extraction_warnings", [])
+    return tagged, ex
+
+
+STATEMENT_CODES = ("BS", "IS", "CF", "EQ")
+
+
+def parse_statement_spec(spec: str) -> tuple[dict[str, list[int]] | None, dict[str, tuple[int, str]] | None]:
+    """Parse the owner's statement map. "BS=43R,IS=44L,CF=45R,EQ=45L": a page, and for two-page spreads the
+    half
+    that holds the statement (L or R). A page without a side is the whole page. Returns (pages, regions); both
+    None when the spec is empty (automatic detection). Unknown codes, bad pages or sides are refused."""
+    if not spec.strip():
+        return None, None
+    pages: dict[str, list[int]] = {}
+    regions: dict[str, tuple[int, str]] = {}
+    for part in spec.split(","):
+        code, sep, ref = part.strip().partition("=")
+        code, ref = code.strip().upper(), ref.strip().upper()
+        if not sep or code not in STATEMENT_CODES:
+            raise ValueError(
+                f"bad --statement-pages entry {part!r}: expected one of {STATEMENT_CODES}=<page>[L|R]"
+            )
+        side = ref[-1:] if ref[-1:] in ("L", "R") else ""
+        digits = ref[: len(ref) - len(side)]
+        if not digits.isdigit() or int(digits) < 1:
+            raise ValueError(f"bad page for {code}: {ref!r}")
+        if side:
+            regions[code] = (int(digits), side)
+        pages.setdefault(code, []).append(int(digits))
+    return pages, (regions or None)
 
 
 def analyse(
@@ -96,6 +143,9 @@ def analyse(
     currency: str,
     consolidation: str,
     prior_spec: dict | None = None,
+    framework: str = "corporate",
+    statement_pages: dict[str, list[int]] | None = None,
+    statement_regions: dict[str, tuple[int, str]] | None = None,
 ) -> dict:
     stored, path = _stored_pdf(vault, pdf)
     sha = stored["report_sha256"]
@@ -108,6 +158,9 @@ def analyse(
         unit_scale=unit_scale,
         currency=currency,
         consolidation=consolidation,
+        framework=framework,
+        statement_pages=statement_pages,
+        statement_regions=statement_regions,
     )
     prior = None
     prior_report = None
@@ -123,6 +176,9 @@ def analyse(
             unit_scale=prior_spec["unit_scale"],
             currency=currency,
             consolidation=consolidation,
+            framework=framework,
+            statement_pages=statement_pages,
+            statement_regions=statement_regions,
         )
         prior = {**p_tagged, "period": prior_spec["period"]}
         prior_report = {"vault": p_stored["status"], "report_sha256": p_sha, "period": prior_spec["period"]}
@@ -132,6 +188,17 @@ def analyse(
     receivables = ne.receivables_quality(notes_view, period_end)
     contingencies = ne.contingency_summary(notes_view, period_end)
     diagnostic = build_diagnostic(tagged, recon, ex["audit"], receivables, contingencies)
+    diagnostic["framework"] = framework
+    not_run = sorted(c["check"] for c in recon["checks"] if c["status"] == "INSUFFICIENT_DATA")
+    diagnostic["checks_not_run"] = not_run
+    diagnostic["statement_pages"] = {
+        "source": "owner" if statement_pages else "detected",
+        "pages": tagged.get("statement_pages", {}),
+    }
+    diagnostic["extraction"] = {
+        "methods": tagged["extraction_methods"],
+        "warnings": tagged["extraction_warnings"],
+    }
     return {
         "diagnostic": diagnostic,
         "receivables": receivables,
@@ -214,9 +281,13 @@ def render_text(out: dict) -> str:
         f"{d['disclosure_lines']['unmapped']} kept unmapped",
         f"Unparsed lines (for review): {d['unparsed_lines']}",
         f"Reconciliation: balance sheet {rec['balance_sheet']}, cash flow {rec['cash_flow']}, "
-        f"overall {rec['overall']}",
+        f"overall {rec['overall']}"
+        + (f" (PARTIAL: not run: {', '.join(d['checks_not_run'])})" if d["checks_not_run"] else ""),
+        f"Framework: {d['framework']}",
+        f"Extraction: {d['extraction']['methods'] or 'n/a'}",
         f"Auditor opinion: {d['auditor_opinion']}",
     ]
+    lines += [f"  warning: {w}" for w in d["extraction"]["warnings"]]
     lines += [f"  KAM p.{k['page']}: {k['heading']} - {k['excerpt']}" for k in d["key_audit_matters"]]
     lines.append(
         f"Receivables: gross {r['gross']}, ECL coverage {r['ecl_coverage']}, "
@@ -285,6 +356,19 @@ def _parse_args(argv):
     ap.add_argument("--prior-period")
     ap.add_argument("--prior-columns")
     ap.add_argument("--prior-unit-scale", type=int, choices=(1, 1000, 1000000, 1000000000))
+    ap.add_argument(
+        "--framework",
+        default="corporate",
+        choices=("corporate", "bank", "insurer"),
+        help="account mapping framework (kept apart: corporate, bank SBP taxonomy, insurer)",
+    )
+    ap.add_argument(
+        "--statement-pages",
+        default="",
+        help="owner-confirmed statement pages, e.g. BS=43R,IS=44L,CF=45R,EQ=45L (PDF page numbers; "
+        "L/R = the half of a two-page spread). Without it, pages are detected automatically "
+        "and the source is recorded as detected.",
+    )
     ap.add_argument("--archive", action="store_true", help="also write the analysis to the archive database")
     ap.add_argument("--text", action="store_true", help="print the diagnostic summary as text, not JSON")
     return ap.parse_args(argv)
@@ -320,6 +404,9 @@ def main(argv: list[str] | None = None) -> int:
             currency=args.currency,
             consolidation=args.consolidation,
             prior_spec=prior_spec,
+            framework=args.framework,
+            statement_pages=parse_statement_spec(args.statement_pages)[0],
+            statement_regions=parse_statement_spec(args.statement_pages)[1],
         )
         if args.archive:
             try:

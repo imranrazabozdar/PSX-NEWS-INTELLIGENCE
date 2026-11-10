@@ -88,14 +88,17 @@ def balance_sheet(period: str, v: dict[str, float | None]) -> Check:
 
 
 def cash_flow(period: str, v: dict[str, float | None]) -> Check:
-    """Opening cash + net movement = closing cash."""
+    """Opening cash + net movement + effect of exchange rate changes on cash = closing cash. The FX line is
+    printed separately in banking and multinational statements; when it is present it is part of the identity
+    (leaving it out would report a real, printed amount as an unexplained difference)."""
+    fx = v.get("fx_effect_on_cash")
     return identity(
         "cash_flow",
         period,
         "closing_cash",
         {"opening_cash": None, "net_change_in_cash": None},
-        lambda p: p["opening_cash"] + p["net_change_in_cash"],
-        terms=2,
+        lambda p: p["opening_cash"] + p["net_change_in_cash"] + (fx or 0.0),
+        terms=3 if fx is not None else 2,
         values=v,
     )
 
@@ -132,7 +135,9 @@ def _status(c) -> str:
 
 
 def overall(checks: list) -> str:
-    """Document status from checks given as Check objects or as dicts with a 'status' key."""
+    """Document status from checks given as Check objects or as dicts with a 'status' key. Callers that
+    need to
+    know whether every identity ran must check the individual statuses (the intake reports checks not run)."""
     statuses = [_status(c) for c in checks]
     if UNRECONCILED in statuses:
         return UNRECONCILED

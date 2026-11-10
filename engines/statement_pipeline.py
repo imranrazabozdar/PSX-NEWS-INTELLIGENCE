@@ -18,6 +18,7 @@ flag and approval.
 from __future__ import annotations
 
 import json
+import re
 from collections import defaultdict
 from pathlib import Path
 
@@ -51,11 +52,19 @@ NOTE_HEADINGS = {
 }
 
 
-def load_mappings(path: Path | str = MAPPINGS) -> dict[str, dict[str, list[str]]]:
-    """Corporate framework: statement -> canonical code -> labels. Keys are normalised labels."""
-    corporate = json.loads(Path(path).read_text(encoding="utf-8"))["mappings"]["corporate"]
+FRAMEWORKS = ("corporate", "bank", "insurer")
+
+
+def load_mappings(
+    path: Path | str = MAPPINGS, *, framework: str = "corporate"
+) -> dict[str, dict[str, list[str]]]:
+    """One framework's mapping: statement -> canonical code -> labels. Keys are normalised labels. Frameworks
+    are kept apart: a bank label is never looked up in the corporate table, or the reverse."""
+    if framework not in FRAMEWORKS:
+        raise ValueError(f"unknown mapping framework: {framework}")
+    table = json.loads(Path(path).read_text(encoding="utf-8"))["mappings"][framework]
     out: dict[str, dict[str, str]] = defaultdict(dict)
-    for st, codes in corporate.items():
+    for st, codes in table.items():
         for code, labels in codes.items():
             for lab in labels:
                 out[st][fin.normalise_label(lab)] = code
@@ -72,11 +81,136 @@ def map_label(statement: str, label: str, mapping) -> tuple[str | None, float | 
 # ------------------------------------------------------------------ 1. extraction
 
 
-def extract(path_or_doc, *, columns: list[str], statement_pages: dict[str, list[int]] | None = None) -> dict:
+# Balance sheet components the printed totals are the sum of (SBP format prints totals with no label).
+BS_ASSET_CODES = (
+    "cash_and_equivalents",
+    "balances_with_other_banks",
+    "lendings_to_fis",
+    "investments",
+    "advances_net",
+    "fixed_assets",
+    "right_of_use_assets",
+    "intangible_assets",
+    "deferred_tax_assets",
+    "other_assets",
+)
+BS_LIABILITY_CODES = (
+    "bills_payable",
+    "borrowings",
+    "deposits",
+    "lease_liabilities",
+    "subordinated_debt",
+    "deferred_tax_liabilities",
+    "other_liabilities",
+)
+_NUMBER_TOKEN = re.compile(r"\(?-?\d[\d,]*(?:\.\d+)?\)?")
+
+
+def _numbers_only_row(text: str, n: int) -> list[float] | None:
+    """A row that is nothing but n printed figures (no label). Brackets are negatives, as in the
+    statements."""
+    s = (text or "").strip()
+    toks = _NUMBER_TOKEN.findall(s)
+    if len(toks) != n or " ".join(toks) != " ".join(s.split()):
+        return None
+    out = []
+    for t in toks:
+        neg = t.startswith("(") and t.endswith(")")
+        v = float(t.strip("()").replace(",", "").replace("-", "") or 0)
+        out.append(-v if neg or t.startswith("-") else v)
+    return out
+
+
+def infer_unlabelled_totals(tagged: list[dict], unparsed: list[dict], *, columns: list[str]) -> list[dict]:
+    """Printed balance sheet totals that carry no label. Runs on MAPPED lines. A label-less figure row
+    becomes a
+    total only when, for a column, it equals the sum of the mapped components of the same statement, within
+    one
+    printed unit per component (the same allowance as the reconciliation). Ambiguous (more than one match) or
+    unmatched rows are left unparsed. Returns partial records; the caller fills the document fields."""
+    out: list[dict] = []
+    n = len(columns)
+    for code_group, total_code in (
+        (BS_ASSET_CODES, "total_assets"),
+        (BS_LIABILITY_CODES, "total_liabilities"),
+    ):
+        candidates = [u for u in unparsed if u.get("statement") == "BS" and u.get("line")]
+        for i, col in enumerate(columns):
+            present = [
+                ln
+                for ln in tagged
+                if ln.get("statement_type") == "BS"
+                and ln.get("canonical_code") in code_group
+                and ln.get("column_period_end") == col
+                and ln.get("reported_amount") is not None
+            ]
+            if not present or any(
+                ln.get("canonical_code") == total_code and ln.get("column_period_end") == col for ln in tagged
+            ):
+                continue
+            total = sum(ln["reported_amount"] for ln in present)
+            allow = len(present) * 1.0  # one printed unit per component, as in the reconciliation
+            matches = []
+            for u in candidates:
+                vals = _numbers_only_row(u["line"], n)
+                if vals is not None and abs(vals[i] - total) <= allow:
+                    matches.append((u, vals[i]))
+            if len(matches) != 1:
+                continue
+            u, value = matches[0]
+            out.append(
+                {
+                    "statement_type": "BS",
+                    "line_item_name": f"[unlabelled printed total: equals the sum "
+                    f"of {len(present)} mapped components]",
+                    "column_period_end": col,
+                    "reported_amount": value,
+                    "pdf_page_number": u.get("page"),
+                    "canonical_code": total_code,
+                    "confidence": 0.9,
+                    "extraction_engine": u.get("extraction_engine"),
+                }
+            )
+    return out
+
+
+def extract(
+    path_or_doc,
+    *,
+    columns: list[str],
+    statement_pages: dict[str, list[int]] | None = None,
+    statement_regions: dict[str, tuple[int, str]] | None = None,
+    region_reader=None,
+) -> dict:
+    """Parse the statements. `statement_regions` (owner-confirmed) gives, per statement, (page, side): the
+    page
+    half that holds it, read through `region_reader(page, side) -> lines`. A region is parsed as its own page
+    so the other statement on a spread is never mixed in."""
     doc = path_or_doc if isinstance(path_or_doc, pe.DocumentText) else pe.extract(path_or_doc)
+    regions = statement_regions or {}
     pages = statement_pages or pe.locate_statements(doc)
     lines, unparsed, used = [], [], {}
     for st in ("BS", "IS", "CF", "EQ"):
+        if st in regions:
+            if region_reader is None:
+                raise ValueError("statement_regions need a region_reader")
+            page, side = regions[st]
+            region_lines = region_reader(page, side)
+            rdoc = pe.DocumentText(
+                [
+                    pe.Page(
+                        number=page,
+                        lines=region_lines,
+                        has_text=sum(len(x) for x in region_lines) >= 20,
+                        extraction_method="pdftotext_layout_region",
+                    )
+                ]
+            )
+            used[st] = [page]
+            r = pe.to_statement_lines(rdoc, st, [page], columns=columns)
+            lines.extend({**ln, "statement": st} for ln in r["lines"])
+            unparsed.extend({**u, "statement": st} for u in r["unparsed"])
+            continue
         if not pages.get(st):
             continue
         used[st] = pages[st]
@@ -91,6 +225,8 @@ def extract(path_or_doc, *, columns: list[str], statement_pages: dict[str, list[
         "statement_pages": used,
         "scanned_pages": scanned,
         "pages": len(doc.pages),
+        "extraction_methods": doc.method_counts(),
+        "extraction_warnings": list(doc.warnings),
         "notes": locate_notes(doc),
         "auditor": auditor_opinion(doc),
         "note_lines": nx["lines"],
@@ -175,7 +311,37 @@ def tag(extracted: dict, *, document: dict, extractor_version: str, mapping) -> 
                 "note_ref": ln.get("note_ref"),
                 "extractor_version": extractor_version,
                 "confidence": conf,
+                "extraction_method": "pdf_text",  # database category (migrations 0001-0005 are immutable)
+                "extraction_engine": ln.get("extraction_engine") or "unknown",
+            }
+        )
+    columns = list(dict.fromkeys(ln["column_period_end"] for ln in extracted["lines"]))
+    for rec_ in infer_unlabelled_totals(tagged, extracted["unparsed"], columns=columns):
+        counters["BS"] += 1
+        tagged.append(
+            {
+                "document_id": document["document_id"],
+                "file_hash": document["file_hash"],
+                "symbol": document["symbol"],
+                "period_end": document["period_end"],
+                "statement_type": "BS",
+                "line_no": counters["BS"],
+                "line_item_name": rec_["line_item_name"],
+                "canonical_code": rec_["canonical_code"],
+                "column_period_end": rec_["column_period_end"],
+                "is_comparative": rec_["column_period_end"] != document["period_end"],
+                "reported_amount": rec_["reported_amount"],
+                "value_state": "reported",
+                "restated_flag": bool(document.get("restated_flag")),
+                "currency": document["currency"],
+                "unit_scale": document["unit_scale"],
+                "consolidation": document["consolidation"],
+                "pdf_page_number": rec_["pdf_page_number"],
+                "note_ref": None,
+                "extractor_version": extractor_version,
+                "confidence": rec_["confidence"],
                 "extraction_method": "pdf_text",
+                "extraction_engine": rec_["extraction_engine"] or "unknown",
             }
         )
     return {

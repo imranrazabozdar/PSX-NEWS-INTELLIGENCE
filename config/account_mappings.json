@@ -183,8 +183,7 @@
           "non interest income"
         ],
         "operating_expenses": [
-          "operating expenses",
-          "total non mark up interest expenses"
+          "operating expenses"
         ],
         "provisions": [
           "credit loss allowance and write offs net",
@@ -206,7 +205,35 @@
         "eps_basic": [
           "basic earnings per share",
           "earnings per share basic",
-          "basic and diluted earnings per share"
+          "basic and diluted earnings per share",
+          "earnings per share basic and diluted restated",
+          "earnings per share basic and diluted"
+        ],
+        "fee_commission_income": [
+          "fee and commission income",
+          "fee commission income"
+        ],
+        "dividend_income": [
+          "dividend income"
+        ],
+        "foreign_exchange_income": [
+          "foreign exchange income"
+        ],
+        "gain_on_securities": [
+          "gain on securities net"
+        ],
+        "other_income": [
+          "other income"
+        ],
+        "workers_welfare_fund": [
+          "workers welfare fund"
+        ],
+        "share_of_profit_of_associates": [
+          "share of profit of associates"
+        ],
+        "non_markup_expenses": [
+          "total non mark up interest expenses",
+          "total non markup interest expenses"
         ]
       },
       "BS": {
@@ -232,6 +259,59 @@
         ],
         "cash_and_equivalents": [
           "cash and balances with treasury banks"
+        ],
+        "balances_with_other_banks": [
+          "balances with other banks"
+        ],
+        "lendings_to_fis": [
+          "lendings to financial institutions"
+        ],
+        "fixed_assets": [
+          "property and equipment",
+          "property and equipment cwip"
+        ],
+        "right_of_use_assets": [
+          "right of use assets"
+        ],
+        "intangible_assets": [
+          "intangible assets"
+        ],
+        "deferred_tax_assets": [
+          "deferred tax assets"
+        ],
+        "other_assets": [
+          "other assets"
+        ],
+        "bills_payable": [
+          "bills payable"
+        ],
+        "borrowings": [
+          "borrowings"
+        ],
+        "lease_liabilities": [
+          "lease liabilities"
+        ],
+        "subordinated_debt": [
+          "subordinated debt"
+        ],
+        "deferred_tax_liabilities": [
+          "deferred tax liabilities"
+        ],
+        "other_liabilities": [
+          "other liabilities"
+        ],
+        "share_capital": [
+          "share capital"
+        ],
+        "reserves": [
+          "reserves"
+        ],
+        "surplus_on_revaluation": [
+          "surplus on revaluation of assets net",
+          "surplus on revaluation of assets"
+        ],
+        "unappropriated_profit": [
+          "unappropriated profit"
         ]
       },
       "note": {
@@ -247,6 +327,30 @@
         "shares_outstanding": [
           "number of ordinary shares",
           "weighted average number of ordinary shares"
+        ]
+      },
+      "CF": {
+        "cfo": [
+          "net cash flow generated from operating activities"
+        ],
+        "cfi": [
+          "net cash flow used in investing activities"
+        ],
+        "cff": [
+          "net cash flow used in financing activities"
+        ],
+        "opening_cash": [
+          "cash and cash equivalents at the beginning of the year"
+        ],
+        "net_change_in_cash": [
+          "increase in cash and cash equivalents",
+          "increase decrease in cash and cash equivalents"
+        ],
+        "fx_effect_on_cash": [
+          "effect of exchange rate changes on cash and cash equivalents"
+        ],
+        "closing_cash": [
+          "cash and cash equivalents at the end of the year"
         ]
       }
     },
