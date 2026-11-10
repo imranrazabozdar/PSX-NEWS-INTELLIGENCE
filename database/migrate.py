@@ -93,8 +93,13 @@ def discover(directory: Path = MIGRATIONS_DIR) -> list[Migration]:
     return found
 
 
-def applied(db: Database) -> dict[int, dict]:
-    db.execute(SCHEMA_MIGRATIONS_DDL)
+def applied(db: Database, *, create: bool = True) -> dict[int, dict]:
+    """Applied migrations by version. With create=False (dry run) nothing is written: a missing ledger is
+    treated as empty instead of being created."""
+    if create:
+        db.execute(SCHEMA_MIGRATIONS_DDL)
+    elif not db.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'schema_migrations'"):
+        return {}
     return {r["version"]: r for r in db.execute(
         "SELECT version, name, checksum, applied_at_utc FROM schema_migrations ORDER BY version")}
 
@@ -104,7 +109,7 @@ def migrate(db: Database, *, dry_run: bool = False,
     """Apply pending migrations. Returns a log of what happened."""
     log = []
     migrations = discover(directory)
-    done = applied(db)
+    done = applied(db, create=not dry_run)  # a dry run issues no DDL
     for v, row in done.items():
         known = {m.version: m for m in migrations}
         if v not in known:
