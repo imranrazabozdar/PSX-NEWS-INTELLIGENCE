@@ -139,7 +139,8 @@ def test_00_embedded_foreign_migration_is_the_recorded_one():
 
 def test_01_collision_is_reproduced_by_the_runner_and_the_integrity_check(db):
     for kwargs in ({"dry_run": True}, {}):
-        with pytest.raises(MigrationError, match=r"migration 11 \(extraction_reviews\) was changed"):
+        # the name check now refuses the foreign version-11 record before the checksum check is reached
+        with pytest.raises(MigrationError, match=r"migration 11 is recorded as 'extraction_reviews'"):
             migrate(db, **kwargs)
     report = integrity.check(db)
     assert report["state"] == "problems"

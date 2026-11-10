@@ -110,14 +110,26 @@ def migrate(db: Database, *, dry_run: bool = False,
     log = []
     migrations = discover(directory)
     done = applied(db, create=not dry_run)  # a dry run issues no DDL
+    known = {m.version: m for m in migrations}
     for v, row in done.items():
-        known = {m.version: m for m in migrations}
         if v not in known:
             raise MigrationError(f"database has migration {v} that is not in the repository")
+        if row["name"] != known[v].name:
+            raise MigrationError(f"migration {v} is recorded as {row['name']!r} but the repository has "
+                                 f"{known[v].name!r}; refusing (version reuse or rename)")
         if row["checksum"] != known[v].checksum:
             raise MigrationError(
                 f"migration {v} ({row['name']}) was changed after it was applied; "
                 "add a new migration instead of editing an applied one")
+    if done:
+        applied_versions = sorted(done)
+        if applied_versions != list(range(1, len(applied_versions) + 1)):
+            raise MigrationError(f"migration ledger has a gap or is out of order: {applied_versions}")
+        pending_below = [m.version for m in migrations if m.version not in done
+                         and m.version < applied_versions[-1]]
+        if pending_below:
+            raise MigrationError(f"pending migrations {pending_below} are below applied version "
+                                 f"{applied_versions[-1]}; refusing out-of-order application")
     for mig in migrations:
         if mig.version in done:
             log.append(f"skip   {mig.version:04d}_{mig.name} (already applied)")

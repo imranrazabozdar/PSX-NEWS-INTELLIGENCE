@@ -300,6 +300,8 @@ IDENTITIES = (
     ("profit_after_tax", "profit_after_tax", ("profit_before_tax", "taxation"), lambda a, b: a - abs(b)),
     ("net_interest_income", "net_interest_income", ("interest_earned", "interest_expensed"),
      lambda a, b: a - abs(b)),
+    # opening cash + net movement = closing cash (cash flow statement)
+    ("cash_flow", "closing_cash", ("opening_cash", "net_change_in_cash"), lambda a, b: a + b),
 )
 
 

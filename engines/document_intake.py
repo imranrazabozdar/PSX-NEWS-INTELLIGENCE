@@ -76,6 +76,14 @@ def store_original(pdf: Path | str, vault: Path) -> tuple[Path, str]:
     return dest, sha
 
 
+def verify_vault_file(path: Path | str, sha256: str) -> bool:
+    """True only when the stored file still hashes to its recorded SHA-256. Never raises on a missing file."""
+    p = Path(path)
+    if not p.is_file():
+        return False
+    return pe.sha256_file(p) == sha256
+
+
 def _ticker_company(db, ticker: str) -> str:
     row = db.execute("SELECT company_id FROM company_identifiers WHERE id_type = 'psx_ticker' AND value = ? "
                      "AND valid_to IS NULL", (ticker,))

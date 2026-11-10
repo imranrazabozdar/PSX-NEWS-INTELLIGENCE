@@ -122,20 +122,22 @@ def empty_archive():
 def test_ddl_is_refused_without_the_exact_approval_string(empty_archive):
     for env in ({}, {gate.DDL_OPT_IN_VAR: "yes"}, {gate.DDL_OPT_IN_VAR: "YES-EXECUTE-ARCHIVE-MIGRATION-DDL"}):
         with pytest.raises(gate.ArchiveDDLRefused):
-            gate.apply(empty_archive, dry_run=False, env=env)
+            gate.apply(empty_archive, dry_run=False, purpose=gate.PURPOSE, env=env)
     assert empty_archive.execute("SELECT name FROM sqlite_master WHERE type='table'") == []
 
 
 def test_ddl_runs_only_with_the_exact_approval_string(empty_archive):
-    out = gate.apply(empty_archive, dry_run=False, env={gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE})
-    assert out["mode"] == "applied" and len(out["log"]) == 2
-    assert gate.probe(empty_archive)["expected_schema_present"] is True
+    out = gate.apply(
+        empty_archive, dry_run=False, purpose=gate.PURPOSE, env={gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE}
+    )
+    assert out["mode"] == "applied" and len(out["log"]) == 4
+    assert gate.probe(empty_archive)["fully_migrated"] is True
 
 
 def test_dry_run_changes_nothing_and_reports_checksums(empty_archive):
     out = gate.apply(empty_archive, dry_run=True)
-    assert out["mode"] == "dry_run" and len(out["pending"]) == 2
-    assert all(len(c) == 64 for c in out["checksums"].values())
+    assert out["mode"] == "dry_run" and len(out["pending"]) == 4
+    assert all(len(m["checksum"]) == 64 for m in out["pending"])
     assert empty_archive.execute("SELECT name FROM sqlite_master WHERE type='table'") == []
 
 
@@ -147,29 +149,39 @@ def test_preflight_refuses_operational_tables():
         with pytest.raises(Exception, match="operational tables"):
             gate.apply(d, dry_run=True)
         with pytest.raises(Exception, match="operational tables"):
-            gate.apply(d, dry_run=False, env={gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE})
+            gate.apply(
+                d, dry_run=False, purpose=gate.PURPOSE, env={gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE}
+            )
     finally:
         d.close()
 
 
 def test_preflight_refuses_unknown_tables(empty_archive):
     empty_archive.execute("CREATE TABLE someone_elses_table (x INTEGER)")
-    with pytest.raises(Exception, match="unknown tables"):
+    with pytest.raises(Exception, match="unknown schema objects"):
         gate.apply(empty_archive, dry_run=True)
 
 
 def test_probe_reads_schema_and_writes_nothing(empty_archive):
-    gate.apply(empty_archive, dry_run=False, env={gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE})
+    gate.apply(
+        empty_archive, dry_run=False, purpose=gate.PURPOSE, env={gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE}
+    )
     before = gate.probe(empty_archive)
     after = gate.probe(empty_archive)
     assert before == after
-    assert before["blob_columns"] == [] and before["missing_triggers"] == []
-    assert before["row_counts"] == {
-        "archive_reports": 0,
-        "archive_financial_tuples": 0,
-        "archive_disclosures": 0,
-        "schema_migrations": 2,
-    }
+    assert before["blob_columns"] == [] and before["structure_drift_for_ledger_state"] == {}
+    assert before["fully_migrated"] is True and len(before["ledger"]) == 4
+    assert set(before["row_counts"]) == {
+        "archive_reports",
+        "archive_financial_tuples",
+        "archive_disclosures",
+        "archive_document_registry",
+        "archive_processing_events",
+        "archive_line_items",
+        "archive_notes",
+        "archive_reconciliation",
+        "archive_line_reviews",
+    } and all(v == 0 for v in before["row_counts"].values())
 
 
 # ----------------------------------------- Turso integration (disposable target only)
@@ -195,20 +207,34 @@ def _sha(seed: str) -> str:
 
 def test_turso_apply_gate_then_schema_and_ledger(turso_test_db):
     gate.preflight(turso_test_db)
-    out = gate.apply(turso_test_db, dry_run=False, env={gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE})
+    out = gate.apply(
+        turso_test_db, dry_run=False, purpose=gate.PURPOSE, env={gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE}
+    )
     assert out["mode"] == "applied"
     p = gate.probe(turso_test_db)
     assert p["expected_schema_present"] and p["missing_triggers"] == [] and p["blob_columns"] == []
-    assert [r["name"] for r in p["ledger"]] == ["financial_archive", "disclosures"]
+    assert [r["name"] for r in p["ledger"]] == [
+        "financial_archive",
+        "disclosures",
+        "document_registry",
+        "extraction_evidence",
+    ]
     # a second application is a no-op: migrations are not applied twice
     assert (
-        gate.apply(turso_test_db, dry_run=False, env={gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE})["log"]
+        gate.apply(
+            turso_test_db,
+            dry_run=False,
+            purpose=gate.PURPOSE,
+            env={gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE},
+        )["log"]
         == []
     )
 
 
 def test_turso_append_only_triggers(turso_test_db):
-    gate.apply(turso_test_db, dry_run=False, env={gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE})
+    gate.apply(
+        turso_test_db, dry_run=False, purpose=gate.PURPOSE, env={gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE}
+    )
     h = _sha("trigger-probe")
     turso_test_db.batch(
         [
@@ -318,13 +344,17 @@ def test_turso_append_only_triggers(turso_test_db):
     ],
 )
 def test_turso_check_constraints_refuse_bad_rows(turso_test_db, sql, args):
-    gate.apply(turso_test_db, dry_run=False, env={gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE})
+    gate.apply(
+        turso_test_db, dry_run=False, purpose=gate.PURPOSE, env={gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE}
+    )
     with pytest.raises(Exception, match="CHECK|constraint"):
         turso_test_db.batch([(sql, args)], rollback=True)
 
 
 def test_turso_tuple_insert_is_idempotent(turso_test_db):
-    gate.apply(turso_test_db, dry_run=False, env={gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE})
+    gate.apply(
+        turso_test_db, dry_run=False, purpose=gate.PURPOSE, env={gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE}
+    )
     h = _sha("idempotent-probe")
     report = (
         "INSERT INTO archive_reports(report_sha256, vault_ref, company_id, doc_type, period_end, scope, "
