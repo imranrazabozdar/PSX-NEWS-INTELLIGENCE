@@ -1272,3 +1272,88 @@ def test_live_pipeline_stores_one_status_per_check_and_no_zero_for_missing(live,
         )[0]["n"]
         == 0
     )
+
+
+def test_live_notes_and_auditor_trail_are_stored_once(live, tmp_path):
+    """Notes become NOTE lines in the versioned table; the auditor findings become one audit-trail record.
+    The PDF is synthetic, with invented figures."""
+    from engines import statement_pipeline as sp
+    from engines import statement_reconciliation as rec
+    from tests.pdf_fixture_builder import write_pdf
+    from tests.test_statement_pipeline import COLS, _report_pages
+
+    run = _run_id()
+    sha = _sha("disclosures-live-" + run)
+    pages = _report_pages() + [
+        [
+            "Independent auditor's report",
+            "In our opinion the financial statements present fairly, in all "
+            "material respects, the financial position",
+        ],
+        ["12. Trade debts", "Trade debts 120 90", "Expected credit loss allowance (12) (10)"],
+        [
+            "Key audit matters",
+            "Revenue recognition",
+            "We identified revenue recognition as a key audit matter because of the volume of transactions.",
+        ],
+    ]
+    pdf = write_pdf(tmp_path / "disclosures.pdf", pages)
+    doc = {
+        "document_id": sha,
+        "file_hash": sha,
+        "symbol": "OGDC",
+        "period_end": "2025-06-30",
+        "currency": "PKR",
+        "unit_scale": 1000,
+        "consolidation": "unconsolidated",
+        "restated_flag": False,
+    }
+    ex = sp.extract(pdf, columns=COLS, statement_pages={"BS": [1], "IS": [2], "CF": [3]})
+    tagged = sp.tag(
+        ex,
+        document=doc,
+        extractor_version="pdfplumber-0.11.10/disclosures-live-1",
+        mapping=sp.load_mappings(),
+    )
+    recon = sp.reconcile(tagged, period_end="2025-06-30")
+    assert recon["overall"] == rec.RECONCILED
+    meta = {
+        "report_sha256": sha,
+        "psx_symbol": "OGDC",
+        "company_id": "co-disc-live-" + run,
+        "doc_type": "annual",
+        "financial_year": 2025,
+        "period_end": "2025-06-30",
+        "consolidation": "unconsolidated",
+        "audit_status": "audited",
+        "original_filename": "disclosures.pdf",
+        "vault_ref": f"{sha}.pdf",
+        "source_id": "company_reports_manual",
+        "retrieved_at_utc": "2026-11-10T00:00:00Z",
+    }
+    first = sp.store(
+        live,
+        registry_meta=meta,
+        file_size_bytes=pdf.stat().st_size,
+        tagged=tagged,
+        reconciliation=recon,
+        extractor_version="pdfplumber-0.11.10/disclosures-live-1",
+        audit=ex["audit"],
+    )
+    assert first["audit_disclosure"]["archived"] == 1
+    note_rows = live.execute(
+        "SELECT COUNT(*) AS n FROM archive_line_items_v2 WHERE run_id = ? AND statement_type = 'NOTE'",
+        (first["run_id"],),
+    )[0]["n"]
+    assert note_rows == len([x for x in tagged["lines"] if x["statement_type"] == "NOTE"]) > 0
+    again = sp.store(
+        live,
+        registry_meta=meta,
+        file_size_bytes=pdf.stat().st_size,
+        tagged=tagged,
+        reconciliation=recon,
+        extractor_version="pdfplumber-0.11.10/disclosures-live-1",
+        audit=ex["audit"],
+    )
+    assert again["lines"]["inserted"] == 0 and again["audit_disclosure"]["archived"] == 0
+    assert again["audit_disclosure"]["status"] == "existing"
