@@ -320,6 +320,15 @@ def reconcile(db, report_id: int) -> dict:
         ok = abs(vals[0] - expected) <= _tol(vals[0], expected)
         checks.append({"check": name, "result": "pass" if ok else "fail", "reported": vals[0],
                        "expected": expected})
+    # A balance sheet that is present must be checked and must balance. An identity that cannot be checked
+    # (a missing total) never counts as reconciled just because a P&L identity passed.
+    bs_codes = ("total_assets", "total_liabilities", "total_equity")
+    if any(v.get(c) is not None for c in bs_codes):  # a reported balance-sheet total, not a blank one
+        bs = next((c for c in checks if c["check"] == "balance_sheet"), None)
+        if bs is None or bs["result"] != "pass":
+            checks.append({"check": "balance_sheet_required", "result": "fail",
+                           "reason": "balance sheet is present but the identity was not verified",
+                           "result_of_identity": bs["result"] if bs else "absent"})
     if any(c["result"] == "fail" for c in checks):
         status = "needs_review"
     elif any(c["result"] == "pass" for c in checks):
