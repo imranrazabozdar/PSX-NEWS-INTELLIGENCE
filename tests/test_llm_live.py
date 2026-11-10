@@ -21,7 +21,7 @@ from engines.llm import (
     load_prompt,
 )
 
-KEY = "PSXNI_TEST_KEY_abcdef1234567890"
+KEY = "fixture-key-for-redaction-tests-only"
 ENV = {"PSXNI_GROQ_API_KEY": KEY, "PSXNI_GEMINI_API_KEY": KEY, "PSXNI_OPENROUTER_API_KEY": KEY}
 
 
