@@ -150,3 +150,32 @@ def test_archive_write_stores_the_analysis_once_on_a_ready_archive(tmp_path, vau
         assert check.execute("SELECT COUNT(*) AS n FROM archive_document_registry")[0]["n"] == 1
     finally:
         check.close()
+
+
+def test_the_diagnostic_summary_reports_mapping_reconciliation_auditor_and_kams(tmp_path, vault_env, capsys):
+    pdf = _report(tmp_path, "diag.pdf")
+    code, out = _run(_base(pdf), capsys)
+    d = out["diagnostic"]
+    assert code == 0
+    assert d["statement_lines"]["mapped"] > 0
+    assert (
+        d["reconciliation"]["balance_sheet"] == "RECONCILED"
+        and d["reconciliation"]["cash_flow"] == "RECONCILED"
+    )
+    assert d["auditor_opinion"] == "not_found"  # the fixture's wording does not carry the explicit phrase
+    assert d["contingencies_recognised_on_balance_sheet"] is False
+
+
+def test_the_text_summary_is_readable_and_mentions_each_section(tmp_path, vault_env, capsys):
+    pdf = _report(tmp_path, "text.pdf")
+    assert fi.main(_base(pdf) + ["--text"]) == 0
+    text = capsys.readouterr().out
+    for needle in (
+        "Statement lines:",
+        "Reconciliation:",
+        "Auditor opinion:",
+        "Receivables:",
+        "Contingent items",
+    ):
+        assert needle in text
+    assert not text.lstrip().startswith("{")  # not JSON

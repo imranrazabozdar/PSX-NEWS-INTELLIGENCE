@@ -33,6 +33,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from engines import document_intake as di
+from engines import notes_extraction as ne
 from engines import pdf_extraction as pe
 from engines import statement_pipeline as sp
 
@@ -127,7 +128,14 @@ def analyse(
         prior_report = {"vault": p_stored["status"], "report_sha256": p_sha, "period": prior_spec["period"]}
     recon = sp.reconcile(tagged, period_end=period_end, prior=prior)
     metrics = sp.compute_metrics(tagged, period_end=period_end, prior=prior)
+    notes_view = {"lines": ex["note_lines"], "notes": ex["note_index"]}
+    receivables = ne.receivables_quality(notes_view, period_end)
+    contingencies = ne.contingency_summary(notes_view, period_end)
+    diagnostic = build_diagnostic(tagged, recon, ex["audit"], receivables, contingencies)
     return {
+        "diagnostic": diagnostic,
+        "receivables": receivables,
+        "contingencies": contingencies,
         "vault": {
             "status": stored["status"],
             "report_sha256": sha,
@@ -156,6 +164,68 @@ def analyse(
         "_sha": sha,
         "_size": stored["size_bytes"],
     }
+
+
+def build_diagnostic(tagged: dict, recon: dict, audit: dict, receivables: dict, contingencies: dict) -> dict:
+    """A short, plain summary: what mapped, what did not, what reconciled, and what the auditor said."""
+    stmt = [x for x in tagged["lines"] if x["statement_type"] != "NOTE"]
+    notes = [x for x in tagged["lines"] if x["statement_type"] == "NOTE"]
+    status = {c["check"]: c["status"] for c in recon["checks"]}
+    return {
+        "statement_lines": {
+            "mapped": sum(1 for x in stmt if x["canonical_code"]),
+            "unmapped": sum(1 for x in stmt if not x["canonical_code"]),
+        },
+        "disclosure_lines": {
+            "mapped": sum(1 for x in notes if x["canonical_code"]),
+            "unmapped": sum(1 for x in notes if not x["canonical_code"]),
+        },
+        "unparsed_lines": len(tagged["unparsed"]),
+        "reconciliation": {
+            "balance_sheet": status.get("balance_sheet", "not_run"),
+            "cash_flow": status.get("cash_flow", "not_run"),
+            "overall": recon["overall"],
+        },
+        "auditor_opinion": audit["opinion"].get("opinion"),
+        "key_audit_matters": [
+            {"heading": k["heading"], "page": k["page"], "excerpt": k["excerpt"][:160]} for k in audit["kams"]
+        ],
+        "receivables": {
+            "gross": receivables["gross_trade_debts"],
+            "ecl_coverage": receivables["ecl_coverage_ratio"],
+            "overdue_percentage": receivables["overdue_percentage"],
+            "overdue_over_90": receivables["overdue_over_90_ratio"],
+            "unclassified_brackets": receivables["unclassified_brackets"],
+        },
+        "contingencies": {k: round(v["total_reported"], 2) for k, v in contingencies["by_type"].items()},
+        "contingencies_recognised_on_balance_sheet": contingencies["recognised_on_balance_sheet"],
+    }
+
+
+def render_text(out: dict) -> str:
+    d = out["diagnostic"]
+    rec = d["reconciliation"]
+    r = d["receivables"]
+    lines = [
+        f"Vault: {out['vault']['status']} {out['vault']['vault_ref']}  pages: {out['pages']}",
+        f"Statement lines: {d['statement_lines']['mapped']} mapped, "
+        f"{d['statement_lines']['unmapped']} unmapped",
+        f"Disclosure lines: {d['disclosure_lines']['mapped']} mapped, "
+        f"{d['disclosure_lines']['unmapped']} kept unmapped",
+        f"Unparsed lines (for review): {d['unparsed_lines']}",
+        f"Reconciliation: balance sheet {rec['balance_sheet']}, cash flow {rec['cash_flow']}, "
+        f"overall {rec['overall']}",
+        f"Auditor opinion: {d['auditor_opinion']}",
+    ]
+    lines += [f"  KAM p.{k['page']}: {k['heading']} - {k['excerpt']}" for k in d["key_audit_matters"]]
+    lines.append(
+        f"Receivables: gross {r['gross']}, ECL coverage {r['ecl_coverage']}, "
+        f"overdue {r['overdue_percentage']}, over 90 days {r['overdue_over_90']}"
+    )
+    if r["unclassified_brackets"]:
+        lines.append(f"  unclassified ageing rows (kept, not bucketed): {r['unclassified_brackets']}")
+    lines.append(f"Contingent items (not recognised): {d['contingencies'] or 'none found'}")
+    return "\n".join(lines)
 
 
 def store_in_archive(
@@ -216,6 +286,7 @@ def _parse_args(argv):
     ap.add_argument("--prior-columns")
     ap.add_argument("--prior-unit-scale", type=int, choices=(1, 1000, 1000000, 1000000000))
     ap.add_argument("--archive", action="store_true", help="also write the analysis to the archive database")
+    ap.add_argument("--text", action="store_true", help="print the diagnostic summary as text, not JSON")
     return ap.parse_args(argv)
 
 
@@ -267,11 +338,17 @@ def main(argv: list[str] | None = None) -> int:
                     )
                 )
                 return 2
-        print(
-            json.dumps(
-                {k: v for k, v in out.items() if not k.startswith("_")}, indent=2, sort_keys=True, default=str
+        if args.text:
+            print(render_text(out))
+        else:
+            print(
+                json.dumps(
+                    {k: v for k, v in out.items() if not k.startswith("_")},
+                    indent=2,
+                    sort_keys=True,
+                    default=str,
+                )
             )
-        )
         return 0
     except (IntakeRefused, di.IntakeError, di.VaultIntegrityError) as exc:
         print(json.dumps({"status": "refused", "error": type(exc).__name__, "detail": str(exc)[:400]}))
