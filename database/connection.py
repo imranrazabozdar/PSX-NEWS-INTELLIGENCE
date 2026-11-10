@@ -151,12 +151,48 @@ def _rows(result: dict[str, Any]) -> list[Row]:
             for row in result.get("rows", [])]
 
 
+# Database ownership (fail closed). The production database belongs to PSX-NEWS-INTELLIGENCE alone.
+# The technical engine must never connect to it. Every remote connection declares a purpose.
+OWNED_PRODUCTION_HOST = "psx-news-intelligence-imranrazabozdar.aws-us-east-1.turso.io"
+REHEARSAL_HOST_PREFIX = "psxni-migration-rehearsal-"
+TEST_HOST_PREFIX = "psxni-test-"
+PURPOSES = ("production", "disposable", "test")
+
+
+def remote_host(url: str) -> str:
+    """Normalised host of a libsql:// or https:// URL. Userinfo, query and fragment are refused."""
+    rest = url.split("://", 1)[-1]
+    if "@" in rest.split("/", 1)[0] or "?" in rest or "#" in rest:
+        raise DatabaseConfigError("database URL must not contain credentials, query or fragment")
+    host = rest.split("/", 1)[0].split(":", 1)[0].lower().rstrip(".")
+    return host
+
+
+def check_database_host(url: str, purpose: str) -> None:
+    """Raise unless this host may be used for this purpose. Production is exactly the owned host."""
+    if purpose not in PURPOSES:
+        raise DatabaseConfigError(f"unknown database purpose {purpose!r}")
+    host = remote_host(url)
+    if purpose == "production":
+        if host != OWNED_PRODUCTION_HOST:
+            raise DatabaseConfigError(
+                "refusing: this is not the owned production database of PSX-NEWS-INTELLIGENCE")
+        return
+    if host == OWNED_PRODUCTION_HOST:
+        raise DatabaseConfigError(
+            f"refusing: the production database may not be used for purpose {purpose!r}")
+    prefix = REHEARSAL_HOST_PREFIX if purpose == "disposable" else TEST_HOST_PREFIX
+    if not host.startswith(prefix):
+        raise DatabaseConfigError(f"refusing: a {purpose} database host must start with {prefix!r}")
+
+
 @dataclass
 class TursoHTTPDatabase(Database):
     url: str
     auth_token: str
     timeout: float = 30.0
     max_attempts: int = 3
+    purpose: str = "production"
     backend = "turso"
     requests: int = 0
     rows_read: int = 0
@@ -167,6 +203,7 @@ class TursoHTTPDatabase(Database):
             self.url = "https://" + self.url[len("libsql://"):]
         if not self.url.startswith("https://"):
             raise DatabaseConfigError("Turso URL must start with libsql:// or https://")
+        check_database_host(self.url, self.purpose)
         if not self.auth_token:
             raise DatabaseConfigError("PSXNI_TURSO_AUTH_TOKEN is not set")
         self.url = self.url.rstrip("/")
@@ -273,7 +310,8 @@ class TursoHTTPDatabase(Database):
                 for i in range(2, last + 1)]
 
 
-def connect(url: str | None = None, auth_token: str | None = None) -> Database:
+def connect(url: str | None = None, auth_token: str | None = None, *,
+            purpose: str = "production") -> Database:
     """Open the configured database. Never falls back silently to another database.
 
     url forms: libsql://... or https://... (Turso), sqlite:///path or sqlite://:memory: (local).
@@ -284,7 +322,7 @@ def connect(url: str | None = None, auth_token: str | None = None) -> Database:
         raise DatabaseConfigError("PSXNI_TURSO_DATABASE_URL is not set")
     if url.startswith(("libsql://", "https://")):
         token = auth_token if auth_token is not None else os.environ.get("PSXNI_TURSO_AUTH_TOKEN", "")
-        return TursoHTTPDatabase(url, token)
+        return TursoHTTPDatabase(url, token, purpose=purpose)
     if url.startswith("sqlite://"):
         path = url[len("sqlite://"):]
         if path in ("", ":memory:", "/:memory:"):

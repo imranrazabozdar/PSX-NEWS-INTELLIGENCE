@@ -98,7 +98,7 @@ def db(request, tmp_path_factory) -> Database:
         if refusal:
             pytest.fail(refusal)
         d = TursoHTTPDatabase(os.environ[DISPOSABLE_URL_VAR].strip(),
-                              os.environ[DISPOSABLE_TOKEN_VAR].strip())
+                              os.environ[DISPOSABLE_TOKEN_VAR].strip(), purpose="disposable")
         if d.execute("SELECT COUNT(*) AS n FROM sqlite_master WHERE type = 'table'")[0]["n"]:
             pytest.fail("the A2 rehearsal needs a FRESH, empty disposable database "
                         "(see the module docstring)")
