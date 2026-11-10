@@ -1,0 +1,6 @@
+# Reviewed false positives only (owner review requested in PR #57).
+# tests/test_llm_live.py line 24 held a dummy fixture key literal in two commits that predate its replacement.
+# The current file uses a plainly non-secret placeholder. Rewriting history was not done.
+# Each entry is a gitleaks fingerprint: <commit>:<file>:<rule>:<line>.
+a4d4d58b2a136ee295ba0d6186a8951d813224b4:tests/test_llm_live.py:generic-api-key:24
+80f9c8764f009106555fbd4a9c91291530d07830:tests/test_llm_live.py:generic-api-key:24
