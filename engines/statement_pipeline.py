@@ -139,7 +139,10 @@ def tag(extracted: dict, *, document: dict, extractor_version: str, mapping) -> 
     for ln in extracted["lines"]:
         st = ln["statement"]
         counters[st] += 1
-        code, conf = map_label(st, ln["raw_label"], mapping)
+        if ln.get("canonical_code") is not None:  # set by a rule-based extractor (e.g. notes)
+            code, conf = ln["canonical_code"], ln.get("confidence")
+        else:
+            code, conf = map_label(st, ln["raw_label"], mapping)
         value = ln.get("value")
         is_comp = ln["column_period_end"] != document["period_end"]
         tagged.append(
