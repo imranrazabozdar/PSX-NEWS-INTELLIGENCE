@@ -303,11 +303,10 @@ IDENTITIES = (
 )
 
 
-def reconcile(db, report_id: int) -> dict:
-    rep = db.execute("SELECT period_end FROM financial_reports WHERE report_id = ?", (report_id,))[0]
-    conflicts: list = []
-    v = _values(db, report_id, rep["period_end"], conflicts)
-    checks = [{"check": "single_value_per_code", "result": "fail", **c} for c in conflicts]
+def identity_checks(v: dict[str, float | None]) -> list[dict]:
+    """Pure check of the reporting identities on canonical values (no database). Used by reconcile() and by
+    the archive loader, so both apply the same gate. A balance sheet with any reported total must balance."""
+    checks: list[dict] = []
     for name, total, (a, b), f in IDENTITIES:
         if total not in v and a not in v:
             continue  # identity not relevant to this report's lines
@@ -329,6 +328,15 @@ def reconcile(db, report_id: int) -> dict:
             checks.append({"check": "balance_sheet_required", "result": "fail",
                            "reason": "balance sheet is present but the identity was not verified",
                            "result_of_identity": bs["result"] if bs else "absent"})
+    return checks
+
+
+def reconcile(db, report_id: int) -> dict:
+    rep = db.execute("SELECT period_end FROM financial_reports WHERE report_id = ?", (report_id,))[0]
+    conflicts: list = []
+    v = _values(db, report_id, rep["period_end"], conflicts)
+    checks = [{"check": "single_value_per_code", "result": "fail", **c} for c in conflicts]
+    checks.extend(identity_checks(v))
     if any(c["result"] == "fail" for c in checks):
         status = "needs_review"
     elif any(c["result"] == "pass" for c in checks):

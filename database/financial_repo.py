@@ -12,11 +12,14 @@ vault file name are stored.
 
 from __future__ import annotations
 
+import hashlib
+import json
 from collections import defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
 
 from database.migrate import migrate
+from engines import financials as fin
 from engines.financial_series import year_gaps
 
 ARCHIVE_MIGRATIONS = Path(__file__).resolve().parent / "archive_migrations"
@@ -107,3 +110,123 @@ def annual_series(archive_db, company_id: str, *, scope: str, metrics: tuple[str
                         "metrics": dict(sorted(p["metrics"].items()))})
     return {"company_id": company_id, "scope": scope, "periods": periods, "gaps": year_gaps(periods),
             "conflicts": conflicts}
+
+
+# ------------------------------------------------------------------ non-PDF historical summaries (loader)
+SUMMARY_REQUIRED = ("ticker", "period_end", "doc_type", "scope", "currency", "unit_scale", "audit_status",
+                    "source_note", "provenance", "metrics")
+PROVENANCE = ("owner_supplied", "synthetic_fixture")
+MAX_PAYLOAD_BYTES = 65536
+
+
+def summary_sha256(summary: dict) -> str:
+    """Hash of the canonical JSON summary: the summary's identity in the archive (no binary involved)."""
+    return hashlib.sha256(json.dumps(summary, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+def _scaled(code: str, v: float, currency: str, unit_scale: int) -> tuple[float, str]:
+    if code in fin.PER_SHARE:
+        return v, f"{currency}/share"
+    if code in fin.PERCENT:
+        return v, "%"
+    if code in fin.COUNTS:
+        return v, "shares"
+    return v * unit_scale, currency
+
+
+def validate_summary(summary: dict) -> dict:
+    """Pure validation of one historical summary. No database access, no writes.
+
+    Returns {"ok": bool, "reasons": [...], "checks": [...]}. A summary is accepted only when its fields are
+    complete, its provenance is declared, its metrics are numbers or null, and the reporting identities pass.
+    Nothing is accepted that could not be checked."""
+    reasons = []
+    missing = [k for k in SUMMARY_REQUIRED if summary.get(k) in (None, "")]
+    if missing:
+        reasons.append(f"missing fields: {missing}")
+    if summary.get("provenance") not in PROVENANCE:
+        reasons.append(f"provenance must be one of {PROVENANCE}")
+    if summary.get("doc_type") != "annual":
+        reasons.append("only annual summaries are loaded by this loader")
+    if summary.get("scope") not in ("consolidated", "unconsolidated"):
+        reasons.append("scope must be consolidated or unconsolidated")
+    if summary.get("unit_scale") not in (1, 1000, 1000000, 1000000000):
+        reasons.append("unit_scale must be 1, 1000, 1000000 or 1000000000")
+    metrics = summary.get("metrics") or {}
+    if not isinstance(metrics, dict):
+        reasons.append("metrics must be an object")
+        metrics = {}
+    bad = [k for k, x in metrics.items() if x is not None and (isinstance(x, bool)
+                                                               or not isinstance(x, (int, float)))]
+    if bad:
+        reasons.append(f"non-numeric metric values: {bad}")
+    values = {k: (float(x) if isinstance(x, (int, float)) and not isinstance(x, bool) else None)
+              for k, x in metrics.items()}
+    checks = fin.identity_checks(values)
+    if any(c["result"] == "fail" for c in checks):
+        reasons.append("reporting identity failed: " + ", ".join(
+            c["check"] for c in checks if c["result"] == "fail"))
+    if not any(c["result"] == "pass" for c in checks):
+        reasons.append("no reporting identity could be checked: nothing is accepted unverified")
+    if not any(v is not None for v in values.values()):
+        reasons.append("no reported values")
+    return {"ok": not reasons, "reasons": reasons, "checks": checks}
+
+
+def archive_summary(archive_db, summary: dict, *, company_id: str) -> dict:
+    """Write one validated historical summary to the archive as tuples. Idempotent on the summary hash."""
+    require_role(archive_db, "archive")
+    v = validate_summary(summary)
+    if not v["ok"]:
+        return {"archived": 0, "refused": v["reasons"]}
+    sha = summary_sha256(summary)
+    now = _now()
+    cur, unit_scale = summary["currency"], int(summary["unit_scale"])
+    stmts = [(
+        "INSERT INTO archive_reports(report_sha256, vault_ref, company_id, doc_type, period_end, scope, "
+        "currency, unit_scale, audit_status, reconciliation, archived_at_utc) "
+        "VALUES (?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(report_sha256) DO NOTHING",
+        (sha, f"{sha}.json", company_id, "annual", summary["period_end"], summary["scope"], cur, unit_scale,
+         summary["audit_status"], "reconciled", now))]
+    n = 0
+    for code, x in sorted(summary["metrics"].items()):
+        if x is None:
+            continue  # not reported: no row, never zero
+        val, unit = _scaled(code, float(x), cur, unit_scale)
+        n += 1
+        stmts.append((
+            "INSERT INTO archive_financial_tuples(company_id, period_end_date, period_type, scope, "
+            "metric_name, value, unit, currency, basis, report_sha256, archived_at_utc) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT DO NOTHING",
+            (company_id, summary["period_end"], "FY", summary["scope"], code, val, unit, cur, "reported", sha,
+             now)))
+    archive_db.batch(stmts, transactional=True)
+    return {"archived": n, "summary_sha256": sha}
+
+
+def archive_disclosure(archive_db, *, company_id: str, kind: str, published_at_utc: str, title: str,
+                       payload: dict, pdf_sha256: str | None = None) -> dict:
+    """Store one parsed disclosure as bounded JSON. The PDF itself is never passed here: only its hash."""
+    require_role(archive_db, "archive")
+    if kind not in ("financial_statement", "material_disclosure"):
+        raise ValueError("kind must be financial_statement or material_disclosure")
+    if not title.strip() or not published_at_utc:
+        raise ValueError("title and published_at_utc are required")
+    body = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    if len(body.encode()) > MAX_PAYLOAD_BYTES:
+        return {"archived": 0,
+                "refused": [f"payload exceeds {MAX_PAYLOAD_BYTES} bytes; store the summary only"]}
+    key = b"|".join([body.encode(), (pdf_sha256 or "").encode(), company_id.encode(), title.encode()])
+    sha = hashlib.sha256(key).hexdigest()
+    archive_db.batch([(
+        "INSERT INTO archive_disclosures(disclosure_sha256, company_id, kind, published_at_utc, title, "
+        "payload_json, pdf_sha256, archived_at_utc) VALUES (?,?,?,?,?,?,?,?) ON CONFLICT DO NOTHING",
+        (sha, company_id, kind, published_at_utc, title, body, pdf_sha256, _now()))], transactional=True)
+    return {"archived": 1, "disclosure_sha256": sha}
+
+
+def disclosures(archive_db, company_id: str, *, limit: int = 50) -> list[dict]:
+    require_role(archive_db, "archive")
+    return [dict(r) for r in archive_db.execute(
+        "SELECT disclosure_sha256, kind, published_at_utc, title, payload_json FROM archive_disclosures "
+        "WHERE company_id = ? ORDER BY published_at_utc DESC LIMIT ?", (company_id, limit))]
