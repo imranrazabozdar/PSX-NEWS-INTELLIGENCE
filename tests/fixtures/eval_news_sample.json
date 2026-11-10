@@ -1,0 +1,36 @@
+{
+  "version": "eval-news-sample/1",
+  "note": "SYNTHETIC labelled sample. Headlines are invented for testing. Expectations are hand-labelled, not produced by the resolver. Tickers are real entries of the company master; no third-party text is included.",
+  "entities": [
+    {"text": "OGDC announces final cash dividend", "direct": ["OGDC"]},
+    {"text": "Oil and Gas Development Company announces final dividend", "direct": ["OGDC"]},
+    {"text": "Pakistan Petroleum Limited board meeting on Friday", "direct": ["PPL"]},
+    {"text": "FFC and EFERT shares rise on Monday", "direct": ["EFERT", "FFC"]},
+    {"text": "The Hub Power Company Limited to hold its AGM", "direct": ["HUBC"]},
+    {"text": "Gold rises as inflation eases in Karachi", "direct": []},
+    {"text": "XYZQ announces interim dividend", "direct": []},
+    {"text": "PPP party rallies in Lahore", "direct": []}
+  ],
+  "dedup": {
+    "items": [
+      {"id": 1, "title": "Gold rises over 1% as softer oil prices ease inflation worries",
+       "text": "Gold rises over 1% as softer oil prices ease inflation worries. Analysts said weaker crude prices drove the move."},
+      {"id": 2, "title": "Gold rises over 1 percent as softer oil prices ease inflation worries",
+       "text": "Gold rises over 1% as softer oil prices ease inflation worries. Analysts said weaker crude prices drove the move."},
+      {"id": 3, "title": "SBP keeps policy rate unchanged at 11 percent",
+       "text": "The State Bank of Pakistan kept its policy rate unchanged at 11 percent on Thursday."}
+    ],
+    "expected_duplicate_pairs": [[1, 2]]
+  },
+  "quotes": [
+    {"source": "OGDC announces final cash dividend of Rs 5 per share", "quote": "final cash dividend of Rs 5 per share", "expect_grounded": true},
+    {"source": "OGDC announces final cash dividend of Rs 5 per share", "quote": "dividend of Rs 9 per share", "expect_grounded": false},
+    {"source": "OGDC announces final cash dividend of Rs 5 per share", "quote": "OGDC   announces  final", "expect_grounded": true}
+  ],
+  "usefulness": [
+    {"grounded_quotes": 1, "direct_match": true},
+    {"grounded_quotes": 0, "direct_match": true},
+    {"grounded_quotes": 1, "sector_match": true},
+    {"grounded_quotes": 1}
+  ]
+}
