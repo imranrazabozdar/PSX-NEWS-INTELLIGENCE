@@ -111,6 +111,20 @@ def receivables_vs_sales_growth(v, prior):
     }
 
 
+def collection_days(v):
+    """Receivable collection period in days: trade receivables over revenue, times 365 (year-end basis).
+
+    Uses closing receivables and the period's revenue, as printed. It is a ratio of reported values,
+    not an estimate.
+    """
+    return _metric(
+        "collection_days",
+        ("trade_receivables", "revenue"),
+        v,
+        lambda x: DAYS * x["trade_receivables"] / x["revenue"] if x["revenue"] else None,
+    )
+
+
 def cash_conversion_cycle(v):
     """DSO + DIO - DPO in days. Needs receivables, inventory, payables, revenue and cost of sales."""
     keys = ("trade_receivables", "inventory", "trade_payables", "revenue", "cost_of_sales")
@@ -205,6 +219,7 @@ def all_metrics(v: dict, prior: dict | None = None) -> list[dict]:
         gross_margin(v),
         operating_margin(v),
         cash_conversion_cycle(v),
+        collection_days(v),
         ocf_to_net_income(v),
         accruals_ratio(v),
         debt_to_equity(v),

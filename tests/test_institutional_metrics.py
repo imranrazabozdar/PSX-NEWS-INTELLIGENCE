@@ -108,3 +108,17 @@ def test_growth_without_a_prior_period_is_absent_not_zero():
 def test_a_zero_denominator_gives_no_value():
     assert m.gross_margin({"revenue": 0.0, "gross_profit": 10.0})["value"] is None
     assert m.ocf_to_net_income({"cfo": 10.0, "profit_after_tax": -5.0})["value"] is None
+
+
+def test_collection_days_is_receivables_over_revenue_times_365():
+    assert m.collection_days({"trade_receivables": 120.0, "revenue": 1000.0})["value"] == pytest.approx(43.8)
+
+
+def test_collection_days_needs_both_inputs_and_is_not_zero_when_revenue_is_zero():
+    assert m.collection_days({"trade_receivables": 120.0})["missing"] == ["current.revenue"]
+    assert m.collection_days({"trade_receivables": 120.0, "revenue": 0.0})["value"] is None
+
+
+def test_working_capital_set_is_in_the_all_metrics_output():
+    names = {x["metric"] for x in m.all_metrics(V, PRIOR)}
+    assert {"cash_conversion_cycle", "collection_days", "receivables_vs_sales_growth"} <= names
