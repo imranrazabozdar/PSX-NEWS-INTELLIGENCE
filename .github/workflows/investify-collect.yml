@@ -38,7 +38,9 @@ jobs:
       PSXNI_KILL_SWITCH: ${{ vars.PSXNI_KILL_SWITCH }}
       PSXNI_TURSO_DATABASE_URL: ${{ secrets.PSXNI_TURSO_DATABASE_URL }}
       PSXNI_TURSO_AUTH_TOKEN: ${{ secrets.PSXNI_TURSO_AUTH_TOKEN }}
-      STATE_FILE: ${{ runner.temp }}/investify_state.json
+      # Polling state and the audit trail live together in one directory, kept between runs by the cache.
+      STATE_DIR: ${{ runner.temp }}/investify
+      STATE_FILE: ${{ runner.temp }}/investify/state.json
       INPUT_DRY_RUN: ${{ inputs.dry_run }}
     steps:
       - uses: actions/checkout@v4
@@ -56,11 +58,11 @@ jobs:
           else
             echo "run=true" >> "$GITHUB_OUTPUT"
           fi
-      - name: Restore polling state
+      - name: Restore polling state and audit trail
         if: steps.cfg.outputs.run == 'true'
         uses: actions/cache/restore@v4
         with:
-          path: ${{ env.STATE_FILE }}
+          path: ${{ env.STATE_DIR }}
           key: investify-state-${{ github.run_id }}
           restore-keys: |
             investify-state-
@@ -73,9 +75,18 @@ jobs:
           args=(--state "$STATE_FILE")
           if [ "$INPUT_DRY_RUN" = "true" ]; then args+=(--dry-run); fi
           python -m collectors.investify_job "${args[@]}"
-      - name: Save polling state
+      - name: Save polling state and audit trail
         if: steps.cfg.outputs.run == 'true' && always()
         uses: actions/cache/save@v4
         with:
-          path: ${{ env.STATE_FILE }}
+          path: ${{ env.STATE_DIR }}
           key: investify-state-${{ github.run_id }}
+      - name: Keep the compliance audit trail
+        # Every request and skip, in UTC, so the operator can show Investify the record on request.
+        if: steps.cfg.outputs.run == 'true' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: investify-audit-${{ github.run_id }}
+          path: ${{ env.STATE_DIR }}/investify_audit.jsonl
+          retention-days: 90
+          if-no-files-found: ignore

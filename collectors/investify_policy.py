@@ -1,12 +1,20 @@
-"""Consent-bound polling policy for the Investify announcements source.
+"""Consent-bound polling policy for the Investify announcements source (the good-citizen client's rules).
 
-Governed by docs/consent/investify-2026-11-12.md. Every condition here is enforced in code:
+Governed by docs/consent/investify-2026-11-12.md. Collection is under WRITTEN CONSENT, so this client is
+honestly identifiable: a stable User-Agent with a contact, never a spoofed browser, never rotated identities.
+The goal is minimal load and transparency, never evasion.
 
-* at most one request per 15 minutes (the last request time persists in a state file);
+Every rule below is enforced in code, and every decision is a pure function of (now, state, config):
+
+* hard floor: at most one request per 15 minutes; a longer crawl-delay from robots.txt raises it;
 * Monday to Friday, 09:00-16:30 PKT only (the existing gate, engines.termux_node_runner.within_trading_hours);
-* no polling before the consent's effective date;
-* robots.txt is obeyed and cached for 24 hours; fetching it counts as that run's single request;
-* after HTTP 429 or 503 the collector stops and waits; it never retries inside a run.
+* a hard daily request cap (PSXNI_INVESTIFY_DAILY_CAP, default 32), counted in Pakistan time;
+* single-flight: a persisted in-flight marker refuses a second request until the first one has finished;
+* Cache-Control max-age is honoured (capped at 6 hours) in addition to ETag / If-Modified-Since;
+* a circuit breaker opens after repeated 403 / 429 / 503 responses, or when robots.txt begins to disallow the
+  announcements path, and stays open until the next Pakistan midnight;
+* a kill switch (PSXNI_INVESTIFY_KILL or PSXNI_KILL_SWITCH = "true") disables collection instantly;
+* no consent before the effective date.
 
 This module makes no network calls and writes only its own state file.
 """
@@ -15,6 +23,7 @@ from __future__ import annotations
 
 import json
 import os
+import random
 from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime, timedelta
 from email.utils import parsedate_to_datetime
@@ -32,9 +41,19 @@ ROBOTS_URL = "https://www.investify.pk/robots.txt"
 ROBOTS_MAX_AGE = timedelta(hours=24)
 BACKOFF_DEFAULT = timedelta(minutes=60)
 BACKOFF_CAP = timedelta(hours=6)
+FRESH_CAP = timedelta(hours=6)  # longest Cache-Control max-age honoured
+IN_FLIGHT_STALE = timedelta(minutes=30)  # an in-flight marker older than this belongs to a dead run
+JITTER_MIN_S = 1
+JITTER_MAX_S = 180
+DEFAULT_DAILY_CAP = 32
+DAILY_CAP_CEILING = 96  # a sanity bound: 15-minute cycles in a trading day are ~30
+BREAKER_THRESHOLD = 3  # consecutive 403 / 429 / 503 responses
 ROBOTS_TOKEN = "psx-news-intelligence"  # noqa: S105 - a robots.txt user-agent token, not a secret
-USER_AGENT = ("psx-news-intelligence/0.2 (+https://github.com/imranrazabozdar/PSX-NEWS-INTELLIGENCE; "
-              "consented research collector for Investify; one request per 15 minutes)")
+# One stable, honest identity: what the client is and how to reach its operator. It is never rotated and never
+# imitates a browser.
+USER_AGENT = ("psx-news-intelligence/0.3 (+https://github.com/imranrazabozdar/PSX-NEWS-INTELLIGENCE; "
+              "contact: https://github.com/imranrazabozdar/PSX-NEWS-INTELLIGENCE/issues; "
+              "consented research client for Investify; at most one request per 15 minutes)")
 ATTRIBUTION = "Source: Investify (investify.pk)"
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -47,6 +66,38 @@ def _iso(moment: datetime) -> str:
     return moment.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def today_pkt(now: datetime) -> str:
+    return now.astimezone(PKT).date().isoformat()
+
+
+def next_pkt_midnight_utc(now: datetime) -> datetime:
+    tomorrow = now.astimezone(PKT).date() + timedelta(days=1)
+    return datetime(tomorrow.year, tomorrow.month, tomorrow.day, tzinfo=PKT).astimezone(UTC)
+
+
+@dataclass(frozen=True)
+class PolicyConfig:
+    daily_cap: int = DEFAULT_DAILY_CAP
+    breaker_threshold: int = BREAKER_THRESHOLD
+    kill_switch: bool = False
+    jitter_min: int = JITTER_MIN_S
+    jitter_max: int = JITTER_MAX_S
+
+    @classmethod
+    def from_env(cls, environ: dict[str, str] | None = None) -> PolicyConfig:
+        env = os.environ if environ is None else environ
+        kill = any(env.get(k, "").lower() == "true" for k in ("PSXNI_INVESTIFY_KILL", "PSXNI_KILL_SWITCH"))
+        try:
+            cap = int(env.get("PSXNI_INVESTIFY_DAILY_CAP", DEFAULT_DAILY_CAP))
+        except ValueError:
+            cap = DEFAULT_DAILY_CAP
+        cap = min(max(cap, 1), DAILY_CAP_CEILING)  # never zero-by-typo, never above the sanity ceiling
+        return cls(daily_cap=cap, kill_switch=kill)
+
+
+DEFAULT_CONFIG = PolicyConfig()
+
+
 @dataclass(frozen=True)
 class PollState:
     last_request_utc: str | None = None
@@ -55,6 +106,13 @@ class PollState:
     backoff_until_utc: str | None = None
     robots_txt: str | None = None
     robots_fetched_utc: str | None = None
+    crawl_delay_s: int | None = None
+    fresh_until_utc: str | None = None  # from Cache-Control: max-age
+    day_pkt: str | None = None
+    day_requests: int = 0
+    consecutive_blocks: int = 0  # consecutive 403 / 429 / 503
+    breaker_until_utc: str | None = None
+    in_flight_since_utc: str | None = None
 
 
 def load_state(path: Path) -> PollState:
@@ -79,17 +137,52 @@ class Decision:
     reason: str
 
 
-def may_poll(now: datetime, state: PollState) -> Decision:
-    """Every gate that must pass before a page request. No I/O."""
+def effective_interval(state: PollState) -> timedelta:
+    """The floor, raised to robots.txt Crawl-delay when that is longer."""
+    if state.crawl_delay_s:
+        return max(MIN_INTERVAL, timedelta(seconds=state.crawl_delay_s))
+    return MIN_INTERVAL
+
+
+def requests_today(now: datetime, state: PollState) -> int:
+    return state.day_requests if state.day_pkt == today_pkt(now) else 0
+
+
+def may_poll(now: datetime, state: PollState, cfg: PolicyConfig = DEFAULT_CONFIG, *,
+             rate_at: datetime | None = None) -> Decision:
+    """Every gate that must pass before a request. Pure: no I/O.
+
+    `rate_at` is the time the request would be sent, for the rate floor; it defaults to `now`. Before the
+    jitter is applied, the job passes the LATEST possible send time, so a cycle is skipped without sleeping
+    only when no send in that cycle could be valid.
+    """
+    if cfg.kill_switch:
+        return Decision(False, "kill switch is on")
     if now < CONSENT_EFFECTIVE_UTC:
         return Decision(False, f"consent not yet effective (from {_iso(CONSENT_EFFECTIVE_UTC)})")
     if not within_trading_hours(now.astimezone(PKT)):
         return Decision(False, "outside trading hours (Mon-Fri 09:00-16:30 PKT)")
+    if state.breaker_until_utc and now < _utc(state.breaker_until_utc):
+        return Decision(False, f"circuit breaker open until {state.breaker_until_utc}")
+    if requests_today(now, state) >= cfg.daily_cap:
+        return Decision(False, f"daily request cap of {cfg.daily_cap} reached for {today_pkt(now)} (PKT)")
+    if state.in_flight_since_utc and now - _utc(state.in_flight_since_utc) < IN_FLIGHT_STALE:
+        return Decision(False, "single-flight: a request is already in flight")
+    if state.fresh_until_utc and now < _utc(state.fresh_until_utc):
+        return Decision(False, f"Cache-Control max-age: fresh until {state.fresh_until_utc}")
     if state.backoff_until_utc and now < _utc(state.backoff_until_utc):
-        return Decision(False, f"backing off after HTTP 429/503 until {state.backoff_until_utc}")
-    if state.last_request_utc and now - _utc(state.last_request_utc) < MIN_INTERVAL:
-        return Decision(False, "rate limit: at most one request per 15 minutes")
+        return Decision(False, f"backing off until {state.backoff_until_utc}")
+    if state.last_request_utc:
+        wait = effective_interval(state)
+        if (rate_at or now) - _utc(state.last_request_utc) < wait:
+            minutes = int(wait.total_seconds() // 60)
+            return Decision(False, f"rate limit: at most one request per {minutes} minutes")
     return Decision(True, "allowed")
+
+
+def jitter_seconds(rng: random.Random, cfg: PolicyConfig = DEFAULT_CONFIG) -> int:
+    """Random delay in [jitter_min, jitter_max] seconds, applied before each request."""
+    return rng.randint(cfg.jitter_min, cfg.jitter_max)
 
 
 def robots_needs_refresh(now: datetime, state: PollState) -> bool:
@@ -102,6 +195,28 @@ def robots_allows(robots_txt: str, url: str) -> bool:
     rp = RobotFileParser()
     rp.parse(robots_txt.splitlines())
     return rp.can_fetch(ROBOTS_TOKEN, url)
+
+
+def robots_crawl_delay(robots_txt: str) -> int | None:
+    rp = RobotFileParser()
+    rp.parse(robots_txt.splitlines())
+    delay = rp.crawl_delay(ROBOTS_TOKEN) or rp.crawl_delay("*")
+    if delay is None:
+        return None
+    try:
+        return max(0, int(float(delay)))
+    except (TypeError, ValueError):
+        return None
+
+
+def parse_max_age(cache_control: str | None) -> int | None:
+    if not cache_control:
+        return None
+    for part in cache_control.split(","):
+        key, _, value = part.strip().partition("=")
+        if key.lower() == "max-age" and value.strip().isdigit():
+            return int(value.strip())
+    return None
 
 
 def backoff_until(now: datetime, retry_after: str | None) -> datetime:
@@ -141,5 +256,17 @@ def registry_problem(entry: dict) -> str | None:
     return None
 
 
-def after_request(state: PollState, now: datetime, **changes) -> PollState:
-    return replace(state, last_request_utc=_iso(now), **changes)
+def mark_in_flight(state: PollState, now: datetime) -> PollState:
+    return replace(state, in_flight_since_utc=_iso(now))
+
+
+def finish_request(state: PollState, now: datetime, **changes) -> PollState:
+    """Record that a request was sent: the rate clock, the daily count, and clear the in-flight marker."""
+    day = today_pkt(now)
+    count = requests_today(now, state) + 1
+    return replace(state, last_request_utc=_iso(now), day_pkt=day, day_requests=count,
+                   in_flight_since_utc=None, **changes)
+
+
+def trip_breaker(state: PollState, now: datetime) -> PollState:
+    return replace(state, breaker_until_utc=_iso(next_pkt_midnight_utc(now)))
