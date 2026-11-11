@@ -121,7 +121,28 @@ def _numbers_only_row(text: str, n: int) -> list[float] | None:
     return out
 
 
-def infer_unlabelled_totals(tagged: list[dict], unparsed: list[dict], *, columns: list[str]) -> list[dict]:
+# (component codes, total code) per framework. The corporate balance sheet prints unlabelled totals for assets
+# and for share capital and reserves; its liabilities total is labelled, so it is never inferred.
+CORPORATE_ASSET_CODES = (
+    "ppe", "development_production_assets", "exploration_evaluation_assets", "lt_investments_associates",
+    "lt_investments_amortised_cost", "current_lt_investments", "lt_loans", "lt_advances_prepayments",
+    "lease_receivables_noncurrent", "current_lease_receivables", "stores_spares", "inventory",
+    "trade_receivables", "loans_advances_current", "deposits_short_term_prepayments", "other_receivables",
+    "income_tax_advance", "other_financial_assets", "cash_and_equivalents",
+)
+CORPORATE_EQUITY_CODES = ("share_capital", "reserves", "unappropriated_profit")
+TOTAL_GROUPS = {
+    "bank": ((BS_ASSET_CODES, "total_assets"), (BS_LIABILITY_CODES, "total_liabilities")),
+    "corporate": (
+        (CORPORATE_ASSET_CODES, "total_assets"),
+        (CORPORATE_EQUITY_CODES, "total_equity"),
+    ),
+}
+
+
+def infer_unlabelled_totals(
+    tagged: list[dict], unparsed: list[dict], *, columns: list[str], framework: str = "bank"
+) -> list[dict]:
     """Printed balance sheet totals that carry no label. Runs on MAPPED lines. A label-less figure row
     becomes a
     total only when, for a column, it equals the sum of the mapped components of the same statement, within
@@ -130,10 +151,7 @@ def infer_unlabelled_totals(tagged: list[dict], unparsed: list[dict], *, columns
     unmatched rows are left unparsed. Returns partial records; the caller fills the document fields."""
     out: list[dict] = []
     n = len(columns)
-    for code_group, total_code in (
-        (BS_ASSET_CODES, "total_assets"),
-        (BS_LIABILITY_CODES, "total_liabilities"),
-    ):
+    for code_group, total_code in TOTAL_GROUPS.get(framework, TOTAL_GROUPS["bank"]):
         candidates = [u for u in unparsed if u.get("statement") == "BS" and u.get("line")]
         for i, col in enumerate(columns):
             present = [
@@ -155,7 +173,8 @@ def infer_unlabelled_totals(tagged: list[dict], unparsed: list[dict], *, columns
                 vals = _numbers_only_row(u["line"], n)
                 if vals is not None and abs(vals[i] - total) <= allow:
                     matches.append((u, vals[i]))
-            if len(matches) != 1:
+            # the same printed row can appear on both halves of a spread: one value is one total
+            if not matches or len({round(v, 2) for _, v in matches}) != 1:
                 continue
             u, value = matches[0]
             out.append(
@@ -194,22 +213,25 @@ def extract(
         if st in regions:
             if region_reader is None:
                 raise ValueError("statement_regions need a region_reader")
-            page, side = regions[st]
-            region_lines = region_reader(page, side)
-            rdoc = pe.DocumentText(
-                [
-                    pe.Page(
-                        number=page,
-                        lines=region_lines,
-                        has_text=sum(len(x) for x in region_lines) >= 20,
-                        extraction_method="pdftotext_layout_region",
-                    )
-                ]
-            )
-            used[st] = [page]
-            r = pe.to_statement_lines(rdoc, st, [page], columns=columns)
-            lines.extend({**ln, "statement": st} for ln in r["lines"])
-            unparsed.extend({**u, "statement": st} for u in r["unparsed"])
+            spec = regions[st]
+            # one (page, side) pair, or a list of them for a statement printed across the halves of a spread
+            specs = [spec] if isinstance(spec, tuple) else list(spec)
+            used[st] = sorted({page for page, _ in specs})
+            for page, side in specs:
+                region_lines = region_reader(page, side)
+                rdoc = pe.DocumentText(
+                    [
+                        pe.Page(
+                            number=page,
+                            lines=region_lines,
+                            has_text=sum(len(x) for x in region_lines) >= 20,
+                            extraction_method="pdftotext_layout_region",
+                        )
+                    ]
+                )
+                r = pe.to_statement_lines(rdoc, st, [page], columns=columns)
+                lines.extend({**ln, "statement": st} for ln in r["lines"])
+                unparsed.extend({**u, "statement": st} for u in r["unparsed"])
             continue
         if not pages.get(st):
             continue
@@ -270,7 +292,7 @@ def auditor_opinion(doc: pe.DocumentText) -> dict:
 # ------------------------------------------------------------------ 2. evidence tagging
 
 
-def tag(extracted: dict, *, document: dict, extractor_version: str, mapping) -> dict:
+def tag(extracted: dict, *, document: dict, extractor_version: str, mapping, framework: str = "bank") -> dict:
     """Attach full evidence to every line. `document` holds: document_id, file_hash, symbol, period_end,
     currency,
     unit_scale, consolidation, restated_flag."""
@@ -321,7 +343,7 @@ def tag(extracted: dict, *, document: dict, extractor_version: str, mapping) -> 
             }
         )
     columns = list(dict.fromkeys(ln["column_period_end"] for ln in extracted["lines"]))
-    for rec_ in infer_unlabelled_totals(tagged, extracted["unparsed"], columns=columns):
+    for rec_ in infer_unlabelled_totals(tagged, extracted["unparsed"], columns=columns, framework=framework):
         counters["BS"] += 1
         tagged.append(
             {
@@ -449,10 +471,11 @@ def reconcile(tagged: dict, *, period_end: str, prior: dict | None = None) -> di
     v, conflicts = values_for(lines, period_end)
     oci = _oci_total(lines, period_end)
     if oci is not None:
-        v["other_comprehensive_income"] = oci
+        v["other_comprehensive_income"] = oci  # summed from the mapped components (bank layout)
     checks = [rec.balance_sheet(period_end, v), rec.cash_flow(period_end, v)]
-    if oci is not None:
+    if v.get("other_comprehensive_income") is not None:  # summed, or printed as a total (corporate layout)
         checks.append(rec.comprehensive_income(period_end, v))
+    checks.append(rec.income_statement(period_end, v))
     comp_checks = []
     if prior is not None:
         comp_checks = comparative_checks(lines, prior)

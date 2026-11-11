@@ -102,6 +102,7 @@ def _tagged(
         document=document,
         extractor_version=EXTRACTOR_VERSION,
         mapping=sp.load_mappings(framework=framework),
+        framework=framework,
     )
     tagged["extraction_methods"] = ex.get("extraction_methods", {})
     tagged["extraction_warnings"] = ex.get("extraction_warnings", [])
@@ -127,7 +128,7 @@ def parse_page_map(path: Path) -> dict:
     stmt_spec = ",".join(f"{k}={v}" for k, v in raw.items() if k in STATEMENT_CODES)
     pages, regions = parse_statement_spec(stmt_spec)
     auditor = _page_list(raw["AUDITOR"], "AUDITOR") if "AUDITOR" in raw else None
-    kam = _page_list(raw["KAM"], "KAM") if "KAM" in raw else None
+    kam = _kam_list(raw["KAM"]) if "KAM" in raw else None
     return {
         "statement_pages": pages,
         "statement_regions": regions,
@@ -152,6 +153,19 @@ def _page_list(value: str, key: str) -> list[int]:
     return sorted(set(out))
 
 
+def _kam_list(value: str) -> list[tuple[int, str]]:
+    """KAM table pages, each optionally a half of a spread: "5,6L,6R" -> [(5, ""), (6, "L"), (6, "R")]."""
+    out: list[tuple[int, str]] = []
+    for part in str(value).split(","):
+        part = part.strip().upper()
+        side = part[-1:] if part[-1:] in ("L", "R") else ""
+        digits = part[: len(part) - len(side)]
+        if not digits.isdigit() or int(digits) < 1:
+            raise ValueError(f"bad KAM page: {value!r}")
+        out.append((int(digits), side))
+    return sorted(set(out))
+
+
 def _audit_layout(path: Path, doc, ex_audit: dict, auditor_pages, kam_pages) -> dict:
     """The auditor section. With owner auditor pages, the opinion and emphasis are read only from those pages.
     KAMs come from the KAM table read by word coordinates (column-aware) on the owner's KAM pages, or on every
@@ -172,12 +186,20 @@ def _audit_layout(path: Path, doc, ex_audit: dict, auditor_pages, kam_pages) -> 
         )
         audit = ae.audit_summary(audit_doc)
     candidates = kam_pages or [
-        p.number for p in doc.pages if any("how the matter was addressed" in ln.lower() for ln in p.lines)
+        (p.number, "")
+        for p in doc.pages
+        if any("how the matter was addressed" in ln.lower() for ln in p.lines)
     ]
     kams: list[dict] = []
-    for n in candidates:
-        found = pl.parse_kam_table(pe_reader.page_words(path, n), n)
+    for n, side in candidates:
+        words = pe_reader.page_words(path, n)
+        if side:  # one half of a spread: keep only the words whose left edge lies in that half
+            half = pe_reader.page_size(path, n)[0] / 2.0
+            words = [w for w in words if (w["x0"] < half) == (side == "L")]
+        found = pl.parse_kam_table(words, n)
         if found:
+            for k in found["kams"]:
+                k["half"] = side or "full"
             kams.extend(found["kams"])
     if kams:
         audit = {**audit, "kams": kams, "kam_source": "word_coordinates", "kam_pages_read": candidates}
@@ -194,22 +216,28 @@ def parse_statement_spec(spec: str) -> tuple[dict[str, list[int]] | None, dict[s
     if not spec.strip():
         return None, None
     pages: dict[str, list[int]] = {}
-    regions: dict[str, tuple[int, str]] = {}
+    regions: dict[str, list[tuple[int, str]]] = {}
     for part in spec.split(","):
         code, sep, ref = part.strip().partition("=")
-        code, ref = code.strip().upper(), ref.strip().upper()
+        code = code.strip().upper()
         if not sep or code not in STATEMENT_CODES:
             raise ValueError(
-                f"bad --statement-pages entry {part!r}: expected one of {STATEMENT_CODES}=<page>[L|R]"
+                f"bad --statement-pages entry {part!r}: expected one of {STATEMENT_CODES}=<page>[L|R][+...]"
             )
-        side = ref[-1:] if ref[-1:] in ("L", "R") else ""
-        digits = ref[: len(ref) - len(side)]
-        if not digits.isdigit() or int(digits) < 1:
-            raise ValueError(f"bad page for {code}: {ref!r}")
-        if side:
-            regions[code] = (int(digits), side)
-        pages.setdefault(code, []).append(int(digits))
-    return pages, (regions or None)
+        # one page, or several regions of a spread separated by "+" (e.g. BS=8L+8R)
+        for piece in ref.split("+"):
+            ref_part = piece.strip().upper()
+            side = ref_part[-1:] if ref_part[-1:] in ("L", "R") else ""
+            digits = ref_part[: len(ref_part) - len(side)]
+            if not digits.isdigit() or int(digits) < 1:
+                raise ValueError(f"bad page for {code}: {ref_part!r}")
+            if side:
+                regions.setdefault(code, []).append((int(digits), side))
+            if int(digits) not in pages.get(code, []):
+                pages.setdefault(code, []).append(int(digits))
+    # a single region stays a (page, side) pair; several regions stay a list, in the order given
+    shaped = {k: (v[0] if len(v) == 1 else v) for k, v in regions.items()}
+    return pages, (shaped or None)
 
 
 def analyse(
@@ -278,7 +306,7 @@ def analyse(
     diagnostic["statement_pages"] = {
         "source": "owner" if (statement_pages or auditor_pages or kam_pages) else "detected",
         "auditor_pages": auditor_pages,
-        "kam_pages": kam_pages,
+        "kam_pages": [f"{n}{s}" for n, s in kam_pages] if kam_pages else None,
         "kam_source": ex["audit"].get("kam_source"),
         "pages": tagged.get("statement_pages", {}),
     }

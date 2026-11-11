@@ -103,6 +103,22 @@ def cash_flow(period: str, v: dict[str, float | None]) -> Check:
     )
 
 
+def income_statement(period: str, v: dict[str, float | None]) -> Check:
+    """Profit before taxation less taxation = profit after taxation.
+
+    The statements print tax either as a bracketed expense or as a plain figure, so the tax is taken as an
+    expense of its printed size (its absolute value)."""
+    return identity(
+        "income_statement",
+        period,
+        "profit_after_tax",
+        {"profit_before_tax": None, "taxation": None},
+        lambda p: p["profit_before_tax"] - abs(p["taxation"]),
+        terms=2,
+        values=v,
+    )
+
+
 def comprehensive_income(period: str, v: dict[str, float | None]) -> Check:
     """Total comprehensive income = profit after taxation + other comprehensive income (sum of its
     components)."""

@@ -103,6 +103,9 @@ def kam_table_layout(words: list[dict]) -> dict | None:
     if key_hdr is None:
         return None
     col_how = header["x0"] - 4.0
+    # the KAM column starts at the leftmost word of the header row ("S. No." sits left of "Key audit matters")
+    header_row = [w for w in words if abs(w["top"] - header_top) <= 12 and w["x0"] <= key_hdr["x0"] + 1]
+    kam_left = min([w["x0"] for w in header_row] + [key_hdr["x0"]]) - 4.0
     # right edge of the KAM table: the first word of any text that starts to the right of the response
     # column at
     # or below the header; the auditor's text is in that column. Use the leftmost such word.
@@ -115,8 +118,13 @@ def kam_table_layout(words: list[dict]) -> dict | None:
     ]
     col_right = min((w["x0"] for w in right_candidates), default=None)
     if col_right is None:
-        return None
-    col_right -= 4.0
+        # no auditor text to the right (e.g. a spread half that holds only the KAM table): the table
+        # runs to the
+        # furthest word printed under its header
+        col_right = max(w["x1"] for w in words if w["top"] >= header_top - 2) + 4.0
+    else:
+        col_right -= 4.0  # the auditor's text starts here; stop just before it
+
     # bottom: the first full-width line below the header whose left edge is at the table's left margin and
     # that
     # starts a new report section ("Information Other than...", "Responsibilities of Management ...").
@@ -132,7 +140,7 @@ def kam_table_layout(words: list[dict]) -> dict | None:
         "header_top": header_top,
         "bottom": bottom,
         "columns": [
-            Column("kam", key_hdr["x0"] - 4.0, col_how),
+            Column("kam", kam_left, col_how),
             Column("response", col_how, col_right),
         ],
         "left_margin": key_hdr["x0"],
@@ -155,14 +163,27 @@ def parse_kam_table(words: list[dict], page: int) -> dict | None:
     for idx, h in enumerate(headers):
         m = KAM_NUMBERED.match(h["text"])
         top_end = headers[idx + 1]["top"] if idx + 1 < len(headers) else layout["bottom"] + 1
-        disclosure = [ln["text"] for ln in left if h["top"] <= ln["top"] < top_end and ln is not h]
+        body = [ln for ln in left if h["top"] <= ln["top"] < top_end and ln is not h]
+        # a heading printed over two lines: the continuation lines come before the "(Refer notes ...)" line
+        heading_parts = [m.group(2).strip()]
+        for ln in body[:2]:
+            t = ln["text"].strip()
+            # a wrapped heading continues in lowercase ("...development and" / "production assets ..."); a
+            # sentence starts with a capital and is the disclosure text
+            if not t or not t[0].islower() or t.startswith("(") or len(t) > 90:
+                break
+            heading_parts.append(t)
+            body.remove(ln)
+            if len(heading_parts) >= 3:
+                break
+        disclosure = [ln["text"] for ln in body]
         response = [ln["text"] for ln in right if h["top"] - 2 <= ln["top"] < top_end]
         text_all = " ".join([h["text"], *disclosure, *response])
         refs = sorted(_note_refs(text_all))
         kams.append(
             {
                 "number": int(m.group(1)),
-                "heading": m.group(2).strip(),
+                "heading": " ".join(heading_parts).strip(),
                 "page": page,
                 "disclosure": " ".join(disclosure),
                 "audit_response": " ".join(response),
@@ -193,8 +214,9 @@ def _text_quality(text: str) -> str:
 
 
 _NOTE_WORD = r"N\s?o\s?t\s?e\s?s?"  # tolerant of letter-spaced text in the PDF's own text layer
+_NOTE_NUMBER = r"\d{1,2}(?:\s?\.\s?\d{1,3})*"  # 9, 9.4, 2.4.10 (dotted note paragraphs)
 _NOTE_NUMBERS = re.compile(
-    _NOTE_WORD + r"\s+(\d{1,2}(?:\s?\.\s?\d{1,2})?(?:\s*(?:,|and|&)\s*\d{1,2}(?:\s?\.\s?\d{1,2})?)*)",
+    _NOTE_WORD + r"\s+(" + _NOTE_NUMBER + r"(?:\s*(?:,|and|&)\s*" + _NOTE_NUMBER + r")*)",
     re.IGNORECASE,
 )
 
@@ -203,7 +225,12 @@ def _note_refs(text: str) -> set[str]:
     """Note numbers cited in the text ("Note 9", "Notes 9.4", "Note 9 and 9.4"), with spaces removed from the
     numbers. Only numbers introduced by the word "Note(s)" are returned."""
     refs: set[str] = set()
+    # letter-spaced passages print dotted numbers with spaces ("3 . 1 1"): close the gaps inside a
+    # number first
+    text = re.sub(r"(?<=\d)\s?\.\s?(?=\d)", ".", text)
+    text = re.sub(r"(?<=\.\d) (?=\d)", "", text)
+    text = re.sub(r"(?<=\d) (?=\d)", "", text)
     for m in _NOTE_NUMBERS.finditer(text):
-        for num in re.findall(r"\d{1,2}(?:\s?\.\s?\d{1,2})?", m.group(1)):
+        for num in re.findall(_NOTE_NUMBER, m.group(1)):
             refs.add(re.sub(r"\s", "", num))
     return refs

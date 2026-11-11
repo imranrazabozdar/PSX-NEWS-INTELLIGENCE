@@ -254,7 +254,7 @@ def test_page_map_gives_statement_regions_auditor_and_kam_pages(tmp_path):
     assert m["statement_regions"]["OCI"] == (44, "R")
     assert m["statement_pages"]["BS"] == [43]
     assert m["auditor_pages"] == [41, 42]
-    assert m["kam_pages"] == [42]
+    assert m["kam_pages"] == [(42, "")]
 
 
 @pytest.mark.parametrize(
@@ -274,3 +274,121 @@ def test_page_map_must_be_an_object(tmp_path):
 
 def test_page_list_expands_ranges_and_lists():
     assert _page_list("41-43, 45", "AUDITOR") == [41, 42, 43, 45]
+
+
+# ------------------------------------------------------------------ corporate taxonomy, spreads (OGDC)
+
+
+def test_statement_spec_accepts_several_regions_of_one_spread():
+    from scripts.financial_intake import parse_statement_spec
+
+    pages, regions = parse_statement_spec("BS=8L+8R,IS=9L,OCI=9R")
+    assert pages == {"BS": [8], "IS": [9], "OCI": [9]}
+    assert regions == {"BS": [(8, "L"), (8, "R")], "IS": (9, "L"), "OCI": (9, "R")}
+
+
+def test_corporate_total_assets_and_equity_are_inferred_from_their_components():
+    cols = ["2026-06-30"]
+
+    def row(code, value):
+        return {
+            "statement_type": "BS",
+            "canonical_code": code,
+            "column_period_end": cols[0],
+            "reported_amount": value,
+            "pdf_page_number": 8,
+        }
+
+    tagged = [
+        row("ppe", 600.0),
+        row("trade_receivables", 400.0),
+        row("share_capital", 100.0),
+        row("reserves", 50.0),
+        row("unappropriated_profit", 850.0),
+    ]
+    unparsed = [{"statement": "BS", "line": "1,000", "page": 8, "extraction_engine": "x"}]
+    out = sp.infer_unlabelled_totals(tagged, unparsed, columns=cols, framework="corporate")
+    got = {(r["canonical_code"], r["reported_amount"]) for r in out}
+    # both groups print a total equal to their components here (equity: 100 + 50 + 850)
+    assert ("total_assets", 1000.0) in got and ("total_equity", 1000.0) in got
+    unparsed_eq = [{"statement": "BS", "line": "2,000", "page": 8, "extraction_engine": "x"}]
+    assert sp.infer_unlabelled_totals(tagged, unparsed_eq, columns=cols, framework="corporate") == []
+
+
+def test_repeated_printed_total_on_both_halves_is_one_total():
+    cols = ["2026-06-30"]
+    tagged = [
+        {
+            "statement_type": "BS",
+            "canonical_code": "ppe",
+            "column_period_end": cols[0],
+            "reported_amount": 1000.0,
+            "pdf_page_number": 8,
+        }
+    ]
+    unparsed = [
+        {"statement": "BS", "line": "1,000", "page": 8, "extraction_engine": "x"},
+        {"statement": "BS", "line": "1,000", "page": 8, "extraction_engine": "x"},
+    ]
+    out = sp.infer_unlabelled_totals(tagged, unparsed, columns=cols, framework="corporate")
+    assert [r["canonical_code"] for r in out] == ["total_assets"]
+
+
+def test_income_statement_identity_uses_the_tax_as_an_expense_of_its_printed_size():
+    v_bracketed = {
+        "profit_before_tax": 259_134_869.0,
+        "taxation": -16_761_223.0,
+        "profit_after_tax": 242_373_646.0,
+    }
+    v_plain = {
+        "profit_before_tax": 288_270_069.0,
+        "taxation": 160_261_222.0,
+        "profit_after_tax": 128_008_847.0,
+    }
+    assert rec.income_statement("2026", v_bracketed).status == rec.RECONCILED
+    assert rec.income_statement("2025", v_plain).status == rec.RECONCILED
+    bad = {"profit_before_tax": 259_134_869.0, "taxation": -16_761_223.0, "profit_after_tax": 242_000_000.0}
+    assert rec.income_statement("2026", bad).status == rec.UNRECONCILED
+
+
+def test_kam_column_starts_at_the_s_no_column_and_half_pages_are_read_separately():
+    # the "S. No." number sits left of the "Key audit matters" text; it must still belong to the KAM column
+    words = [
+        w("S.", 343, 446),
+        w("No.", 360, 446),
+        w("Key", 380, 446),
+        w("audit", 402, 446),
+        w("matters", 430, 446),
+        w("How", 473, 446),
+        w("the", 495, 446),
+        w("matter", 515, 446),
+        w("was", 548, 446),
+        w("addressed", 565, 446),
+        w("1.", 344, 456),
+        w("Over", 358, 456),
+        w("due", 386, 456),
+        w("trade", 412, 456),
+        w("debts", 446, 456),
+        w("(Refer", 358, 470),
+        w("notes", 396, 470),
+        w("2.4.10,", 430, 470),
+        w("21.1)", 440, 470),
+        w("Our", 473, 456),
+        w("procedures", 495, 456),
+    ]
+    r = pl.parse_kam_table(words, 5)
+    assert r is not None and r["kams"][0]["heading"] == "Over due trade debts"
+    assert r["kams"][0]["note_references"] == ["2.4.10", "21.1"]
+
+
+def test_heading_continuation_only_for_wrapped_lowercase_lines():
+    words = kam_page_words()
+    # a capital-letter sentence right after the heading is disclosure text, not part of the heading
+    words = [x for x in words if x["text"] != "against"] + [w("Note", 24, 276)]
+    k = pl.parse_kam_table(kam_page_words(), 42)["kams"][0]
+    assert "As disclosed" in k["disclosure"] and "As disclosed" not in k["heading"]
+
+
+def test_dotted_note_references_survive_letter_spacing():
+    assert pl._note_refs("Refer notes 3 . 1 1 , 3 .1 2 , 2 8 and 30") == {"3.11", "3.12", "28", "30"}
+    assert pl._note_refs("Refer notes 2.4.10, 19.2 and 21.1") == {"2.4.10", "19.2", "21.1"}

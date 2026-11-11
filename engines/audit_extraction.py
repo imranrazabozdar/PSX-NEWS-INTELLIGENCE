@@ -45,7 +45,11 @@ GOING_CONCERN = re.compile(
 )
 # Standard ISA wording says what the auditor WILL report if an uncertainty exists ("If we conclude that a
 # material uncertainty exists..."). That conditional sentence is not a going-concern uncertainty.
-CONDITIONAL_UNCERTAINTY = re.compile(r"if (?:we|such)\b[^.]{0,120}material uncertainty|if we conclude", re.I)
+# "whether a material uncertainty exists ..." is the same conditional wording, printed in a different order.
+CONDITIONAL_UNCERTAINTY = re.compile(
+    r"if (?:we|such)\b[^.]{0,120}material uncertainty|if we conclude|whether a material uncertainty exists",
+    re.I,
+)
 KAM_SECTION = re.compile(r"key audit matters?", re.I)
 KAM_END = re.compile(
     r"other information|responsibilities of management|other legal and regulatory|independent auditor|"

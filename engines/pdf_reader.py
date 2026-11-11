@@ -240,6 +240,17 @@ def read(path: Path | str, mode: str = "auto") -> DocumentText:
     return DocumentText(out, warnings=warnings)
 
 
+def page_size(path: Path | str, page: int) -> tuple[float, float]:
+    """Width and height of one page, in points."""
+    if pdfplumber is None:
+        raise RuntimeError("pdfplumber is not installed (approved dependency, requirements.txt)")
+    with pdfplumber.open(Path(path)) as pdf:
+        if not 1 <= page <= len(pdf.pages):
+            raise ValueError(f"page {page} is outside the document (1-{len(pdf.pages)})")
+        pg = pdf.pages[page - 1]
+        return float(pg.width), float(pg.height)
+
+
 def page_words(path: Path | str, page: int) -> list[dict]:
     """Words of one page with their coordinates (pdfplumber). Raises ValueError for a page outside the
     document."""
