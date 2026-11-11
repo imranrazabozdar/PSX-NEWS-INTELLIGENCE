@@ -1,0 +1,80 @@
+{
+  "report_key": "ubl_ar2025",
+  "values": [
+    {
+      "item": "profit_after_tax_2025",
+      "printed": "128,008,847",
+      "page": 44,
+      "status": "reconciled",
+      "check": "income_statement",
+      "label": "Profit after taxation for the year"
+    },
+    {
+      "item": "total_comprehensive_income_2025",
+      "printed": "237,707,671",
+      "page": 44,
+      "status": "requires_review",
+      "label": "Total comprehensive income for the year",
+      "reason": "overlapping text: the figure shares a printed line with 'Non mark-up / interest expenses'; the pipeline does not extract it"
+    },
+    {
+      "item": "other_comprehensive_income_net_of_tax_2025",
+      "printed": "109,698,824",
+      "page": 45,
+      "status": "printed_only",
+      "label": "Other comprehensive income - net of tax",
+      "reason": "printed in the statement of changes in equity; no reconciled OCI statement is extracted for this report"
+    },
+    {
+      "item": "total_assets_2025",
+      "printed": "12,620,193,445",
+      "page": 43,
+      "status": "requires_review",
+      "reason": "unlabelled total row on the balance sheet; the bank framework does not infer it"
+    },
+    {
+      "item": "total_liabilities_2025",
+      "printed": "12,121,461,879",
+      "page": 43,
+      "status": "requires_review",
+      "reason": "unlabelled total row on the balance sheet"
+    },
+    {
+      "item": "net_assets_2025",
+      "printed": "498,731,566",
+      "page": 43,
+      "status": "printed_only",
+      "label": "NET ASSETS"
+    }
+  ],
+  "kams": {
+    "printed_count": 1,
+    "pages_checked": [
+      41,
+      42,
+      43,
+      98
+    ],
+    "items": [
+      {
+        "n": 1,
+        "title": "Expected credit loss against advances",
+        "page": 42
+      },
+      {
+        "n": 1,
+        "title": "Expected credit loss against advances",
+        "page": 98
+      }
+    ]
+  },
+  "pipeline_checks": {
+    "income_statement": "RECONCILED",
+    "comprehensive_income": "INSUFFICIENT_DATA",
+    "balance_sheet": "INSUFFICIENT_DATA",
+    "cash_flow": "INSUFFICIENT_DATA"
+  },
+  "pipeline_reported": {
+    "income_statement": 128008847.0
+  }
+}

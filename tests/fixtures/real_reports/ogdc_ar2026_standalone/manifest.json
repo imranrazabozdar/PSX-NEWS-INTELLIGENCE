@@ -1,0 +1,71 @@
+{
+  "report_key": "ogdc_ar2026_standalone",
+  "description": "Oil and Gas Development Company Limited, Annual Report 2026: standalone statements (pages 5-10 of this upload part)",
+  "source_sha256": "8dec488c20d5b76330323a378af9a0fc4ae8abd92667cbdd6b303ea7eecbd59d",
+  "source_upload_name": "81de4043-ogdc_100-190.pdf",
+  "source_pdf_pages": 91,
+  "pdftotext_version": "24.02.0",
+  "extractor_version": "pdfplumber-0.11.10/pipeline-2026.11.1",
+  "period_end": "2026-06-30",
+  "columns": [
+    "2026-06-30",
+    "2025-06-30"
+  ],
+  "unit_scale": 1000,
+  "currency": "PKR",
+  "consolidation": "unconsolidated",
+  "framework": "corporate",
+  "page_files": [
+    "page-005.txt",
+    "page-006.txt",
+    "page-008.txt",
+    "page-009.txt",
+    "page-010.txt",
+    "page-005R.txt",
+    "page-006L.txt",
+    "page-006R.txt",
+    "page-009L.txt",
+    "page-009R.txt",
+    "page-010L.txt",
+    "page-010R.txt"
+  ],
+  "statement_pages": {
+    "BS": [
+      8
+    ],
+    "CF": [
+      10
+    ]
+  },
+  "statement_regions": {
+    "IS": [
+      9,
+      "L"
+    ],
+    "OCI": [
+      9,
+      "R"
+    ],
+    "EQ": [
+      10,
+      "L"
+    ]
+  },
+  "auditor_pages": [
+    5
+  ],
+  "kam_pages": [
+    [
+      5,
+      "R"
+    ],
+    [
+      6,
+      "L"
+    ],
+    [
+      6,
+      "R"
+    ]
+  ]
+}

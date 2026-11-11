@@ -1,0 +1,66 @@
+                                                                                                                     Rising
+                                                                                                                     Through
+                                                                                                                     Challenges
+Independent Auditor’s Report
+To the members of Oil and Gas Development Company Limited
+S. No. Key audit matters                                          How the matter was addressed in our audit
+3.     Impairment assessment of development and Our audit procedures in relation to the matter, amongst
+       production assets and related property, plant and others, included:
+       equipment                                           • Assessed the appropriateness of the management’s
+       (Refer notes 2.4.4, 3.6, 12 and 13 to the financial   identification of CGUs;
+       statements)                                         • Assessed the reasonableness of the management’s
+       As at 30 June 2026, the carrying values of development          assumptions used in the calculation of recoverable
+       and production assets and property, plant and equipment         value of asset and/ or CGUs, relating to oil and
+       amounted to Rs 168,643 million and Rs 133,557 million           gas recoverable reserves, future oil and gas prices,
+       respectively.                                                   costs and discount rate based on our knowledge
+                                                                       of the business and industry and by comparing the
+       The management assesses at the end of each reporting            assumptions to historical results/ underlying records
+       period whether there is any indication that an asset may        and published market data, where relevant, and
+       be impaired.                                                    checked the mathematical accuracy of cash flow
+       Where indications of impairment are identified, an              model;
+       impairment test is performed by the management based •          Assessed the competence, independence and
+       on the estimate of the recoverable value of that asset and/     objectivity of the independent reserves’ expert;
+       or Cash Generating Unit (CGU).
+                                                                   •   Tested management’s sensitivity analysis that
+       The calculation of recoverable value of development             considered the impact of changes in key assumptions
+       and production assets and related property, plant and           on the outcome of the impairment assessments; and
+       equipment requires management to make significant
+                                                                   •   Assessed the adequacy of relevant disclosures in the
+       estimates and judgments, such as estimation of the
+                                                                       financial statements.
+       volume of oil and gas recoverable reserves, future oil and
+       gas prices, costs and discount rate.
+       We considered the matter as key audit matter due to
+       the significance of judgments / estimates used by the
+       management in determining the recoverable value of
+       development and production assets and related property,
+       plant and equipment.
+4.     Reversal of provision for taxation                            Our audit procedures in relation to the matter, amongst
+       (Refer notes 2.4.7, 3.3 and 35.1 to the financial statements) others, included:
+                                                                     •   Obtained and checked relevant paragraphs of FCC’s
+       As disclosed in note 35.1 to the financial statements,            judgment in respect of super tax on petroleum
+       during the year, the Federal Constitutional Court (“FCC”)         income arising to E&P Companies;
+       announced its decision regarding the constitutional
+       challenges to the super tax levied under Section 4B and       •   Checked the relevant taxation clauses of the
+       4C of the Income Tax Ordinance, 2001 and held that,               Schedule, PCAs entered into by the Company and
+       in respect of Exploration & Production (E&P) Companies            Supplemental Agreements signed by the Company
+       application of section 4B and 4C by virtue of Rules 4AA           with the Government of Pakistan;
+       and 4B of the Fifth Schedule (the Schedule) will not apply •    Evaluated management’s assessment of the
+       to the petroleum income arising to E&P Companies if it’s        impact of the decision on the Company’s financial
+       application results in exceeding the aggregate rate of          statements;
+       taxes provided in the Schedule and Petroleum Concession
+                                                                   •   Discussed the matter with the Company’s
+       Agreements (PCAs). Pursuant to the aforementioned
+                                                                       management, its internal and external tax advisors
+       FCC’s judgement, based on management’s assessment
+                                                                       and consulted with our internal independent tax
+       of the impact of super tax decision, the Company’s
+                                                                       specialist;
+       management has reversed tax provision amounting to Rs
+       50,762 million for prior years in the financial statements. •   Checked the detailed working of provision reversed
+                                                                       in light of management’s assessment and FCC’s
+       We considered this as a key audit matter due to the             decision; and
+       significance of amounts and judgements made by the
+       management of the Company in assessing the impact of •          Assessed the appropriateness of disclosures made
+       the decision on the financial statements.                       in the financial statements in this respect.
+                                                                                                                          207

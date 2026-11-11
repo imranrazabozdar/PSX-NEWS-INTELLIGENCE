@@ -63,6 +63,8 @@ def unpack_member(data: bytes, member_suffix: str | None = None) -> str:
     -------
     The decoded (latin-1) text of the selected member.
     """
+    if data[:2] == b"\x1f\x9d":
+        raise ValueError("UNIX compress (.Z) data is not supported; supply the ZIP export")
     with zipfile.ZipFile(io.BytesIO(data)) as zf:
         names = [n for n in zf.namelist() if not n.endswith("/")]
         if not names:

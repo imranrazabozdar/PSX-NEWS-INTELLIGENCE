@@ -1,7 +1,7 @@
 """Column-aware KAM parsing, OCI and total comprehensive income, owner page map, and bank/corporate isolation.
 
-All inputs are SYNTHETIC: hand-written word coordinates and hand-set figures. They test the logic only, not
-extraction accuracy on a real report.
+Inputs are SYNTHETIC hand-written word coordinates and hand-set figures, testing the logic only. Real-report
+figures with page references are pinned in tests/test_real_report_regression.py.
 """
 
 from __future__ import annotations
@@ -116,6 +116,9 @@ def test_letter_spaced_passage_is_flagged_not_quoted_as_exact():
 
 # ------------------------------------------------------------------ OCI and total comprehensive income
 
+# Printed in the UBL Annual Report 2025 (owner upload 04688c48): profit after tax 128,008,847 and total
+# comprehensive income 237,707,671 on PDF page 44; other comprehensive income, net of tax, 109,698,824 on PDF
+# page 45. Pinned against the fixture text in tests/test_real_report_regression.py.
 UBL_OCI = {"profit_after_tax": 128_008_847.0, "other_comprehensive_income": 109_698_824.0}
 
 

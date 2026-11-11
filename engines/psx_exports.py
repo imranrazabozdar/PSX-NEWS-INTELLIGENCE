@@ -88,7 +88,8 @@ def _is_file(text: str) -> bool:
 
 def read_text(source: str | Path | bytes | BinaryIO) -> str:
     """The export as text. ZIP (first member) and gzip are unpacked in memory; anything else is taken as plain
-    text. Always decoded as latin-1. A str is a file path when that file exists, else it is the text."""
+    text. Always decoded as latin-1. A str is a file path when that file exists, else it is the text.
+    Undecodable input raises ValueError: UNIX compress, and binary data that is none of the above."""
     if isinstance(source, Path) or (isinstance(source, str) and _is_file(source)):
         data = Path(source).read_bytes()
     elif isinstance(source, str):
@@ -108,7 +109,26 @@ def read_text(source: str | Path | bytes | BinaryIO) -> str:
             data = z.read(members[0].filename)
     elif data[:2] == b"\x1f\x8b":
         data = gzip.decompress(data)
+    elif data[:2] == _COMPRESS_MAGIC:
+        # UNIX compress (LZW). Not supported: refuse, never parse the bytes as text (that would drop every row
+        # silently).
+        raise ValueError("UNIX compress (.Z) data is not supported; supply a ZIP, gzip or plain-text export")
+    elif _looks_binary(data):
+        raise ValueError("input is binary and is neither a ZIP, gzip nor plain-text export")
     return data.decode(ENCODING)
+
+
+_COMPRESS_MAGIC = b"\x1f\x9d"
+_BINARY_SNIFF = 4096
+
+
+def _looks_binary(data: bytes) -> bool:
+    """True when the start of the data holds NUL bytes or control characters text exports never contain."""
+    head = data[:_BINARY_SNIFF]
+    if b"\x00" in head:
+        return True
+    controls = sum(1 for b in head if b < 0x20 and b not in (0x09, 0x0A, 0x0D))
+    return bool(head) and controls / len(head) > 0.01
 
 
 def _content_lines(text: str):

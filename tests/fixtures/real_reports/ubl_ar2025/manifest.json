@@ -1,0 +1,50 @@
+{
+  "report_key": "ubl_ar2025",
+  "description": "United Bank Limited, Annual Report 2025 (unconsolidated statements)",
+  "source_sha256": "23a11e71312ba3d6a4dd7d2c5f170dcef9af467dfd7290fd70da6cd45a540aca",
+  "source_upload_name": "04688c48-ubl_report_1.pdf",
+  "source_pdf_pages": 99,
+  "pdftotext_version": "24.02.0",
+  "extractor_version": "pdfplumber-0.11.10/pipeline-2026.11.1",
+  "period_end": "2025-12-31",
+  "columns": [
+    "2025-12-31",
+    "2024-12-31"
+  ],
+  "unit_scale": 1000,
+  "currency": "PKR",
+  "consolidation": "unconsolidated",
+  "framework": "bank",
+  "page_files": [
+    "page-042.txt",
+    "page-043.txt",
+    "page-044.txt",
+    "page-045.txt",
+    "page-098.txt"
+  ],
+  "statement_pages": {
+    "BS": [
+      43
+    ],
+    "IS": [
+      44
+    ],
+    "OCI": [
+      44
+    ],
+    "CF": [
+      45
+    ],
+    "EQ": [
+      45
+    ]
+  },
+  "statement_regions": {},
+  "auditor_pages": [
+    41,
+    42
+  ],
+  "kam_pages": [
+    42
+  ]
+}

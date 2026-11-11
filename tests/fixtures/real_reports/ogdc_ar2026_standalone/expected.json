@@ -1,0 +1,97 @@
+{
+  "report_key": "ogdc_ar2026_standalone",
+  "values": [
+    {
+      "item": "profit_for_the_year_2026",
+      "printed": "242,373,646",
+      "page": 9,
+      "side": "L",
+      "status": "reconciled",
+      "check": "income_statement",
+      "label": "Profit for the year"
+    },
+    {
+      "item": "other_comprehensive_loss_2026",
+      "printed": "(2,246,324)",
+      "page": 9,
+      "side": "R",
+      "status": "reconciled",
+      "check": "oci_components",
+      "label": "Other comprehensive loss for the year"
+    },
+    {
+      "item": "total_comprehensive_income_2026",
+      "printed": "240,127,322",
+      "page": 9,
+      "side": "R",
+      "status": "reconciled",
+      "check": "comprehensive_income",
+      "label": "Total comprehensive income for the year"
+    },
+    {
+      "item": "cash_and_equivalents_end_2026",
+      "printed": "291,123,943",
+      "page": 10,
+      "status": "reconciled",
+      "check": "cash_flow",
+      "label": "Cash and cash equivalents at end of the year"
+    },
+    {
+      "item": "total_liabilities_2026",
+      "printed": "333,278,025",
+      "page": 8,
+      "status": "requires_review",
+      "label": "TOTAL LIABILITIES",
+      "reason": "two-column balance sheet; equity and total assets are unlabelled rows; the pipeline reports INSUFFICIENT_DATA"
+    },
+    {
+      "item": "total_assets_2026",
+      "printed": "1,852,828,189",
+      "page": 8,
+      "status": "requires_review",
+      "reason": "unlabelled total printed on the balance-sheet total row; the pipeline reports INSUFFICIENT_DATA"
+    }
+  ],
+  "kams": {
+    "printed_count": 4,
+    "pages_checked": [
+      5,
+      6
+    ],
+    "items": [
+      {
+        "n": 1,
+        "title": "Over due trade debts and lease receivables",
+        "page": 5,
+        "side": "R"
+      },
+      {
+        "n": 2,
+        "title": "Recognition of Revenue /Income",
+        "page": 6,
+        "side": "L"
+      },
+      {
+        "n": 3,
+        "title": "Impairment assessment of development and",
+        "page": 6,
+        "side": "R",
+        "note": "title wraps; the second printed line 'production assets' is interleaved with the neighbouring column"
+      },
+      {
+        "n": 4,
+        "title": "Reversal of provision for taxation",
+        "page": 6,
+        "side": "R"
+      }
+    ]
+  },
+  "pipeline_checks": {
+    "balance_sheet": "INSUFFICIENT_DATA",
+    "income_statement": "RECONCILED",
+    "oci_components": "RECONCILED",
+    "comprehensive_income": "RECONCILED",
+    "cash_flow": "RECONCILED"
+  },
+  "pipeline_reported": {}
+}
