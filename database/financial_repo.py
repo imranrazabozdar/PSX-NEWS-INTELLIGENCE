@@ -818,3 +818,45 @@ def store_fact_statuses(archive_db, run_id: int, rows: list[dict], *, now: str |
         )))
     archive_db.batch(stmts, transactional=True)
     return {"recorded": len(stmts)}
+
+
+# ----------------------------------------------------------------- identity results (migration 0008)
+
+IDENTITY_SQL = (
+    "INSERT INTO archive_identity_checks(run_id, report_sha256, identity, consolidation, column_period_end, "
+    "left_value, right_value, delta, tolerance, status, reason, recorded_at_utc) "
+    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?) "
+    "ON CONFLICT(run_id, identity, consolidation, column_period_end) DO NOTHING"
+)
+IDENTITIES = (
+    "assets_equal_liabilities_plus_equity",
+    "pbt_less_tax_equals_pat",
+    "pat_plus_oci_equals_total_comprehensive_income",
+    "opening_cash_plus_movement_equals_closing_cash",
+    "equity_closing_equals_balance_sheet_equity",
+    "oci_components_equal_printed_total",
+)
+
+
+def store_identity_checks(archive_db, run_id: int, rows: list[dict], *, now: str | None = None) -> dict:
+    """One result per identity and column, with its delta. Each row: identity, consolidation,
+    column_period_end, left_value, right_value, delta, tolerance, status (a vocabulary code) and reason.
+    An exception stays an exception: it is stored as unreconciled with its delta."""
+    require_role(archive_db, "archive")
+    ts = now or _now()
+    sha = archive_db.execute("SELECT report_sha256 FROM archive_extraction_runs WHERE run_id = ?", (run_id,))
+    if not sha:
+        raise ValueError(f"run {run_id} does not exist")
+    stmts = []
+    for r in rows:
+        if r["identity"] not in IDENTITIES:
+            raise ValueError(f"unknown identity {r['identity']!r}")
+        if r["status"] not in _vocabulary():
+            raise ValueError(f"status {r['status']!r} is not in the archive vocabulary")
+        stmts.append((IDENTITY_SQL, (
+            run_id, sha[0]["report_sha256"], r["identity"], r["consolidation"], r["column_period_end"],
+            r.get("left_value"), r.get("right_value"), r.get("delta"), float(r.get("tolerance") or 0.0),
+            r["status"], r["reason"], ts,
+        )))
+    archive_db.batch(stmts, transactional=True)
+    return {"recorded": len(stmts)}

@@ -669,6 +669,43 @@ _CHECK_STATEMENT = {
 }
 
 
+_CHECK_IDENTITY = {
+    "balance_sheet": "assets_equal_liabilities_plus_equity",
+    "income_statement": "pbt_less_tax_equals_pat",
+    "comprehensive_income": "pat_plus_oci_equals_total_comprehensive_income",
+    "cash_flow": "opening_cash_plus_movement_equals_closing_cash",
+    "equity_statement": "equity_closing_equals_balance_sheet_equity",
+    "oci_components": "oci_components_equal_printed_total",
+}
+
+
+def identity_rows(reconciliation: dict, *, consolidation: str) -> list[dict]:
+    """One identity result per reconciliation check, with its delta. An identity whose inputs are not
+    extracted is insufficient_data with no delta: it is never shown as reconciled."""
+    from engines import status_vocabulary as sv
+
+    rows = []
+    for c in reconciliation["checks"]:
+        identity = _CHECK_IDENTITY.get(c["check"])
+        if identity is None:
+            continue
+        if c["status"] == "INSUFFICIENT_DATA":
+            status = "insufficient_data"
+            reason = "inputs not extracted: " + ", ".join(c.get("missing") or ["unknown"])
+            rows.append({"identity": identity, "consolidation": consolidation,
+                         "column_period_end": c["column_period_end"], "left_value": None,
+                         "right_value": None, "delta": None, "tolerance": c.get("allowance") or 0.0,
+                         "status": status, "reason": reason})
+            continue
+        status = sv.from_check_status(c["status"])
+        rows.append({"identity": identity, "consolidation": consolidation,
+                     "column_period_end": c["column_period_end"], "left_value": c["reported"],
+                     "right_value": c["expected"], "delta": c["discrepancy"],
+                     "tolerance": c["allowance"], "status": status,
+                     "reason": f"reported {c['reported']} vs expected {c['expected']}"})
+    return rows
+
+
 def statuses_for(tagged: dict, reconciliation: dict, *, ias7_status: str | None = None) -> tuple[list, list]:
     """Statement and fact status rows for one run, from the identity checks, the mapping and the IAS 7
     result. A fact takes its statement's status; an unmapped line is unmapped; cash equivalents are not
@@ -741,6 +778,10 @@ def store(
     statements, facts = statuses_for(tagged, reconciliation, ias7_status=ias7_status)
     status_stored = repo.store_statement_statuses(archive_db, run["run_id"], statements)
     fact_stored = repo.store_fact_statuses(archive_db, run["run_id"], facts)
+    consolidation = tagged["lines"][0]["consolidation"] if tagged["lines"] else "unconsolidated"
+    identity_stored = repo.store_identity_checks(
+        archive_db, run["run_id"], identity_rows(reconciliation, consolidation=consolidation)
+    )
     audit_stored = None
     if audit is not None:
         audit_stored = repo.archive_disclosure(
@@ -762,6 +803,7 @@ def store(
         "run": run["status"],
         "run_id": run["run_id"],
         "statement_statuses": status_stored["recorded"],
+        "identity_checks": identity_stored["recorded"],
         "fact_statuses": fact_stored["recorded"],
         "lines": lines,
         "reconciliation": rec_stored,
