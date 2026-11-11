@@ -158,3 +158,7 @@ check script. That forces a deliberate review of each one.
   verification and are listed in `config/coverage_watchlist.json`.
 - **Owner decisions outstanding:** FFBL is a delisted seed company included in the union; the scope of delisted
   companies is for the owner.
+
+- **Resolution (2026-11-11, owner decisions):** SNGPL merged into SNGP (same company); ECPL excluded; ASL is
+  "Aisha Steel Mills Limited" (ENGINEERING) and BPL is "Burshane LPG (Pakistan) Limited" (OIL & GAS MARKETING
+  COMPANIES), both as supplied by the owner. No entry remains UNVERIFIED. The watchlist has 108 companies.

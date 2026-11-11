@@ -7,13 +7,8 @@
   },
   "built_utc": "2026-11-11T00:00:00Z",
   "dedup_rule": "case-insensitive symbol; merged from the owner file and database/seed/companies.json",
-  "count": 110,
-  "unverified_for_owner_review": {
-    "ASL": "name supplied by the owner; sector not supplied and not guessed",
-    "BPL": "name supplied by the owner; sector not supplied and not guessed",
-    "ECPL": "listed as UNVERIFIED in the owner file",
-    "SNGPL": "requested by the owner but absent from psx_final_watchlist.csv; SNGP is in the file (Sui Northern Gas Pipelines Limited) and may be the same company: owner to confirm, NOT merged"
-  },
+  "count": 108,
+  "unverified_for_owner_review": {},
   "seed_companies_not_listed": [
     "FFBL"
   ],
@@ -76,9 +71,9 @@
     },
     {
       "symbol": "ASL",
-      "name": "Aisha Steel",
-      "sector": "UNVERIFIED",
-      "source": "owner-supplied name in chat (name only); sector not supplied, so UNVERIFIED",
+      "name": "Aisha Steel Mills Limited",
+      "sector": "ENGINEERING",
+      "source": "owner decision (name and sector supplied by the owner)",
       "added_utc": "2026-11-11T00:00:00Z"
     },
     {
@@ -174,9 +169,9 @@
     },
     {
       "symbol": "BPL",
-      "name": "Burshane LPG Ltd",
-      "sector": "UNVERIFIED",
-      "source": "owner-supplied name in chat (name only); sector not supplied, so UNVERIFIED",
+      "name": "Burshane LPG (Pakistan) Limited",
+      "sector": "OIL & GAS MARKETING COMPANIES",
+      "source": "owner decision (name and sector supplied by the owner)",
       "added_utc": "2026-11-11T00:00:00Z"
     },
     {
@@ -219,13 +214,6 @@
       "name": "D.G. Khan Cement Company Limited",
       "sector": "CEMENT",
       "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
-      "added_utc": "2026-11-11T00:00:00Z"
-    },
-    {
-      "symbol": "ECPL",
-      "name": "UNVERIFIED",
-      "sector": "UNVERIFIED",
-      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
       "added_utc": "2026-11-11T00:00:00Z"
     },
     {
@@ -645,14 +633,7 @@
       "symbol": "SNGP",
       "name": "Sui Northern Gas Pipelines Limited",
       "sector": "OIL & GAS MARKETING COMPANIES",
-      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
-      "added_utc": "2026-11-11T00:00:00Z"
-    },
-    {
-      "symbol": "SNGPL",
-      "name": "UNVERIFIED",
-      "sector": "UNVERIFIED",
-      "source": "owner-requested symbol; not present in the owner file or the seed",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json; owner decision: SNGPL merged into SNGP (same company)",
       "added_utc": "2026-11-11T00:00:00Z"
     },
     {
@@ -788,5 +769,11 @@
       "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
       "added_utc": "2026-11-11T00:00:00Z"
     }
-  ]
+  ],
+  "resolution_2026_11_11": {
+    "SNGPL": "merged into SNGP (owner decision)",
+    "ECPL": "excluded (owner decision)",
+    "ASL": "Aisha Steel Mills Limited / ENGINEERING (owner)",
+    "BPL": "Burshane LPG (Pakistan) Limited / OIL & GAS MARKETING COMPANIES (owner)"
+  }
 }

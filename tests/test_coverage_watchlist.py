@@ -1,6 +1,6 @@
-"""The coverage watchlist: the finite scope for extraction and analysis. Name-only data (symbol, name,
-sector) from an owner-supplied file, merged with the seed and deduplicated. Unverified names are never
-invented."""
+"""The coverage watchlist: the finite scope for extraction and analysis. Names and sectors come from
+owner-supplied data, merged with the seed and deduplicated. Nothing is guessed, and no entry remains
+UNVERIFIED."""
 
 import json
 from pathlib import Path
@@ -17,7 +17,7 @@ OWNER_REQUESTED = [
     "PRL",
     "NRL",
     "ATRL",
-    "SNGPL",
+    "SNGP",
     "HUBC",
     "SAZEW",
     "PAEL",
@@ -33,7 +33,19 @@ OWNER_REQUESTED = [
     "PTC",
     "FATIMA",
     "LUCK",
+    "WAHDAT",
+    "PIBTL",
+    "FFL",
+    "JSBL",
+    "SNBL",
+    "UBL",
+    "NBP",
+    "ASL",
+    "MUGHAL",
+    "BPL",
 ]
+OWNER_FILE_ROWS = 96
+SEED_ONLY = 11
 
 
 def test_symbols_are_unique_case_insensitively():
@@ -41,14 +53,35 @@ def test_symbols_are_unique_case_insensitively():
     assert len(symbols) == len(set(symbols)) == WATCHLIST["count"]
 
 
-def test_the_count_is_the_file_plus_seed_only_plus_requested_unverified():
-    # 96 owner-file rows + 11 seed-only + the owner-requested symbols absent from the file (SNGPL, ASL, BPL)
-    assert WATCHLIST["count"] == WATCHLIST["owner_source"]["rows"] + 11 + 3
+def test_the_count_is_the_owner_file_plus_seed_only_plus_owner_additions():
+    # 96 owner-file rows, minus the excluded ECPL, plus 11 seed-only companies, plus the two owner additions
+    # (ASL and BPL, which are not in the file). SNGPL is merged into SNGP and adds nothing.
+    assert WATCHLIST["count"] == OWNER_FILE_ROWS - 1 + SEED_ONLY + 2 == 108
 
 
 def test_every_owner_requested_symbol_is_in_the_watchlist():
+    assert set(OWNER_REQUESTED) <= {c["symbol"] for c in COMPANIES}
+
+
+def test_no_company_is_unverified():
+    assert [c["symbol"] for c in COMPANIES if "UNVERIFIED" in (c["name"], c["sector"])] == []
+    assert WATCHLIST["unverified_for_owner_review"] == {}
+
+
+def test_excluded_and_merged_symbols_are_resolved():
     symbols = {c["symbol"] for c in COMPANIES}
-    assert set(OWNER_REQUESTED) <= symbols
+    assert "ECPL" not in symbols and "SNGPL" not in symbols
+    by = {c["symbol"]: c for c in COMPANIES}
+    assert by["SNGP"]["name"] == "Sui Northern Gas Pipelines Limited"
+
+
+def test_owner_supplied_names_and_sectors_are_recorded_exactly():
+    by = {c["symbol"]: c for c in COMPANIES}
+    assert (by["ASL"]["name"], by["ASL"]["sector"]) == ("Aisha Steel Mills Limited", "ENGINEERING")
+    assert (by["BPL"]["name"], by["BPL"]["sector"]) == (
+        "Burshane LPG (Pakistan) Limited",
+        "OIL & GAS MARKETING COMPANIES",
+    )
 
 
 def test_every_seed_company_is_in_the_watchlist_and_flagged_in_scope():
@@ -56,27 +89,6 @@ def test_every_seed_company_is_in_the_watchlist_and_flagged_in_scope():
     symbols = {c["symbol"] for c in COMPANIES}
     assert {c["ticker"] for c in seed} <= symbols
     assert all(c["in_scope"] is True for c in seed)
-
-
-def test_unverified_sectors_and_names_are_listed_for_review_and_only_those():
-    unverified_sector = {c["symbol"] for c in COMPANIES if c["sector"] == "UNVERIFIED"}
-    unverified_name = {c["symbol"] for c in COMPANIES if c["name"] == "UNVERIFIED"}
-    assert (
-        unverified_sector == set(WATCHLIST["unverified_for_owner_review"]) == {"ECPL", "SNGPL", "ASL", "BPL"}
-    )
-    assert unverified_name == {"ECPL", "SNGPL"}  # ASL and BPL carry names the owner supplied
-
-
-def test_owner_supplied_names_are_recorded_exactly():
-    by = {c["symbol"]: c for c in COMPANIES}
-    assert by["ASL"]["name"] == "Aisha Steel"
-    assert by["BPL"]["name"] == "Burshane LPG Ltd"
-
-
-def test_sngpl_is_not_merged_into_sngp():
-    symbols = {c["symbol"]: c for c in COMPANIES}
-    assert symbols["SNGPL"]["name"] == "UNVERIFIED"
-    assert symbols["SNGP"]["name"] == "Sui Northern Gas Pipelines Limited"
 
 
 def test_every_entry_records_its_source_and_build_time():
