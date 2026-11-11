@@ -39,7 +39,7 @@ def test_pending_migrations_are_notes_not_problems():
     db = SQLiteDatabase()
     migrate(db, directory=tmp)  # like production today: 0001-0010 only
     r = integrity.check(db)
-    assert r["state"] == "ok" and r["pending"] == [11, 12, 13, 14]
+    assert r["state"] == "ok" and r["pending"] == [11, 12, 13, 14, 15]
 
 
 def test_empty_database_is_not_written():
