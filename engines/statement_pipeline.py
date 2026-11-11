@@ -124,11 +124,25 @@ def _numbers_only_row(text: str, n: int) -> list[float] | None:
 # (component codes, total code) per framework. The corporate balance sheet prints unlabelled totals for assets
 # and for share capital and reserves; its liabilities total is labelled, so it is never inferred.
 CORPORATE_ASSET_CODES = (
-    "ppe", "development_production_assets", "exploration_evaluation_assets", "lt_investments_associates",
-    "lt_investments_amortised_cost", "current_lt_investments", "lt_loans", "lt_advances_prepayments",
-    "lease_receivables_noncurrent", "current_lease_receivables", "stores_spares", "inventory",
-    "trade_receivables", "loans_advances_current", "deposits_short_term_prepayments", "other_receivables",
-    "income_tax_advance", "other_financial_assets", "cash_and_equivalents",
+    "ppe",
+    "development_production_assets",
+    "exploration_evaluation_assets",
+    "lt_investments_associates",
+    "lt_investments_amortised_cost",
+    "current_lt_investments",
+    "lt_loans",
+    "lt_advances_prepayments",
+    "lease_receivables_noncurrent",
+    "current_lease_receivables",
+    "stores_spares",
+    "inventory",
+    "trade_receivables",
+    "loans_advances_current",
+    "deposits_short_term_prepayments",
+    "other_receivables",
+    "income_tax_advance",
+    "other_financial_assets",
+    "cash_and_equivalents",
 )
 CORPORATE_EQUITY_CODES = ("share_capital", "reserves", "unappropriated_profit")
 TOTAL_GROUPS = {
