@@ -37,10 +37,22 @@ _COLUMNS = (
 
 def upsert_announcement(db: Database, row: dict[str, Any]) -> None:
     """Insert or fill in one announcement. `row` uses the column names above."""
-    missing = [c for c in ("symbol", "date", "title", "track", "source") if not row.get(c)]
+    missing = [c for c in ("symbol", "date", "track", "source") if not row.get(c)]
+    if row.get("title") is None:
+        missing.append("title")  # the feed can carry an empty title; a missing one is refused
     if missing:
         raise ValueError(f"announcement row missing required field(s): {', '.join(missing)}")
     db.execute(UPSERT_SQL, [row.get(c) for c in _COLUMNS])
+
+
+def exists(db: Database, row: dict[str, Any]) -> bool:
+    """True when a row with the same dedup key is already stored."""
+    found = db.execute(
+        "SELECT 1 AS hit FROM psx_announcements "
+        "WHERE symbol = ? AND date = ? AND COALESCE(time, '') = ? AND title = ?",
+        [row["symbol"], row["date"], row.get("time") or "", row["title"]],
+    )
+    return bool(found)
 
 
 def upsert_announcements(db: Database, rows: list[dict[str, Any]]) -> int:

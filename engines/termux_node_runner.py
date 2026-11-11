@@ -87,7 +87,7 @@ class Config:
         return cls(
             feed_url=feed,
             cloud_endpoint=endpoint,
-            cloud_token=os.environ.get("PSX_CLOUD_TOKEN"),
+            cloud_token=os.environ.get("PSXNI_CLOUD_TOKEN"),
             state_db=os.environ.get("PSX_STATE_DB", cls.state_db),
             fetch_binaries=os.environ.get("PSX_FETCH_BINARIES", "0") == "1",
             mirror_api_url=os.environ.get("PSX_MIRROR_API_URL") or None,
@@ -225,8 +225,12 @@ class SeenStore:
 # --------------------------------------------------------------------------- #
 
 
-def dispatch_metadata(cfg: Config, decision: RouteDecision, announcement: StatutoryAnnouncement) -> bool:
-    payload = {
+def build_payload(decision: RouteDecision, announcement: StatutoryAnnouncement) -> dict:
+    """The JSON body sent to the cloud receiver (services/psx_announcement_receiver.py).
+
+    The keys are a contract with that receiver: change both together.
+    """
+    return {
         "date": announcement.date.isoformat(),
         "time": announcement.time.isoformat() if announcement.time else None,
         "symbol": announcement.symbol,
@@ -237,6 +241,10 @@ def dispatch_metadata(cfg: Config, decision: RouteDecision, announcement: Statut
         "source": decision.source.value,
         "target_url": decision.url,
     }
+
+
+def dispatch_metadata(cfg: Config, decision: RouteDecision, announcement: StatutoryAnnouncement) -> bool:
+    payload = build_payload(decision, announcement)
     body = json.dumps(payload).encode("utf-8")
     headers = {"Content-Type": "application/json", "User-Agent": USER_AGENT}
     if cfg.cloud_token:

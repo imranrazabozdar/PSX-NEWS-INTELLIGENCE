@@ -56,13 +56,18 @@ def test_later_run_fills_unknown_fields_without_overwriting():
 
 def test_missing_required_field_is_refused():
     db = _db()
-    try:
-        upsert_announcement(db, _row(title=""))
-    except ValueError as exc:
-        assert "title" in str(exc)
-    else:
-        raise AssertionError("empty title must be refused")
+    with pytest.raises(ValueError, match="title"):
+        upsert_announcement(db, _row(title=None))
+    with pytest.raises(ValueError, match="symbol"):
+        upsert_announcement(db, _row(symbol=""))
     assert count_announcements(db) == 0
+
+
+def test_empty_title_from_the_feed_is_stored():
+    db = _db()
+    upsert_announcement(db, _row(title=""))
+    upsert_announcement(db, _row(title=""))
+    assert count_announcements(db) == 1
 
 
 def test_bad_date_is_refused_by_schema():
