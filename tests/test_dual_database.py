@@ -110,7 +110,7 @@ def test_handles_carry_their_role_and_the_archive_uses_its_own_ledger(files):
         arc_versions = [r["name"] for r in adb.execute("SELECT name FROM schema_migrations")]
         main_versions = [r["name"] for r in mdb.execute("SELECT name FROM schema_migrations")]
         assert arc_versions == ["financial_archive", "disclosures", "document_registry",
-                                "extraction_evidence", "extractor_versioning"]
+                                "extraction_evidence", "extractor_versioning", "fact_provenance"]
         assert "financial_documents" in main_versions and len(main_versions) == 16
     finally:
         mdb.close()

@@ -627,8 +627,8 @@ LINE_V2_SQL = (
     "INSERT INTO archive_line_items_v2(run_id, extractor_version, document_id, symbol, period_end, "
     "statement_type, line_no, line_item_name, canonical_code, column_period_end, is_comparative, "
     "reported_amount, value_state, restated_flag, currency, unit_scale, consolidation, pdf_page_number, "
-    "note_ref, extraction_method, confidence, processed_at_utc) "
-    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) "
+    "note_ref, extraction_method, confidence, processed_at_utc, report_sha256) "
+    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) "
     "ON CONFLICT(run_id, statement_type, line_no, column_period_end, consolidation) DO NOTHING"
 )
 
@@ -683,6 +683,7 @@ def store_versioned_lines(
             ln["extraction_method"],
             ln.get("confidence"),
             ts,
+            document_id,  # the source SHA-256, stored explicitly on every fact (migration 0006)
         )
         stmts.append((LINE_V2_SQL, args))
     archive_db.batch(stmts, transactional=True)
@@ -694,7 +695,8 @@ def store_versioned_lines(
 
 RECON_V2_SQL = (
     "INSERT INTO archive_reconciliation_v2(run_id, check_name, column_period_end, consolidation, reported, "
-    "expected, discrepancy, tolerance, status, recorded_at_utc) VALUES (?,?,?,?,?,?,?,?,?,?) "
+    "expected, discrepancy, tolerance, status, recorded_at_utc, report_sha256) "
+    "VALUES (?,?,?,?,?,?,?,?,?,?,?) "
     "ON CONFLICT DO NOTHING"
 )
 RECON_STATUSES = ("RECONCILED", "RECONCILED_WITH_ROUNDING", "UNRECONCILED", "INSUFFICIENT_DATA")
@@ -709,6 +711,9 @@ def store_versioned_reconciliation(
     """
     require_role(archive_db, "archive")
     ts = now or _now()
+    sha = archive_db.execute("SELECT report_sha256 FROM archive_extraction_runs WHERE run_id = ?", (run_id,))
+    if not sha:
+        raise ValueError(f"run {run_id} does not exist")
     stmts = []
     for c in checks:
         if c["status"] not in RECON_STATUSES:
@@ -724,6 +729,7 @@ def store_versioned_reconciliation(
             c.get("allowance", 0.0),
             c["status"],
             ts,
+            sha[0]["report_sha256"],
         )
         stmts.append((RECON_V2_SQL, args))
     archive_db.batch(stmts, transactional=True)
