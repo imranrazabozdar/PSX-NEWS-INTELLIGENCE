@@ -179,8 +179,11 @@ def parse_statement_text(text: str, *, statement: str, columns: list[str], page:
         vals: list[str] = []
         while toks and (_NUM.match(toks[-1]) or toks[-1].casefold() in _BLANK):
             vals.insert(0, toks.pop())
-        if len(vals) == n + 1 and re.fullmatch(r"[0-9]{1,2}(\.[0-9]{1,2})?", vals[0]):
+        if len(vals) == n + 1 and re.fullmatch(r"[0-9]{1,2}(\.[0-9]{1,2}){0,2}", vals[0]):
             vals = vals[1:]  # note reference
+        elif len(vals) == n and toks and re.fullmatch(r"[0-9]{1,2}(\.[0-9]{1,2}){1,2}", toks[-1]):
+            # a dotted note reference (e.g. 23.1.2) printed at the end of the label, before the figures
+            toks.pop()
         label = " ".join(toks)
         if pending_label is not None:
             if not label and len(vals) == n:  # the figures for the wrapped label above

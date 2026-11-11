@@ -114,7 +114,8 @@ def test_note_41_explains_the_cash_difference_with_term_deposits():
         pages=["46L"],
     )
     assert (
-        n41["rows"]["term_deposits"]["2026"] == 400 and n41["rows"]["cash_and_bank_balances"]["note"] == "27"
+        n41["rows"]["short_term_investments"]["2026"] == 400
+        and n41["rows"]["cash_and_bank_balances"]["note"] == "27"
     )
     assert all(c["status"] == "RECONCILED" for c in n41["checks"])
     mat = ce.maturity_terms(["having maturities up to six months (2025: six months)."], pages=["36"])
@@ -128,7 +129,7 @@ def test_cash_difference_not_explained_by_note_41_is_reported_not_forced():
         "status": "parsed",
         "rows": {
             "cash_and_bank_balances": {"2026": 100},
-            "term_deposits": {"2026": 400},
+            "short_term_investments": {"2026": 400},
             "total": {"2026": 500},
         },
     }
@@ -155,3 +156,92 @@ def test_wrapped_oci_label_whose_second_line_carries_figures_is_one_label():
         "company of the associates - net of taxation"
     }
     assert [ln["value"] for ln in r["lines"]] == [-848_606.0, -4_108_356.0]
+
+
+# ------------------------------------------------------------------ LUCK-style layouts (synthetic)
+
+LUCK_NOTE = [
+    "11. TRADE DEBTS",
+    "(considered good)",
+    "Bills receivable – secured  11.1      1,500,000    1,400,000",
+    "Others – secured                     1,000,000    1,900,000",
+    "– unsecured                          4,500,000    3,000,000",
+    "                                     7,000,000    6,300,000",
+    "Less: Provision for doubtful debts 11.2  100,000      100,000",
+    "                                     6,900,000    6,200,000",
+    "12. LOANS AND ADVANCES",
+]
+
+
+def test_components_gross_and_net_are_checked_and_the_provision_is_subtracted():
+    r = tdn.parse_trade_debts_components(LUCK_NOTE, pages=["56"])
+    assert r["status"] == "parsed" and r["layout"] == "components"
+    y = r["by_year"]["2026"]
+    assert y["gross_trade_debts"] == 7_000_000 and y["doubtful_debt_provision"] == -100_000
+    assert y["net_trade_debts"] == 6_900_000
+    assert {c["status"] for c in r["checks"]} == {"RECONCILED"}
+
+
+def test_ageing_not_printed_is_not_disclosed_with_every_bucket_null():
+    out = tdn.extract_note_21(note_lines=LUCK_NOTE, ageing_lines=[], counterparty_lines=[], pages={})
+    a = out["ageing"]
+    assert a["status"] == "not_disclosed"
+    assert all(v is None for v in a["by_year"]["2026"]["gross_by_bucket"].values())
+    assert a["by_year"]["2026"]["over_365"] is None
+
+
+def test_credit_quality_nil_past_due_is_recorded_as_printed_nil():
+    cq = tdn.parse_credit_quality([
+        "Neither past due nor impaired\t\t6,932,669\t6,353,194",
+        "Past due but not impaired \t\t–\t–",
+    ], pages=["79"])
+    assert cq["neither_past_due_nor_impaired"] == {"2026": 6_932_669, "2025": 6_353_194}
+    assert cq["past_due_but_not_impaired"]["printed_nil"] is True
+
+
+def test_short_term_investments_are_the_cash_equivalent_line_when_not_called_term_deposits():
+    n41 = ce.parse_note_41([
+        "36.2",
+        "CASH AND CASH EQUIVALENTS",
+        "Cash and bank balances  17  100  90",
+        "Short term investments  300  200",
+        "  400  290",
+    ], pages=["74"])
+    assert n41["status"] == "parsed" and n41["rows"]["short_term_investments"]["2026"] == 300
+
+
+def test_a_dash_is_nil_and_does_not_conflict_with_a_printed_amount():
+    from engines.statement_pipeline import values_for
+
+    lines = [
+        {"canonical_code": "oci_tax_on_remeasurement", "column_period_end": "2026", "reported_amount": 22_412.0},
+        {"canonical_code": "oci_tax_on_remeasurement", "column_period_end": "2026", "reported_amount": None},
+    ]
+    values, conflicts = values_for(lines, "2026")
+    assert values["oci_tax_on_remeasurement"] == 22_412.0 and conflicts == []
+
+
+def test_two_different_printed_amounts_for_one_code_are_a_conflict_not_a_choice():
+    from engines.statement_pipeline import values_for
+
+    lines = [
+        {"canonical_code": "oci_tax_on_remeasurement", "column_period_end": "2025", "reported_amount": 365_870.0},
+        {"canonical_code": "oci_tax_on_remeasurement", "column_period_end": "2025", "reported_amount": -3_460.0},
+    ]
+    values, conflicts = values_for(lines, "2025")
+    assert values["oci_tax_on_remeasurement"] is None and conflicts == ["oci_tax_on_remeasurement"]
+
+
+def test_corporate_total_liabilities_are_inferred_from_their_components():
+    from engines import statement_pipeline as sp
+
+    cols = ["2026"]
+
+    def row(code, value):
+        return {"statement_type": "BS", "canonical_code": code, "column_period_end": cols[0],
+                "reported_amount": value, "pdf_page_number": 38}
+
+    tagged = [row("lt_deposits_payable", 300.0), row("trade_payables", 500.0), row("taxation_payable", 200.0)]
+    unparsed = [{"statement": "BS", "line": "1,000", "page": 38, "extraction_engine": "x"}]
+    out = sp.infer_unlabelled_totals(tagged, unparsed, columns=cols, framework="corporate")
+    assert ("total_liabilities", 1000.0) in {(r["canonical_code"], r["reported_amount"]) for r in out}

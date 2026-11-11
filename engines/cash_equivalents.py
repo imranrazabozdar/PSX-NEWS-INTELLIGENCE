@@ -35,11 +35,16 @@ MATURITY = re.compile(r"maturities up to (\w+) months?", re.IGNORECASE)
 
 
 def parse_note_41(lines: list[str], *, pages: list[str]) -> dict:
-    """Note 41 rows. Each row is read from its last two figures (current year, prior year); the note reference
-    printed before them is dropped."""
+    """The cash and cash equivalents note (OGDC note 41; LUCK note 36.2).
+
+    Each row is read from its last two figures (current year, prior year); the note reference printed
+    before them
+    is dropped. The short-term row is kept under "short_term_investments": it is called term deposits in
+    one report
+    and short-term investments in another, and it is the same line."""
     start = None
     for i, ln in enumerate(lines):
-        if re.match(r"^\s*41\.\s*$", ln) or re.match(r"^\s*41\.\s+CASH AND CASH EQUIVALENTS", ln, re.I):
+        if re.search(r"CASH AND CASH EQUIVALENTS\s*$", ln.strip()):
             start = i
             break
     if start is None:
@@ -49,7 +54,11 @@ def parse_note_41(lines: list[str], *, pages: list[str]) -> dict:
         s = ln.strip()
         for key, pat in (
             ("cash_and_bank_balances", r"^Cash and bank balances\b"),
-            ("term_deposits", r"^Short term highly liquid investments\s*-\s*Term deposits\b"),
+            (
+                "short_term_investments",
+                r"^(?:Short[- ]term highly liquid investments\s*-\s*Term deposits"
+                r"|Short[- ]term investments)\b",
+            ),
         ):
             if key not in rows and re.match(pat, s, re.I):
                 vals = _numbers(s[re.match(pat, s, re.I).end() :])
@@ -59,11 +68,11 @@ def parse_note_41(lines: list[str], *, pages: list[str]) -> dict:
             vals = _numbers(s)
             if len(vals) == 2 and "cash_and_bank_balances" in rows:
                 rows["total"] = {"2026": vals[0], "2025": vals[1]}
-    if not {"cash_and_bank_balances", "term_deposits", "total"} <= set(rows):
+    if not {"cash_and_bank_balances", "short_term_investments", "total"} <= set(rows):
         return {"status": "incomplete", "found": sorted(rows), "pages": pages}
     checks = []
     for year in ("2026", "2025"):
-        s = rows["cash_and_bank_balances"][year] + rows["term_deposits"][year]
+        s = rows["cash_and_bank_balances"][year] + rows["short_term_investments"][year]
         checks.append(
             {
                 "check": f"note41_total_{year}",
@@ -98,7 +107,7 @@ def reconcile_cash(*, bs_cash: float | None, cf_closing: float | None, note41: d
             "status": "INSUFFICIENT_DATA",
             "reason": "balance-sheet cash, cash-flow closing or note 41 missing",
         }
-    tdr = note41["rows"]["term_deposits"]["2026"]
+    tdr = note41["rows"]["short_term_investments"]["2026"]
     cash_and_bank = note41["rows"]["cash_and_bank_balances"]["2026"]
     difference = cf_closing - bs_cash
     residual = difference - tdr
@@ -119,7 +128,7 @@ def reconcile_cash(*, bs_cash: float | None, cf_closing: float | None, note41: d
         "note41_cash_and_bank": cash_and_bank,
         "cash_flow_closing": cf_closing,
         "difference_cf_minus_bs": difference,
-        "explained_by_note41_term_deposits": tdr,
+        "explained_by_note41_short_term": tdr,
         "residual": residual,
         "note41_total_equals_cash_flow_closing": note41["rows"]["total"]["2026"] == cf_closing,
         "ias7_cash_equivalent_test": iias7,

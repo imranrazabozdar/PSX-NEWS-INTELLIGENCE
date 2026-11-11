@@ -16,7 +16,13 @@ from dataclasses import dataclass
 
 LINE_TOLERANCE = 3.0  # points: words whose tops differ by less are on the same printed line
 SPACE_GAP = 12.0  # points: a horizontal gap wider than this is printed as two spaces
-KAM_NUMBERED = re.compile(r"^\s*(\d{1,2})\s*[\.\)]\s+(.+?)\s*$")
+# KAM headings are numbered "1." or, in some reports, "(i)" / "(ii)". The number is returned as an integer.
+KAM_NUMBERED = re.compile(r"^\s*(?:(\d{1,2})\s*[\.\)]|\(([ivx]{1,4})\))\s+(.+?)\s*$", re.IGNORECASE)
+_ROMAN = {"i": 1, "ii": 2, "iii": 3, "iv": 4, "v": 5, "vi": 6, "vii": 7, "viii": 8, "ix": 9, "x": 10}
+
+
+def _kam_number(m: re.Match) -> int:
+    return int(m.group(1)) if m.group(1) else _ROMAN[m.group(2).lower()]
 
 
 @dataclass
@@ -165,7 +171,7 @@ def parse_kam_table(words: list[dict], page: int) -> dict | None:
         top_end = headers[idx + 1]["top"] if idx + 1 < len(headers) else layout["bottom"] + 1
         body = [ln for ln in left if h["top"] <= ln["top"] < top_end and ln is not h]
         # a heading printed over two lines: the continuation lines come before the "(Refer notes ...)" line
-        heading_parts = [m.group(2).strip()]
+        heading_parts = [m.group(3).strip()]
         for ln in body[:2]:
             t = ln["text"].strip()
             # a wrapped heading continues in lowercase ("...development and" / "production assets ..."); a
@@ -182,7 +188,7 @@ def parse_kam_table(words: list[dict], page: int) -> dict | None:
         refs = sorted(_note_refs(text_all))
         kams.append(
             {
-                "number": int(m.group(1)),
+                "number": _kam_number(m),
                 "heading": " ".join(heading_parts).strip(),
                 "page": page,
                 "disclosure": " ".join(disclosure),

@@ -125,12 +125,15 @@ def _numbers_only_row(text: str, n: int) -> list[float] | None:
 # and for share capital and reserves; its liabilities total is labelled, so it is never inferred.
 CORPORATE_ASSET_CODES = (
     "ppe",
+    "intangible_assets",
     "development_production_assets",
     "exploration_evaluation_assets",
     "lt_investments_associates",
+    "lt_investments",
     "lt_investments_amortised_cost",
     "current_lt_investments",
     "lt_loans",
+    "lt_loans_advances_deposits",
     "lt_advances_prepayments",
     "lease_receivables_noncurrent",
     "current_lease_receivables",
@@ -140,16 +143,36 @@ CORPORATE_ASSET_CODES = (
     "loans_advances_current",
     "deposits_short_term_prepayments",
     "other_receivables",
+    "tax_refunds_due",
     "income_tax_advance",
     "other_financial_assets",
+    "short_term_investments",
     "cash_and_equivalents",
 )
 CORPORATE_EQUITY_CODES = ("share_capital", "reserves", "unappropriated_profit")
+CORPORATE_LIABILITY_CODES = (
+    "lt_deposits_payable",
+    "long_term_borrowings",
+    "deferred_govt_grant",
+    "staff_gratuity",
+    "deferred_taxation",
+    "decommissioning_provision",
+    "lt_lease_liability",
+    "st_lease_liability",
+    "trade_payables",
+    "current_maturity_lt_financing",
+    "short_term_borrowings",
+    "unpaid_dividend",
+    "unclaimed_dividend",
+    "accrued_markup",
+    "taxation_payable",
+)
 TOTAL_GROUPS = {
     "bank": ((BS_ASSET_CODES, "total_assets"), (BS_LIABILITY_CODES, "total_liabilities")),
     "corporate": (
         (CORPORATE_ASSET_CODES, "total_assets"),
         (CORPORATE_EQUITY_CODES, "total_equity"),
+        (CORPORATE_LIABILITY_CODES, "total_liabilities"),
     ),
 }
 
@@ -402,10 +425,16 @@ def values_for(tagged_lines: list[dict], column: str) -> tuple[dict[str, float |
     seen: dict[str, set] = defaultdict(set)
     for ln in tagged_lines:
         if ln["canonical_code"] and ln["column_period_end"] == column:
+            # a figure printed as a dash is nil: it neither conflicts with a printed amount nor counts as one
+            if ln["reported_amount"] is None:
+                seen.setdefault(ln["canonical_code"], set())
+                continue
             seen[ln["canonical_code"]].add(ln["reported_amount"])
     values, conflicts = {}, []
     for code, vals in seen.items():
-        if len(vals) > 1:
+        if not vals:  # only dashes: not reported
+            values[code] = None
+        elif len(vals) > 1:
             conflicts.append(code)
             values[code] = None
         else:
@@ -481,6 +510,7 @@ OCI_COMPONENT_CODES = (
     "oci_associates_remeasurement",
     "oci_translation_associate",
     "oci_associates_translation",
+    "oci_fvoci_equity",
 )
 
 

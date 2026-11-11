@@ -96,11 +96,13 @@
         ],
         "oci_remeasurement_employee_benefits": [
           "remeasurement loss on employee retirement benefit plans",
-          "remeasurement gain on employee retirement benefit plans"
+          "remeasurement gain on employee retirement benefit plans",
+          "remeasurement loss of post retirement benefit obligation"
         ],
         "oci_tax_on_remeasurement": [
           "current tax credit related to remeasurement loss on employee retirement benefit plans",
-          "current tax related to remeasurement gain loss on employee retirement benefit plans"
+          "current tax related to remeasurement gain loss on employee retirement benefit plans",
+          "deferred tax thereon"
         ],
         "oci_associates_remeasurement": [
           "share of remeasurement gain loss on defined benefit plans of the associates net of taxation"
@@ -110,6 +112,36 @@
         ],
         "oci_associates_translation": [
           "share of effect of translation of investment in foreign associated company of the associates net of taxation"
+        ],
+        "gross_revenue": [
+          "gross revenue"
+        ],
+        "sales_tax_fed": [
+          "sales tax and federal excise duty"
+        ],
+        "rebates_incentives": [
+          "rebates and incentives"
+        ],
+        "distribution_costs": [
+          "distribution costs"
+        ],
+        "administrative_expenses": [
+          "administrative expenses"
+        ],
+        "other_expenses": [
+          "other expenses"
+        ],
+        "other_income": [
+          "other income"
+        ],
+        "levy": [
+          "levy"
+        ],
+        "profit_before_levy": [
+          "profit before taxation and levy"
+        ],
+        "oci_fvoci_equity": [
+          "gain on equity instrument at fair value through other comprehensive income"
         ]
       },
       "BS": {
@@ -190,13 +222,15 @@
           "lease receivables"
         ],
         "stores_spares": [
-          "stores spare parts and loose tools"
+          "stores spare parts and loose tools",
+          "stores and spares"
         ],
         "loans_advances_current": [
           "loans and advances"
         ],
         "deposits_short_term_prepayments": [
-          "deposits and short term prepayments"
+          "deposits and short term prepayments",
+          "deposits and prepayments"
         ],
         "other_receivables": [
           "other receivables"
@@ -220,7 +254,8 @@
           "unappropriated profit"
         ],
         "deferred_taxation": [
-          "deferred taxation"
+          "deferred taxation",
+          "deferred tax liability"
         ],
         "deferred_employee_benefits": [
           "deferred employee benefits"
@@ -239,6 +274,39 @@
         ],
         "unclaimed_dividend": [
           "unclaimed dividend"
+        ],
+        "intangible_assets": [
+          "intangible assets"
+        ],
+        "lt_investments": [
+          "long term investments"
+        ],
+        "lt_loans_advances_deposits": [
+          "long term loans advances and deposits"
+        ],
+        "tax_refunds_due": [
+          "tax refunds due from the government"
+        ],
+        "short_term_investments": [
+          "short term investments"
+        ],
+        "lt_deposits_payable": [
+          "long term deposits and other payable"
+        ],
+        "deferred_govt_grant": [
+          "deferred government grant"
+        ],
+        "staff_gratuity": [
+          "staff gratuity"
+        ],
+        "current_maturity_lt_financing": [
+          "current maturity of long term financing"
+        ],
+        "accrued_markup": [
+          "accrued markup"
+        ],
+        "taxation_payable": [
+          "taxation net"
         ]
       },
       "CF": {
@@ -250,7 +318,8 @@
         "capex": [
           "purchase of property plant and equipment",
           "fixed capital expenditure",
-          "capital expenditure"
+          "capital expenditure",
+          "addition to property plant and equipment"
         ],
         "dividends_paid": [
           "dividends paid",
@@ -282,7 +351,8 @@
         ],
         "cfi": [
           "net cash used in generated from investing activities",
-          "net cash used in investing activities"
+          "net cash used in investing activities",
+          "net cash generated from investing activities"
         ],
         "cff": [
           "net cash used in financing activities"

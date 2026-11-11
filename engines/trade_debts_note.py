@@ -317,12 +317,131 @@ def extract_note_21(
 ) -> dict:
     """Everything for note 21. Each argument is the text of one page block; `pages` names the PDF pages."""
     trade = parse_note_21(note_lines, pages=pages.get("note", []))
+    if trade.get("status") == "not_found":  # a report that lists components (note 11 in some reports)
+        trade = parse_trade_debts_components(note_lines, pages=pages.get("note", []))
     return {
         "trade_debts": trade,
         "circular_debt": parse_circular_debt(note_lines),
-        "ageing": parse_ageing(ageing_lines, pages=pages.get("ageing", [])),
+        "ageing": _ageing_or_not_disclosed(ageing_lines, pages.get("ageing", []), note_lines),
         "counterparty_exposures": parse_counterparties(
             counterparty_lines, pages=pages.get("counterparty", [])
         ),
         "ecl": ecl_treatment(note_lines, pages=pages.get("note", [])),
+    }
+
+
+def parse_trade_debts_components(lines: list[str], *, pages: list[str]) -> dict:
+    """Trade debts for a report that lists its components (LUCK note 11).
+
+    Each component is read from its last two figures (the note reference is dropped); the printed gross and
+    net
+    sub-totals are checked; the provision is printed as a positive "Less:" amount and is subtracted.
+    Nothing is
+    assumed where a line is not printed."""
+    start = _find(lines, r"TRADE DEBTS\s*$")
+    if start is None:
+        return {
+            "status": "not_found",
+            "reason": "trade debts heading not in the supplied text",
+            "pages": pages,
+        }
+    end = _find(lines, r"^\s*12\.\s|LOANS AND ADVANCES", start + 1)
+    block = [ln.strip() for ln in lines[start + 1 : end if end is not None else len(lines)]]
+    components: list[dict] = []
+    gross_printed = provision = net_printed = None
+    provision_label = None
+    for ln in block:
+        label = re.sub(r"[\d(),.\-\s]+$", "", ln).strip()
+        vals = _numbers(ln[len(label) :] if label else ln)
+        if re.search(r"secured|unsecured|bills receivable", label, re.I) and len(vals) >= 2:
+            components.append({"label": label, "2026": vals[-2], "2025": vals[-1]})
+        elif re.search(r"provision for doubtful debts", label, re.I) and len(vals) >= 2:
+            provision = (vals[-2], vals[-1])
+            provision_label = label
+        elif not label and len(vals) == 2 and None not in vals and components:
+            if gross_printed is None and provision is None:
+                gross_printed = vals
+            elif net_printed is None and provision is not None:
+                net_printed = vals
+    if not components or gross_printed is None:
+        return {"status": "not_found", "reason": "components or gross sub-total not found", "pages": pages}
+    sums = [sum((c[y] or 0) for c in components) for y in ("2026", "2025")]
+    checks = [
+        _check(
+            "trade_debts_components_gross",
+            sums == gross_printed,
+            f"components {sums} vs printed {gross_printed}",
+        )
+    ]
+    prov = [None, None]
+    if provision is not None:
+        sign = -1 if re.match(r"less", provision_label, re.I) else 1
+        prov = [sign * abs(provision[0] or 0), sign * abs(provision[1] or 0)]
+    net = [gross_printed[i] + (prov[i] or 0) for i in range(2)]
+    if net_printed is not None:
+        checks.append(_check("trade_debts_net", net_printed == net, f"printed {net_printed} vs {net}"))
+    out = {
+        "status": "parsed",
+        "units": "PKR '000",
+        "pages": pages,
+        "checks": checks,
+        "components": components,
+        "by_year": {},
+        "layout": "components",
+    }
+    for i, year in enumerate(("2026", "2025")):
+        out["by_year"][year] = {
+            "gross_trade_debts": gross_printed[i],
+            "doubtful_debt_provision": prov[i],
+            "net_trade_debts": net_printed[i] if net_printed is not None else net[i],
+        }
+    return out
+
+
+def parse_credit_quality(lines: list[str], *, pages: list[str]) -> dict:
+    """The printed credit-quality analysis of trade debts: neither past due nor impaired, and past due but not
+    impaired. A printed dash is a printed nil; a line that is not printed is None."""
+    out: dict = {"pages": pages, "neither_past_due_nor_impaired": None, "past_due_but_not_impaired": None}
+    for ln in lines:
+        s = ln.strip()
+        if re.match(r"^Neither past due nor impaired\b", s, re.I):
+            vals = _numbers(re.sub(r"^Neither past due nor impaired", "", s, flags=re.I))
+            if len(vals) >= 2:
+                out["neither_past_due_nor_impaired"] = {"2026": vals[0], "2025": vals[1]}
+        if re.match(r"^Past due but not impaired\b", s, re.I):
+            rest = re.sub(r"^Past due but not impaired", "", s, flags=re.I)
+            vals = _numbers(rest)
+            out["past_due_but_not_impaired"] = {
+                "2026": vals[0] if vals else None,
+                "2025": vals[1] if len(vals) > 1 else None,
+                "printed_nil": bool(re.search(r"[–-]", rest)) and not any(v for v in vals if v),
+            }
+    return out
+
+
+def _ageing_or_not_disclosed(ageing_lines: list[str], pages: list[str], note_lines: list[str]) -> dict:
+    """The ageing schedule when one is printed.
+
+    When none is, every bucket is null: the report does not disclose an ageing, so none is assumed (and no
+    bucket is
+    set to zero)."""
+    if ageing_lines:
+        parsed = parse_ageing(ageing_lines, pages=pages)
+        if parsed.get("status") == "parsed":
+            return parsed
+    return {
+        "status": "not_disclosed",
+        "reason": "no ageing schedule printed; buckets are null, never zero",
+        "pages": pages,
+        "by_year": {
+            y: {
+                "gross_by_bucket": {k: None for k, _ in AGEING_ROWS},
+                "over_365": None,
+                "over_365_disclosed": False,
+                "total_gross": None,
+                "impaired_total": None,
+                "over_90_share_of_gross": None,
+            }
+            for y in ("2026", "2025")
+        },
     }

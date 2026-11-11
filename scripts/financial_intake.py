@@ -112,7 +112,14 @@ def _tagged(
 
 
 STATEMENT_CODES = ("BS", "IS", "OCI", "CF", "EQ")
-NOTE_KEYS = ("NOTE_TRADE_DEBTS", "NOTE_AGEING", "NOTE_COUNTERPARTY", "NOTE_CASH", "NOTE_MATURITY")
+NOTE_KEYS = (
+    "NOTE_TRADE_DEBTS",
+    "NOTE_AGEING",
+    "NOTE_COUNTERPARTY",
+    "NOTE_CASH",
+    "NOTE_MATURITY",
+    "NOTE_CREDIT_QUALITY",
+)
 PAGE_MAP_KEYS = ("BS", "IS", "OCI", "CF", "EQ", "AUDITOR", "KAM") + NOTE_KEYS
 
 
@@ -192,6 +199,7 @@ def _notes_block(path: Path, notes: dict | None, tagged: dict, period_end: str) 
     cp_lines, cp_pages = block("NOTE_COUNTERPARTY")
     cash_lines, cash_pages = block("NOTE_CASH")
     mat_lines, mat_pages = block("NOTE_MATURITY")
+    cq_lines, cq_pages = block("NOTE_CREDIT_QUALITY")
     trade = tdn.extract_note_21(
         note_lines=note_lines,
         ageing_lines=age_lines,
@@ -200,6 +208,7 @@ def _notes_block(path: Path, notes: dict | None, tagged: dict, period_end: str) 
     )
     n41 = ce.parse_note_41(cash_lines, pages=cash_pages)
     mat = ce.maturity_terms(mat_lines, pages=mat_pages)
+    credit = tdn.parse_credit_quality(cq_lines, pages=cq_pages) if cq_lines else None
     values = sp.values_for(tagged["lines"], period_end)[0]
     cash = ce.reconcile_cash(
         bs_cash=values.get("cash_and_equivalents"),
@@ -212,6 +221,7 @@ def _notes_block(path: Path, notes: dict | None, tagged: dict, period_end: str) 
         "cash_note_41": n41,
         "maturity_note_26_1": mat,
         "cash_reconciliation": cash,
+        "credit_quality": credit,
     }
 
 
@@ -237,6 +247,8 @@ def _apply_notes_to_receivables(receivables: dict, notes_out: dict) -> dict:
         "overdue_over_90_ratio": over_90,
         "doubtful_debt_provision": y["doubtful_debt_provision"],
         "net_trade_debts": y["net_trade_debts"],
+        # the notes engine reads note rows as ageing brackets; note 21 is the source once it has been parsed
+        "unclassified_brackets": [],
     }
 
 
@@ -527,7 +539,7 @@ def _notes_text(notes: dict) -> list[str]:
     if cr.get("status") in ("EXPLAINED", "NOT_EXPLAINED"):
         out.append(
             f"Cash (note 41): BS {cr['balance_sheet_cash_and_bank']:,.0f} + term deposits "
-            f"{cr['explained_by_note41_term_deposits']:,.0f} = CF closing {cr['cash_flow_closing']:,.0f}: "
+            f"{cr['explained_by_note41_short_term']:,.0f} = CF closing {cr['cash_flow_closing']:,.0f}: "
             f"{cr['status']}"
         )
         out.append(f"  IAS 7 test: {cr['ias7_cash_equivalent_test']}")
