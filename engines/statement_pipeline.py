@@ -645,6 +645,53 @@ def audit_payload(audit: dict) -> dict:
     }
 
 
+_CHECK_STATEMENT = {
+    "balance_sheet": "BS",
+    "income_statement": "IS",
+    "comprehensive_income": "OCI",
+    "oci_components": "OCI",
+    "cash_flow": "CF",
+}
+
+
+def statuses_for(tagged: dict, reconciliation: dict, *, ias7_status: str | None = None) -> tuple[list, list]:
+    """Statement and fact status rows for one run, from the identity checks, the mapping and the IAS 7
+    result. A fact takes its statement's status; an unmapped line is unmapped; cash equivalents are not
+    verifiable when IAS 7 says the maturity cannot be shown from the disclosure."""
+    from engines import status_vocabulary as sv
+
+    lines = tagged["lines"]
+    consolidation = lines[0]["consolidation"] if lines else "unconsolidated"
+    statements: list[dict] = []
+    stmt_status: dict[tuple[str, str], str] = {}
+    for stmt in ("BS", "IS", "OCI", "CF"):
+        columns = sorted({c["column_period_end"] for c in reconciliation["checks"]
+                          if _CHECK_STATEMENT.get(c["check"]) == stmt} |
+                         {ln["column_period_end"] for ln in lines if ln["statement_type"] == stmt})
+        for col in columns:
+            checks = [c["status"] for c in reconciliation["checks"]
+                      if _CHECK_STATEMENT.get(c["check"]) == stmt and c["column_period_end"] == col]
+            unmapped = sum(1 for ln in lines if ln["statement_type"] == stmt
+                           and ln["column_period_end"] == col and not ln.get("canonical_code"))
+            # IAS 7 does not change a statement's arithmetic; its effect is on the cash-equivalent fact only.
+            status, reason = sv.statement_status(checks, unmapped=unmapped)
+            stmt_status[(stmt, col)] = status
+            statements.append({"statement_type": stmt, "consolidation": consolidation,
+                               "column_period_end": col, "status": status, "reason": reason})
+    facts: list[dict] = []
+    for ln in lines:
+        if ln["statement_type"] not in ("BS", "IS", "OCI", "CF"):
+            continue
+        status, reason = sv.fact_status(ln.get("canonical_code"), ln["statement_type"], ias7=ias7_status)
+        if status == "reconciled":
+            status = stmt_status.get((ln["statement_type"], ln["column_period_end"]), "insufficient_data")
+            reason = f"statement {ln['statement_type']} is {status}"
+        facts.append({"statement_type": ln["statement_type"], "line_no": ln["line_no"],
+                      "column_period_end": ln["column_period_end"], "consolidation": ln["consolidation"],
+                      "status": status, "reason": reason})
+    return statements, facts
+
+
 def store(
     archive_db,
     *,
@@ -654,6 +701,7 @@ def store(
     reconciliation: dict,
     extractor_version: str,
     audit: dict | None = None,
+    ias7_status: str | None = None,
 ) -> dict:
     from database import financial_repo as repo
 
@@ -675,6 +723,9 @@ def store(
         reconciliation["checks"],
         consolidation=tagged["lines"][0]["consolidation"] if tagged["lines"] else "unconsolidated",
     )
+    statements, facts = statuses_for(tagged, reconciliation, ias7_status=ias7_status)
+    status_stored = repo.store_statement_statuses(archive_db, run["run_id"], statements)
+    fact_stored = repo.store_fact_statuses(archive_db, run["run_id"], facts)
     audit_stored = None
     if audit is not None:
         audit_stored = repo.archive_disclosure(
@@ -695,6 +746,8 @@ def store(
         "registration": reg["status"],
         "run": run["status"],
         "run_id": run["run_id"],
+        "statement_statuses": status_stored["recorded"],
+        "fact_statuses": fact_stored["recorded"],
         "lines": lines,
         "reconciliation": rec_stored,
         "status": status,

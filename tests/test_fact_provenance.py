@@ -83,7 +83,8 @@ def _line(**over):
 def test_migration_0006_applies_and_the_provenance_view_exists(adb):
     view = adb.execute("SELECT name FROM sqlite_master WHERE type='view' AND name='v_fact_provenance'")
     assert view
-    assert adb.execute("SELECT MAX(version) AS v FROM schema_migrations")[0]["v"] == 6
+    versions = {r["version"] for r in adb.execute("SELECT version FROM schema_migrations")}
+    assert {6, 7} <= versions
 
 
 def test_every_written_fact_carries_the_document_hash(adb):

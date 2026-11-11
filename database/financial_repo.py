@@ -756,3 +756,65 @@ def record_document_file(
         transactional=True,
     )
     return {"status": "recorded"}
+
+
+# ----------------------------------------------------------------- status vocabulary (migration 0007)
+
+STATEMENT_STATUS_SQL = (
+    "INSERT INTO archive_statement_status(run_id, report_sha256, statement_type, consolidation, "
+    "column_period_end, status, reason, evidence_page, recorded_at_utc) VALUES (?,?,?,?,?,?,?,?,?) "
+    "ON CONFLICT(run_id, statement_type, consolidation, column_period_end) DO NOTHING"
+)
+FACT_STATUS_SQL = (
+    "INSERT INTO archive_fact_status(line_id, report_sha256, status, reason, recorded_at_utc) "
+    "VALUES (?,?,?,?,?) ON CONFLICT(line_id) DO NOTHING"
+)
+
+
+def _vocabulary() -> tuple[str, ...]:
+    from engines.status_vocabulary import VOCABULARY
+
+    return VOCABULARY
+
+
+def store_statement_statuses(archive_db, run_id: int, rows: list[dict], *, now: str | None = None) -> dict:
+    """One status per statement and column. Each row: statement_type, consolidation, column_period_end,
+    status, reason and optional evidence_page. Statuses outside the vocabulary are refused."""
+    require_role(archive_db, "archive")
+    ts = now or _now()
+    sha = archive_db.execute("SELECT report_sha256 FROM archive_extraction_runs WHERE run_id = ?", (run_id,))
+    if not sha:
+        raise ValueError(f"run {run_id} does not exist")
+    stmts = []
+    for r in rows:
+        if r["status"] not in _vocabulary():
+            raise ValueError(f"status {r['status']!r} is not in the archive vocabulary")
+        stmts.append((STATEMENT_STATUS_SQL, (
+            run_id, sha[0]["report_sha256"], r["statement_type"], r["consolidation"],
+            r["column_period_end"], r["status"], r["reason"], r.get("evidence_page"), ts,
+        )))
+    archive_db.batch(stmts, transactional=True)
+    return {"recorded": len(stmts)}
+
+
+def store_fact_statuses(archive_db, run_id: int, rows: list[dict], *, now: str | None = None) -> dict:
+    """One status per stored fact, found by its natural key within the run."""
+    require_role(archive_db, "archive")
+    ts = now or _now()
+    stmts = []
+    for r in rows:
+        if r["status"] not in _vocabulary():
+            raise ValueError(f"status {r['status']!r} is not in the archive vocabulary")
+        found = archive_db.execute(
+            "SELECT line_id, report_sha256, document_id FROM archive_line_items_v2 WHERE run_id = ? AND "
+            "statement_type = ? AND line_no = ? AND column_period_end = ? AND consolidation = ?",
+            (run_id, r["statement_type"], int(r["line_no"]), r["column_period_end"], r["consolidation"]),
+        )
+        if not found:
+            raise ValueError(f"no stored fact for {r['statement_type']} line {r['line_no']}")
+        line = found[0]
+        stmts.append((FACT_STATUS_SQL, (
+            line["line_id"], line["report_sha256"] or line["document_id"], r["status"], r["reason"], ts,
+        )))
+    archive_db.batch(stmts, transactional=True)
+    return {"recorded": len(stmts)}

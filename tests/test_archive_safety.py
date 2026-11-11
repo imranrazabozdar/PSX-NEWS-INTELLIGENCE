@@ -72,7 +72,7 @@ def test_archive_dry_run_executes_no_write_statement_and_changes_nothing(state):
     assert [s for s in d.statements if WRITE.match(s)] == [], "a dry run must issue no write or DDL statement"
     assert _raw_objects(d) == before_objects, "dry run changed schema objects"
     assert _ledger(d) == before_ledger, "dry run changed the migration ledger"
-    assert len(out["pending"]) == 6 - state
+    assert len(out["pending"]) == 7 - state
     assert all(len(p["checksum"]) == 64 for p in out["pending"])
 
 
@@ -201,7 +201,7 @@ def test_approval_value_is_never_echoed_in_a_refusal():
 def test_approved_apply_on_a_clean_database_migrates_and_is_idempotent():
     d = RecordingDB()
     out = gate.apply(d, dry_run=False, purpose=gate.PURPOSE, env=APPROVED)
-    assert out["mode"] == "applied" and len(out["log"]) == 6
+    assert out["mode"] == "applied" and len(out["log"]) == 7
     assert gate.probe(d)["fully_migrated"] is True
     d.statements.clear()
     again = gate.apply(d, dry_run=False, purpose=gate.PURPOSE, env=APPROVED)

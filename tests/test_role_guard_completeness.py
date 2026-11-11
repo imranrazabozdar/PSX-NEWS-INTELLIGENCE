@@ -64,7 +64,7 @@ def test_commented_create_table_is_not_counted(tmp_path):
 
 def test_the_derived_sets_are_not_empty_and_match_the_directories():
     assert len(OPERATIONAL_TABLES) > 50  # the news schema
-    assert len(ARCHIVE_TABLES) == 13  # the archive schema, all 13 tables
+    assert len(ARCHIVE_TABLES) == 16  # the archive schema, all 16 tables
     assert PORTFOLIO_TABLES
     assert tables_created_by(DATABASE_DIR / "archive_migrations") == ARCHIVE_TABLES
 
