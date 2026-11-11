@@ -21,7 +21,7 @@ import pytest
 
 from engines import pdf_extraction as pe
 from engines import pdf_reader as pr
-from engines import statement_pipeline as sp
+from scripts import real_report_text
 from scripts.financial_intake import EXTRACTOR_VERSION
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -107,49 +107,7 @@ def test_status_flags_are_explicit_for_every_unreproduced_figure():
 
 
 def _pipeline(key: str, period: str | None = None) -> dict:
-    m = _manifest(key)
-    layout = {}
-    for name in m["page_files"]:
-        mm = re.match(r"page-(\d{3})([LR]?)\.txt$", name)
-        page, side = int(mm.group(1)), mm.group(2)
-        layout[(page, side)] = _lines((REAL / key / name).read_text(encoding="utf-8"))
-    pages = [
-        pe.Page(number=p, lines=lines, has_text=True, extraction_method="pdftotext_layout")
-        for (p, side), lines in sorted(layout.items())
-        if side == ""
-    ]
-    doc = pe.DocumentText(pages)
-
-    def region_reader(page: int, side: str) -> list[str]:
-        return layout[(page, side)]
-
-    regions = {}
-    for k, v in m.get("statement_regions", {}).items():
-        # one (page, side) pair, or a list of pairs for a statement printed across both halves of a spread
-        regions[k] = [tuple(x) for x in v] if isinstance(v[0], list) else tuple(v)
-    extracted = sp.extract(
-        doc,
-        columns=m["columns"],
-        statement_pages=m["statement_pages"] or None,
-        statement_regions=regions or None,
-        region_reader=region_reader if regions else None,
-    )
-    tagged = sp.tag(
-        extracted,
-        document={
-            "document_id": key,
-            "file_hash": m["source_sha256"],
-            "symbol": key.upper(),
-            "period_end": m["period_end"],
-            "currency": m["currency"],
-            "unit_scale": m["unit_scale"],
-            "consolidation": m["consolidation"],
-        },
-        extractor_version=m["extractor_version"],
-        mapping=sp.load_mappings(framework=m["framework"]),
-        framework=m["framework"],
-    )
-    return sp.reconcile(tagged, period_end=period or m["period_end"])
+    return real_report_text.pipeline(key, period)
 
 
 @pytest.mark.parametrize("key", REPORTS)

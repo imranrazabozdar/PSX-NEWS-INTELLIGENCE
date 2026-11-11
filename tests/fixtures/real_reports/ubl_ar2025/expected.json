@@ -132,6 +132,56 @@
       "column": "2025-12-31",
       "closing_printed": "498,731,566",
       "note": "closing 'Balance as at December 31, 2025' row"
+    },
+    {
+      "statement": "BS",
+      "page": 43,
+      "side": "R",
+      "check": "balance_sheet",
+      "status": "reconciled",
+      "column": "2024-12-31",
+      "closing_printed": "8,063,132,134",
+      "note": "2024 comparative: total assets"
+    },
+    {
+      "statement": "IS",
+      "page": 44,
+      "side": "L",
+      "check": "income_statement",
+      "status": "reconciled",
+      "column": "2024-12-31",
+      "closing_printed": "80,527,534",
+      "note": "2024 comparative: profit after taxation"
+    },
+    {
+      "statement": "OCI",
+      "page": 44,
+      "side": "R",
+      "check": "comprehensive_income",
+      "status": "reconciled",
+      "column": "2024-12-31",
+      "closing_printed": "121,913,442",
+      "note": "2024 comparative: total comprehensive income"
+    },
+    {
+      "statement": "CF",
+      "page": 45,
+      "side": "R",
+      "check": "cash_flow",
+      "status": "reconciled",
+      "column": "2024-12-31",
+      "closing_printed": "369,714,157",
+      "note": "2024 comparative: closing cash"
+    },
+    {
+      "statement": "EQ",
+      "page": 45,
+      "side": "L",
+      "check": "equity_statement",
+      "status": "reconciled",
+      "column": "2024-12-31",
+      "closing_printed": "316,222,251",
+      "note": "2024 comparative: 'Balance as at December 31, 2024'"
     }
   ]
 }
