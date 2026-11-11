@@ -42,7 +42,8 @@ def test_symbols_are_unique_case_insensitively():
 
 
 def test_the_count_is_the_file_plus_seed_only_plus_requested_unverified():
-    assert WATCHLIST["count"] == WATCHLIST["owner_source"]["rows"] + 11 + 1  # 96 + 11 seed-only + SNGPL
+    # 96 owner-file rows + 11 seed-only + the owner-requested symbols absent from the file (SNGPL, ASL, BPL)
+    assert WATCHLIST["count"] == WATCHLIST["owner_source"]["rows"] + 11 + 3
 
 
 def test_every_owner_requested_symbol_is_in_the_watchlist():
@@ -59,7 +60,7 @@ def test_every_seed_company_is_in_the_watchlist_and_flagged_in_scope():
 
 def test_unverified_names_are_marked_and_listed_for_review_and_only_those():
     marked = {c["symbol"] for c in COMPANIES if c["name"] == "UNVERIFIED" or c["sector"] == "UNVERIFIED"}
-    assert marked == set(WATCHLIST["unverified_for_owner_review"]) == {"ECPL", "SNGPL"}
+    assert marked == set(WATCHLIST["unverified_for_owner_review"]) == {"ECPL", "SNGPL", "ASL", "BPL"}
     assert all(
         c["name"] == "UNVERIFIED" and c["sector"] == "UNVERIFIED" for c in COMPANIES if c["symbol"] in marked
     )
