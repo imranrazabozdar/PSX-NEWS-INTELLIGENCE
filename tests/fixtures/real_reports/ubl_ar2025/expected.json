@@ -74,13 +74,64 @@
   },
   "pipeline_checks": {
     "balance_sheet": "RECONCILED",
-    "income_statement": "RECONCILED",
+    "cash_flow": "RECONCILED",
+    "equity_statement": "RECONCILED",
     "comprehensive_income": "RECONCILED",
-    "cash_flow": "INSUFFICIENT_DATA"
+    "income_statement": "RECONCILED"
   },
   "pipeline_reported": {
     "income_statement": 128008847.0,
     "balance_sheet": 12620193445.0,
     "comprehensive_income": 237707671.0
-  }
+  },
+  "statements": [
+    {
+      "statement": "BS",
+      "page": 43,
+      "side": "R",
+      "check": "balance_sheet",
+      "status": "reconciled",
+      "column": "2025-12-31",
+      "closing_printed": "12,620,193,445",
+      "note": "total assets (unlabelled row); liabilities and equity inferred from their components"
+    },
+    {
+      "statement": "IS",
+      "page": 44,
+      "side": "L",
+      "check": "income_statement",
+      "status": "reconciled",
+      "column": "2025-12-31",
+      "closing_printed": "128,008,847"
+    },
+    {
+      "statement": "OCI",
+      "page": 44,
+      "side": "R",
+      "check": "comprehensive_income",
+      "status": "reconciled",
+      "column": "2025-12-31",
+      "closing_printed": "237,707,671",
+      "note": "OCI block; total comprehensive income = PAT + OCI"
+    },
+    {
+      "statement": "CF",
+      "page": 45,
+      "side": "R",
+      "check": "cash_flow",
+      "status": "reconciled",
+      "column": "2025-12-31",
+      "closing_printed": "604,826,656"
+    },
+    {
+      "statement": "EQ",
+      "page": 45,
+      "side": "L",
+      "check": "equity_statement",
+      "status": "reconciled",
+      "column": "2025-12-31",
+      "closing_printed": "498,731,566",
+      "note": "closing 'Balance as at December 31, 2025' row"
+    }
+  ]
 }

@@ -35,9 +35,10 @@ REPORTS = {
         "period_end": "2025-12-31", "columns": ["2025-12-31", "2024-12-31"], "unit_scale": 1000,
         "currency": "PKR", "consolidation": "unconsolidated", "framework": "bank",
         "pages": [42, 43, 44, 45, 98],
-        "regions": [[43, "R"], [44, "L"], [44, "R"]],
+        "regions": [[43, "R"], [44, "L"], [44, "R"], [45, "L"], [45, "R"]],
         "statement_pages": {},
-        "statement_regions": {"BS": [43, "R"], "IS": [44, "L"], "OCI": [44, "R"]},
+        "statement_regions": {"BS": [43, "R"], "IS": [44, "L"], "OCI": [44, "R"], "CF": [45, "R"],
+                              "EQ": [45, "L"]},
         "auditor_pages": [41, 42], "kam_pages": [42], "words_pages": [42, 98],
     },
     "luck_ar2026": {

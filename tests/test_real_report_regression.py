@@ -106,7 +106,7 @@ def test_status_flags_are_explicit_for_every_unreproduced_figure():
 # ------------------------------------------------------------------ the pipeline reproduces the record
 
 
-def _pipeline(key: str) -> dict:
+def _pipeline(key: str, period: str | None = None) -> dict:
     m = _manifest(key)
     layout = {}
     for name in m["page_files"]:
@@ -149,7 +149,7 @@ def _pipeline(key: str) -> dict:
         mapping=sp.load_mappings(framework=m["framework"]),
         framework=m["framework"],
     )
-    return sp.reconcile(tagged, period_end=m["period_end"])
+    return sp.reconcile(tagged, period_end=period or m["period_end"])
 
 
 @pytest.mark.parametrize("key", REPORTS)
@@ -317,3 +317,37 @@ def test_ubl_oci_components_equal_the_printed_total_on_page_45():
     components = [508221, 93877970, 3213232, 12099401]  # the p.44 right-half OCI lines (all printed)
     assert sum(components) == printed_p45 == 109698824
     assert next(c for c in rec["checks"] if c["check"] == "comprehensive_income")["status"] == "RECONCILED"
+
+
+@pytest.mark.parametrize("key", REPORTS)
+def test_every_statement_is_reconciled_or_flagged_with_page_evidence(key):
+    """Five-statement coverage: balance sheet, P&L, OCI, cash flow, changes in equity. Each entry names its
+    page (and spread side) and its closing figure, which must be printed there. A statement is reconciled by
+    the pipeline from the same text, or recorded as requires_review with a reason."""
+    m, e = _manifest(key), _expected(key)
+    for st in e["statements"]:
+        side = st["side"].replace("/", "")
+        names = [f"page-{st['page']:03d}{x}.txt" for x in (side if side else [""])]
+        for n in names:
+            assert n in m["page_files"], (key, st["statement"], n)
+        if st["closing_printed"]:
+            text = _file_text(key, st["page"], side if len(side) == 1 else "")
+            assert _norm(st["closing_printed"]) in text, (key, st["statement"], st["closing_printed"])
+        assert st["status"] in ("reconciled", "requires_review")
+
+
+@pytest.mark.parametrize(
+    "key,period",
+    [
+        ("ubl_ar2025", "2025-12-31"),
+        ("luck_ar2026", "2026-06-30"),
+        ("luck_ar2026", "2025-06-30"),
+        ("ogdc_ar2026_standalone", "2026-06-30"),
+    ],
+)
+def test_pipeline_reconciles_each_recorded_statement_for_each_column(key, period):
+    rec = _pipeline(key, period)
+    got = {c["check"]: c["status"] for c in rec["checks"]}
+    expected_checks = {st["check"] for st in _expected(key)["statements"] if st["column"] == period}
+    for check in expected_checks:
+        assert got.get(check) == "RECONCILED", (key, period, check, got.get(check))

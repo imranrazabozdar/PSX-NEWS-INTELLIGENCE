@@ -286,6 +286,7 @@ def extract(
     regions = statement_regions or {}
     pages = statement_pages or pe.locate_statements(doc)
     lines, unparsed, used = [], [], {}
+    raw_lines: dict[str, list[str]] = {}  # text of statements whose figures are read by a dedicated parser
     for st in ("BS", "IS", "OCI", "CF", "EQ"):
         if st in regions:
             if region_reader is None:
@@ -307,6 +308,8 @@ def extract(
                     ]
                 )
                 r = pe.to_statement_lines(rdoc, st, [page], columns=columns)
+                if st == "EQ":
+                    raw_lines.setdefault("EQ", []).extend(region_lines)
                 lines.extend({**ln, "statement": st} for ln in r["lines"])
                 unparsed.extend({**u, "statement": st} for u in r["unparsed"])
             continue
@@ -314,12 +317,15 @@ def extract(
             continue
         used[st] = pages[st]
         r = pe.to_statement_lines(doc, st, pages[st], columns=columns)
+        if st == "EQ":
+            raw_lines["EQ"] = [ln for pg in doc.pages if pg.number in pages[st] for ln in pg.lines]
         lines.extend({**ln, "statement": st} for ln in r["lines"])
         unparsed.extend({**u, "statement": st} for u in r["unparsed"])
     scanned = [p.number for p in doc.pages if not p.has_text]
     nx = ne.extract_notes(doc, columns=columns)
     return {
         "lines": lines,
+        "raw_lines": raw_lines,
         "unparsed": unparsed,
         "statement_pages": used,
         "scanned_pages": scanned,
@@ -458,6 +464,7 @@ def tag(extracted: dict, *, document: dict, extractor_version: str, mapping, fra
         )
     return {
         "lines": tagged,
+        "raw_lines": extracted.get("raw_lines", {}),
         "unparsed": extracted["unparsed"],
         "scanned_pages": extracted["scanned_pages"],
         "statement_pages": extracted["statement_pages"],
@@ -576,6 +583,13 @@ def reconcile(tagged: dict, *, period_end: str, prior: dict | None = None) -> di
         if printed_oci is None:  # bank layout: no printed total, so the components give the OCI
             v["other_comprehensive_income"] = comp_oci
     checks = [rec.balance_sheet(period_end, v), rec.cash_flow(period_end, v)]
+    eq_lines = tagged.get("raw_lines", {}).get("EQ")
+    if eq_lines:  # the statement of changes in equity closes at the balance sheet's total equity
+        from engines import equity_statement as eqs
+
+        closing = eqs.closing_total(eq_lines, period_end)
+        checks.append(rec.equity_statement(
+            period_end, closing["total"] if closing else None, v.get("total_equity")))
     if v.get("other_comprehensive_income") is not None:  # printed total or summed components
         checks.append(rec.comprehensive_income(period_end, v))
     if printed_oci is not None and comp_oci is not None:  # the printed total must equal its components
@@ -646,6 +660,7 @@ def audit_payload(audit: dict) -> dict:
 
 
 _CHECK_STATEMENT = {
+    "equity_statement": "EQ",
     "balance_sheet": "BS",
     "income_statement": "IS",
     "comprehensive_income": "OCI",
@@ -664,7 +679,7 @@ def statuses_for(tagged: dict, reconciliation: dict, *, ias7_status: str | None 
     consolidation = lines[0]["consolidation"] if lines else "unconsolidated"
     statements: list[dict] = []
     stmt_status: dict[tuple[str, str], str] = {}
-    for stmt in ("BS", "IS", "OCI", "CF"):
+    for stmt in ("BS", "IS", "OCI", "CF", "EQ"):
         columns = sorted({c["column_period_end"] for c in reconciliation["checks"]
                           if _CHECK_STATEMENT.get(c["check"]) == stmt} |
                          {ln["column_period_end"] for ln in lines if ln["statement_type"] == stmt})
@@ -680,7 +695,7 @@ def statuses_for(tagged: dict, reconciliation: dict, *, ias7_status: str | None 
                                "column_period_end": col, "status": status, "reason": reason})
     facts: list[dict] = []
     for ln in lines:
-        if ln["statement_type"] not in ("BS", "IS", "OCI", "CF"):
+        if ln["statement_type"] not in ("BS", "IS", "OCI", "CF", "EQ"):
             continue
         status, reason = sv.fact_status(ln.get("canonical_code"), ln["statement_type"], ias7=ias7_status)
         if status == "reconciled":

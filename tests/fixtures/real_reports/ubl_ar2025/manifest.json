@@ -23,7 +23,9 @@
     "page-098.txt",
     "page-043R.txt",
     "page-044L.txt",
-    "page-044R.txt"
+    "page-044R.txt",
+    "page-045L.txt",
+    "page-045R.txt"
   ],
   "word_files": [
     "words-042.json",
@@ -42,6 +44,14 @@
     "OCI": [
       44,
       "R"
+    ],
+    "CF": [
+      45,
+      "R"
+    ],
+    "EQ": [
+      45,
+      "L"
     ]
   },
   "auditor_pages": [

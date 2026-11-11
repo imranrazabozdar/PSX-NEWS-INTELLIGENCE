@@ -119,7 +119,107 @@
     "income_statement": "RECONCILED",
     "comprehensive_income": "RECONCILED",
     "oci_components": "RECONCILED",
-    "cash_flow": "RECONCILED"
+    "cash_flow": "RECONCILED",
+    "equity_statement": "RECONCILED"
   },
-  "pipeline_reported": {}
+  "pipeline_reported": {},
+  "statements": [
+    {
+      "statement": "BS",
+      "page": 38,
+      "side": "",
+      "check": "balance_sheet",
+      "status": "reconciled",
+      "column": "2026-06-30",
+      "closing_printed": "216,641,607",
+      "note": "total equity, printed on p.38"
+    },
+    {
+      "statement": "IS",
+      "page": 39,
+      "side": "",
+      "check": "income_statement",
+      "status": "reconciled",
+      "column": "2026-06-30",
+      "closing_printed": "46,629,367"
+    },
+    {
+      "statement": "OCI",
+      "page": 40,
+      "side": "",
+      "check": "oci_components",
+      "status": "reconciled",
+      "column": "2026-06-30",
+      "closing_printed": "(38,160)"
+    },
+    {
+      "statement": "CF",
+      "page": 41,
+      "side": "",
+      "check": "cash_flow",
+      "status": "reconciled",
+      "column": "2026-06-30",
+      "closing_printed": "91,943,925"
+    },
+    {
+      "statement": "EQ",
+      "page": 42,
+      "side": "",
+      "check": "equity_statement",
+      "status": "reconciled",
+      "column": "2026-06-30",
+      "closing_printed": "216,641,607",
+      "note": "closing 'Balance as at June 30, 2026' row"
+    },
+    {
+      "statement": "BS",
+      "page": 38,
+      "side": "",
+      "check": "balance_sheet",
+      "status": "reconciled",
+      "column": "2025-06-30",
+      "closing_printed": "175,910,400",
+      "note": "2025 comparative: equity"
+    },
+    {
+      "statement": "CF",
+      "page": 41,
+      "side": "",
+      "check": "cash_flow",
+      "status": "reconciled",
+      "column": "2025-06-30",
+      "closing_printed": "64,088,375",
+      "note": "2025 comparative"
+    },
+    {
+      "statement": "EQ",
+      "page": 42,
+      "side": "",
+      "check": "equity_statement",
+      "status": "reconciled",
+      "column": "2025-06-30",
+      "closing_printed": "175,910,400",
+      "note": "2025 comparative: 'Balance as at June 30, 2025'"
+    },
+    {
+      "statement": "OCI",
+      "page": 40,
+      "side": "",
+      "check": "oci_components",
+      "status": "reconciled",
+      "column": "2025-06-30",
+      "closing_printed": "(548,039)",
+      "note": "2025 comparative: OCI total"
+    },
+    {
+      "statement": "IS",
+      "page": 39,
+      "side": "",
+      "check": "income_statement",
+      "status": "reconciled",
+      "column": "2025-06-30",
+      "closing_printed": "33,092,162",
+      "note": "2025 comparative"
+    }
+  ]
 }

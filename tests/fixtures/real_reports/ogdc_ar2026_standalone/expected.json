@@ -111,7 +111,58 @@
     "income_statement": "RECONCILED",
     "oci_components": "RECONCILED",
     "comprehensive_income": "RECONCILED",
-    "cash_flow": "RECONCILED"
+    "cash_flow": "RECONCILED",
+    "equity_statement": "RECONCILED"
   },
-  "pipeline_reported": {}
+  "pipeline_reported": {},
+  "statements": [
+    {
+      "statement": "BS",
+      "page": 8,
+      "side": "L/R",
+      "check": "balance_sheet",
+      "status": "reconciled",
+      "column": "2026-06-30",
+      "closing_printed": "1,852,828,189",
+      "note": "two-column balance sheet; equity 1,519,550,164 and total assets are unlabelled rows"
+    },
+    {
+      "statement": "IS",
+      "page": 9,
+      "side": "L",
+      "check": "income_statement",
+      "status": "reconciled",
+      "column": "2026-06-30",
+      "closing_printed": "242,373,646",
+      "note": "profit for the year"
+    },
+    {
+      "statement": "OCI",
+      "page": 9,
+      "side": "R",
+      "check": "oci_components",
+      "status": "reconciled",
+      "column": "2026-06-30",
+      "closing_printed": "(2,246,324)"
+    },
+    {
+      "statement": "CF",
+      "page": 10,
+      "side": "",
+      "check": "cash_flow",
+      "status": "reconciled",
+      "column": "2026-06-30",
+      "closing_printed": "291,123,943"
+    },
+    {
+      "statement": "EQ",
+      "page": 10,
+      "side": "L",
+      "check": "equity_statement",
+      "status": "reconciled",
+      "column": "2026-06-30",
+      "closing_printed": "1,519,550,164",
+      "note": "closing 'Balance as at 30 June 2026' row"
+    }
+  ]
 }

@@ -87,6 +87,20 @@ def balance_sheet(period: str, v: dict[str, float | None]) -> Check:
     )
 
 
+def equity_statement(period: str, closing_total: float | None, bs_total_equity: float | None) -> Check:
+    """Cross-statement identity: the statement of changes in equity closes at the balance sheet's total
+    equity."""
+    return identity(
+        "equity_statement",
+        period,
+        "equity_statement_closing",
+        {"total_equity": None},
+        lambda p: p["total_equity"],
+        terms=2,
+        values={"equity_statement_closing": closing_total, "total_equity": bs_total_equity},
+    )
+
+
 def cash_flow(period: str, v: dict[str, float | None]) -> Check:
     """Opening cash + net movement + effect of exchange rate changes on cash = closing cash. The FX line is
     printed separately in banking and multinational statements; when it is present it is part of the identity
