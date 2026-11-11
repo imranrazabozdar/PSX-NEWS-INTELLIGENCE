@@ -4,12 +4,17 @@ Standard library only. The input is the raw text of one declaration (for example
 PDF stream, or a text fixture). Nothing here reads a file, opens a URL or calls a PDF library.
 
 Conventions
-* Figures are returned exactly as printed, in the units the document prints (usually PKR thousands). A
-  warning says so when the text states the units. Nothing is rescaled.
+* The `*` fields are as printed. Units come from the text: "in thousand" or "'000" gives scale 1000,
+  "in million" gives scale 1000000, and nothing stated gives scale 1. Values are never rescaled.
+* `currency` is "PKR" or "USD" from the text, or None when neither is stated.
+* The `*_pkr` properties are the canonical rupee figures (printed value x scale). They are None unless
+  `currency` is "PKR", so a dollar statement is never labelled as rupees.
 * Brackets mean negative: "(1,234,567)" -> -1234567.0. A cost printed in brackets is therefore negative.
 * A dash or "nil" printed as a value is 0.0. A figure that is not printed at all is None.
 * The first figure on a row is the current period. Statements with several columns print the current
-  quarter first. A leading 1-2 digit note reference before three or more figures is dropped.
+  period first. A note reference (1 to 2 digits) before the figures is dropped when the statement has a
+  Note column, or when the row has three or more figures.
+* A label printed on more than one line is joined back together.
 * The symbol is an argument, never guessed from the text.
 * Only the labels listed in _classify() are read. An unrecognised label is ignored.
 """
@@ -40,8 +45,27 @@ _PERIOD_TYPE = {
 _DIVIDEND_SENTENCE = re.compile(
     r"dividend[^.]{0,80}?Rs\.?\s*(\d+(?:\.\d+)?)\s*(?:per share|/share)", re.IGNORECASE
 )
-_THOUSANDS = re.compile(r"in thousands?|'000|rupees? in thousand", re.IGNORECASE)
-_MILLIONS = re.compile(r"in millions?", re.IGNORECASE)
+_UNIT_THOUSAND = re.compile(r"in thousands?|[‘’']000|rupees? in thousand", re.IGNORECASE)
+_UNIT_MILLION = re.compile(r"in millions?", re.IGNORECASE)
+_NOTE_HEADER = re.compile(r"\bNote\b")
+_USD = re.compile(r"\bUS\s*Dollars?\b|\bUSD\b", re.IGNORECASE)
+_PKR = re.compile(r"\bRs\b|\bRupees\b|\bPKR\b", re.IGNORECASE)
+_CONNECTORS = frozenset({"to", "of", "and", "with", "from", "for", "in", "the", "by", "on", "-", "–", "/"})
+# When a label occurs more than once, a line that ends like a statement total is preferred.
+_PREFERRED_ENDINGS = {
+    "profit_before_tax": ("tax", "taxation"),
+    "profit_after_tax": ("tax", "taxation", "period", "year"),
+}
+_FIELDS = (
+    "turnover",
+    "cost_of_sales",
+    "gross_profit",
+    "operating_profit",
+    "profit_before_tax",
+    "profit_after_tax",
+    "eps",
+    "dividend_pkr",
+)
 
 
 @dataclass(frozen=True)
@@ -57,7 +81,38 @@ class PucarFinancialResult:
     profit_after_tax: float | None
     eps: float | None
     dividend_pkr: float | None
+    scale: int = 1
+    currency: str | None = None
     warnings: tuple[str, ...] = ()
+
+    def _pkr(self, value: float | None) -> float | None:
+        if value is None or self.currency != "PKR":
+            return None
+        return value * self.scale
+
+    @property
+    def turnover_pkr(self) -> float | None:
+        return self._pkr(self.turnover)
+
+    @property
+    def cost_of_sales_pkr(self) -> float | None:
+        return self._pkr(self.cost_of_sales)
+
+    @property
+    def gross_profit_pkr(self) -> float | None:
+        return self._pkr(self.gross_profit)
+
+    @property
+    def operating_profit_pkr(self) -> float | None:
+        return self._pkr(self.operating_profit)
+
+    @property
+    def profit_before_tax_pkr(self) -> float | None:
+        return self._pkr(self.profit_before_tax)
+
+    @property
+    def profit_after_tax_pkr(self) -> float | None:
+        return self._pkr(self.profit_after_tax)
 
 
 # --------------------------------------------------------------------------- numbers
@@ -75,22 +130,45 @@ def parse_number(token: str) -> float | None:
     return -value if negative else value
 
 
-def _split_row(line: str) -> tuple[str, list[float]] | None:
-    """Split one line into its label and its trailing figures. Returns None for lines without figures."""
-    tokens = line.split()
-    values: list[float] = []
-    i = len(tokens)
+def _numeric_run(cell: str) -> list[tuple[str, float]] | None:
+    """The figures in a cell when every token of it is a figure; None when any token is not."""
+    items = []
+    for token in cell.split():
+        value = parse_number(token)
+        if value is None:
+            return None
+        items.append((token, value))
+    return items or None
+
+
+def _split_row(line: str, has_note: bool) -> tuple[str, list[float]] | None:
+    """Split one line into its label and its figures. Returns None for lines without figures.
+
+    Cells are separated by runs of two or more spaces. The label is the first cell, and figures are taken
+    only from the numeric cells directly after it, so a table printed further along the same line is never
+    read as this row's figures."""
+    cells = [c for c in re.split(r"\s{2,}", line.strip()) if c]
+    if not cells:
+        return None
+    head = cells[0].split()
+    items: list[tuple[str, float]] = []
+    i = len(head)
     while i > 0:
-        value = parse_number(tokens[i - 1])
+        value = parse_number(head[i - 1])
         if value is None:
             break
-        values.append(value)
+        items.insert(0, (head[i - 1], value))
         i -= 1
-    label = " ".join(tokens[:i]).strip(" .:")
-    if not values or not label or not re.search(r"[A-Za-z]", label):
+    label = " ".join(head[:i]).strip(" .:")
+    for cell in cells[1:]:
+        run = _numeric_run(cell)
+        if run is None:
+            break
+        items.extend(run)
+    if not items or not label or not re.search(r"[A-Za-z]", label):
         return None
-    values.reverse()
-    if len(values) >= 3 and _NOTE_REF.match(tokens[i]):
+    values = [v for _, v in items]
+    if _NOTE_REF.match(items[0][0]) and (len(values) >= 3 or (has_note and len(values) >= 2)):
         values = values[1:]  # a note reference, not a figure
     return label, values
 
@@ -107,12 +185,12 @@ def _normalise(label: str) -> str:
 
 def _classify(label: str) -> str | None:
     n = _normalise(label)
-    if "per share" in n and "dividend" in n:
-        return "dividend_pkr"
+    if n.startswith("gross revenue"):
+        return None  # before sales tax and rebates; turnover is the net figure
+    if "dividend" in n and "income" not in n and ("per share" in n or " rs" in f" {n}"):
+        return "dividend_pkr"  # a per-share dividend, not the dividend income a bank earns
     if "per share" in n or n.startswith(("eps", "basic eps")):
         return "eps"
-    if "dividend" in n:
-        return "dividend_pkr"
     if n.startswith("cost of"):
         return "cost_of_sales"
     if n.startswith("gross"):
@@ -133,13 +211,36 @@ def _classify(label: str) -> str | None:
         "after tax" in n or re.search(r"for the (period|year|quarter|half year|nine months)", n)
     ):
         return "profit_after_tax"
-    if n.startswith(("sales", "net sales", "turnover", "revenue", "net markup", "net mark up")):
+    if n.startswith(
+        ("sales", "net sales", "net revenue", "turnover", "revenue", "net markup", "net mark up")
+    ):
         return "turnover"
     return None
 
 
-def _period(text: str, warnings: list[str]) -> tuple[date | None, str | None]:
-    m = _PERIOD.search(text)
+def _continues(previous: str, following: str) -> bool:
+    """True when `following` is the rest of a label that began on `previous`."""
+    if not previous or not following:
+        return False
+    if following[0].islower():
+        return True
+    last = previous.split()[-1].lower().rstrip(",")
+    if last in _CONNECTORS or previous.rstrip().endswith(("-", "–", "/")):
+        return True
+    return "per share" in _normalise(previous) and _normalise(following).startswith(("basic", "diluted"))
+
+
+def _pick(field: str, candidates: list[tuple[str, float]]) -> float:
+    """The first candidate, unless a later one ends the way a statement total does."""
+    for label, value in candidates:
+        words = _normalise(label).split()
+        if words and words[-1] in _PREFERRED_ENDINGS.get(field, ()):
+            return value
+    return candidates[0][1]
+
+
+def _period(flat: str, warnings: list[str]) -> tuple[date | None, str | None]:
+    m = _PERIOD.search(flat)
     if not m:
         warnings.append("period end date not found")
         return None, None
@@ -180,6 +281,25 @@ def _parse_date(raw: str) -> date | None:
     return None
 
 
+def _units(flat: str, warnings: list[str]) -> tuple[int, str | None]:
+    if _USD.search(flat):
+        currency = "USD"  # checked first: a dollar statement may also quote a rupee rate
+    elif _PKR.search(flat):
+        currency = "PKR"
+    else:
+        currency = None
+    if _UNIT_THOUSAND.search(flat):
+        scale = 1000
+    elif _UNIT_MILLION.search(flat):
+        scale = 1_000_000
+    else:
+        scale = 1
+        warnings.append("units not stated; figures are taken as printed")
+    if currency != "PKR":
+        warnings.append(f"currency is {currency or 'not stated'}; PKR figures are not provided")
+    return scale, currency
+
+
 # --------------------------------------------------------------------------- parser
 
 
@@ -188,44 +308,47 @@ def parse_pucar_text(text: str, symbol: str) -> PucarFinancialResult:
     sym = (symbol or "").strip().upper()
     if not sym:
         raise ValueError("symbol is required; it is never inferred from the text")
+    flat = re.sub(r"\s+", " ", text.replace(" ", " "))
     warnings: list[str] = []
-    period_ended, period_type = _period(text, warnings)
-    if _THOUSANDS.search(text):
-        warnings.append("figures are printed in thousands; returned as printed, not rescaled")
-    elif _MILLIONS.search(text):
-        warnings.append("figures are printed in millions; returned as printed, not rescaled")
+    period_ended, period_type = _period(flat, warnings)
+    scale, currency = _units(flat, warnings)
+    has_note = bool(_NOTE_HEADER.search(flat))
 
-    found: dict[str, list[float]] = {}
+    found: dict[str, list[tuple[str, float]]] = {}
+    pending = ""
     for raw_line in text.splitlines():
-        line = re.sub(r"\s+", " ", raw_line.replace(" ", " ")).strip()
-        row = _split_row(line)
+        line = raw_line.replace("\u00a0", " ").replace("\t", "    ").strip()  # keep column gaps
+        if not line:
+            pending = ""
+            continue
+        row = _split_row(line, has_note)
         if row is None:
+            if re.search(r"[A-Za-z]", line):
+                text_line = " ".join(line.split())
+                pending = f"{pending} {text_line}" if _continues(pending, text_line) else text_line
+            else:
+                pending = ""
             continue
         label, values = row
+        if pending and _continues(pending, label):
+            label = f"{pending} {label}"
+        pending = ""
         field = _classify(label)
         if field is not None:
-            found.setdefault(field, []).append(values[0])
+            found.setdefault(field, []).append((label, values[0]))
 
     if "dividend_pkr" not in found:
-        sentence = _DIVIDEND_SENTENCE.search(text)
+        sentence = _DIVIDEND_SENTENCE.search(flat)
         if sentence:
-            found["dividend_pkr"] = [float(sentence.group(1))]
+            found["dividend_pkr"] = [("dividend sentence", float(sentence.group(1)))]
 
     values: dict[str, float | None] = {}
-    for field in (
-        "turnover",
-        "cost_of_sales",
-        "gross_profit",
-        "operating_profit",
-        "profit_before_tax",
-        "profit_after_tax",
-        "eps",
-        "dividend_pkr",
-    ):
-        seen = found.get(field, [])
-        values[field] = seen[0] if seen else None
-        if len(set(seen)) > 1:
-            warnings.append(f"{field} appears {len(seen)} times with different values; the first is used")
+    for field in _FIELDS:
+        candidates = found.get(field, [])
+        values[field] = _pick(field, candidates) if candidates else None
+        distinct = {v for _, v in candidates}
+        if len(distinct) > 1:
+            warnings.append(f"{field} appears {len(candidates)} times with different values; one is used")
 
     missing = [f for f, v in values.items() if v is None]
     if missing:
@@ -235,6 +358,8 @@ def parse_pucar_text(text: str, symbol: str) -> PucarFinancialResult:
         symbol=sym,
         period_ended=period_ended,
         period_type=period_type,
+        scale=scale,
+        currency=currency,
         warnings=tuple(warnings),
         **values,
     )
