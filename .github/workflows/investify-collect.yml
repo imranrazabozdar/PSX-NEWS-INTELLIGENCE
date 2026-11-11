@@ -1,0 +1,81 @@
+# Investify announcements, collected under written consent (docs/consent/investify-2026-11-12.md).
+#
+# * Scheduled every 15 minutes on weekdays from 04:00 to 11:59 UTC (09:00-16:59 PKT). The in-code gate
+#   (collectors/investify_policy.py) enforces the exact trading window (09:00-16:30 PKT), the 15-minute rate
+#   limit, the consent effective date, robots.txt and backoff. The schedule is a ceiling, not the rule.
+# * Scheduled runs happen only from the default branch, so nothing runs until the owner merges.
+# * Kill switch: repository variable PSXNI_KILL_SWITCH = "true" stops every run.
+# * Needs secrets PSXNI_TURSO_DATABASE_URL and PSXNI_TURSO_AUTH_TOKEN (the news database). Without them the job
+#   reports that it is not configured and writes nothing.
+# * The polling state (last request, ETag, Last-Modified, backoff, robots.txt) is kept between runs in the
+#   Actions cache. Without it the rate limit could not hold across runs, so a missing state file is treated as
+#   a first run only if the cache is genuinely empty.
+# * Each run makes at most one HTTP request to investify.pk. Metadata only is stored. PDFs are never fetched.
+name: Investify announcements (consented)
+
+on:
+  schedule:
+    - cron: "7,22,37,52 4-11 * * 1-5"   # every 15 minutes, weekdays; jittered off the hour
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run: fetch and parse only, write nothing (the default)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: investify-collection
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PSXNI_KILL_SWITCH: ${{ vars.PSXNI_KILL_SWITCH }}
+      PSXNI_TURSO_DATABASE_URL: ${{ secrets.PSXNI_TURSO_DATABASE_URL }}
+      PSXNI_TURSO_AUTH_TOKEN: ${{ secrets.PSXNI_TURSO_AUTH_TOKEN }}
+      STATE_FILE: ${{ runner.temp }}/investify_state.json
+      INPUT_DRY_RUN: ${{ inputs.dry_run }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Check configuration
+        id: cfg
+        run: |
+          if [ "${PSXNI_KILL_SWITCH,,}" = "true" ]; then
+            echo "Kill switch is on: no collection."; echo "run=false" >> "$GITHUB_OUTPUT"
+          elif [ -z "$PSXNI_TURSO_DATABASE_URL" ] || [ -z "$PSXNI_TURSO_AUTH_TOKEN" ]; then
+            echo "Turso secrets are not configured: no collection."; echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Restore polling state
+        if: steps.cfg.outputs.run == 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.STATE_FILE }}
+          key: investify-state-${{ github.run_id }}
+          restore-keys: |
+            investify-state-
+      - name: Install dependencies
+        if: steps.cfg.outputs.run == 'true'
+        run: pip install -r requirements.txt
+      - name: Collect (consent-bound)
+        if: steps.cfg.outputs.run == 'true'
+        run: |
+          args=(--state "$STATE_FILE")
+          if [ "$INPUT_DRY_RUN" = "true" ]; then args+=(--dry-run); fi
+          python -m collectors.investify_job "${args[@]}"
+      - name: Save polling state
+        if: steps.cfg.outputs.run == 'true' && always()
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.STATE_FILE }}
+          key: investify-state-${{ github.run_id }}

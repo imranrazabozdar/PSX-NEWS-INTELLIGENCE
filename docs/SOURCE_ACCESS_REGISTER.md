@@ -16,11 +16,12 @@ and its last test can pass while the feed itself is stale.
 | Lifecycle status | Sources |
 |---|---|
 | ACTIVE | 11 |
+| APPROVED | 1 |
 | BLOCKED | 5 |
 | IMPLEMENTED | 1 |
 | LICENCE REQUIRED | 3 |
 | NOT REVIEWED | 38 |
-| RESTRICTED | 7 |
+| RESTRICTED | 6 |
 | REVIEWED | 11 |
 
 ## Sources
@@ -48,7 +49,7 @@ and its last test can pass while the feed itself is stale.
 | 2 | dawn | Dawn (business section) | https://www.dawn.com/ | pakistan_media | rss / rss | approved | unknown | verified_permitted | ACTIVE | passed 2026-11-08 | 2026-11-07T14:26:30Z | fresh | OWNER DECISION 2026-11-08: approved for automated collection, metadata only (headline, link, publisher, timestamps, hash), internal research use, no republishing. Terms evidence 2026-11-08: terms page https://www.dawn.com/terms returns HTTP 403 to automated clients, so not readable; robots.txt does not disallow /feeds/. Previous: Public RSS feed; robots.txt allows (disallows only print/author pages). Terms page not found at https://www.dawn.com/terms. Metadata-only retention. Activation needs owner approval of terms. Live dry-run 2026-11-07: HTTP 200, 30 items parsed, 30 with publication time, newest 2026-11-07T14:26:30Z. |
 | 2 | ead | Economic Affairs Division | https://www.ead.gov.pk/ | government_finance | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Not yet reviewed. |
 | 2 | investify | Investify |  | pakistan_media | unknown | prohibits_automation | permission_required | restricted | RESTRICTED | not_tested |  | unknown | Terms reviewed 2026-11-07 (docs/INVESTIFY_SCS_TRADE_ASSESSMENT.md, PR #6): automated access, scraping and reuse of site content are prohibited without Investify's prior written permission. Not collected. Requires written permission or an authorised data agreement. |
-| 2 | investify_announcements | Investify - PSX announcements listing (aggregator; collector built, DISABLED) | https://www.investify.pk/announcements | pakistan_media | html | prohibits_automation | permission_required | restricted | RESTRICTED | not_tested |  | unknown | Investify Terms (investify.pk/terms, read 2026-11-11): automated systematic collection or storage of Market Information, including announcements, to build or feed a database is prohibited without express written consent. Only search engines and AI retrieval at a reasonable rate are carved out. DISABLED: collector engines/investify_collector.py is parser-only. Enabling requires written consent and owner approval. |
+| 2 | investify_announcements | Investify - PSX announcements listing (aggregator; collector built, DISABLED) | https://www.investify.pk/announcements | pakistan_media | html | approved | permission_required | verified_permitted | APPROVED | not_tested |  | unknown | Written consent from Investify granted 2026-11-12 (owner-reported; record: docs/consent/investify-2026-11-12.md). Conditions: <=1 request per 15 minutes; trading hours Mon-Fri 09:00-16:30 PKT; ETag/If-Modified-Since; robots.txt; backoff on 429/503; attribution to Investify; metadata only; revocable. Collector: collectors/investify_job.py. Owner to confirm investify.com and investify.pk are the same entity. |
 | 2 | mettis | Mettis Global | https://mettisglobal.news/ | pakistan_media | html | not_found | licence_required | unverified | REVIEWED | not_tested |  | unknown | No feed at /feed/ (HTTP 404); sitemap published; robots.txt allows. Terms page not found. PR #7 finding (docs/PSX_ANNOUNCEMENT_ACCESS_INVESTIGATION.md): Mettis Global is a PSX-authorised data redistributor offering the MG Link API for internal or redistribution use under licence. Registered as a potential authorised provider route only; no data may be collected or stored without a written agreement. |
 | 2 | nukta | Nukta (Business / Pakistan) | https://www.nukta.com/ | pakistan_media | unknown | not_reviewed | unknown | unverified | REVIEWED | not_tested |  | unknown | www.nukta.com did not respond from the collection environment (2026-11-07). Official domain to be confirmed. |
 | 2 | planning | Planning Commission | https://www.pc.gov.pk/ | government_policy | unknown | not_reviewed | unknown | unverified | NOT REVIEWED | not_tested |  | unknown | Not yet reviewed. |

@@ -188,14 +188,14 @@ def _entry() -> dict:
     return next(s for s in data["sources"] if s["source_id"] == "investify_announcements")
 
 
-def test_the_source_is_registered_disabled_and_not_active():
+def test_the_source_is_enabled_only_under_consent_and_never_active():
     e = _entry()
-    assert e["enabled"] == 0
-    assert e["lifecycle_status"] == "RESTRICTED" and e["lifecycle_status"] != "ACTIVE"
-    assert e["terms_status"] == "prohibits_automation"
-    assert e["access_method"] == "not_permitted"
+    assert e["enabled"] == 1  # enabled under written consent (docs/consent/investify-2026-11-12.md)
+    assert e["lifecycle_status"] == "APPROVED" and e["lifecycle_status"] != "ACTIVE"
+    assert e["terms_status"] == "approved" and e["access_status"] == "verified_permitted"
+    assert e["access_method"] == "html_permitted" and e["licensing_status"] == "permission_required"
     assert e["retention_mode"] == "metadata_only"
-    assert e["feed_url"] is None and e["adapter"] is None  # no live endpoint is wired up
+    assert e["feed_url"] is None and e["adapter"] is None  # no generic endpoint is wired up
 
 
 def test_the_registry_still_validates():
