@@ -2324,6 +2324,37 @@
    "reviewed_at_utc": null,
    "review_notes": "Owner-attested manual import only (engines/fin_import.py). Per-company IR terms are reviewed under R1; nothing is fetched automatically.",
    "notes": "M2"
+  },
+  {
+   "source_id": "investify_announcements",
+   "name": "Investify - PSX announcements listing (aggregator; collector built, DISABLED)",
+   "source_type": "news_media",
+   "domain": "investify.pk",
+   "platform": null,
+   "official_url": "https://www.investify.pk/announcements",
+   "category": "pakistan_media",
+   "subcategory": "announcements aggregator",
+   "geographic_coverage": "Pakistan",
+   "industries": [
+    "all"
+   ],
+   "priority": 2,
+   "content_format": "html",
+   "feed_url": null,
+   "adapter": null,
+   "retention_mode": "metadata_only",
+   "terms_status": "prohibits_automation",
+   "licensing_status": "permission_required",
+   "verification_status": "url_verified",
+   "access_status": "restricted",
+   "access_method": "not_permitted",
+   "lifecycle_status": "RESTRICTED",
+   "reliability_tier": "unrated",
+   "collection_frequency_minutes": null,
+   "enabled": 0,
+   "reviewed_at_utc": "2026-11-11T00:00:00Z",
+   "review_notes": "Investify Terms (investify.pk/terms, read 2026-11-11): automated systematic collection or storage of Market Information, including announcements, to build or feed a database is prohibited without express written consent. Only search engines and AI retrieval at a reasonable rate are carved out. DISABLED: collector engines/investify_collector.py is parser-only. Enabling requires written consent and owner approval.",
+   "notes": "Point-in-time fixture tests/fixtures/investify/announcements_point_in_time_2026-11-11.html. PDF links point to dps.psx.com.pk (gated_dps: browser fetch only). Live collection would write metadata only, from the scheduled job, not from a session."
   }
  ]
 }
