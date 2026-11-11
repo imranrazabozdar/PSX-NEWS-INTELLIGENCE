@@ -114,6 +114,11 @@ class PucarFinancialResult:
     def profit_after_tax_pkr(self) -> float | None:
         return self._pkr(self.profit_after_tax)
 
+    @property
+    def pat_pkr(self) -> float | None:
+        """Alias of profit_after_tax_pkr."""
+        return self.profit_after_tax_pkr
+
 
 # --------------------------------------------------------------------------- numbers
 

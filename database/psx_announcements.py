@@ -45,6 +45,16 @@ def upsert_announcement(db: Database, row: dict[str, Any]) -> None:
     db.execute(UPSERT_SQL, [row.get(c) for c in _COLUMNS])
 
 
+def find_announcement_id(db: Database, row: dict[str, Any]) -> int | None:
+    """The announcement_id of a stored row with the same dedup key, or None."""
+    found = db.execute(
+        "SELECT announcement_id FROM psx_announcements "
+        "WHERE symbol = ? AND date = ? AND COALESCE(time, '') = ? AND title = ?",
+        [row["symbol"], row["date"], row.get("time") or "", row["title"]],
+    )
+    return int(found[0]["announcement_id"]) if found else None
+
+
 def exists(db: Database, row: dict[str, Any]) -> bool:
     """True when a row with the same dedup key is already stored."""
     found = db.execute(
