@@ -24,20 +24,33 @@
     "page-005R.txt",
     "page-006L.txt",
     "page-006R.txt",
+    "page-008L.txt",
+    "page-008R.txt",
     "page-009L.txt",
     "page-009R.txt",
     "page-010L.txt",
     "page-010R.txt"
   ],
+  "word_files": [
+    "words-005.json",
+    "words-006.json"
+  ],
   "statement_pages": {
-    "BS": [
-      8
-    ],
     "CF": [
       10
     ]
   },
   "statement_regions": {
+    "BS": [
+      [
+        8,
+        "L"
+      ],
+      [
+        8,
+        "R"
+      ]
+    ],
     "IS": [
       9,
       "L"

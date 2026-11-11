@@ -20,26 +20,30 @@
     "page-043.txt",
     "page-044.txt",
     "page-045.txt",
-    "page-098.txt"
+    "page-098.txt",
+    "page-043R.txt",
+    "page-044L.txt",
+    "page-044R.txt"
   ],
-  "statement_pages": {
+  "word_files": [
+    "words-042.json",
+    "words-098.json"
+  ],
+  "statement_pages": {},
+  "statement_regions": {
     "BS": [
-      43
+      43,
+      "R"
     ],
     "IS": [
-      44
+      44,
+      "L"
     ],
     "OCI": [
-      44
-    ],
-    "CF": [
-      45
-    ],
-    "EQ": [
-      45
+      44,
+      "R"
     ]
   },
-  "statement_regions": {},
   "auditor_pages": [
     41,
     42

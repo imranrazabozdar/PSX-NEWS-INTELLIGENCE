@@ -40,16 +40,36 @@
       "item": "total_liabilities_2026",
       "printed": "333,278,025",
       "page": 8,
-      "status": "requires_review",
+      "status": "reconciled",
       "label": "TOTAL LIABILITIES",
-      "reason": "two-column balance sheet; equity and total assets are unlabelled rows; the pipeline reports INSUFFICIENT_DATA"
+      "check": "balance_sheet",
+      "side": ""
     },
     {
       "item": "total_assets_2026",
       "printed": "1,852,828,189",
       "page": 8,
-      "status": "requires_review",
-      "reason": "unlabelled total printed on the balance-sheet total row; the pipeline reports INSUFFICIENT_DATA"
+      "status": "reconciled",
+      "check": "balance_sheet",
+      "side": ""
+    },
+    {
+      "item": "total_equity_2026",
+      "printed": "1,519,550,164",
+      "page": 8,
+      "side": "L",
+      "status": "reconciled",
+      "check": "balance_sheet",
+      "label": "equity total (unlabelled row, equals the sum of the three equity lines)"
+    },
+    {
+      "item": "total_assets_2026_recheck",
+      "printed": "1,852,828,189",
+      "page": 8,
+      "side": "R",
+      "status": "reconciled",
+      "check": "balance_sheet",
+      "label": "total assets row, printed on both halves"
     }
   ],
   "kams": {
@@ -87,7 +107,7 @@
     ]
   },
   "pipeline_checks": {
-    "balance_sheet": "INSUFFICIENT_DATA",
+    "balance_sheet": "RECONCILED",
     "income_statement": "RECONCILED",
     "oci_components": "RECONCILED",
     "comprehensive_income": "RECONCILED",

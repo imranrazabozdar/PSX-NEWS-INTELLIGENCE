@@ -13,31 +13,35 @@
       "item": "total_comprehensive_income_2025",
       "printed": "237,707,671",
       "page": 44,
-      "status": "requires_review",
-      "label": "Total comprehensive income for the year",
-      "reason": "overlapping text: the figure shares a printed line with 'Non mark-up / interest expenses'; the pipeline does not extract it"
+      "status": "reconciled",
+      "check": "comprehensive_income",
+      "page_note": "p.44 right half (OCI block) gives PAT + OCI = TCI",
+      "label": "Total comprehensive income for the year"
     },
     {
       "item": "other_comprehensive_income_net_of_tax_2025",
       "printed": "109,698,824",
       "page": 45,
-      "status": "printed_only",
+      "status": "reconciled",
       "label": "Other comprehensive income - net of tax",
-      "reason": "printed in the statement of changes in equity; no reconciled OCI statement is extracted for this report"
+      "check": "oci_components",
+      "note": "sum of the OCI components on p.44 right equals this p.45 figure (test checks it)"
     },
     {
       "item": "total_assets_2025",
       "printed": "12,620,193,445",
       "page": 43,
-      "status": "requires_review",
-      "reason": "unlabelled total row on the balance sheet; the bank framework does not infer it"
+      "status": "reconciled",
+      "check": "balance_sheet",
+      "label": "total assets (unlabelled row, equals the sum of the mapped assets)"
     },
     {
       "item": "total_liabilities_2025",
       "printed": "12,121,461,879",
       "page": 43,
-      "status": "requires_review",
-      "reason": "unlabelled total row on the balance sheet"
+      "status": "reconciled",
+      "check": "balance_sheet",
+      "label": "total liabilities (unlabelled row, equals the sum of the mapped liabilities)"
     },
     {
       "item": "net_assets_2025",
@@ -69,12 +73,14 @@
     ]
   },
   "pipeline_checks": {
+    "balance_sheet": "RECONCILED",
     "income_statement": "RECONCILED",
-    "comprehensive_income": "INSUFFICIENT_DATA",
-    "balance_sheet": "INSUFFICIENT_DATA",
+    "comprehensive_income": "RECONCILED",
     "cash_flow": "INSUFFICIENT_DATA"
   },
   "pipeline_reported": {
-    "income_statement": 128008847.0
+    "income_statement": 128008847.0,
+    "balance_sheet": 12620193445.0,
+    "comprehensive_income": 237707671.0
   }
 }

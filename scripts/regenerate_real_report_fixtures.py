@@ -34,9 +34,11 @@ REPORTS = {
         "description": "United Bank Limited, Annual Report 2025 (unconsolidated statements)",
         "period_end": "2025-12-31", "columns": ["2025-12-31", "2024-12-31"], "unit_scale": 1000,
         "currency": "PKR", "consolidation": "unconsolidated", "framework": "bank",
-        "pages": [42, 43, 44, 45, 98], "regions": [],
-        "statement_pages": {"BS": [43], "IS": [44], "OCI": [44], "CF": [45], "EQ": [45]},
-        "auditor_pages": [41, 42], "kam_pages": [42],
+        "pages": [42, 43, 44, 45, 98],
+        "regions": [[43, "R"], [44, "L"], [44, "R"]],
+        "statement_pages": {},
+        "statement_regions": {"BS": [43, "R"], "IS": [44, "L"], "OCI": [44, "R"]},
+        "auditor_pages": [41, 42], "kam_pages": [42], "words_pages": [42, 98],
     },
     "luck_ar2026": {
         "sha_prefix": "3eddc4ac2db3",
@@ -56,10 +58,11 @@ REPORTS = {
         "period_end": "2026-06-30", "columns": ["2026-06-30", "2025-06-30"], "unit_scale": 1000,
         "currency": "PKR", "consolidation": "unconsolidated", "framework": "corporate",
         "pages": [5, 6, 8, 9, 10],
-        "regions": [[5, "R"], [6, "L"], [6, "R"], [9, "L"], [9, "R"], [10, "L"], [10, "R"]],
-        "statement_pages": {"BS": [8], "CF": [10]},
-        "statement_regions": {"IS": [9, "L"], "OCI": [9, "R"], "EQ": [10, "L"]},
-        "auditor_pages": [5], "kam_pages": [[5, "R"], [6, "L"], [6, "R"]],
+        "regions": [[5, "R"], [6, "L"], [6, "R"], [8, "L"], [8, "R"], [9, "L"], [9, "R"], [10, "L"],
+                    [10, "R"]],
+        "statement_pages": {"CF": [10]},
+        "statement_regions": {"BS": [[8, "L"], [8, "R"]], "IS": [9, "L"], "OCI": [9, "R"], "EQ": [10, "L"]},
+        "auditor_pages": [5], "kam_pages": [[5, "R"], [6, "L"], [6, "R"]], "words_pages": [5, 6],
     },
 }
 
@@ -121,6 +124,14 @@ def main() -> None:
             name = f"page-{page:03d}{side}.txt"
             (out_dir / name).write_text("\n".join(pr.region_lines(pdf, page, side)) + "\n", encoding="utf-8")
             written.append(name)
+        words_files = []
+        for page in spec.get("words_pages", []):
+            words = pr.page_words(pdf, page)
+            payload = {"page": page, "page_width": pr.page_size(pdf, page)[0],
+                       "words": [{k: w[k] for k in ("text", "x0", "x1", "top", "bottom")} for w in words]}
+            name = f"words-{page:03d}.json"
+            (out_dir / name).write_text(json.dumps(payload, ensure_ascii=False) + "\n", encoding="utf-8")
+            words_files.append(name)
         manifest = {
             "report_key": key,
             "description": spec["description"],
@@ -136,6 +147,7 @@ def main() -> None:
             "consolidation": spec["consolidation"],
             "framework": spec["framework"],
             "page_files": written,
+            "word_files": words_files,
             "statement_pages": spec["statement_pages"],
             "statement_regions": spec.get("statement_regions", {}),
             "auditor_pages": spec["auditor_pages"],

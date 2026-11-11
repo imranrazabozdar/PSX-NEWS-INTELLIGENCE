@@ -123,7 +123,10 @@ def _pipeline(key: str) -> dict:
     def region_reader(page: int, side: str) -> list[str]:
         return layout[(page, side)]
 
-    regions = {k: tuple(v) for k, v in m.get("statement_regions", {}).items()}
+    regions = {}
+    for k, v in m.get("statement_regions", {}).items():
+        # one (page, side) pair, or a list of pairs for a statement printed across both halves of a spread
+        regions[k] = [tuple(x) for x in v] if isinstance(v[0], list) else tuple(v)
     extracted = sp.extract(
         doc,
         columns=m["columns"],
@@ -246,3 +249,71 @@ def test_fixtures_match_the_vault(key):
             continue  # spread halves come from the reader's crops; checked by the regeneration script
         fixture = _lines((REAL / key / name).read_text(encoding="utf-8"))
         assert fixture == layout[int(mm.group(1)) - 1], f"{name} differs from the vault copy"
+
+
+# --------------------------------------------------------------------------- stitching from word coordinates
+
+
+def _words(key: str, page: int, side: str = "") -> list[dict]:
+    """Word coordinates saved from the vault PDF (text data, not the PDF). A side keeps the words whose left
+    edge lies in that half of the page, as the intake does."""
+    data = json.loads((REAL / key / f"words-{page:03d}.json").read_text(encoding="utf-8"))
+    words = data["words"]
+    if side:
+        half = data["page_width"] / 2.0
+        words = [w for w in words if (w["x0"] < half) == (side == "L")]
+    return words
+
+
+@pytest.mark.parametrize(
+    "key,page,side",
+    [
+        ("ogdc_ar2026_standalone", 5, "R"),
+        ("ogdc_ar2026_standalone", 6, "L"),
+        ("ogdc_ar2026_standalone", 6, "R"),
+    ],
+)
+def test_kam_headings_are_stitched_from_word_coordinates(key, page, side):
+    from engines import page_layout as pl
+
+    found = pl.parse_kam_table(_words(key, page, side), page)
+    got = {k["number"]: k["heading"] for k in found["kams"]} if found else {}
+    expected = {
+        k["n"]: k["title"]
+        for k in _expected(key)["kams"]["items"]
+        if k["page"] == page and k.get("side", "") == side
+    }
+    for n, title in expected.items():
+        assert got[n].startswith(title), (n, got.get(n))
+
+
+def test_ogdc_kam3_heading_is_the_full_stitched_title():
+    from engines import page_layout as pl
+
+    found = pl.parse_kam_table(_words("ogdc_ar2026_standalone", 6, "R"), 6)
+    kam3 = next(k for k in found["kams"] if k["number"] == 3)
+    assert kam3["heading"] == (
+        "Impairment assessment of development and production assets and related property, plant and equipment"
+    )
+
+
+def test_ogdc_balance_sheet_identity_from_the_printed_totals():
+    v = {
+        x["item"]: _number(x["printed"])
+        for x in _expected("ogdc_ar2026_standalone")["values"]
+        if x["item"] in ("total_liabilities_2026", "total_equity_2026", "total_assets_2026")
+    }
+    assert v["total_liabilities_2026"] + v["total_equity_2026"] == v["total_assets_2026"] == 1852828189
+
+
+def test_ubl_oci_components_equal_the_printed_total_on_page_45():
+    rec = _pipeline("ubl_ar2025")
+    comp = [
+        x
+        for x in _expected("ubl_ar2025")["values"]
+        if x["item"] == "other_comprehensive_income_net_of_tax_2025"
+    ]
+    printed_p45 = _number(comp[0]["printed"])
+    components = [508221, 93877970, 3213232, 12099401]  # the p.44 right-half OCI lines (all printed)
+    assert sum(components) == printed_p45 == 109698824
+    assert next(c for c in rec["checks"] if c["check"] == "comprehensive_income")["status"] == "RECONCILED"
