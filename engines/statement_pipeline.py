@@ -620,6 +620,7 @@ def _check_dict(c: rec.Check) -> dict:
         "allowance": c.allowance,
         "status": c.status,
         "missing": list(c.missing),
+        "basis": c.basis,
     }
 
 
@@ -702,7 +703,8 @@ def identity_rows(reconciliation: dict, *, consolidation: str) -> list[dict]:
                      "column_period_end": c["column_period_end"], "left_value": c["reported"],
                      "right_value": c["expected"], "delta": c["discrepancy"],
                      "tolerance": c["allowance"], "status": status,
-                     "reason": f"reported {c['reported']} vs expected {c['expected']}"})
+                     "reason": (f"reported {c['reported']} vs expected {c['expected']}"
+                                + (f"; {c['basis']}" if c.get("basis") else ""))})
     return rows
 
 

@@ -36,6 +36,7 @@ class Check:
     allowance: float
     status: str
     missing: tuple[str, ...] = ()
+    basis: str = ""  # how a sign or presentation was resolved, when that matters to the result
 
 
 def _allowance(terms: int) -> float:
@@ -118,19 +119,32 @@ def cash_flow(period: str, v: dict[str, float | None]) -> Check:
 
 
 def income_statement(period: str, v: dict[str, float | None]) -> Check:
-    """Profit before taxation less taxation = profit after taxation.
+    """Profit before taxation and the tax figure give profit after taxation.
 
-    The statements print tax either as a bracketed expense or as a plain figure, so the tax is taken as an
-    expense of its printed size (its absolute value)."""
-    return identity(
-        "income_statement",
-        period,
-        "profit_after_tax",
-        {"profit_before_tax": None, "taxation": None},
-        lambda p: p["profit_before_tax"] - abs(p["taxation"]),
-        terms=2,
-        values=v,
-    )
+    The tax figure keeps its printed sign, and the presentation decides its direction. A tax CHARGE reduces
+    profit (PBT - charge = PAT); a tax CREDIT increases it (PBT + credit = PAT). Statements differ: a plain
+    positive figure is a charge in one and a bracketed figure a charge in another. Both candidates are
+    compared with the printed PAT. Exactly one matches unless the tax is zero; the matching basis is recorded.
+    If neither matches, the result is an unreconciled exception carrying its delta."""
+    pbt, tax, pat = v.get("profit_before_tax"), v.get("taxation"), v.get("profit_after_tax")
+    if pbt is None or tax is None or pat is None:
+        return identity(
+            "income_statement",
+            period,
+            "profit_after_tax",
+            {"profit_before_tax": None, "taxation": None},
+            lambda p: p["profit_before_tax"],
+            terms=2,
+            values=v,
+        )
+    allow = _allowance(2)
+    charge, credit = pbt - abs(tax), pbt + tax
+    if abs(pat - charge) <= abs(pat - credit):
+        expected, basis = charge, "tax charge reduces profit (PBT - charge = PAT)"
+    else:
+        expected, basis = credit, "tax figure signed as printed (PBT + tax = PAT)"
+    d, status = classify(pat, expected, allow)
+    return Check("income_statement", period, pat, expected, d, allow, status, basis=basis)
 
 
 def oci_components(period: str, v: dict[str, float | None]) -> Check:
