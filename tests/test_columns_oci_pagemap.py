@@ -195,9 +195,9 @@ def test_oci_codes_exist_only_in_the_bank_framework():
     assert sp.map_label(
         "IS", "Movement in surplus on revaluation of debt investments through FVOCI - net of tax", corp
     ) == (None, None)
-    assert not any(
-        k.startswith("oci") for k in sp.load_mappings(framework="corporate").get("IS", {}).values()
-    )
+    # the corporate table has its own OCI lines; the bank's FVOCI and translation codes never appear there
+    corp_codes = set(sp.load_mappings(framework="corporate").get("IS", {}).values())
+    assert "oci_debt_fvoci" not in corp_codes and "oci_translation" not in corp_codes
 
 
 def test_bank_working_capital_labels_never_map_under_corporate_rules():

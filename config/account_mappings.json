@@ -93,6 +93,23 @@
         ],
         "total_comprehensive_income": [
           "total comprehensive income for the year"
+        ],
+        "oci_remeasurement_employee_benefits": [
+          "remeasurement loss on employee retirement benefit plans",
+          "remeasurement gain on employee retirement benefit plans"
+        ],
+        "oci_tax_on_remeasurement": [
+          "current tax credit related to remeasurement loss on employee retirement benefit plans",
+          "current tax related to remeasurement gain loss on employee retirement benefit plans"
+        ],
+        "oci_associates_remeasurement": [
+          "share of remeasurement gain loss on defined benefit plans of the associates net of taxation"
+        ],
+        "oci_translation_associate": [
+          "effects of translation of investment in a foreign associate"
+        ],
+        "oci_associates_translation": [
+          "share of effect of translation of investment in foreign associated company of the associates net of taxation"
         ]
       },
       "BS": {

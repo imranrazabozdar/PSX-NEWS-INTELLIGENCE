@@ -33,12 +33,14 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from engines import audit_extraction as ae
+from engines import cash_equivalents as ce
 from engines import document_intake as di
 from engines import notes_extraction as ne
 from engines import page_layout as pl
 from engines import pdf_extraction as pe
 from engines import pdf_reader as pe_reader
 from engines import statement_pipeline as sp
+from engines import trade_debts_note as tdn
 
 EXTRACTOR_VERSION = "pdfplumber-0.11.10/pipeline-2026.11.1"
 VAULT_ENV = "PSXNI_DOCUMENT_VAULT"
@@ -110,7 +112,8 @@ def _tagged(
 
 
 STATEMENT_CODES = ("BS", "IS", "OCI", "CF", "EQ")
-PAGE_MAP_KEYS = ("BS", "IS", "OCI", "CF", "EQ", "AUDITOR", "KAM")
+NOTE_KEYS = ("NOTE_TRADE_DEBTS", "NOTE_AGEING", "NOTE_COUNTERPARTY", "NOTE_CASH", "NOTE_MATURITY")
+PAGE_MAP_KEYS = ("BS", "IS", "OCI", "CF", "EQ", "AUDITOR", "KAM") + NOTE_KEYS
 
 
 def parse_page_map(path: Path) -> dict:
@@ -129,11 +132,13 @@ def parse_page_map(path: Path) -> dict:
     pages, regions = parse_statement_spec(stmt_spec)
     auditor = _page_list(raw["AUDITOR"], "AUDITOR") if "AUDITOR" in raw else None
     kam = _kam_list(raw["KAM"]) if "KAM" in raw else None
+    notes = {k: _ordered_regions(raw[k], k) for k in NOTE_KEYS if k in raw}
     return {
         "statement_pages": pages,
         "statement_regions": regions,
         "auditor_pages": auditor,
         "kam_pages": kam,
+        "notes": notes,
     }
 
 
@@ -151,6 +156,88 @@ def _page_list(value: str, key: str) -> list[int]:
         else:
             raise ValueError(f"bad page for {key}: {value!r}")
     return sorted(set(out))
+
+
+def _ordered_regions(value: str, key: str) -> list[tuple[int, str]]:
+    """Note pages in reading order, each optionally a half of a spread: "33R+34R+34L"."""
+    out: list[tuple[int, str]] = []
+    for part in str(value).split("+"):
+        part = part.strip().upper()
+        side = part[-1:] if part[-1:] in ("L", "R") else ""
+        digits = part[: len(part) - len(side)]
+        if not digits.isdigit() or int(digits) < 1:
+            raise ValueError(f"bad page for {key}: {value!r}")
+        out.append((int(digits), side))
+    return out
+
+
+def _notes_block(path: Path, notes: dict | None, tagged: dict, period_end: str) -> dict:
+    """Notes 21 (trade debts, ageing, circular debt, counterparties), 41 (cash) and 26.1 (maturities), read
+    from
+    the owner's note pages. Without the note keys in the page map nothing is read and nothing is assumed."""
+    if not notes:
+        return {"status": "not_requested", "reason": "no note pages in the page map"}
+    layout = pe_reader.read_layout_pages(path)
+
+    def block(key: str) -> tuple[list[str], list[str]]:
+        lines: list[str] = []
+        pages: list[str] = []
+        for page, side in notes.get(key, []):
+            lines += pe_reader.region_lines(path, page, side) if side else layout[page - 1]
+            pages.append(f"{page}{side}")
+        return lines, pages
+
+    note_lines, note_pages = block("NOTE_TRADE_DEBTS")
+    age_lines, age_pages = block("NOTE_AGEING")
+    cp_lines, cp_pages = block("NOTE_COUNTERPARTY")
+    cash_lines, cash_pages = block("NOTE_CASH")
+    mat_lines, mat_pages = block("NOTE_MATURITY")
+    trade = tdn.extract_note_21(
+        note_lines=note_lines,
+        ageing_lines=age_lines,
+        counterparty_lines=cp_lines,
+        pages={"note": note_pages, "ageing": age_pages, "counterparty": cp_pages},
+    )
+    n41 = ce.parse_note_41(cash_lines, pages=cash_pages)
+    mat = ce.maturity_terms(mat_lines, pages=mat_pages)
+    values = sp.values_for(tagged["lines"], period_end)[0]
+    cash = ce.reconcile_cash(
+        bs_cash=values.get("cash_and_equivalents"),
+        cf_closing=values.get("closing_cash"),
+        note41=n41,
+        maturity=mat,
+    )
+    return {
+        "trade_debts_note_21": trade,
+        "cash_note_41": n41,
+        "maturity_note_26_1": mat,
+        "cash_reconciliation": cash,
+    }
+
+
+def _apply_notes_to_receivables(receivables: dict, notes_out: dict) -> dict:
+    """Receivables fields come from note 21 when it was read. The ECL field stays None: the doubtful-debt
+    provision is not an ECL allowance, and the ECL model is deferred for GoP-linked debts (note 2.1.2)."""
+    t = notes_out.get("trade_debts_note_21")
+    if not t or t.get("trade_debts", {}).get("status") != "parsed":
+        return receivables
+    y = t["trade_debts"]["by_year"]["2026"]
+    ageing = t.get("ageing", {})
+    over_90 = (
+        ageing["by_year"]["2026"]["over_90_share_of_gross"] if ageing.get("status") == "parsed" else None
+    )
+    # the keys match the notes engine's receivables block, which the diagnostic reads
+    return {
+        **receivables,
+        "gross_trade_debts": y["gross_trade_debts"],
+        "ecl_coverage_ratio": None,
+        "ecl_coverage_reason": (
+            "doubtful-debt provision only; ECL model deferred for GoP-linked debts (note 2.1.2)"
+        ),
+        "overdue_over_90_ratio": over_90,
+        "doubtful_debt_provision": y["doubtful_debt_provision"],
+        "net_trade_debts": y["net_trade_debts"],
+    }
 
 
 def _kam_list(value: str) -> list[tuple[int, str]]:
@@ -256,6 +343,7 @@ def analyse(
     statement_regions: dict[str, tuple[int, str]] | None = None,
     auditor_pages: list[int] | None = None,
     kam_pages: list[int] | None = None,
+    notes: dict | None = None,
 ) -> dict:
     stored, path = _stored_pdf(vault, pdf)
     sha = stored["report_sha256"]
@@ -299,7 +387,13 @@ def analyse(
     notes_view = {"lines": ex["note_lines"], "notes": ex["note_index"]}
     receivables = ne.receivables_quality(notes_view, period_end)
     contingencies = ne.contingency_summary(notes_view, period_end)
+    notes_out = _notes_block(path, notes, tagged, period_end)
+    receivables = _apply_notes_to_receivables(receivables, notes_out)
     diagnostic = build_diagnostic(tagged, recon, ex["audit"], receivables, contingencies)
+    diagnostic["reconciliation"]["cash_equivalents"] = notes_out.get("cash_reconciliation", {}).get(
+        "status", "not_requested"
+    )
+    diagnostic["notes"] = notes_out
     diagnostic["framework"] = framework
     not_run = sorted(c["check"] for c in recon["checks"] if c["status"] == "INSUFFICIENT_DATA")
     diagnostic["checks_not_run"] = not_run
@@ -367,6 +461,8 @@ def build_diagnostic(tagged: dict, recon: dict, audit: dict, receivables: dict, 
             "balance_sheet": status.get("balance_sheet", "not_run"),
             "cash_flow": status.get("cash_flow", "not_run"),
             "comprehensive_income": status.get("comprehensive_income", "not_run"),
+            "income_statement": status.get("income_statement", "not_run"),
+            "oci_components": status.get("oci_components", "not_run"),
             "overall": recon["overall"],
         },
         "auditor_opinion": audit["opinion"].get("opinion"),
@@ -392,6 +488,52 @@ def build_diagnostic(tagged: dict, recon: dict, audit: dict, receivables: dict, 
     }
 
 
+def _notes_text(notes: dict) -> list[str]:
+    if not notes or notes.get("status") == "not_requested":
+        return ["Notes: not requested (no note pages in the page map)"]
+    out = []
+    t = notes.get("trade_debts_note_21", {})
+    td = t.get("trade_debts", {})
+    if td.get("status") == "parsed":
+        y = td["by_year"]["2026"]
+        out.append(
+            f"Trade debts (note 21, PKR '000): gross {y['gross_trade_debts']:,.0f}, doubtful-debt provision "
+            f"{y['doubtful_debt_provision']:,.0f} (not ECL), net {y['net_trade_debts']:,.0f}"
+        )
+    a = t.get("ageing", {})
+    if a.get("status") == "parsed":
+        b = a["by_year"]["2026"]
+        g = b["gross_by_bucket"]
+        out.append(
+            f"  ageing 2026: not past due {g['not_past_due']:,.0f}; 0-30 {g['past_due_0_30']:,.0f}; "
+            f"31-60 {g['past_due_31_60']:,.0f}; 61-90 {g['past_due_61_90']:,.0f}; "
+            f"over 90 {g['over_90']:,.0f}; "
+            f"over 365 {'disclosed' if b['over_365_disclosed'] else 'not disclosed'}"
+        )
+    c = t.get("circular_debt", {})
+    if c.get("overdue_total"):
+        out.append(
+            f"  circular debt overdue (PKR million): total {c['overdue_total']['2026']:,.0f}; SNGPL "
+            f"{c['overdue_from_sngpl']['2026']:,.0f}; SSGC {c['overdue_from_ssgc']['2026']:,.0f}"
+        )
+    cp = t.get("counterparty_exposures", {})
+    if cp.get("status") == "parsed":
+        names = ", ".join(r["key"].upper() for r in cp["rows"])
+        out.append(
+            f"  counterparty exposures (kept separate from trade debts): {names}; total "
+            f"{cp['printed_total_2026']:,.0f}"
+        )
+    cr = notes.get("cash_reconciliation", {})
+    if cr.get("status") in ("EXPLAINED", "NOT_EXPLAINED"):
+        out.append(
+            f"Cash (note 41): BS {cr['balance_sheet_cash_and_bank']:,.0f} + term deposits "
+            f"{cr['explained_by_note41_term_deposits']:,.0f} = CF closing {cr['cash_flow_closing']:,.0f}: "
+            f"{cr['status']}"
+        )
+        out.append(f"  IAS 7 test: {cr['ias7_cash_equivalent_test']}")
+    return out
+
+
 def render_text(out: dict) -> str:
     d = out["diagnostic"]
     rec = d["reconciliation"]
@@ -405,6 +547,8 @@ def render_text(out: dict) -> str:
         f"Unparsed lines (for review): {d['unparsed_lines']}",
         f"Reconciliation: balance sheet {rec['balance_sheet']}, cash flow {rec['cash_flow']}, "
         f"comprehensive income {rec['comprehensive_income']}, "
+        f"income statement {rec['income_statement']}, "
+        f"OCI components {rec['oci_components']}, "
         f"overall {rec['overall']}"
         + (f" (PARTIAL: not run: {', '.join(d['checks_not_run'])})" if d["checks_not_run"] else ""),
         f"Framework: {d['framework']}",
@@ -419,6 +563,7 @@ def render_text(out: dict) -> str:
     )
     if r["unclassified_brackets"]:
         lines.append(f"  unclassified ageing rows (kept, not bucketed): {r['unclassified_brackets']}")
+    lines += _notes_text(d.get("notes", {}))
     lines.append(f"Contingent items (not recognised): {d['contingencies'] or 'none found'}")
     return "\n".join(lines)
 
@@ -520,9 +665,11 @@ def main(argv: list[str] | None = None) -> int:
             pm = parse_page_map(args.page_map)
             stmt_pages, stmt_regions = pm["statement_pages"], pm["statement_regions"]
             auditor_pages, kam_pages = pm["auditor_pages"], pm["kam_pages"]
+            notes_spec = pm["notes"]
         else:
             stmt_pages, stmt_regions = parse_statement_spec(args.statement_pages)
             auditor_pages, kam_pages = None, None
+            notes_spec = None
         prior_spec = None
         if args.prior_file:
             if not (args.prior_period and args.prior_columns and args.prior_unit_scale):
@@ -550,6 +697,7 @@ def main(argv: list[str] | None = None) -> int:
             statement_regions=stmt_regions,
             auditor_pages=auditor_pages,
             kam_pages=kam_pages,
+            notes=notes_spec,
         )
         if args.archive:
             try:

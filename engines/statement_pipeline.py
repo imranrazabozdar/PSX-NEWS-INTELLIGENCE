@@ -468,12 +468,19 @@ def _oci_total(lines: list[dict], column: str) -> float | None:
 
 
 OCI_COMPONENT_CODES = (
+    # bank layout (OCI printed in the bank's own statement)
     "oci_translation",
     "oci_debt_fvoci",
     "oci_equity_fvoci",
     "oci_remeasurement_defined_benefit",
     "oci_ppe_revaluation",
     "oci_non_banking_assets",
+    # corporate layout (OGDC): remeasurement, its tax, associates and translation
+    "oci_remeasurement_employee_benefits",
+    "oci_tax_on_remeasurement",
+    "oci_associates_remeasurement",
+    "oci_translation_associate",
+    "oci_associates_translation",
 )
 
 
@@ -483,12 +490,17 @@ def reconcile(tagged: dict, *, period_end: str, prior: dict | None = None) -> di
     lines = tagged["lines"]
     unit = lines[0]["unit_scale"] if lines else 1
     v, conflicts = values_for(lines, period_end)
-    oci = _oci_total(lines, period_end)
-    if oci is not None:
-        v["other_comprehensive_income"] = oci  # summed from the mapped components (bank layout)
+    printed_oci = v.get("other_comprehensive_income")  # the printed OCI total, when the statement prints one
+    comp_oci = _oci_total(lines, period_end)  # the sum of the mapped OCI components
+    if comp_oci is not None:
+        v["oci_components_total"] = comp_oci
+        if printed_oci is None:  # bank layout: no printed total, so the components give the OCI
+            v["other_comprehensive_income"] = comp_oci
     checks = [rec.balance_sheet(period_end, v), rec.cash_flow(period_end, v)]
-    if v.get("other_comprehensive_income") is not None:  # summed, or printed as a total (corporate layout)
+    if v.get("other_comprehensive_income") is not None:  # printed total or summed components
         checks.append(rec.comprehensive_income(period_end, v))
+    if printed_oci is not None and comp_oci is not None:  # the printed total must equal its components
+        checks.append(rec.oci_components(period_end, v))
     checks.append(rec.income_statement(period_end, v))
     comp_checks = []
     if prior is not None:

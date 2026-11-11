@@ -185,6 +185,10 @@ def parse_statement_text(text: str, *, statement: str, columns: list[str], page:
         if pending_label is not None:
             if not label and len(vals) == n:  # the figures for the wrapped label above
                 label = pending_label
+            elif label and len(vals) == n and label[0].islower():
+                # a wrapped label whose second line carries its own figures ("...foreign associated" /
+                # "company of the associates - net of taxation  (848,606)"): one label, one line of figures
+                label = f"{pending_label} {label}"
             else:
                 unparsed.append({"line": pending_label, "reason": "label without figures"})
             pending_label = None

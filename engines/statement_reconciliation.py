@@ -119,6 +119,19 @@ def income_statement(period: str, v: dict[str, float | None]) -> Check:
     )
 
 
+def oci_components(period: str, v: dict[str, float | None]) -> Check:
+    """The printed other comprehensive income total equals the sum of its printed components."""
+    return identity(
+        "oci_components",
+        period,
+        "other_comprehensive_income",
+        {"oci_components_total": None},
+        lambda p: p["oci_components_total"],
+        terms=5,
+        values=v,
+    )
+
+
 def comprehensive_income(period: str, v: dict[str, float | None]) -> Check:
     """Total comprehensive income = profit after taxation + other comprehensive income (sum of its
     components)."""
