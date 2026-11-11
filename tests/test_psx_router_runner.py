@@ -44,7 +44,7 @@ def test_heavy_report_goes_to_ir_portal_or_stays_unresolved_never_the_edge():
 
 
 def test_build_url_refuses_invented_ids():
-    for bad in (0, -1, "123"):
+    for bad in (0, -1, "123", True, False, None, 1.5):
         with pytest.raises(ValueError):
             dr.build_exchange_document_url(bad)
 
@@ -69,12 +69,15 @@ def test_runner_refuses_non_http_urls():
 
 def test_seen_store_dedups_and_keys_without_doc_id(tmp_path):
     store = node.SeenStore(str(tmp_path / "seen.sqlite3"))
-    a = _ann()
-    assert store.is_new(a)
-    store.mark(a)
-    assert not store.is_new(a)
-    assert store.key_for(a).startswith("txt:")
-    assert store.key_for(_ann(doc_id=42)) == "doc:42"
+    try:
+        a = _ann()
+        assert store.is_new(a)
+        store.mark(a)
+        assert not store.is_new(a)
+        assert store.key_for(a).startswith("txt:")
+        assert store.key_for(_ann(doc_id=42)) == "doc:42"
+    finally:
+        store.conn.close()
 
 
 def test_trading_hours_gate():
@@ -82,3 +85,19 @@ def test_trading_hours_gate():
     assert node.within_trading_hours(datetime(2026, 11, 11, 10, 0, tzinfo=pkt))  # Wednesday
     assert not node.within_trading_hours(datetime(2026, 11, 11, 17, 0, tzinfo=pkt))  # after close
     assert not node.within_trading_hours(datetime(2026, 11, 14, 10, 0, tzinfo=pkt))  # Saturday
+
+
+def test_a_boolean_is_never_a_document_id():
+    """bool is a subclass of int; True must not become document/1.pdf or document/True.pdf."""
+    with pytest.raises(ValueError):
+        dr.build_exchange_document_url(True)
+    with pytest.raises(ValueError):
+        StatutoryAnnouncement(
+            date=date(2026, 11, 11),
+            time=None,
+            symbol="LUCK",
+            company_name=None,
+            category=None,
+            title="x",
+            doc_id=True,
+        )

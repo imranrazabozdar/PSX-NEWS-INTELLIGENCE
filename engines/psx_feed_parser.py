@@ -238,7 +238,9 @@ class StatutoryAnnouncement:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "symbol", _clean_symbol(self.symbol))
-        if self.doc_id is not None and (not isinstance(self.doc_id, int) or self.doc_id < 1):
+        if self.doc_id is not None and (
+            isinstance(self.doc_id, bool) or not isinstance(self.doc_id, int) or self.doc_id < 1
+        ):
             raise ValueError(f"doc_id must be a positive integer, got {self.doc_id!r}")
 
 

@@ -96,7 +96,7 @@ def build_exchange_document_url(doc_id: int) -> str:
     ``doc_id`` MUST originate from a parsed announcement. This function does no
     guessing; callers must never iterate ids to call it.
     """
-    if not isinstance(doc_id, int) or doc_id < 1:
+    if isinstance(doc_id, bool) or not isinstance(doc_id, int) or doc_id < 1:
         raise ValueError("doc_id must be a positive integer disclosed by the feed")
     return f"{EXCHANGE_DOCUMENT_BASE}/{doc_id}.pdf"
 
