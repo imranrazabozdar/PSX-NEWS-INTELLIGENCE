@@ -52,7 +52,7 @@ within the printed rounding allowance. Other statuses are shown as found; none i
 | Askari Bank Limited (AKBL) | — | all five | not_started |  |  |
 | Altern Energy Limited (ALTN) | — | all five | not_started |  |  |
 | Attock Petroleum Limited (APL) | — | all five | not_started |  |  |
-| UNVERIFIED (ASL) | — | all five | not_started |  |  |
+| Aisha Steel (ASL) | — | all five | not_started |  |  |
 | Amreli Steels Limited (ASTL) | — | all five | not_started |  |  |
 | Attock Refinery Limited (ATRL) | — | all five | not_started |  |  |
 | Avanceon Limited (AVN) | — | all five | not_started |  |  |
@@ -66,7 +66,7 @@ within the printed rounding allowance. Other statuses are shown as found; none i
 | Bunnys Limited (BNL) | — | all five | not_started |  |  |
 | The Bank of Khyber (BOK) | — | all five | not_started |  |  |
 | The Bank of Punjab (BOP) | — | all five | not_started |  |  |
-| UNVERIFIED (BPL) | — | all five | not_started |  |  |
+| Burshane LPG Ltd (BPL) | — | all five | not_started |  |  |
 | Cherat Cement Company Limited (CHCC) | — | all five | not_started |  |  |
 | Clover Pakistan Limited (CLOV) | — | all five | not_started |  |  |
 | Cnergyico PK  Limited (CNERGY) | — | all five | not_started |  |  |

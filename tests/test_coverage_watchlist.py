@@ -58,12 +58,19 @@ def test_every_seed_company_is_in_the_watchlist_and_flagged_in_scope():
     assert all(c["in_scope"] is True for c in seed)
 
 
-def test_unverified_names_are_marked_and_listed_for_review_and_only_those():
-    marked = {c["symbol"] for c in COMPANIES if c["name"] == "UNVERIFIED" or c["sector"] == "UNVERIFIED"}
-    assert marked == set(WATCHLIST["unverified_for_owner_review"]) == {"ECPL", "SNGPL", "ASL", "BPL"}
-    assert all(
-        c["name"] == "UNVERIFIED" and c["sector"] == "UNVERIFIED" for c in COMPANIES if c["symbol"] in marked
+def test_unverified_sectors_and_names_are_listed_for_review_and_only_those():
+    unverified_sector = {c["symbol"] for c in COMPANIES if c["sector"] == "UNVERIFIED"}
+    unverified_name = {c["symbol"] for c in COMPANIES if c["name"] == "UNVERIFIED"}
+    assert (
+        unverified_sector == set(WATCHLIST["unverified_for_owner_review"]) == {"ECPL", "SNGPL", "ASL", "BPL"}
     )
+    assert unverified_name == {"ECPL", "SNGPL"}  # ASL and BPL carry names the owner supplied
+
+
+def test_owner_supplied_names_are_recorded_exactly():
+    by = {c["symbol"]: c for c in COMPANIES}
+    assert by["ASL"]["name"] == "Aisha Steel"
+    assert by["BPL"]["name"] == "Burshane LPG Ltd"
 
 
 def test_sngpl_is_not_merged_into_sngp():

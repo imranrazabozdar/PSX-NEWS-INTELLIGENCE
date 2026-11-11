@@ -9,8 +9,8 @@
   "dedup_rule": "case-insensitive symbol; merged from the owner file and database/seed/companies.json",
   "count": 110,
   "unverified_for_owner_review": {
-    "ASL": "requested by the owner in a later addition; not present in the owner file or the seed; name and sector not verified, not guessed",
-    "BPL": "requested by the owner in a later addition; not present in the owner file or the seed; name and sector not verified, not guessed",
+    "ASL": "name supplied by the owner; sector not supplied and not guessed",
+    "BPL": "name supplied by the owner; sector not supplied and not guessed",
     "ECPL": "listed as UNVERIFIED in the owner file",
     "SNGPL": "requested by the owner but absent from psx_final_watchlist.csv; SNGP is in the file (Sui Northern Gas Pipelines Limited) and may be the same company: owner to confirm, NOT merged"
   },
@@ -76,9 +76,9 @@
     },
     {
       "symbol": "ASL",
-      "name": "UNVERIFIED",
+      "name": "Aisha Steel",
       "sector": "UNVERIFIED",
-      "source": "owner-requested symbol; not present in the owner file or the seed",
+      "source": "owner-supplied name in chat (name only); sector not supplied, so UNVERIFIED",
       "added_utc": "2026-11-11T00:00:00Z"
     },
     {
@@ -174,9 +174,9 @@
     },
     {
       "symbol": "BPL",
-      "name": "UNVERIFIED",
+      "name": "Burshane LPG Ltd",
       "sector": "UNVERIFIED",
-      "source": "owner-requested symbol; not present in the owner file or the seed",
+      "source": "owner-supplied name in chat (name only); sector not supplied, so UNVERIFIED",
       "added_utc": "2026-11-11T00:00:00Z"
     },
     {
