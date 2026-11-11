@@ -1,0 +1,41 @@
+{
+  "_schema": "Investor-relations report sources, keyed by ticker. Only status \"live\" entries are fetched. Every other status is a TODO that the owner must resolve. The fetcher uses the company's own domains only (allowed_hosts), obeys robots.txt for each host, and writes PDFs to the document vault (never Git, never a database). See engines/ir_fetcher.py.",
+  "_verified_on": "2026-11-11 (one plain GET per company, plus robots.txt; see the notes on each entry)",
+  "companies": {
+    "OGDC": {
+      "name": "Oil & Gas Development Company Limited",
+      "ir_reports_url": "https://www.ogdcl.com/investor-relations",
+      "allowed_hosts": ["ogdcl.com"],
+      "status": "blocked_by_site",
+      "notes": "robots.txt reachable. The investor-relations page returns HTTP 403 with a Cloudflare 'Just a moment' challenge to this client. The challenge is not bypassed. TODO for the owner: a permitted route to the reports (for example an official feed or an emailed list) or a manual vault import."
+    },
+    "LUCK": {
+      "name": "Lucky Cement Limited",
+      "ir_reports_url": "https://www.lucky-cement.com/en/corporate/investor-relations/financial-reports",
+      "allowed_hosts": ["lucky-cement.com"],
+      "status": "live",
+      "notes": "Reachable. The report PDFs are on assets.lucky-cement.com and are listed in the page's own embedded data, not as HTML links. The assets host's robots.txt is checked at run time."
+    },
+    "UBL": {
+      "name": "United Bank Limited",
+      "ir_reports_url": "https://www.ubl.com.pk/investor-relations",
+      "allowed_hosts": ["ubl.com.pk"],
+      "status": "todo_unreachable",
+      "notes": "Both requests were refused at the connection (connection reset by peer). The path is unverified. TODO for the owner: confirm the real investor-relations URL and whether this environment can reach the site."
+    },
+    "HUBC": {
+      "name": "The Hub Power Company Limited",
+      "ir_reports_url": "https://hubpower.com/investors/",
+      "allowed_hosts": ["hubpower.com"],
+      "status": "live",
+      "notes": "Reachable. Annual reports are linked as PDFs. Several older links have no report type or year in their filenames (for example 'June2022.pdf'), so they are not classified and are skipped."
+    },
+    "PSO": {
+      "name": "Pakistan State Oil Company Limited",
+      "ir_reports_url": "https://www.psopk.com/en/investors/financial",
+      "allowed_hosts": ["psopk.com"],
+      "status": "live",
+      "notes": "Reachable. Quarterly and annual reports are linked as PDFs with their period in the link text. Summary PDFs are excluded."
+    }
+  }
+}

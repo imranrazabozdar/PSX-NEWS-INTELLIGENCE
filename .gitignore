@@ -40,3 +40,6 @@ htmlcov/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Raw documents: never committed (the document vault lives outside the repository)
+*.pdf
