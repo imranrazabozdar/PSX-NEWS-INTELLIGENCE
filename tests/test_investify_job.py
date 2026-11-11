@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import logging
 import random
+import re
 import socket
 import urllib.error
 from dataclasses import replace
@@ -631,3 +632,16 @@ def test_the_logger_records_each_request(state_path, entry, db, caplog):
     with caplog.at_level(logging.INFO, logger="investify"):
         run(MONDAY_10AM, state_path, entry, db, FakeTransport(ok_page()))
     assert any("investify" in m and '"event": "request"' in m for m in caplog.messages)
+
+
+# ================================================================== cadence: cron 20 min, floor 15 min
+
+def test_the_scheduled_cadence_is_twenty_minutes_and_the_floor_stays_fifteen():
+    text = (ROOT / ".github" / "workflows" / "investify-collect.yml").read_text(encoding="utf-8")
+    cron = re.search(r'cron:\s*"([^"]+)"', text).group(1)
+    minutes, hours, _, _, weekdays = cron.split()
+    offsets = sorted(int(m) for m in minutes.split(","))
+    gaps = {(b - a) % 60 for a, b in zip(offsets, offsets[1:] + offsets[:1], strict=False)}
+    assert gaps == {20}  # every 20 minutes
+    assert weekdays == "1-5" and hours == "4-11"  # weekdays only, inside the trading window (UTC)
+    assert pol.MIN_INTERVAL == timedelta(minutes=15)  # the rate-limit floor is unchanged
