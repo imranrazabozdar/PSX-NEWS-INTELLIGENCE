@@ -167,34 +167,73 @@ CORPORATE_LIABILITY_CODES = (
     "accrued_markup",
     "taxation_payable",
 )
-TOTAL_GROUPS = {
-    "bank": ((BS_ASSET_CODES, "total_assets"), (BS_LIABILITY_CODES, "total_liabilities")),
-    "corporate": (
-        (CORPORATE_ASSET_CODES, "total_assets"),
-        (CORPORATE_EQUITY_CODES, "total_equity"),
-        (CORPORATE_LIABILITY_CODES, "total_liabilities"),
-    ),
-}
+CORPORATE_CURRENT_ASSET_CODES = (
+    "inventory",
+    "stores_spares",
+    "trade_receivables",
+    "loans_advances_current",
+    "deposits_short_term_prepayments",
+    "other_receivables",
+    "tax_refunds_due",
+    "income_tax_advance",
+    "short_term_investments",
+    "current_lt_investments",
+    "current_lease_receivables",
+    "other_financial_assets",
+    "cash_and_equivalents",
+)
+CORPORATE_CURRENT_LIABILITY_CODES = (
+    "trade_payables",
+    "current_maturity_lt_financing",
+    "short_term_borrowings",
+    "unpaid_dividend",
+    "unclaimed_dividend",
+    "accrued_markup",
+    "taxation_payable",
+    "st_lease_liability",
+)
+
+
+def total_groups(framework: str) -> list[tuple[tuple[str, ...], str, str, str, str]]:
+    """(component codes, total code, section the components are in, statement the printed total is read from,
+    stored statement type) per framework. The OCI group reads OCI rows (stored as IS) and their printed
+    subtotal."""
+    if framework == "bank":
+        return [
+            (BS_ASSET_CODES, "total_assets", "BS", "BS", "BS"),
+            (BS_LIABILITY_CODES, "total_liabilities", "BS", "BS", "BS"),
+        ]
+    return [
+        (CORPORATE_ASSET_CODES, "total_assets", "BS", "BS", "BS"),
+        (CORPORATE_EQUITY_CODES, "total_equity", "BS", "BS", "BS"),
+        (CORPORATE_LIABILITY_CODES, "total_liabilities", "BS", "BS", "BS"),
+        (CORPORATE_CURRENT_ASSET_CODES, "total_current_assets", "BS", "BS", "BS"),
+        (CORPORATE_CURRENT_LIABILITY_CODES, "total_current_liabilities", "BS", "BS", "BS"),
+        (OCI_COMPONENT_CODES, "other_comprehensive_income", "OCI", "OCI", "IS"),
+    ]
 
 
 def infer_unlabelled_totals(
     tagged: list[dict], unparsed: list[dict], *, columns: list[str], framework: str = "bank"
 ) -> list[dict]:
-    """Printed balance sheet totals that carry no label. Runs on MAPPED lines. A label-less figure row
-    becomes a
-    total only when, for a column, it equals the sum of the mapped components of the same statement, within
-    one
-    printed unit per component (the same allowance as the reconciliation). Ambiguous (more than one match) or
-    unmatched rows are left unparsed. Returns partial records; the caller fills the document fields."""
+    """Printed totals that carry no label (balance sheet totals, current subtotals, the OCI subtotal).
+
+    A label-less figure row becomes a total only when, for a column, it equals the sum of the mapped
+    components of
+    the same section, within one printed unit per component (the reconciliation's allowance). Ambiguous
+    rows (two
+    different values) and unmatched rows are left unparsed. The same printed row on both halves of a spread
+    is one
+    value. The returned record says it was inferred. Partial records; the caller fills the document fields."""
     out: list[dict] = []
     n = len(columns)
-    for code_group, total_code in TOTAL_GROUPS.get(framework, TOTAL_GROUPS["bank"]):
-        candidates = [u for u in unparsed if u.get("statement") == "BS" and u.get("line")]
+    for code_group, total_code, section, cand_stmt, stored_type in total_groups(framework):
+        candidates = [u for u in unparsed if u.get("statement") == cand_stmt and u.get("line")]
         for i, col in enumerate(columns):
             present = [
                 ln
                 for ln in tagged
-                if ln.get("statement_type") == "BS"
+                if (ln.get("statement_section") or ln.get("statement_type")) == section
                 and ln.get("canonical_code") in code_group
                 and ln.get("column_period_end") == col
                 and ln.get("reported_amount") is not None
@@ -204,29 +243,30 @@ def infer_unlabelled_totals(
             ):
                 continue
             total = sum(ln["reported_amount"] for ln in present)
-            allow = len(present) * 1.0  # one printed unit per component, as in the reconciliation
+            allow = len(present) * 1.0
             matches = []
             for u in candidates:
                 vals = _numbers_only_row(u["line"], n)
                 if vals is not None and abs(vals[i] - total) <= allow:
                     matches.append((u, vals[i]))
-            # the same printed row can appear on both halves of a spread: one value is one total
             if not matches or len({round(v, 2) for _, v in matches}) != 1:
                 continue
             u, value = matches[0]
-            out.append(
-                {
-                    "statement_type": "BS",
-                    "line_item_name": f"[unlabelled printed total: equals the sum "
-                    f"of {len(present)} mapped components]",
-                    "column_period_end": col,
-                    "reported_amount": value,
-                    "pdf_page_number": u.get("page"),
-                    "canonical_code": total_code,
-                    "confidence": 0.9,
-                    "extraction_engine": u.get("extraction_engine"),
-                }
-            )
+            rec = {
+                "statement_type": stored_type,
+                "line_item_name": (
+                    f"[unlabelled printed total: equals the sum of {len(present)} mapped components]"
+                ),
+                "column_period_end": col,
+                "reported_amount": value,
+                "pdf_page_number": u.get("page"),
+                "canonical_code": total_code,
+                "confidence": 0.9,
+                "extraction_engine": u.get("extraction_engine"),
+            }
+            if section == "OCI":
+                rec["statement_section"] = "OCI"
+            out.append(rec)
     return out
 
 
@@ -349,7 +389,12 @@ def tag(extracted: dict, *, document: dict, extractor_version: str, mapping, fra
         if ln.get("canonical_code") is not None:  # set by a rule-based extractor (e.g. notes)
             code, conf = ln["canonical_code"], ln.get("confidence")
         else:
-            code, conf = map_label(db_st, ln["raw_label"], mapping)
+            # the context (parent component + tax effect) decides first; the plain label is the fallback
+            code, conf = (None, None)
+            if ln.get("context_label"):
+                code, conf = map_label(db_st, ln["context_label"], mapping)
+            if code is None:
+                code, conf = map_label(db_st, ln["raw_label"], mapping)
         value = ln.get("value")
         is_comp = ln["column_period_end"] != document["period_end"]
         tagged.append(
@@ -377,19 +422,22 @@ def tag(extracted: dict, *, document: dict, extractor_version: str, mapping, fra
                 "confidence": conf,
                 "extraction_method": "pdf_text",  # database category (migrations 0001-0005 are immutable)
                 "extraction_engine": ln.get("extraction_engine") or "unknown",
+                "parent_context": ln.get("parent_label"),
             }
         )
     columns = list(dict.fromkeys(ln["column_period_end"] for ln in extracted["lines"]))
     for rec_ in infer_unlabelled_totals(tagged, extracted["unparsed"], columns=columns, framework=framework):
-        counters["BS"] += 1
+        st_type = rec_["statement_type"]
+        counters[st_type] += 1
         tagged.append(
             {
                 "document_id": document["document_id"],
                 "file_hash": document["file_hash"],
                 "symbol": document["symbol"],
                 "period_end": document["period_end"],
-                "statement_type": "BS",
-                "line_no": counters["BS"],
+                "statement_type": st_type,
+                "statement_section": rec_.get("statement_section", st_type),
+                "line_no": counters[st_type],
                 "line_item_name": rec_["line_item_name"],
                 "canonical_code": rec_["canonical_code"],
                 "column_period_end": rec_["column_period_end"],
@@ -511,6 +559,7 @@ OCI_COMPONENT_CODES = (
     "oci_translation_associate",
     "oci_associates_translation",
     "oci_fvoci_equity",
+    "oci_tax_on_fvoci_equity",
 )
 
 

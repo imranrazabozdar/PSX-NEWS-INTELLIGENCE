@@ -159,6 +159,12 @@ def _is_header_row(vals: list[str], columns: list[str]) -> bool:
     return all(re.fullmatch(r"(19|20|21)\d\d", v) and v == c[:4] for v, c in zip(vals, columns, strict=True))
 
 
+# A tax effect printed under a component: bound to the component above it (context), not to its words alone.
+CHILD_TAX_LABEL = re.compile(
+    r"^[\W_]*(?:deferred tax thereon|current tax (?:credit|charge|expense)? ?related to)", re.I
+)
+
+
 def parse_statement_text(text: str, *, statement: str, columns: list[str], page: int | None = None) -> dict:
     """Parse lines of already-extracted statement text into line records.
 
@@ -170,6 +176,7 @@ def parse_statement_text(text: str, *, statement: str, columns: list[str], page:
     """
     lines, unparsed = [], []
     n = len(columns)
+    parent_label: str | None = None  # the last row that is a component heading (not a tax effect)
     pending_label: str | None = None  # a label-only line that may be continued by a figures-only line
     for raw in (text or "").splitlines():
         s = raw.strip()
@@ -211,12 +218,22 @@ def parse_statement_text(text: str, *, statement: str, columns: list[str], page:
             if vals or label:
                 unparsed.append({"line": s, "reason": f"expected {n} values, found {len(vals)}"})
             continue
+        # Context: a tax effect ("Deferred tax thereon") belongs to the component printed just above it.
+        # The row
+        # keeps its own label and gets the parent as context, so the same words under two parents stay two
+        # rows.
+        is_child = bool(CHILD_TAX_LABEL.match(label))
+        context = f"{parent_label} {label}" if is_child and parent_label else None
+        if not is_child and label and vals:
+            parent_label = label
         for col, tok in zip(columns, vals, strict=True):
             v = parse_number(tok)
             lines.append(
                 {
                     "statement": statement,
                     "raw_label": label,
+                    "context_label": context,
+                    "parent_label": parent_label if is_child else None,
                     "column_period_end": col,
                     "value": v,
                     "page": page,

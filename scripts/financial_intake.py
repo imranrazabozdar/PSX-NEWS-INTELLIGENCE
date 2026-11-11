@@ -39,6 +39,7 @@ from engines import notes_extraction as ne
 from engines import page_layout as pl
 from engines import pdf_extraction as pe
 from engines import pdf_reader as pe_reader
+from engines import ratios
 from engines import statement_pipeline as sp
 from engines import trade_debts_note as tdn
 
@@ -402,8 +403,15 @@ def analyse(
     notes_out = _notes_block(path, notes, tagged, period_end)
     receivables = _apply_notes_to_receivables(receivables, notes_out)
     diagnostic = build_diagnostic(tagged, recon, ex["audit"], receivables, contingencies)
-    diagnostic["reconciliation"]["cash_equivalents"] = notes_out.get("cash_reconciliation", {}).get(
-        "status", "not_requested"
+    cash_std = _cash_audit(tagged, period_end, notes_out, framework)
+    notes_out["cash_standard"] = cash_std
+    arith = cash_std["arithmetic_reconciliation"]["status"]
+    diagnostic["reconciliation"]["cash_equivalents"] = "EXPLAINED" if arith == "RECONCILED" else arith
+    diagnostic["reconciliation"]["cash_arithmetic"] = arith
+    diagnostic["reconciliation"]["ias7_maturity"] = cash_std["ias7_maturity_status"]
+    values = sp.values_for(tagged["lines"], period_end)[0]
+    diagnostic["ratios"] = ratios.compute_ratios(
+        framework, values, _line_ids(tagged["lines"], period_end, values)
     )
     diagnostic["notes"] = notes_out
     diagnostic["framework"] = framework
@@ -501,9 +509,23 @@ def build_diagnostic(tagged: dict, recon: dict, audit: dict, receivables: dict, 
 
 
 def _notes_text(notes: dict) -> list[str]:
-    if not notes or notes.get("status") == "not_requested":
-        return ["Notes: not requested (no note pages in the page map)"]
     out = []
+    cs = notes.get("cash_standard")
+    if cs:
+        a = cs["arithmetic_reconciliation"]
+        if a["status"] == "RECONCILED":
+            out.append(
+                f"Cash (IAS 7, {cs['source']}): arithmetic {a['status']} "
+                f"(delta {a['delta']:,.0f}): balance-sheet cash "
+                f"{a['balance_sheet_cash']:,.0f} + qualifying "
+                f"{a['qualifying_disclosed_balances']:,.0f} = CF closing "
+                f"{a['cash_flow_closing']:,.0f}"
+            )
+        else:
+            out.append(f"Cash (IAS 7, {cs['source']}): arithmetic {a['status']}")
+        out.append(f"  IAS 7 maturity status: {cs['ias7_maturity_status']} ({cs['ias7_basis']})")
+    if not notes or notes.get("status") == "not_requested":
+        return out or ["Notes: not requested (no note pages in the page map)"]
     t = notes.get("trade_debts_note_21", {})
     td = t.get("trade_debts", {})
     if td.get("status") == "parsed":
@@ -535,14 +557,65 @@ def _notes_text(notes: dict) -> list[str]:
             f"  counterparty exposures (kept separate from trade debts): {names}; total "
             f"{cp['printed_total_2026']:,.0f}"
         )
-    cr = notes.get("cash_reconciliation", {})
-    if cr.get("status") in ("EXPLAINED", "NOT_EXPLAINED"):
-        out.append(
-            f"Cash (note 41): BS {cr['balance_sheet_cash_and_bank']:,.0f} + term deposits "
-            f"{cr['explained_by_note41_short_term']:,.0f} = CF closing {cr['cash_flow_closing']:,.0f}: "
-            f"{cr['status']}"
+    return out
+
+
+def _cash_audit(tagged: dict, period_end: str, notes_out: dict, framework: str) -> dict:
+    """Cash and cash equivalents in the standard shape, for every framework.
+    Note-based where a note is supplied (OGDC note 41, LUCK note 36.2); for a bank, the balances with other
+    banks in the balance sheet.
+    """
+    values = sp.values_for(tagged["lines"], period_end)[0]
+    closing = values.get("closing_cash")
+    bs_cash = values.get("cash_and_equivalents")
+    n41 = notes_out.get("cash_note_41") or {}
+    maturity_text = (notes_out.get("maturity_note_26_1") or {}).get("printed")
+    if n41.get("status") == "parsed":
+        # the note's columns are keyed by year; the audit is for the period being checked
+        st = n41["rows"]["short_term_investments"].get(period_end[:4])
+        comps = [
+            {"label": "short-term investments (note 41 / 36.2)", "value": st, "source": n41.get("pages")}
+        ]
+        return ce.standard_cash_audit(
+            bs_cash=bs_cash,
+            cf_closing=closing,
+            components=comps,
+            maturity_text=maturity_text,
+            source="note 41 / 36.2",
         )
-        out.append(f"  IAS 7 test: {cr['ias7_cash_equivalent_test']}")
+    other = values.get("balances_with_other_banks")
+    if framework == "bank" and other is not None:
+        comps = [
+            {"label": "balances with other banks (balance sheet)", "value": other, "source": "balance sheet"}
+        ]
+        return ce.standard_cash_audit(
+            bs_cash=bs_cash,
+            cf_closing=closing,
+            components=comps,
+            maturity_text=None,
+            source="balance sheet (bank)",
+        )
+    return ce.standard_cash_audit(
+        bs_cash=bs_cash,
+        cf_closing=closing,
+        components=[],
+        maturity_text=None,
+        source="no cash-equivalent note or bank balances supplied",
+    )
+
+
+def _line_ids(lines: list[dict], period_end: str, values: dict) -> dict[str, list[str]]:
+    """Traceable IDs for the line items that feed the ratios: statement, section and line number."""
+    out: dict[str, list[str]] = {}
+    for ln in lines:
+        code = ln.get("canonical_code")
+        if (
+            code in values
+            and ln.get("column_period_end") == period_end
+            and ln.get("reported_amount") is not None
+        ):
+            sec = ln.get("statement_section") or ln.get("statement_type")
+            out.setdefault(code, []).append(f"{ln['statement_type']}:{sec}:{ln['line_no']}")
     return out
 
 
@@ -576,6 +649,12 @@ def render_text(out: dict) -> str:
     if r["unclassified_brackets"]:
         lines.append(f"  unclassified ageing rows (kept, not bucketed): {r['unclassified_brackets']}")
     lines += _notes_text(d.get("notes", {}))
+    for r_ in d.get("ratios", []):
+        val = "null" if r_["value"] is None else f"{r_['value']:.4f}"
+        lines.append(
+            f"Ratio {r_['name']}: {val} [{r_['status']}/{r_['validation']}] {r_['formula']}"
+            + (f" - {r_['reason']}" if r_["reason"] else "")
+        )
     lines.append(f"Contingent items (not recognised): {d['contingencies'] or 'none found'}")
     return "\n".join(lines)
 

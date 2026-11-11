@@ -191,22 +191,28 @@ def test_ageing_not_printed_is_not_disclosed_with_every_bucket_null():
 
 
 def test_credit_quality_nil_past_due_is_recorded_as_printed_nil():
-    cq = tdn.parse_credit_quality([
-        "Neither past due nor impaired\t\t6,932,669\t6,353,194",
-        "Past due but not impaired \t\t–\t–",
-    ], pages=["79"])
+    cq = tdn.parse_credit_quality(
+        [
+            "Neither past due nor impaired\t\t6,932,669\t6,353,194",
+            "Past due but not impaired \t\t–\t–",
+        ],
+        pages=["79"],
+    )
     assert cq["neither_past_due_nor_impaired"] == {"2026": 6_932_669, "2025": 6_353_194}
     assert cq["past_due_but_not_impaired"]["printed_nil"] is True
 
 
 def test_short_term_investments_are_the_cash_equivalent_line_when_not_called_term_deposits():
-    n41 = ce.parse_note_41([
-        "36.2",
-        "CASH AND CASH EQUIVALENTS",
-        "Cash and bank balances  17  100  90",
-        "Short term investments  300  200",
-        "  400  290",
-    ], pages=["74"])
+    n41 = ce.parse_note_41(
+        [
+            "36.2",
+            "CASH AND CASH EQUIVALENTS",
+            "Cash and bank balances  17  100  90",
+            "Short term investments  300  200",
+            "  400  290",
+        ],
+        pages=["74"],
+    )
     assert n41["status"] == "parsed" and n41["rows"]["short_term_investments"]["2026"] == 300
 
 
@@ -214,7 +220,11 @@ def test_a_dash_is_nil_and_does_not_conflict_with_a_printed_amount():
     from engines.statement_pipeline import values_for
 
     lines = [
-        {"canonical_code": "oci_tax_on_remeasurement", "column_period_end": "2026", "reported_amount": 22_412.0},
+        {
+            "canonical_code": "oci_tax_on_remeasurement",
+            "column_period_end": "2026",
+            "reported_amount": 22_412.0,
+        },
         {"canonical_code": "oci_tax_on_remeasurement", "column_period_end": "2026", "reported_amount": None},
     ]
     values, conflicts = values_for(lines, "2026")
@@ -225,8 +235,16 @@ def test_two_different_printed_amounts_for_one_code_are_a_conflict_not_a_choice(
     from engines.statement_pipeline import values_for
 
     lines = [
-        {"canonical_code": "oci_tax_on_remeasurement", "column_period_end": "2025", "reported_amount": 365_870.0},
-        {"canonical_code": "oci_tax_on_remeasurement", "column_period_end": "2025", "reported_amount": -3_460.0},
+        {
+            "canonical_code": "oci_tax_on_remeasurement",
+            "column_period_end": "2025",
+            "reported_amount": 365_870.0,
+        },
+        {
+            "canonical_code": "oci_tax_on_remeasurement",
+            "column_period_end": "2025",
+            "reported_amount": -3_460.0,
+        },
     ]
     values, conflicts = values_for(lines, "2025")
     assert values["oci_tax_on_remeasurement"] is None and conflicts == ["oci_tax_on_remeasurement"]
@@ -238,8 +256,13 @@ def test_corporate_total_liabilities_are_inferred_from_their_components():
     cols = ["2026"]
 
     def row(code, value):
-        return {"statement_type": "BS", "canonical_code": code, "column_period_end": cols[0],
-                "reported_amount": value, "pdf_page_number": 38}
+        return {
+            "statement_type": "BS",
+            "canonical_code": code,
+            "column_period_end": cols[0],
+            "reported_amount": value,
+            "pdf_page_number": 38,
+        }
 
     tagged = [row("lt_deposits_payable", 300.0), row("trade_payables", 500.0), row("taxation_payable", 200.0)]
     unparsed = [{"statement": "BS", "line": "1,000", "page": 38, "extraction_engine": "x"}]

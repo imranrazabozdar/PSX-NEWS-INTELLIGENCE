@@ -102,7 +102,8 @@
         "oci_tax_on_remeasurement": [
           "current tax credit related to remeasurement loss on employee retirement benefit plans",
           "current tax related to remeasurement gain loss on employee retirement benefit plans",
-          "deferred tax thereon"
+          "deferred tax thereon",
+          "remeasurement loss of post retirement benefit obligation deferred tax thereon"
         ],
         "oci_associates_remeasurement": [
           "share of remeasurement gain loss on defined benefit plans of the associates net of taxation"
@@ -142,6 +143,9 @@
         ],
         "oci_fvoci_equity": [
           "gain on equity instrument at fair value through other comprehensive income"
+        ],
+        "oci_tax_on_fvoci_equity": [
+          "gain on equity instrument at fair value through other comprehensive income deferred tax thereon"
         ]
       },
       "BS": {

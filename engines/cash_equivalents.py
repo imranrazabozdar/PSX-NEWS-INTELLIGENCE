@@ -134,3 +134,84 @@ def reconcile_cash(*, bs_cash: float | None, cf_closing: float | None, note41: d
         "ias7_cash_equivalent_test": iias7,
         "maturity_wording": maturity.get("printed"),
     }
+
+
+# ------------------------------------------------------------------ standard audit output (all frameworks)
+
+IAS7_VERIFIED = "VERIFIED"
+IAS7_NOT_VERIFIABLE = "NOT_VERIFIABLE_FROM_DISCLOSURE"
+IAS7_EXCEEDS = "DOES_NOT_MEET_DISCLOSED_MATURITY_CRITERION"
+_EXCEEDS = re.compile(
+    r"(?:more than|over|exceed\w*|greater than|longer than|in excess of)\s+(?:90 days|three months|3 months)",
+    re.IGNORECASE,
+)
+_WITHIN = re.compile(
+    r"(?:original maturit\w* of|maturit\w* (?:of|up to|within|not exceeding))\s+"
+    r"(?:three months|3 months|90 days)"
+    r"(?:\s+or less)?|(?:up to|within|not exceeding)\s+(?:three months|3 months|90 days)",
+    re.IGNORECASE,
+)
+
+
+def ias7_maturity_status(maturity_text: str | None) -> dict:
+    """IAS 7.7 maturity status, from the printed wording only.
+    VERIFIED needs an explicit printed proof of three months or less from acquisition. An explicit statement
+    that the maturity exceeds 90 days is DOES_NOT_MEET_DISCLOSED_MATURITY_CRITERION. Anything else (no
+    wording, or a short-term instrument with a longer or unstated maturity) is NOT_VERIFIABLE_FROM_DISCLOSURE.
+    The arithmetic tie-out is never changed by this status.
+    """
+    text = re.sub(r"\s+", " ", maturity_text or "").strip()
+    if _EXCEEDS.search(text):
+        status = IAS7_EXCEEDS
+    elif _WITHIN.search(text):
+        status = IAS7_VERIFIED
+    else:
+        status = IAS7_NOT_VERIFIABLE
+    return {"ias7_maturity_status": status, "basis": text or "no maturity wording printed"}
+
+
+def standard_cash_audit(
+    *,
+    bs_cash: float | None,
+    cf_closing: float | None,
+    components: list[dict],
+    maturity_text: str | None,
+    source: str,
+) -> dict:
+    """The cash and cash-equivalent audit in one shape for every framework.
+
+    arithmetic_reconciliation: balance-sheet cash + the disclosed qualifying balances = cash-flow closing
+    cash.
+    ias7_maturity_status: separate. An unverified maturity never changes the arithmetic result.
+    Missing inputs give INSUFFICIENT_DATA, never a zero."""
+    if (
+        bs_cash is None
+        or cf_closing is None
+        or not components
+        or any(c.get("value") is None for c in components)
+    ):
+        arith = {
+            "status": "INSUFFICIENT_DATA",
+            "reason": "balance-sheet cash, cash-flow closing or a component is missing",
+        }
+    else:
+        explained = bs_cash + sum(c["value"] for c in components)
+        delta = cf_closing - explained
+        arith = {
+            "status": "RECONCILED" if delta == 0 else "NOT_RECONCILED",
+            "balance_sheet_cash": bs_cash,
+            "qualifying_disclosed_balances": sum(c["value"] for c in components),
+            "explained_cash_closing": explained,
+            "cash_flow_closing": cf_closing,
+            "delta": delta,
+        }
+    maturity = ias7_maturity_status(maturity_text)
+    return {
+        "source": source,
+        "components": components,
+        "arithmetic_reconciliation": arith,
+        "ias7_maturity_status": maturity["ias7_maturity_status"],
+        "ias7_basis": maturity["basis"],
+        # the legacy field used by the existing diagnostics: the arithmetic result, never the maturity
+        "status": "EXPLAINED" if arith["status"] == "RECONCILED" else arith["status"],
+    }
