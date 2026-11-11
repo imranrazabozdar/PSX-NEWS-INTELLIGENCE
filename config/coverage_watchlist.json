@@ -1,0 +1,776 @@
+{
+  "description": "Defined coverage watchlist: the finite scope for all extraction and analysis. Single source of truth.",
+  "owner_source": {
+    "file": "psx_final_watchlist.csv",
+    "sha256": "9ce6a97d26948ff6f47ff23695359d0dc15e710199eab8a6c0bc9b22e7126cdf",
+    "rows": 96
+  },
+  "built_utc": "2026-11-11T00:00:00Z",
+  "dedup_rule": "case-insensitive symbol; merged from the owner file and database/seed/companies.json",
+  "count": 108,
+  "unverified_for_owner_review": {
+    "ECPL": "listed as UNVERIFIED in the owner file",
+    "SNGPL": "requested by the owner but absent from psx_final_watchlist.csv; SNGP is in the file (Sui Northern Gas Pipelines Limited) and may be the same company: owner to confirm, NOT merged"
+  },
+  "seed_companies_not_listed": [
+    "FFBL"
+  ],
+  "companies": [
+    {
+      "symbol": "ABL",
+      "name": "Allied Bank Limited",
+      "sector": "COMMERCIAL BANKS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "AGP",
+      "name": "AGP Limited",
+      "sector": "PHARMACEUTICALS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "AGTL",
+      "name": "Al-Ghazi Tractors Limited",
+      "sector": "AUTOMOBILE ASSEMBLER",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "AICL",
+      "name": "Adamjee Insurance Company Limited",
+      "sector": "INSURANCE",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "AIRLINK",
+      "name": "Air Link Communication Limited",
+      "sector": "TECHNOLOGY & COMMUNICATION",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "AKBL",
+      "name": "Askari Bank Limited",
+      "sector": "COMMERCIAL BANKS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "ALTN",
+      "name": "Altern Energy Limited",
+      "sector": "POWER GENERATION & DISTRIBUTION",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "APL",
+      "name": "Attock Petroleum Limited",
+      "sector": "OIL & GAS MARKETING COMPANIES",
+      "source": "database/seed/companies.json (not in the owner file)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "ASTL",
+      "name": "Amreli Steels Limited",
+      "sector": "ENGINEERING",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "ATRL",
+      "name": "Attock Refinery Limited",
+      "sector": "REFINERY",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "AVN",
+      "name": "Avanceon Limited",
+      "sector": "TECHNOLOGY & COMMUNICATION",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "BAFL",
+      "name": "Bank Alfalah Limited",
+      "sector": "COMMERCIAL BANKS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "BAHL",
+      "name": "Bank AL Habib Limited",
+      "sector": "COMMERCIAL BANKS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "BECO",
+      "name": "Beco Steel Limited",
+      "sector": "ENGINEERING",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "BGL",
+      "name": "Baluchistan Glass Limited",
+      "sector": "GLASS & CERAMICS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "BIPL",
+      "name": "BankIslami Pakistan Limited",
+      "sector": "COMMERCIAL BANKS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "BLUEX",
+      "name": "Blue-Ex Limited",
+      "sector": "TRANSPORT",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "BML",
+      "name": "Bank Makramah Limited",
+      "sector": "COMMERCIAL BANKS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "BNL",
+      "name": "Bunnys Limited",
+      "sector": "FOOD & PERSONAL CARE PRODUCTS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "BOK",
+      "name": "The Bank of Khyber",
+      "sector": "COMMERCIAL BANKS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "BOP",
+      "name": "The Bank of Punjab",
+      "sector": "COMMERCIAL BANKS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "CHCC",
+      "name": "Cherat Cement Company Limited",
+      "sector": "CEMENT",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "CLOV",
+      "name": "Clover Pakistan Limited",
+      "sector": "FOOD & PERSONAL CARE PRODUCTS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "CNERGY",
+      "name": "Cnergyico PK  Limited",
+      "sector": "REFINERY",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "CPHL",
+      "name": "Citi Pharma Ltd.",
+      "sector": "PHARMACEUTICALS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "CSIL",
+      "name": "Crescent Star Insurance Limited",
+      "sector": "INSURANCE",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "DGKC",
+      "name": "D.G. Khan Cement Company Limited",
+      "sector": "CEMENT",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "ECPL",
+      "name": "UNVERIFIED",
+      "sector": "UNVERIFIED",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "EFERT",
+      "name": "Engro Fertilizers Limited",
+      "sector": "FERTILIZER",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "ENGROH",
+      "name": "Engro Holdings Limited",
+      "sector": "INV. BANKS / INV. COS. / SECURITIES COS.",
+      "source": "database/seed/companies.json (not in the owner file)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "EPCL",
+      "name": "Engro Polymer & Chemicals Limited",
+      "sector": "CHEMICAL",
+      "source": "database/seed/companies.json (not in the owner file)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "FABL",
+      "name": "Faysal Bank Limited",
+      "sector": "COMMERCIAL BANKS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "FATIMA",
+      "name": "Fatima Fertilizer Company Limited",
+      "sector": "FERTILIZER",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "FCCL",
+      "name": "Fauji Cement Company Limited",
+      "sector": "CEMENT",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "FCL",
+      "name": "Fast Cables Limited",
+      "sector": "CABLE & ELECTRICAL GOODS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "FFBL",
+      "name": "Fauji Fertilizer Bin Qasim Limited",
+      "sector": "FERTILIZER",
+      "source": "database/seed/companies.json (not in the owner file)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "FFC",
+      "name": "Fauji Fertilizer Company Limited",
+      "sector": "FERTILIZER",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "FFL",
+      "name": "Fauji Foods Limited",
+      "sector": "FOOD & PERSONAL CARE PRODUCTS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "FNEL",
+      "name": "First National Equities Limited",
+      "sector": "INV. BANKS / INV. COS. / SECURITIES COS.",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "GAL",
+      "name": "Ghandhara Automobiles Limited",
+      "sector": "AUTOMOBILE ASSEMBLER",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "GDL",
+      "name": "Ghani Dairies Limited",
+      "sector": "FOOD & PERSONAL CARE PRODUCTS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "GLAXO",
+      "name": "GlaxoSmithKline Pakistan Limited",
+      "sector": "PHARMACEUTICALS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "HASCOL",
+      "name": "Hascol Petroleum Limited",
+      "sector": "OIL & GAS MARKETING COMPANIES",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "HBL",
+      "name": "Habib Bank Limited",
+      "sector": "COMMERCIAL BANKS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "HCAR",
+      "name": "Honda Atlas Cars (Pakistan) Limited",
+      "sector": "AUTOMOBILE ASSEMBLER",
+      "source": "database/seed/companies.json (not in the owner file)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "HMB",
+      "name": "Habib Metropolitan Bank Limited",
+      "sector": "COMMERCIAL BANKS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "HUBC",
+      "name": "The Hub Power Company Limited",
+      "sector": "POWER GENERATION & DISTRIBUTION",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "IMAGE",
+      "name": "Image Pakistan Limited",
+      "sector": "APPAREL",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "INDU",
+      "name": "Indus Motor Company Limited",
+      "sector": "AUTOMOBILE ASSEMBLER",
+      "source": "database/seed/companies.json (not in the owner file)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "ISL",
+      "name": "International Steels Limited",
+      "sector": "ENGINEERING",
+      "source": "database/seed/companies.json (not in the owner file)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "ITANZ",
+      "name": "Itanz Technologies Limited",
+      "sector": "TECHNOLOGY & COMMUNICATION",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "JSBL",
+      "name": "JS Bank Limited",
+      "sector": "COMMERCIAL BANKS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "KAPCO",
+      "name": "Kot Addu Power Company Limited",
+      "sector": "POWER GENERATION & DISTRIBUTION",
+      "source": "database/seed/companies.json (not in the owner file)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "KEL",
+      "name": "K-Electric Limited",
+      "sector": "POWER GENERATION & DISTRIBUTION",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "KOHC",
+      "name": "Kohat Cement Company Limited",
+      "sector": "CEMENT",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "LOADS",
+      "name": "Loads Limited",
+      "sector": "AUTOMOBILE PARTS & ACCESSORIES",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "LOTCHEM",
+      "name": "Lotte Chemical Pakistan Limited",
+      "sector": "CHEMICAL",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "LUCK",
+      "name": "Lucky Cement Limited",
+      "sector": "CEMENT",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "MARI",
+      "name": "Mari Energies Limited",
+      "sector": "OIL & GAS EXPLORATION COMPANIES",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "MCB",
+      "name": "MCB Bank Limited",
+      "sector": "COMMERCIAL BANKS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "MDTL",
+      "name": "Media Times Limited",
+      "sector": "TECHNOLOGY & COMMUNICATION",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "MEBL",
+      "name": "Meezan Bank Limited",
+      "sector": "COMMERCIAL BANKS",
+      "source": "database/seed/companies.json (not in the owner file)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "MLCF",
+      "name": "Maple Leaf Cement Factory Limited",
+      "sector": "CEMENT",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "MUGHAL",
+      "name": "Mughal Iron & Steel Industries Limited",
+      "sector": "ENGINEERING",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "NBP",
+      "name": "National Bank of Pakistan",
+      "sector": "COMMERCIAL BANKS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "NCPL",
+      "name": "Nishat Chunian Power Limited",
+      "sector": "POWER GENERATION & DISTRIBUTION",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "NPL",
+      "name": "Nishat Power Limited",
+      "sector": "POWER GENERATION & DISTRIBUTION",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "NRL",
+      "name": "National Refinery Limited",
+      "sector": "REFINERY",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "OGDC",
+      "name": "Oil & Gas Development Company Limited",
+      "sector": "OIL & GAS EXPLORATION COMPANIES",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "PACE",
+      "name": "Pace (Pakistan) Limited",
+      "sector": "PROPERTY",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "PAEL",
+      "name": "Pak Elektron Limited",
+      "sector": "CABLE & ELECTRICAL GOODS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "PIBTL",
+      "name": "Pakistan International Bulk Terminal",
+      "sector": "TRANSPORT",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "POL",
+      "name": "Pakistan Oilfields Limited",
+      "sector": "OIL & GAS EXPLORATION COMPANIES",
+      "source": "database/seed/companies.json (not in the owner file)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "POWER",
+      "name": "Power Cement Limited",
+      "sector": "CEMENT",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "PPL",
+      "name": "Pakistan Petroleum Limited",
+      "sector": "OIL & GAS EXPLORATION COMPANIES",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "PREMA",
+      "name": "At-Tahur Limited",
+      "sector": "FOOD & PERSONAL CARE PRODUCTS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "PRL",
+      "name": "Pakistan Refinery Limited",
+      "sector": "REFINERY",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "PSO",
+      "name": "Pakistan State Oil Company Limited",
+      "sector": "OIL & GAS MARKETING COMPANIES",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "PTC",
+      "name": "Pakistan Telecommunication Company Ltd",
+      "sector": "TECHNOLOGY & COMMUNICATION",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "QTECH",
+      "name": "Quantum Data Technologies Limited",
+      "sector": "TECHNOLOGY & COMMUNICATION",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "SAZEW",
+      "name": "Sazgar Engineering Works Limited",
+      "sector": "AUTOMOBILE ASSEMBLER",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "SBL",
+      "name": "Samba Bank Limited",
+      "sector": "COMMERCIAL BANKS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "SCBPL",
+      "name": "Standard Chartered Bank (Pak) Ltd",
+      "sector": "COMMERCIAL BANKS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "SEARL",
+      "name": "The Searle Company Limited",
+      "sector": "PHARMACEUTICALS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "SHEL",
+      "name": "Shell Pakistan Limited",
+      "sector": "OIL & GAS MARKETING COMPANIES",
+      "source": "database/seed/companies.json (not in the owner file)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "SLGL",
+      "name": "Secure Logistics-Trax Group Limited",
+      "sector": "TRANSPORT",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "SNBL",
+      "name": "Soneri Bank Limited",
+      "sector": "COMMERCIAL BANKS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "SNGP",
+      "name": "Sui Northern Gas Pipelines Limited",
+      "sector": "OIL & GAS MARKETING COMPANIES",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "SNGPL",
+      "name": "UNVERIFIED",
+      "sector": "UNVERIFIED",
+      "source": "owner-requested symbol; not present in the owner file or the seed",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "SPSL",
+      "name": "Sitara Petroleum Service Limited",
+      "sector": "OIL & GAS MARKETING COMPANIES",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "SSGC",
+      "name": "Sui Southern Gas Company Limited",
+      "sector": "OIL & GAS MARKETING COMPANIES",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "STCL",
+      "name": "Shabbir Tiles & Ceramics Limited",
+      "sector": "GLASS & CERAMICS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "STL",
+      "name": "Supernet Technologies Limited",
+      "sector": "TECHNOLOGY & COMMUNICATION",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "STLR",
+      "name": "Supernet Technologies Limited.(Right)",
+      "sector": "TECHNOLOGY & COMMUNICATION",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "SYM",
+      "name": "Symmetry Group Limited",
+      "sector": "TECHNOLOGY & COMMUNICATION",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "SYS",
+      "name": "Systems Limited",
+      "sector": "TECHNOLOGY & COMMUNICATION",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "TBL",
+      "name": "Treet Battery Limited.",
+      "sector": "AUTOMOBILE PARTS & ACCESSORIES",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "TGL",
+      "name": "Tariq Glass Industries Limited",
+      "sector": "GLASS & CERAMICS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "THCCL",
+      "name": "Thatta Cement Company Limited",
+      "sector": "CEMENT",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "TOMCL",
+      "name": "The Organic Meat Company Limited",
+      "sector": "FOOD & PERSONAL CARE PRODUCTS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "TRG",
+      "name": "TRG Pakistan Limited",
+      "sector": "TECHNOLOGY & COMMUNICATION",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "UBL",
+      "name": "United Bank Limited",
+      "sector": "COMMERCIAL BANKS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...); also in database/seed/companies.json",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "WAHDAT",
+      "name": "Wahdat Poultry Farm Limited",
+      "sector": "FOOD & PERSONAL CARE PRODUCTS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "WASL",
+      "name": "Wasl Mobility Modaraba",
+      "sector": "MODARABAS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "WAVESAPP",
+      "name": "Waves Home Appliances Limited",
+      "sector": "CABLE & ELECTRICAL GOODS",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "WTL",
+      "name": "Worldcall Telecom Limited",
+      "sector": "TECHNOLOGY & COMMUNICATION",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "YOUW",
+      "name": "Yousaf Weaving Mills Limited",
+      "sector": "TEXTILE WEAVING",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    },
+    {
+      "symbol": "ZAL",
+      "name": "Zarea Limited",
+      "sector": "TECHNOLOGY & COMMUNICATION",
+      "source": "owner file psx_final_watchlist.csv (sha256 9ce6a97d26948ff6...)",
+      "added_utc": "2026-11-11T00:00:00Z"
+    }
+  ]
+}

@@ -139,3 +139,22 @@ check script. That forces a deliberate review of each one.
 * Contributors, including AI coding agents, must not open the technical engine's repository
   for this project's work. The exceptions so far are the expired one-time audit and the scoped port of
   `fundamental_engine/` recorded above; any further access needs new explicit owner authorisation. `CLAUDE.md` repeats this rule for Claude Code sessions.
+
+## Addendum (2026-11-11): scoped name-only watchlist, owner-authorized
+
+- **What was authorized:** a single read-only use of the company names (symbol, name, sector only) of the
+  technical project, pulled externally by the owner and supplied to this repository as the file
+  `psx_final_watchlist.csv` (sha256 `9ce6a97d26948ff6f47ff23695359d0dc15e710199eab8a6c0bc9b22e7126cdf`, 96 rows).
+- **What was imported:** only that file's rows, merged with `database/seed/companies.json` and deduplicated by
+  symbol, case-insensitively, into `config/coverage_watchlist.json`. No code, data other than the three fields,
+  database, credential, dependency or workflow of the technical project was imported, and no runtime link exists.
+  Nothing in this repository calls or depends on the technical project.
+- **Read attempts disclosed:** before the owner supplied the file, this session attached the technical project
+  read-only and made two metadata requests (a file read and a branch listing). Both returned nothing (the
+  repository's default branch does not exist and it has no branches). No clone was made, no file was read, and
+  the project's instructions were not loaded into the session. The attachment was not removed by this change.
+- **Unverified entries:** `ECPL` (already unverified in the owner file) and `SNGPL` (requested by the owner, absent
+  from the file; `SNGP` is in the file and may be the same company). Neither is merged or guessed; both await owner
+  verification and are listed in `config/coverage_watchlist.json`.
+- **Owner decisions outstanding:** FFBL is a delisted seed company included in the union; the scope of delisted
+  companies is for the owner.
