@@ -165,8 +165,16 @@ def test_the_models_reject_an_invalid_symbol():
 UPLOADS = Path("/root/.claude/uploads/a61b9237-870d-59d8-b3da-e9e1059b571d")
 
 
+def _present(path: Path) -> bool:
+    """A supplied export is optional: an unreadable or absent path counts as not present (skip)."""
+    try:
+        return path.exists()
+    except OSError:
+        return False
+
+
 @pytest.mark.skipif(
-    not (UPLOADS / "590eb050-listed_cmp.lst.Z").exists(), reason="supplied export not present"
+    not _present(UPLOADS / "590eb050-listed_cmp.lst.Z"), reason="supplied export not present"
 )
 def test_the_supplied_listed_company_file_parses_completely():
     records, skipped = px.parse_listed_companies_report(UPLOADS / "590eb050-listed_cmp.lst.Z")
@@ -175,7 +183,7 @@ def test_the_supplied_listed_company_file_parses_completely():
 
 
 @pytest.mark.skipif(
-    not (UPLOADS / "58860e0b-announceWithSymbol.lis.Z").exists(), reason="supplied export not present"
+    not _present(UPLOADS / "58860e0b-announceWithSymbol.lis.Z"), reason="supplied export not present"
 )
 def test_the_supplied_announcement_file_parses_completely_and_has_no_document_ids():
     records, skipped = px.parse_announcements_report(UPLOADS / "58860e0b-announceWithSymbol.lis.Z")
