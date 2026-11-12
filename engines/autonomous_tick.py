@@ -13,11 +13,13 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 from collectors import investify_good_citizen as gc
 from collectors import investify_policy as pol
@@ -228,12 +230,36 @@ def resources_for(symbols: list[str]) -> list[tuple[str, str]]:
 WATCHLIST_PATH = Path(__file__).resolve().parents[1] / "config" / "coverage_watchlist.json"
 
 
-def user_agent(contact: str | None) -> str | None:
-    """The honest, contactable User-Agent. No contact configured means no live request (fail closed)."""
-    if not contact or "@" not in contact:
+# THE one default contact, used when PSXNI_CONTACT_EMAIL is unset or empty; the variable overrides it.
+DEFAULT_CONTACT = "https://github.com/imranrazabozdar/psx-news-intelligence"
+CONTACT_VAR = "PSXNI_CONTACT_EMAIL"
+_EMAIL = re.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$")
+
+
+def validate_contact(value: str) -> str | None:
+    """A plausible email or an https:// public project URL. Anything else is refused."""
+    if any(ch.isspace() for ch in value):
         return None
-    return (f"psx-news-intelligence/0.3 (+https://github.com/imranrazabozdar/PSX-NEWS-INTELLIGENCE; "
-            f"contact: {contact}; consented research client; at most one request per 15 minutes)")
+    if value.startswith("https://"):
+        parts = urlsplit(value)
+        return value if parts.hostname and "." in parts.hostname and parts.username is None else None
+    return value if _EMAIL.match(value) else None
+
+
+def resolve_contact(environ: Mapping[str, str]) -> str | None:
+    """The contact to use. Unset or empty: the default. Set: it must validate, else None (a no-op)."""
+    raw = environ.get(CONTACT_VAR)
+    if raw is None or raw == "":
+        return DEFAULT_CONTACT
+    return validate_contact(raw)
+
+
+def user_agent(contact: str | None) -> str | None:
+    """The honest User-Agent. A contact that does not validate yields None (refused: no request)."""
+    if not contact:
+        return None
+    checked = validate_contact(contact)
+    return None if checked is None else f"PSX-NI/1.0 (private, consented; contact: {checked})"
 
 
 def fetch_http(ua: str) -> Callable[[str, str], tuple[int | None, dict[str, str], bytes]]:
@@ -286,9 +312,9 @@ def main(environ: Mapping[str, str] | None = None) -> int:
     if not state.tables_present():
         print("no-op: fetch-state tables are not in psx-library (the migration needs owner approval)")
         return 0
-    ua = user_agent(env.get("PSXNI_CONTACT_EMAIL"))
+    ua = user_agent(resolve_contact(env))
     if ua is None:
-        print("no-op: PSXNI_CONTACT_EMAIL is not set; no request is made without a contact address")
+        print(f"no-op: {CONTACT_VAR} is refused (a plausible email or an https:// URL only)")
         return 0
 
     def load_control() -> Control:

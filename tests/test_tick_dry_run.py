@@ -100,14 +100,35 @@ def test_an_unreachable_library_stops_before_any_investify_request(monkeypatch, 
     assert rec.calls == []
 
 
-def test_no_contact_address_means_no_request(monkeypatch, no_network):
+def test_unset_contact_uses_the_repo_default_and_stops_at_the_calendar_stage_with_zero_requests(
+        monkeypatch, no_network, capsys):
+    """Dry run with PSXNI_CONTACT_EMAIL UNSET. Outside the open session (Monday 23:00 PKT) the tick must reach
+    the calendar stage and make zero requests. The User-Agent it would send carries the repository URL."""
     db = _library_db()
     monkeypatch.setattr(library_db, "get_library_connection", lambda env: _Conn(db))
     monkeypatch.setattr(library_db, "auth_check", lambda conn: [{"ok": 1}])
     rec = Recorder()
     monkeypatch.setattr(job, "default_transport", rec)
-    assert at.main({}) == 0
+    seen_ua = []
+    real_user_agent = at.user_agent
+
+    def capture(contact):
+        ua = real_user_agent(contact)
+        seen_ua.append(ua)
+        return ua
+
+    monkeypatch.setattr(at, "user_agent", capture)
+    late_monday = datetime(2026, 11, 16, 18, 0, tzinfo=UTC)  # Monday 23:00 PKT
+    monkeypatch.setattr(at, "datetime", type("Clock", (), {
+        "now": staticmethod(lambda tz=None: late_monday), "fromisoformat": datetime.fromisoformat}))
+    assert at.main({}) == 0  # variable unset (not even present)
+    out = capsys.readouterr().out
+    print(f"DRY RUN User-Agent: {seen_ua[0]}")
+    print(f"DRY RUN requests made: {len(rec.calls)}")
+    print(f"DRY RUN output: {out.strip()}")
+    assert seen_ua == ["PSX-NI/1.0 (private, consented; contact: https://github.com/imranrazabozdar/psx-news-intelligence)"]
     assert rec.calls == []
+    assert "open session" in out  # the calendar stage refused the fetch
 
 
 def test_the_kill_switch_default_is_off_and_stops_everything_when_set():

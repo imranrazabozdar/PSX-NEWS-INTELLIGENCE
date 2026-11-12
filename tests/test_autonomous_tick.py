@@ -310,13 +310,14 @@ def test_without_the_library_variables_the_tick_is_a_clean_no_op(capsys, monkeyp
     assert "no-op" in capsys.readouterr().out
 
 
-def test_no_contact_address_means_no_user_agent_and_no_live_request():
+def test_an_invalid_contact_means_no_user_agent_and_no_live_request():
     assert at.user_agent(None) is None and at.user_agent("not-an-address") is None
+    assert at.user_agent("http://insecure.example.test") is None
 
 
 def test_with_a_contact_the_user_agent_is_honest_and_contactable():
     ua = at.user_agent("ops@example.test")
-    assert "contact: ops@example.test" in ua and "psx-news-intelligence" in ua
+    assert ua == "PSX-NI/1.0 (private, consented; contact: ops@example.test)"
 
 
 def test_the_workflow_is_scheduled_on_the_default_branch_and_uses_library_secrets_only():

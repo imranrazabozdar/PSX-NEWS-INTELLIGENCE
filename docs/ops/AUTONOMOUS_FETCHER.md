@@ -52,9 +52,13 @@
 - `regular_hours` in `config/psx_calendar.json` is GRADING-ONLY (market-data quality checks, full pre-open-to-post-close
   window). It is left as-is. Fetching uses only `open_sessions`. The scheduled tick is the sole fetcher.
 
-## Owner prerequisite before the first live fetch
-- Set the Actions repository variable `PSXNI_CONTACT_EMAIL` (Settings, Secrets and variables, Actions, Variables).
-  Without it every tick is a no-op: `no-op: PSXNI_CONTACT_EMAIL is not set`.
+## Contact address (optional, no setup needed)
+- The honest User-Agent contact defaults to the repository URL, `https://github.com/imranrazabozdar/psx-news-intelligence`
+  (one constant: `DEFAULT_CONTACT` in `engines/autonomous_tick.py`). No GitHub variable is required.
+- The Actions variable `PSXNI_CONTACT_EMAIL` is OPTIONAL. Set it only to override the default with a plausible email or an
+  https:// public project URL. Anything else (http://, whitespace, credentials) is refused: the tick is a clean no-op and
+  makes no request.
+- The personal address is not stored anywhere in the repository.
 
 ## Self-test (before merge, then on demand)
 - `.github/workflows/library-selftest.yml`: runs `python -m engines.library_db` (target guard, SELECT 1, probe round trip)
@@ -67,7 +71,7 @@
 2. **GitHub repo secrets** (Settings, Secrets and variables, Actions, Secrets):
    `PSXNI_LIBRARY_TURSO_DATABASE_URL` and `PSXNI_LIBRARY_TURSO_AUTH_TOKEN` (write-scoped to psx-library).
 3. **GitHub repo variables** (same page, Variables tab):
-   `PSXNI_CONTACT_EMAIL` (for the honest User-Agent; no contact means no request is made).
+   `PSXNI_CONTACT_EMAIL` is optional. The contact defaults to the repository URL; set the variable only to override it.
 4. **Approve and apply** the state migration `database/library/0001_fetch_state.sql` to psx-library, and make sure the
    operational tables the fundamentals store uses are present there too.
 5. **Link test (self-test):** run `python -m engines.library_db` in the Actions workflow_dispatch with the library
