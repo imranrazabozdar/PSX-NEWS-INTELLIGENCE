@@ -31,7 +31,7 @@ Status: CHECKPOINT. Not merged to main. Owner decision pending on merge. No watc
 | Investify HUBC pilot | IMPLEMENTED and TESTED. Fundamentals (first fill, 25 metric cards), announcements (40 items, no trigger), competitors (sector-derived, 16), profile (with description). Live proof and audit: see STATUS |
 | Investify, first fill and refresh rules | Owner-confirmed. Tests in `tests/test_investify_fundamentals.py` |
 | Competitors | Owner-confirmed as sector-derived (16). Displayed tab is 14 |
-| Investify analysis-output restriction | PROPOSED, not yet confirmed by owner |
+| Investify private retention and analysis-output restriction | Owner-confirmed |
 
 ## Deferred
 
@@ -69,5 +69,4 @@ Status: CHECKPOINT. Not merged to main. Owner decision pending on merge. No watc
 ## Owner decisions still needed
 
 1. Merge `feature/financial-pdf-reconciliation` to main (large branch; owner decision).
-2. Confirm or reject the analysis-output restriction (proposed in the consent record).
-3. Approve or defer the watchlist scale-up.
+2. Approve or defer the watchlist scale-up.

@@ -258,7 +258,7 @@ Handover: `docs/handover/PILOT-CHECKPOINT-2026-11-12.md`.
 |---|---|
 | Investify HUBC pilot (announcements, fundamentals first fill and refresh, profile with description, competitors sector-derived) | IMPLEMENTED and TESTED. Gate evidence in the operational SQLite, not in the throwaway pre-fix file |
 | Investify first-fill and refresh rules; competitors as sector-derived (16 vs displayed 14) | Owner-confirmed; recorded in `docs/consent/investify-fundamentals-2026-11-12.md` |
-| Investify analysis-output restriction (no verbatim public reproduction) | PROPOSED; pending owner confirmation |
+| Investify private retention and analysis-output restriction (no verbatim public reproduction) | Owner-confirmed; recorded in the consent record |
 | Investify audit label (09:47:26Z competitors) | Corrected: code records manual only for genuine manual refreshes; correction line in the audit log |
 | IR fetcher (robots, interval, backoff, vault) | IMPLEMENTED and TESTED; live on four companies |
 | PDF extraction and de-shadow engine | IMPLEMENTED and TESTED with synthetic fixtures; pilots reconcile (UBL, OGDC, LUCK) |
