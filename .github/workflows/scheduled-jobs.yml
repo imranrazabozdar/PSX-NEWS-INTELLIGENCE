@@ -7,9 +7,9 @@
 # * Per-run database budgets (rows read/written, requests) are enforced by database/connection.py.
 name: Scheduled collection
 
+# Scheduling disabled (scheduler audit): this is manual dispatch only. The autonomous fetcher
+# (.github/workflows/psx_fetch.yml) is the only scheduled workflow. Code is kept, not deleted.
 on:
-  schedule:
-    - cron: "17 */6 * * *"   # every 6 hours; per-source frequency is applied by the scheduler
   workflow_dispatch:
     inputs:
       source:
