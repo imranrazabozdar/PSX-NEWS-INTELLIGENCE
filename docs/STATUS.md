@@ -234,3 +234,8 @@ Consent: `docs/consent/investify-fundamentals-2026-11-12.md` (owner-reported exp
 - `investify_fundamentals` is ENABLED in the seed (owner approval, 2026-11-12). Its consent record now carries the owner confirmations: operator investify.pk; fundamentals and competitors paths confirmed; profile path inferred and verified only by one conditional GET (unset on 404); no industry endpoint; STRUCTURED FIELDS ONLY.
 - Storage now persists only metadata and the SHA-256 of each response body. The raw body and Investify's summary text are not persisted. Field extraction is NOT yet written: it waits for the page samples from the live proof.
 - Live: robots.txt fetched once (HTTP 200, 2026-11-12T07:53:42Z); it allows all three company paths. The announcements page, the profile verification, the HUBC competitors and fundamentals requests are NOT yet made. Acceptance gate not yet reached.
+
+### Update 2026-11-12 (08:33Z): profile extractor and profile backfill
+- Profile path VERIFIED: one policy-compliant GET returned 200 (2026-11-12T08:32:17Z). Profile backfilled as structured fields only (sector from the page's embedded company index; leadership; market structure; share float split; registered address; website). The company description is deliberately NOT extracted, because it may be Investify-generated text; owner to confirm.
+- Extractors: `engines/investify_extract.py` (profile written; competitors, fundamentals and the announcements parser pending the page mapping). Tests: `tests/test_investify_extract.py` on SYNTHETIC fixtures in `tests/fixtures/investify/` (invented values, not live data).
+- Pending: announcements parser fix and trigger, fundamentals, competitors, acceptance gate.

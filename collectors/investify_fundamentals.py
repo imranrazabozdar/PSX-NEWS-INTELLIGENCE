@@ -293,3 +293,28 @@ def stored_profile_age(db: Any, symbol: str, endpoint: str, now: datetime) -> ti
     if row is None:
         return None
     return now - _utc(row["collected_at_utc"])
+
+
+def store_structured(db: Any, *, endpoint: str, symbol: str, fields: dict[str, Any], url: str,
+                     fetched_at_utc: str, http_status: int,
+                     triggering_announcement_id: str | None = None) -> str:
+    """Persist STRUCTURED FIELDS ONLY (never the raw body). Every record is tagged source = investify.pk."""
+    content = json.dumps(fields, ensure_ascii=False, sort_keys=True)
+    metadata = {
+        "source": SOURCE_NAME,
+        "attribution": pol.ATTRIBUTION,
+        "symbol": symbol,
+        "endpoint": endpoint,
+        "fetched_at_utc": fetched_at_utc,
+        "triggering_announcement_id": triggering_announcement_id,
+        "storage": "structured_fields_only",
+    }
+    out = record_source_item(
+        db, source_id=SOURCE_ID, collected_at_utc=fetched_at_utc, url=url,
+        external_id=f"{symbol}:{endpoint}", content=content, title=f"{symbol} {endpoint} (Investify)",
+        published_at_utc=None, published_at_raw=None, excerpt=None,
+        provenance={"original_url": url, "retrieval_method": "html", "http_status": http_status,
+                    "document_type": endpoint, "publication_time_status": "unknown",
+                    "source_metadata_json": json.dumps(metadata, ensure_ascii=False, sort_keys=True)},
+    )
+    return out.outcome
