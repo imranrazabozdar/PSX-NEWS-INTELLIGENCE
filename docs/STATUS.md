@@ -314,3 +314,6 @@ Handover: `docs/handover/PILOT-CHECKPOINT-2026-11-12.md`.
   (b) Technicals engine: OHLCV to accumulation and distribution (OBV, A/D line, volume trend), support and resistance; flags fundamental-versus-technical divergence.
   (c) Scenario synthesis: bull, base and bear, combining the driver-based earnings path, a valuation range, the catalyst calendar, technical positioning and macro state, each with named swing factors and rough probabilities.
   (d) Guardrails, non-negotiable: scenario-based only, never a point prediction or certainty; every estimate labelled with its assumptions; every fact traceable; observation separated from inference; confidence and "what would make this wrong" always stated; never buy or sell.
+
+## Architecture blueprint
+The full agreed system design (data layer, exposure map, dossier, macro and market-flow layers, event-transmission, composite and divergence, scenario and forecast engines, and the private dashboard), with the cross-cutting guardrails and the phase sequence, is recorded in `docs/architecture/INTELLIGENCE_BLUEPRINT.md`. The blueprint is a design record. It changes no runtime behavior. Phases 2 to 5 remain approved-pending.
