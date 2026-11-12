@@ -89,6 +89,10 @@ def main(argv: list[str] | None = None) -> int:
             if capped and time.time() < deadline:
                 time.sleep(SLEEP_WHEN_CAPPED_S)  # the cap is shared: wait for it, never bypass it
                 continue
+            if out.status == "skipped" and out.reason.startswith("outside trading hours"):
+                # Not a step outcome: stop without recording, so the step is retried in the next window.
+                print("outside trading hours; stopping, nothing recorded", flush=True)
+                return 3
             break
         row = {"symbol": sym, "endpoint": ep, "status": out.status, "reason": out.reason,
                "ts_utc": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")}
