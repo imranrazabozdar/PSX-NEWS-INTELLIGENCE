@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -58,3 +59,44 @@ def test_long_text_unknown_columns_and_bad_confidence_are_refused():
         rf.validate_fact({**base, "paragraph": "copied text"})
     with pytest.raises(rf.ResearchFactError, match="confidence"):
         rf.validate_fact({**base, "confidence": "maybe"})
+
+
+def test_the_shipped_facts_file_is_valid_sourced_and_dated_for_hubc():
+    import json
+
+    from scripts import load_research_facts as lrf
+
+    rows = lrf.load_rows(HUBC / "facts.json", "HUBC")
+    assert len(rows) >= 20
+    for row in rows:
+        assert row["source_name"] and row["source_date"] and row["company"] == "HUBC"
+        assert len(row["fact_text"]) <= 300
+    assert {r["confidence"] for r in rows} == {"fact", "analyst_view"}
+    assert all(r["confidence"] == "analyst_view" for r in rows if r["topic"] in
+               {"analyst_thesis", "ev_plan", "land_optionality", "receivables"})
+    assert "" not in {r["source_name"] for r in rows}
+    json.loads((HUBC / "facts.json").read_text(encoding="utf-8"))
+
+
+def test_the_loader_refuses_a_second_load_and_a_wrong_ticker(tmp_path):
+    from database.connection import SQLiteDatabase
+    from scripts import load_research_facts as lrf
+
+    db = SQLiteDatabase()
+    assert lrf.load("HUBC", HUBC / "facts.json", db=db) == 0
+    assert lrf.load("HUBC", HUBC / "facts.json", db=db) == 6  # refused: already loaded
+    bad = tmp_path / "bad.json"
+    bad.write_text('[{"company": "OGDC", "topic": "x", "fact_text": "y", "source_name": "s", '
+                   '"source_date": "2026-01-01", "confidence": "fact", "created_at": "2026-11-12"}]')
+    import pytest as _pt
+
+    with _pt.raises(rf.ResearchFactError, match="refused"):
+        lrf.load_rows(bad, "HUBC")
+
+
+def test_the_loader_only_inserts_and_reads_research_fact():
+    text = (ROOT / "scripts" / "load_research_facts.py").read_text(encoding="utf-8")
+    assert re.findall(r"INSERT INTO (\w+)", text) == ["research_fact"]
+    rest = text.replace("CREATE TABLE IF NOT EXISTS", "")
+    assert not re.search(r"\b(DROP|DELETE|UPDATE|ALTER|CREATE)\b", rest)
+    assert "FROM research_fact" in text
