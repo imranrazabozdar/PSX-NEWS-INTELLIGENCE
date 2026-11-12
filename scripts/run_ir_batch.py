@@ -69,21 +69,37 @@ def process(row: dict, *, vault: Path, adb: SQLiteDatabase, now: datetime) -> di
     except (ValueError, OSError) as exc:
         return _record(row, "insufficient_data", f"not a readable PDF: {exc}")
     if not any(p.has_text for p in doc.pages):
-        return _record(row, "insufficient_data", "no text layer (image-only PDF)")
+        return _record(row, "needs_OCR", "no text layer (image-only): not attempted; OCR is a later decision")
     layout = rm.detect_layout(doc, row["period_end"])
-    pages = {k: v for k, v in layout.get("statement_pages", {}).items()}
+    pages = dict(layout.get("statement_pages", {}))
+    if layout.get("blocker") == "no_text_layer":
+        return _record(
+            row,
+            "needs_OCR",
+            "; ".join(layout["missing"]),
+            statement_pages=pages,
+            unreadable_pages=layout.get("unreadable_pages", {}),
+        )
     if layout["missing"]:
-        return _record(row, "requires_review", "; ".join(layout["missing"]), statement_pages=pages)
+        return _record(
+            row,
+            "requires_review",
+            "; ".join(layout["missing"]),
+            statement_pages=pages,
+            flags=layout.get("flags", []),
+        )
+    period_end = layout["period_column"] or row["period_end"]
     try:
         out = fi.analyse(
             vault,
             pdf,
             symbol=row["symbol"],
-            period_end=row["period_end"],
+            period_end=period_end,
             columns=layout["columns"],
             unit_scale=layout["unit_scale"],
             currency=layout["currency"],
             consolidation=layout["consolidation"],
+            statement_pages=pages,
         )
     except Exception as exc:  # a layout the pipeline does not handle is recorded, not fatal
         return _record(
@@ -96,7 +112,7 @@ def process(row: dict, *, vault: Path, adb: SQLiteDatabase, now: datetime) -> di
     identities = sp.identity_rows(out["_recon"], consolidation=layout["consolidation"])
     stmt_status: dict[str, str] = {}
     for s in statements:
-        if s["column_period_end"] == row["period_end"]:
+        if s["column_period_end"] == period_end:
             stmt_status[s["statement_type"]] = s["status"]
     store_note = ""
     try:
@@ -165,6 +181,9 @@ def process(row: dict, *, vault: Path, adb: SQLiteDatabase, now: datetime) -> di
             for i in identities
         ],
         statement_pages=located,
+        flags=layout.get("flags", []),
+        basis_by_statement=layout.get("basis_by_statement", {}),
+        period_column=period_end,
         columns=layout["columns"],
         unit_scale=layout["unit_scale"],
         consolidation=layout["consolidation"],

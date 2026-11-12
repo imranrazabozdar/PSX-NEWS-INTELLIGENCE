@@ -1,18 +1,32 @@
 """Layout facts a statement extraction needs, read from the statement pages' own text. Pure: no I/O.
 
-The extraction needs four facts per report: the statement pages, the column dates, the unit scale and the
-consolidation basis (plus the currency). They are detected here.
+Facts detected: the statement pages (per statement, for ONE basis), the column dates, the unit scale, the
+consolidation basis and the currency.
 
 Rules:
-* A statement page is a page that carries a statement HEADING as a whole line (not a phrase inside a note
-or the
-  contents page) AND carries amount-bearing lines (a contents page has page numbers, not amounts).
-* A heading with no amounts on its page, where the page has no text, is reported as a NO-TEXT-LAYER
-blocker: the
-  statement is drawn as vector outlines or images and cannot be read without OCR. That is not a layout
-  problem.
-* Detection never guesses. A fact that is absent or ambiguous is reported as missing, and the report is then
-  marked requires_review with the reason.
+* A statement page carries a statement heading as a whole line (a title split over two lines is joined) AND at
+  least AMOUNT_PAGE_MIN amount-bearing lines. Contents pages, notes and the "six years at a glance" summary
+  are
+  excluded.
+* A heading whose body has no readable amounts is a NO-TEXT-LAYER case: the statement is drawn as vector
+outlines
+  or images, and it cannot be read without OCR. This is reported separately from a layout the detector does
+  not
+  understand.
+* Consolidation basis, from the statement heading itself:
+    - labelled consolidated and labelled unconsolidated both present: select the consolidated set, flag
+      parallel_sets_present;
+    - only one labelled set: use it;
+    - UNSTATED, with a single column set and no consolidated mention in the headings: STANDALONE is
+    assumed, the
+      flag consolidation_basis_assumed is set, and extraction proceeds;
+    - UNSTATED with a consolidated mention but no clear basis: ambiguous, so the report is requires_review.
+  The auditor's opinion and the notes are never read to recover the basis.
+* Column dates: explicit dates first; otherwise 'as at <month> <day>' combined with the years in the
+header. If the
+  period end is not an exact column, the column with the same month and day is used, then the nearest, and the
+  flag period_column_assumed is set. If no column can be matched, the report is requires_review.
+* Detection never guesses otherwise: an absent fact is reported as missing.
 """
 
 from __future__ import annotations
@@ -21,6 +35,12 @@ import re
 from datetime import date
 
 from engines import pdf_extraction as pe
+
+AMOUNT_PAGE_MIN = 6  # amount-bearing lines a statement page needs
+DOC_AMOUNT_PAGES_MIN = 3  # pages with amounts a report needs before it counts as having a readable body
+HEADER_LINES = 30
+HEADING_CONTEXT = 3
+SUMMARY_MARKERS = ("six years", "at a glance")
 
 _MONTHS = {
     "jan": 1,
@@ -39,13 +59,16 @@ _MONTHS = {
 _MONTH = r"(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?"
 _DATE_MDY = re.compile(rf"\b{_MONTH}\s+(\d{{1,2}})(?:st|nd|rd|th)?,?\s+(20\d{{2}})\b", re.IGNORECASE)
 _DATE_DMY = re.compile(rf"\b(\d{{1,2}})(?:st|nd|rd|th)?\s+{_MONTH},?\s+(20\d{{2}})\b", re.IGNORECASE)
-# 'as at June 30' or 'AS AT JUNE, 30' (the day may sit on the same line as the month)
+_DATE_NUMERIC = re.compile(r"\b(\d{1,2})[./-](\d{1,2})[./-](20\d{2})\b")  # dd/mm/yyyy, dd-mm-yyyy, dd.mm.yyyy
+_DATE_ISO = re.compile(r"\b(20\d{2})-(\d{2})-(\d{2})\b")
 _AS_AT = re.compile(rf"\bas\s+(?:at|on)\s+{_MONTH},?\s*(\d{{1,2}})\b", re.IGNORECASE)
 _YEAR = re.compile(r"\b(20\d{2})\b")
 _AMOUNT = re.compile(r"\(?\d{1,3}(?:,\d{3})+(?:\.\d+)?\)?")
 
-# Heading lines, matched against the whole normalised line. Optional modifiers are the common report styles.
-_MODIFIER = r"(?:(?:horizontal|vertical|condensed interim|consolidated|separate|standalone|stand-alone)\s+)*"
+_MODIFIER = (
+    r"(?:(?:horizontal|vertical|condensed interim|unconsolidated|consolidated|separate|standalone"
+    r"|stand-alone)\s+)*"
+)
 _HEADINGS = {
     "BS": re.compile(
         rf"^{_MODIFIER}(?:statement of financial position|balance sheet|statement of assets and liabilities)"
@@ -58,19 +81,15 @@ _HEADINGS = {
     "CF": re.compile(rf"^{_MODIFIER}(?:statement of cash flows|cash flow statement)$"),
     "EQ": re.compile(rf"^{_MODIFIER}statement of changes in equity$"),
 }
-_SCALE_THOUSAND = re.compile(r"in\s+(?:thousands?|'000|’000|\"000|000s)|'000'|’000’|\(000\)", re.IGNORECASE)
-_SCALE_MILLION = re.compile(r"in\s+millions?|\(000,000\)|'000,000", re.IGNORECASE)
+_SCALE_THOUSAND = re.compile(
+    r"in\s+(?:thousands?|'000|’000|\"000|000s)|'000'|’000’|\(000\)|['‘’]000s|\(\s*000s?\s*\)", re.IGNORECASE
+)
+_SCALE_MILLION = re.compile(r"in\s+millions?|\(\s*millions?\s*\)|\(000,000\)|'000,000", re.IGNORECASE)
 _BARE_RUPEES = re.compile(r"\(\s*rupees\s*\)|\(\s*pkr\s*\)", re.IGNORECASE)
-HEADER_LINES = 30  # the column dates sit in the statement's header block
-HEADING_CONTEXT = 3  # lines above a heading that may say consolidated or separate
 
 
 def _norm(line: str) -> str:
-    return re.sub(r"\s+", " ", line.strip().lower().replace("’", "'"))
-
-
-def _text(lines: list[str]) -> str:
-    return " ".join(lines)
+    return re.sub(r"\s+", " ", line.strip().lower().replace("’", "'").replace("‘", "'"))
 
 
 def heading_code(line: str) -> str | None:
@@ -81,12 +100,28 @@ def heading_code(line: str) -> str | None:
     return None
 
 
+def heading_basis(text: str) -> str | None:
+    """'consolidated' or 'unconsolidated' (or standalone/separate) as stated in a heading, else None."""
+    n = _norm(text)
+    if "unconsolidated" in n or re.search(r"\bseparate\b|stand-?alone", n):
+        return "unconsolidated"
+    if "consolidated" in n:
+        return "consolidated"
+    return None
+
+
 def amount_lines(lines: list[str]) -> int:
     return sum(1 for ln in lines if _AMOUNT.search(ln))
 
 
+def _text(lines: list[str]) -> str:
+    return " ".join(lines)
+
+
 def detect_unit_scale(lines: list[str]) -> int | None:
-    """1000 for 'in thousands' / "Rupees in '000", 1000000 for 'in millions', 1 for a bare '(Rupees)'."""
+    """1000 for 'in thousands', "Rupees in '000", "(Rs. '000s)"; 1000000 for 'in millions', "Rs.
+    (Millions)"; 1 for a
+    bare '(Rupees)'. Ambiguous (both scales stated) is None, never guessed."""
     text = _text(lines)
     thousand = bool(_SCALE_THOUSAND.search(text))
     million = bool(_SCALE_MILLION.search(text))
@@ -95,26 +130,15 @@ def detect_unit_scale(lines: list[str]) -> int | None:
     if thousand and not million:
         return 1000
     if thousand and million:
-        return None  # both stated: ambiguous, so not guessed
+        return None
     if _BARE_RUPEES.search(text):
         return 1
     return None
 
 
-def detect_consolidation(lines: list[str]) -> str | None:
-    t = _text(lines).lower()
-    if "unconsolidated" in t or "separate financial statements" in t or re.search(r"stand-?alone", t):
-        return "unconsolidated"
-    if "consolidated" in t:
-        return "consolidated"
-    return None
-
-
 def detect_currency(lines: list[str]) -> str | None:
     t = _text(lines).lower()
-    if "pkr" in t or "rupees" in t or "rs." in t:
-        return "PKR"
-    return None
+    return "PKR" if ("pkr" in t or "rupees" in t or "rs." in t) else None
 
 
 def _safe(month: int, day: int, year: int) -> date | None:
@@ -125,119 +149,186 @@ def _safe(month: int, day: int, year: int) -> date | None:
 
 
 def detect_column_dates(lines: list[str]) -> list[date]:
-    """The statement's value columns, in order. Explicit dates first; otherwise the 'as at <month> <day>'
-    phrase is
-    combined with each year printed in the header, which is how many reports split the date across lines."""
+    """The value columns in order. Explicit dates first; otherwise 'as at <month> <day>' with the header's
+    years."""
     explicit: list[date] = []
     for line in lines:
         for m in _DATE_MDY.finditer(line):
             explicit.append(_safe(_MONTHS[m.group(1).lower()[:3]], int(m.group(2)), int(m.group(3))))
         for m in _DATE_DMY.finditer(line):
             explicit.append(_safe(_MONTHS[m.group(2).lower()[:3]], int(m.group(1)), int(m.group(3))))
-    distinct_explicit: list[date] = []
+        for m in _DATE_NUMERIC.finditer(line):
+            explicit.append(_safe(int(m.group(2)), int(m.group(1)), int(m.group(3))))
+        for m in _DATE_ISO.finditer(line):
+            explicit.append(_safe(int(m.group(2)), int(m.group(3)), int(m.group(1))))
+    distinct: list[date] = []
     for d in explicit:
-        if d is not None and d not in distinct_explicit:
-            distinct_explicit.append(d)
-    if len(distinct_explicit) >= 2:
-        return distinct_explicit
+        if d is not None and d not in distinct:
+            distinct.append(d)
+    if len(distinct) >= 2:
+        return distinct
     joined = _text(lines)
     as_at = _AS_AT.search(joined)
     if not as_at:
-        return distinct_explicit
+        return distinct
     month, day = _MONTHS[as_at.group(1).lower()[:3]], int(as_at.group(2))
     years: list[int] = []
     for y in _YEAR.findall(joined):
         if int(y) not in years:
             years.append(int(y))
-    dates = [d for d in (_safe(month, day, y) for y in years) if d is not None]
-    return dates
+    return [d for d in (_safe(month, day, y) for y in years) if d is not None]
 
 
-def _statement_pages(doc: pe.DocumentText) -> dict[str, list[int]]:
-    """Pages whose heading line is a statement title AND that carry amounts. Contents and notes are
-    excluded."""
-    found: dict[str, list[int]] = {}
-    no_text: dict[str, list[int]] = {}
+def _is_summary(lines: list[str]) -> bool:
+    top = " ".join(lines[:3]).lower()
+    return any(marker in top for marker in SUMMARY_MARKERS)
+
+
+def _scan_statement_pages(doc: pe.DocumentText) -> dict:
+    """Heading-bearing pages: readable (with amounts) and unreadable (heading but no amounts), by code and
+    basis."""
+    readable: dict[str, list[dict]] = {}
+    unreadable: dict[str, list[int]] = {}
+    summaries: list[int] = []
     for page in doc.pages:
-        for line in page.lines:
+        if _is_summary(page.lines):
+            if any(heading_code(ln) for ln in page.lines):
+                summaries.append(page.number)
+            continue
+        lines = page.lines
+        for idx, line in enumerate(lines):
+            joined = line
+            consumed = 1
             code = heading_code(line)
+            if code is None and idx + 1 < len(lines):
+                joined = f"{line} {lines[idx + 1]}"
+                code = heading_code(joined)
+                consumed = 2
             if code is None:
                 continue
-            if amount_lines(page.lines) >= 6:
-                if page.number not in found.setdefault(code, []):
-                    found[code].append(page.number)
+            basis = heading_basis(joined)
+            if amount_lines(lines) >= AMOUNT_PAGE_MIN:
+                readable.setdefault(code, []).append({"page": page.number, "basis": basis, "heading": joined})
             else:
-                no_text.setdefault(code, []).append(page.number)  # heading present, body not readable
-            break  # one heading per page is enough to classify it
-    return {"found": found, "no_text": no_text}
+                unreadable.setdefault(code, []).append(page.number)
+            _ = consumed
+            break
+    return {"readable": readable, "unreadable": unreadable, "summaries_excluded": summaries}
+
+
+def _choose_basis(entries: list[dict]) -> tuple[str | None, list[dict], bool]:
+    """(basis, chosen entries, parallel) for one statement code."""
+    labelled = {e["basis"] for e in entries if e["basis"]}
+    if "consolidated" in labelled:
+        chosen = [e for e in entries if e["basis"] == "consolidated"]
+        return "consolidated", chosen, "unconsolidated" in labelled
+    if "unconsolidated" in labelled:
+        return "unconsolidated", [e for e in entries if e["basis"] == "unconsolidated"], False
+    return None, entries, False
 
 
 def detect_layout(doc: pe.DocumentText, period_end: str) -> dict:
-    """Facts for one report, the statement pages, the blocker class (if any) and what is missing."""
-    located = _statement_pages(doc)
-    found, no_text = located["found"], located["no_text"]
-    if not found and no_text:
+    """Facts for one report: statement pages for one basis, unit, basis, columns and any blocker."""
+    scan = _scan_statement_pages(doc)
+    readable, unreadable = scan["readable"], scan["unreadable"]
+    pages_with_amounts = sum(1 for p in doc.pages if amount_lines(p.lines) >= 1)
+    base = {"summaries_excluded": scan["summaries_excluded"], "unreadable_pages": unreadable}
+    if not readable and unreadable:
         return {
+            **base,
             "blocker": "no_text_layer",
             "missing": ["statement bodies have no text layer"],
             "statement_pages": {},
-            "no_text_pages": no_text,
         }
-    if not found and not any(amount_lines(p.lines) for p in doc.pages):
+    if not readable and pages_with_amounts < DOC_AMOUNT_PAGES_MIN:
         return {
+            **base,
             "blocker": "no_text_layer",
             "missing": [
-                "no amount text anywhere in the report: statement bodies are "
-                "drawn as vector outlines or images"
+                "no amount text in the report: statement bodies are drawn as vector outlines or images"
             ],
             "statement_pages": {},
-            "no_text_pages": {},
         }
-    if "BS" not in found:
-        blocker = "no_text_layer" if "BS" in no_text else "layout"
-        reason = (
-            "balance sheet body has no text layer"
-            if blocker == "no_text_layer"
-            else "no balance sheet found with its heading and amounts"
-        )
-        return {"blocker": blocker, "missing": [reason], "statement_pages": found, "no_text_pages": no_text}
-    by_number = {p.number: p for p in doc.pages}
-    statement_lines: list[str] = []
-    for code in found:
-        for number in found[code]:
-            statement_lines += by_number[number].lines
-    bs_head = by_number[found["BS"][0]].lines[:HEADER_LINES]
-    context: list[str] = []
-    for code in ("BS", "IS", "CF", "EQ"):
-        for number in found.get(code, [])[:1]:
-            lines = by_number[number].lines
-            for idx, line in enumerate(lines):
-                if heading_code(line) == code:
-                    context += lines[max(0, idx - HEADING_CONTEXT) : idx + 1]
-                    break
+    if "BS" not in readable:
+        return {
+            **base,
+            "blocker": "layout",
+            "missing": ["no balance sheet found with its heading and amounts"],
+            "statement_pages": {},
+        }
+
+    chosen_pages: dict[str, list[int]] = {}
+    basis_of: dict[str, str | None] = {}
+    parallel = False
+    for code, entries in readable.items():
+        basis, chosen, par = _choose_basis(entries)
+        chosen_pages[code] = sorted({e["page"] for e in chosen})
+        basis_of[code] = basis
+        parallel = parallel or par
+    labelled = {b for b in basis_of.values() if b}
+    unstated_consolidated_mention = any(
+        "consolidated" in _norm(e["heading"]) for entries in readable.values() for e in entries
+    )
+    flags: list[str] = []
     missing: list[str] = []
-    unit = detect_unit_scale(statement_lines)
-    consolidation = detect_consolidation(context)
-    currency = detect_currency(statement_lines)
-    dates = detect_column_dates(bs_head)
+    if not labelled:
+        if unstated_consolidated_mention:
+            consolidation = None
+            missing.append("consolidation basis ambiguous: 'consolidated' appears but no basis is labelled")
+        else:
+            consolidation = (
+                "unconsolidated"  # STANDALONE: single set, no consolidated mention in the headings
+            )
+            flags.append("consolidation_basis_assumed")
+    else:
+        consolidation = "consolidated" if "consolidated" in labelled else "unconsolidated"
+    if parallel:
+        flags.append("parallel_sets_present")
+
+    bs_page = chosen_pages["BS"][0]
+    by_number = {p.number: p for p in doc.pages}
+    bs_lines = by_number[bs_page].lines
+    head = bs_lines[:HEADER_LINES]
+    unit = detect_unit_scale(head) or detect_unit_scale(
+        [
+            ln
+            for code in chosen_pages
+            for n in chosen_pages[code][:1]
+            for ln in by_number[n].lines[:HEADER_LINES]
+        ]
+    )
+    currency = detect_currency(head)
+    dates = detect_column_dates(head)
     if unit is None:
-        missing.append("unit scale not stated on the statement pages")
-    if consolidation is None:
-        missing.append("consolidation basis not stated in the statement headings")
+        missing.append("unit scale not stated in the balance sheet header")
     if currency is None:
-        missing.append("currency not stated on the statement pages")
-    if len(dates) < 2:
-        missing.append("fewer than two column dates in the balance sheet header")
+        missing.append("currency not stated in the balance sheet header")
+    if not dates:
+        missing.append("no column dates in the balance sheet header")
     target = date.fromisoformat(period_end)
-    if target not in dates:
-        missing.append(f"period end {period_end} is not one of the statement's column dates")
+    matched = None
+    if dates:
+        if target in dates:
+            matched = target
+        else:
+            same_md = [d for d in dates if (d.month, d.day) == (target.month, target.day)]
+            if same_md:
+                matched = same_md[0]
+            else:
+                matched = min(dates, key=lambda d: abs((d - target).days))
+            flags.append("period_column_assumed")
+    if matched is None and dates:
+        missing.append(f"period end {period_end} could not be matched to a column")
     return {
+        **base,
         "blocker": None if not missing else "layout",
         "unit_scale": unit,
         "consolidation": consolidation,
         "currency": currency,
         "columns": [d.isoformat() for d in dates],
-        "statement_pages": found,
-        "no_text_pages": no_text,
+        "period_column": matched.isoformat() if matched else None,
+        "statement_pages": chosen_pages,
+        "basis_by_statement": basis_of,
+        "flags": flags,
         "missing": missing,
     }
