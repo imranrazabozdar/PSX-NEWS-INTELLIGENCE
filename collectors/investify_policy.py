@@ -24,7 +24,7 @@ from __future__ import annotations
 import json
 import os
 import random
-from dataclasses import asdict, dataclass, replace
+from dataclasses import asdict, dataclass, field, replace
 from datetime import UTC, datetime, timedelta
 from email.utils import parsedate_to_datetime
 from pathlib import Path
@@ -113,6 +113,12 @@ class PollState:
     consecutive_blocks: int = 0  # consecutive 403 / 429 / 503
     breaker_until_utc: str | None = None
     in_flight_since_utc: str | None = None
+    # Per-URL conditional-request cache: {url: {etag, last_modified}} (fundamentals and profile endpoints).
+    endpoint_cache: dict = field(default_factory=dict)
+    # Event triggers for fundamentals: queued financial-result announcements not yet consumed.
+    pending_triggers: list = field(default_factory=list)
+    consumed_triggers: list = field(default_factory=list)  # announcement ids already acted on
+    seen_announcements: list = field(default_factory=list)  # every announcement id seen, to detect NEW ones
 
 
 def load_state(path: Path) -> PollState:
@@ -235,12 +241,13 @@ def backoff_until(now: datetime, retry_after: str | None) -> datetime:
     return now + delay
 
 
-def registry_problem(entry: dict) -> str | None:
+def registry_problem(entry: dict, source_id: str = SOURCE_ID,
+                     consent_record: str = CONSENT_RECORD) -> str | None:
     """Why the registry entry does not permit collection under this consent, or None if it does.
 
     The database's own constraints only allow the values checked here; the consent record is the evidence."""
-    if entry.get("source_id") != SOURCE_ID:
-        return f"entry is not {SOURCE_ID}"
+    if entry.get("source_id") != source_id:
+        return f"entry is not {source_id}"
     if not entry.get("enabled"):
         return "source is disabled in the registry"
     if entry.get("lifecycle_status") != "APPROVED":
@@ -251,8 +258,8 @@ def registry_problem(entry: dict) -> str | None:
         return f"access_status is {entry.get('access_status')!r}, not verified_permitted"
     if entry.get("access_method") != "html_permitted":
         return f"access_method is {entry.get('access_method')!r}, not html_permitted"
-    if not (REPO_ROOT / CONSENT_RECORD).is_file():
-        return f"consent record {CONSENT_RECORD} is missing"
+    if not (REPO_ROOT / consent_record).is_file():
+        return f"consent record {consent_record} is missing"
     return None
 
 

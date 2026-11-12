@@ -64,7 +64,8 @@ PROHIBITED_LICENSING = frozenset({"licence_required", "paid_api", "permission_re
 
 # Sources collected only by their own consent-bound job (rate limit, trading hours, robots, backoff).
 # The generic engine must never fetch them, not even as a dry run.
-CONSENT_GOVERNED = frozenset({"investify_announcements"})  # collectors/investify_job.py
+CONSENT_GOVERNED = frozenset({"investify_announcements", "investify_fundamentals"})
+# collectors/investify_job.py and collectors/investify_fundamentals.py
 
 
 def authorise(source: dict, *, dry_run: bool) -> None:

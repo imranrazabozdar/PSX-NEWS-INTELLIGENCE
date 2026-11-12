@@ -111,6 +111,7 @@ def _store(db: Any, rec: ic.AnnouncementRecord, *, collected_at_utc: str, http_s
         "pdf_url": rec.pdf_url,
         "pdf_access": rec.pdf_access,
         "attribution": pol.ATTRIBUTION,
+        "source": "investify.pk",
     }
     out = record_source_item(
         db, source_id=pol.SOURCE_ID, collected_at_utc=collected_at_utc, url=rec.source_url,
@@ -281,6 +282,11 @@ def _page_cycle(*, send, state, state_path, transport, cfg, jitter, audit, db, d
                 outcome.new += 1
             else:
                 outcome.duplicates += 1
+    if not dry_run:
+        # rule (a): queue one fundamentals refresh per NEW financial-result announcement. Imported here,
+        # because the fundamentals module imports this one.
+        from collectors import investify_fundamentals as fund
+        state, _ = fund.enqueue_from_announcements(state, result.records, now=send)
     pol.save_state(state_path, pol.finish_request(
         state, send, etag=resp_headers.get("etag", state.etag),
         last_modified=resp_headers.get("last-modified", state.last_modified),

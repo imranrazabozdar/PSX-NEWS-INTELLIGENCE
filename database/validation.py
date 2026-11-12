@@ -64,7 +64,10 @@ LIFECYCLE = ("NOT REVIEWED", "REVIEWED", "APPROVED", "RESTRICTED", "LICENCE REQU
 ADAPTERS = ("rss", "atom", "json_api", "udf_ohlcv")  # udf_ohlcv: collectors/market_ohlcv.py
 # Sources collected under written consent, mapped to their consent record. Such a source is enabled but never
 # ACTIVE: the generic engine refuses it; only its consent-bound job (collectors/investify_job.py) collects it.
-CONSENT_RECORDS = {"investify_announcements": "docs/consent/investify-2026-11-12.md"}
+CONSENT_RECORDS = {
+    "investify_announcements": "docs/consent/investify-2026-11-12.md",
+    "investify_fundamentals": "docs/consent/investify-fundamentals-2026-11-12.md",
+}
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 
 

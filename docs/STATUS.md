@@ -211,3 +211,21 @@ Evidence: `docs/coverage/EXTRACTION_FINDINGS-2026-11-12.md`. Live fetch: no netw
 | LUCK live fetch | needs_manual (report host robots-disallowed). Pilot figures come from the owner's upload | `config/ir_registry.json` |
 
 **Open owner decision (not acted on):** Acquisition strategy for scale: authorized data vendor (structured financials and announcements) vs free manual-import watchlist. Pending owner decision.
+
+## Investify fundamentals, profile, competitors and industry (2026-11-12, first slice)
+Consent: `docs/consent/investify-fundamentals-2026-11-12.md` (owner-reported expansion; the email is not in the repository). Code: `collectors/investify_fundamentals.py`, shared policy `collectors/investify_policy.py`, announcements job wiring `collectors/investify_job.py`. Seed source `investify_fundamentals` is DISABLED until the owner approves the gate.
+
+| Item | Status | Evidence |
+|---|---|---|
+| Consent recorded (use, event-only refresh, 15-minute cap, ETag/If-Modified-Since, robots, backoff, attribution) | DOCUMENTED; owner-reported | `docs/consent/investify-fundamentals-2026-11-12.md` |
+| Rule (a): fundamentals fetched only for a NEW financial-result announcement queued by the announcements job; none otherwise | IMPLEMENTED and TESTED offline | `tests/test_investify_fundamentals.py` |
+| Rule (b): profile, competitors and industry backfilled once; manual refresh only; never polled | IMPLEMENTED and TESTED offline | same |
+| One request per 15 minutes across all Investify endpoints (one state file) | IMPLEMENTED and TESTED offline | same |
+| 304 is a recorded no-op (no write); 429/503 back off and keep the trigger pending; robots disallow and stale robots block | IMPLEMENTED and TESTED offline | same |
+| Every stored record carries `source = investify.pk` and the attribution string | IMPLEMENTED and TESTED offline | same |
+| Storage to the operational/news database only; no archive import | TESTED (AST check) on local SQLite with real migrations and seed | same |
+| Endpoint paths for fundamentals, profile, competitors, industry | NOT CONFIRMED: `None` in code; requests refused until the owner confirms | consent record, open item 1 |
+| Live proof on one watchlist company | BLOCKED: needs confirmed paths and owner confirmation that investify.com and investify.pk are one operator. No live request has been made | acceptance gate below |
+| Production or Turso writes | NONE. The local SQLite used for the gate is in memory | — |
+
+**Acceptance gate (for owner approval before scaling to the full watchlist):** the flow ran end to end on synthetic bodies (profile backfilled once; one financial-result trigger; one fundamentals fetch 16 minutes after the profile request; a later profile request skipped as already backfilled). The audit trail shows the two requests 16 minutes apart. Real Investify data has NOT been fetched. To proceed, the owner must (1) confirm the four endpoint paths, (2) confirm the investify.com / investify.pk entity, and (3) decide whether the raw page body (which may include Investify's summary text) is stored, and approve enabling the seed entry.
