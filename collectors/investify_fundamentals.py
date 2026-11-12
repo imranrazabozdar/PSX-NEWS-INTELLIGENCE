@@ -405,4 +405,5 @@ EXTRACTORS: dict[str, Any] = {
     "profile": x.parse_profile,
     "announcements": x.parse_announcements,
     "fundamentals": x.parse_fundamentals,
+    "competitors": x.parse_competitors,
 }

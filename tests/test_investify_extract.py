@@ -41,3 +41,19 @@ def test_fundamentals_cards_from_a_synthetic_page():
     assert by["Book Value / Share"]["period_basis"] == "BASED ON 2027 1Q"  # verbatim
     assert by["Gross Margin"]["value"] == {"text": "40.00%", "value": 40.0, "unit": "percent"}
     assert by["Gross Margin"]["sentiment"] == "negative"
+
+
+def test_competitors_are_the_same_sector_companies_marked_sector_derived():
+    r = x.parse_competitors((FIX / "competitors_synthetic.html").read_bytes(), "TGT")
+    assert r["peer_source"] == "sector-derived"
+    assert r["peer_count"] == 16 and r["same_sector_count"] == 16
+    tickers = [p["ticker"] for p in r["peers"]]
+    assert tickers == [f"PEER{i:02d}" for i in range(16)]  # the target and the other sector are excluded
+    assert r["peers"][0] == {"ticker": "PEER00", "name": "Peer 00 Ltd", "sector": "Synthetic Sector"}
+
+
+def test_the_sixteen_versus_fourteen_note_is_recorded():
+    r = x.parse_competitors((FIX / "competitors_synthetic.html").read_bytes(), "TGT")
+    assert r["displayed_peer_count_reported"] == 14
+    assert r["displayed_excluded_same_sector"] == ["GEMMEL", "NGLEL"]
+    assert "superset by 2" in r["note"]

@@ -226,3 +226,46 @@ def parse_fundamentals(body: bytes | str, symbol: str) -> dict[str, Any]:
             "sentiment": m.group("sent"),
         })
     return {"symbol": symbol, "metric_count": len(metrics), "metrics": metrics}
+
+
+# ---------------------------------------------------------------- competitors (sector-derived)
+
+# Investify's displayed peer tab curates to 14 companies; two same-sector companies are excluded by Investify.
+# Recorded as an owner observation (2026-11-12), so the derived set can be read against the displayed one.
+DISPLAYED_PEER_COUNT = 14
+DISPLAYED_EXCLUDED_SAME_SECTOR = ("GEMMEL", "NGLEL")
+
+
+def company_index(body: bytes | str) -> dict[str, dict[str, str]]:
+    """Every listed company in the embedded index: symbol -> name and sector (structured, not rendered)."""
+    pattern = (r'"([A-Z0-9&-]+)":\{"symbol":"\1","name":"([^"]*)","logo":"[^"]*",'
+               r'"sector":"([^"]+)"\}')
+    return {m.group(1): {"name": m.group(2), "sector": m.group(3)}
+            for m in re.finditer(pattern, _flight(body))}
+
+
+def parse_competitors(body: bytes | str, symbol: str) -> dict[str, Any]:
+    """Peers = every listed company in the same sector, from the embedded index.
+
+    Derived, not displayed: the peer cards render client-side. The derived set is a superset of the displayed
+    tab by two."""
+    index = company_index(body)
+    me = index.get(symbol)
+    if me is None:
+        return {"symbol": symbol, "peer_source": "sector-derived", "sector": None, "peer_count": 0,
+                "peers": []}
+    peers = [{"ticker": t, "name": v["name"], "sector": v["sector"]}
+             for t, v in sorted(index.items()) if v["sector"] == me["sector"] and t != symbol]
+    return {
+        "symbol": symbol,
+        "peer_source": "sector-derived",
+        "sector": me["sector"],
+        "peer_count": len(peers),
+        "same_sector_count": len(peers),
+        "displayed_peer_count_reported": DISPLAYED_PEER_COUNT,
+        "displayed_excluded_same_sector": list(DISPLAYED_EXCLUDED_SAME_SECTOR),
+        "note": (f"Derived from the sector index: {len(peers)} same-sector companies. Investify's displayed "
+                 f"peer tab curates to {DISPLAYED_PEER_COUNT}; the derived set is a superset by "
+                 f"{len(peers) - DISPLAYED_PEER_COUNT}."),
+        "peers": peers,
+    }
