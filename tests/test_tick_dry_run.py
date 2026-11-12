@@ -123,9 +123,6 @@ def test_unset_contact_uses_the_repo_default_and_stops_at_the_calendar_stage_wit
         "now": staticmethod(lambda tz=None: late_monday), "fromisoformat": datetime.fromisoformat}))
     assert at.main({}) == 0  # variable unset (not even present)
     out = capsys.readouterr().out
-    print(f"DRY RUN User-Agent: {seen_ua[0]}")
-    print(f"DRY RUN requests made: {len(rec.calls)}")
-    print(f"DRY RUN output: {out.strip()}")
     assert seen_ua == ["PSX-NI/1.0 (private, consented; contact: https://github.com/imranrazabozdar/psx-news-intelligence)"]
     assert rec.calls == []
     assert "open session" in out  # the calendar stage refused the fetch
