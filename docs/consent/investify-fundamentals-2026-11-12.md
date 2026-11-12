@@ -63,3 +63,17 @@ the announcements conditions still apply to the announcements collector.
 - **Storage:** STRUCTURED FIELDS ONLY. The raw page body and Investify's generated summary text are not persisted.
   The owner may expand this later, and that would need a new record.
 - **Target:** the operational database only. Nothing goes to the archive, to production, or to Turso.
+
+## Owner decisions recorded during the HUBC pilot (2026-11-12)
+
+- **Company description:** stored per the owner's decision (the earlier exclusion is removed). It is stored
+  privately, attributed to Investify (investify.pk), in the same structured record as the other profile fields.
+- **Competitors:** the peer cards render client-side and are not in the server-rendered page. The peer set is
+  therefore SECTOR-DERIVED from the page's embedded company index: every listed company in the same sector. It is
+  marked `peer_source = "sector-derived"`. Investify's displayed peer tab curates to 14 companies; the derived set
+  is a superset by two (the two same-sector companies Investify excludes are recorded in the record). No
+  headless or JavaScript-rendering fetch is made for the pilot.
+- **Industry:** derived from the profile sector; no separate endpoint.
+- **Fundamentals first fill:** a company with no fundamentals on record is filled once from its most recent
+  financial result, however old. After that, refreshes fire only on results newer than the last one seen, within
+  three days, deduplicated by symbol, date and headline.

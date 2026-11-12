@@ -239,3 +239,11 @@ Consent: `docs/consent/investify-fundamentals-2026-11-12.md` (owner-reported exp
 - Profile path VERIFIED: one policy-compliant GET returned 200 (2026-11-12T08:32:17Z). Profile backfilled as structured fields only (sector from the page's embedded company index; leadership; market structure; share float split; registered address; website). The company description is deliberately NOT extracted, because it may be Investify-generated text; owner to confirm.
 - Extractors: `engines/investify_extract.py` (profile written; competitors, fundamentals and the announcements parser pending the page mapping). Tests: `tests/test_investify_extract.py` on SYNTHETIC fixtures in `tests/fixtures/investify/` (invented values, not live data).
 - Pending: announcements parser fix and trigger, fundamentals, competitors, acceptance gate.
+
+### Update 2026-11-12 (10:05Z): Investify HUBC pilot, status
+- Fundamentals: IMPLEMENTED and TESTED. First fill from the most recent financial result (2026-10-28), fetched 2026-11-12T09:09:24Z; 25 metric cards stored as structured fields.
+- Announcements: IMPLEMENTED and TESTED. Structured parser; re-fetched 2026-11-12T09:27:13Z; no trigger queued (no HUBC result newer than the first fill).
+- Competitors: IMPLEMENTED and TESTED (SECTOR-DERIVED peers). Stored 2026-11-12T10:05:30Z: 16 same-sector companies; Investify's displayed tab curates to 14, so the derived set is a superset by two.
+- Profile: IMPLEMENTED and TESTED. Fields stored earlier (08:32Z) without the description; a re-fetch to add the description is pending at >= 10:20Z.
+- Storage: structured fields only, in the metadata JSON; the raw body is never persisted. Every record is tagged source = investify.pk. The fundamentals trigger follows the first-fill and refresh rules, deduplicated by symbol, date and headline.
+- Gate: pending owner approval. Archive, production and Turso: not touched. Scaling to the full watchlist is NOT started.
