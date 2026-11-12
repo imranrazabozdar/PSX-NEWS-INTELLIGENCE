@@ -375,3 +375,17 @@ Plan and gate results: `docs/ops/INVESTIFY_BACKFILL_PLAN.md`.
 | Live backfill | NOT STARTED. Requires owner approval after the auth check passes |
 
 **Next step (owner):** confirm both variables are visible in a new session of this environment (names only), then run `python -m engines.library_db`. Report the exact output. If auth fails, the verbatim error is printed.
+
+### Autonomous fetcher (feature/investify-good-citizen): BUILT in cache-only mode; GATE: owner
+Runbook: `docs/ops/AUTONOMOUS_FETCHER.md`.
+
+| Item | State |
+|---|---|
+| Scheduled runner `.github/workflows/psx_fetch.yml` (every 30 min weekdays UTC; dispatch; library secrets only) | BUILT. Takes effect only after merge to the default branch |
+| Single scheduler consolidation | Nothing removed. `scheduled-jobs.yml` (production collection, every 6 h) flagged for owner decision |
+| State schema in psx-library `database/library/0001_fetch_state.sql` | PROPOSED; NOT applied (owner approval) |
+| Tick logic: kill switch, cache-only, calendar and owner window, throttle, day-1 ceiling, robots, one resource, throttle before request, breaker on 403/429/503/error | BUILT, TESTED (30 tests) |
+| 304 no-op; 200 stores distilled fields only | TESTED |
+| Clean no-op without library variables; contact required for any live request | TESTED |
+| End-of-day fetch log (renderer) | BUILT, TESTED; the scheduled write is not yet wired |
+| Live fetching | NONE. Mode is cache-only; the owner sets live |
