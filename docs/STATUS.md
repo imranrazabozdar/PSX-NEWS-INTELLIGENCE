@@ -267,3 +267,13 @@ Handover: `docs/handover/PILOT-CHECKPOINT-2026-11-12.md`.
 
 **Deferred:** watchlist scale-up (needs owner approval); on-demand PDF-upload tab (separate phase); acquisition-strategy decision (owner); OCR (not approved); archive and production migrations (awaiting owner approval).
 **Merge to main:** an owner decision. Not done.
+
+## Company intelligence view (feature/company-intelligence-view), local and private
+| Item | State |
+|---|---|
+| Read-only company data layer over stored Investify records (`engines/company_intelligence.py`) | IMPLEMENTED and TESTED (synthetic fixtures) |
+| Descriptive screening signals with owner-visible thresholds (`config/screening_thresholds.json`): Low P/E, High net margin, Strong ROE, Positive earnings growth, Comfortable liquidity | IMPLEMENTED and TESTED; each shows the criterion and the observed value; no action language |
+| Local Streamlit page (`app_company.py`): profile, fundamentals grouped as on the source, peers, announcements; attribution on every view | IMPLEMENTED and TESTED (AppTest); reads a local SQLite file read-only; refuses URLs |
+| Not-yet-collected handling (no number filled in for a missing dataset or metric) | IMPLEMENTED and TESTED |
+| Dashboard sharing or publication | NOT IMPLEMENTED and NOT PERMITTED: private research use only |
+| Live fetching | NONE. The page reads stored data only |
