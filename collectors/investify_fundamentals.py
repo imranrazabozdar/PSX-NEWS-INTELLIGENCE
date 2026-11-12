@@ -383,6 +383,7 @@ def store_structured(db: Any, *, endpoint: str, symbol: str, fields: dict[str, A
         "triggering_announcement_id": triggering_announcement_id,
         "manual_gate_test": manual_gate_test,
         "storage": "structured_fields_only",
+        "fields": fields,  # the structured record itself; no raw body
     }
     out = record_source_item(
         db, source_id=SOURCE_ID, collected_at_utc=fetched_at_utc, url=url,
@@ -403,4 +404,5 @@ def has_fundamentals(db: Any, symbol: str) -> bool:
 EXTRACTORS: dict[str, Any] = {
     "profile": x.parse_profile,
     "announcements": x.parse_announcements,
+    "fundamentals": x.parse_fundamentals,
 }

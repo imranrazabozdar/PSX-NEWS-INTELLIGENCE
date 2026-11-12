@@ -179,3 +179,50 @@ def to_announcement_records(parsed: dict[str, Any], retrieved_at_utc: str) -> li
                                             it["pdf_url"]),
         ))
     return records
+
+
+# ---------------------------------------------------------------- fundamentals (metric cards)
+
+_VALUE = r"(?:Rs\. [\d,.]+[BMK]?|-?[\d,.]+%|[\d.]+ : [\d.]+|-?[\d,.]+[BMKx]?)"
+_PERIOD = r"(?:BASED ON [A-Z0-9 ]+?|CURRENT|\d{4} FY|\d{4} [1-4]Q|LATEST[A-Z ]*?)"
+_CARD = re.compile(
+    r"(?P<title>[A-Z][A-Za-z&/ .'\-]{2,50}?) (?P=title) (?P<body>.+?) (?P<value>" + _VALUE + r") (?P<period>"
+    + _PERIOD + r")(?: (?P<sent>positive|negative|neutral|mixed))?(?= [A-Z]|$)")
+
+
+def _metric_value(token: str) -> dict[str, Any]:
+    """Number and unit of a metric value. Exact decimal arithmetic; the printed text is kept."""
+    t = token.strip()
+    if t.startswith("Rs."):
+        out = amount(t)
+        return {"text": t, "value": out["value"], "unit": "PKR"}
+    if t.endswith("%"):
+        return {"text": t, "value": float(Decimal(t[:-1].replace(",", ""))), "unit": "percent"}
+    if " : " in t:
+        num, den = t.split(" : ")
+        return {"text": t, "value": float(Decimal(num)) / float(Decimal(den)), "unit": "ratio",
+                "numerator": float(Decimal(num)), "denominator": float(Decimal(den))}
+    if t[-1] in "BMK":
+        return dict(amount(t), unit="number")
+    if t.endswith("x"):
+        return {"text": t, "value": float(Decimal(t[:-1].replace(",", ""))), "unit": "x"}
+    return {"text": t, "value": float(Decimal(t.replace(",", ""))), "unit": "number"}
+
+
+def parse_fundamentals(body: bytes | str, symbol: str) -> dict[str, Any]:
+    """Every metric card on the page, generically (the catalog is not hardcoded). Each card keeps its label,
+    the card's description text, the value (number and unit), the period basis verbatim and the sentiment."""
+    text = _text_of(body)
+    nav = text.find("Competitors")
+    if nav >= 0:
+        text = text[nav + len("Competitors"):]  # skip the page navigation, which repeats some labels
+    metrics = []
+    for m in _CARD.finditer(text):
+        metrics.append({
+            "label": m.group("title"),
+            "description": m.group("body").strip(),
+            "value": _metric_value(m.group("value")),
+            "period_basis": m.group("period"),
+            "sentiment": m.group("sent"),
+        })
+    return {"symbol": symbol, "metric_count": len(metrics), "metrics": metrics}

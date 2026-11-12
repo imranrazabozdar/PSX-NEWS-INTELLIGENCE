@@ -29,3 +29,15 @@ def test_amount_keeps_printed_text_and_scales_units():
     assert x.amount("Rs 268.23B") == {"text": "Rs 268.23B", "value": 268_230_000_000.0}
     assert x.amount("972.87M")["value"] == 972_870_000.0
     assert x.amount("206.78")["value"] == 206.78
+
+
+def test_fundamentals_cards_from_a_synthetic_page():
+    r = x.parse_fundamentals((FIX / "fundamentals_synthetic.html").read_bytes(), "HUBC")
+    assert r["metric_count"] == 4
+    by = {m["label"]: m for m in r["metrics"]}
+    assert by["Annual EPS"]["value"] == {"text": "Rs. 10.50", "value": 10.5, "unit": "PKR"}
+    assert by["Annual EPS"]["period_basis"] == "2026 FY" and by["Annual EPS"]["sentiment"] == "positive"
+    assert by["Current Ratio"]["value"]["unit"] == "ratio" and by["Current Ratio"]["value"]["value"] == 1.5
+    assert by["Book Value / Share"]["period_basis"] == "BASED ON 2027 1Q"  # verbatim
+    assert by["Gross Margin"]["value"] == {"text": "40.00%", "value": 40.0, "unit": "percent"}
+    assert by["Gross Margin"]["sentiment"] == "negative"
