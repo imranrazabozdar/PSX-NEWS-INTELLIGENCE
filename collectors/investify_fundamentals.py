@@ -42,6 +42,7 @@ from collectors.investify_job import (
 )
 from database.repositories import record_source_item
 from engines import investify_collector as ic
+from engines import investify_extract as x
 
 SOURCE_ID = "investify_fundamentals"
 SOURCE_NAME = "investify.pk"  # the source recorded on every stored record
@@ -95,7 +96,7 @@ def enqueue_from_announcements(state: pol.PollState, records: list[ic.Announceme
         if announcement_id in seen:
             continue
         seen.add(announcement_id)
-        if rec.category != EVENT_CATEGORY:
+        if rec.category not in x.QUALIFYING_CATEGORIES:
             continue
         if now - _utc(rec.announced_at_utc) > TRIGGER_MAX_AGE:
             continue  # an old result is not news: recorded as seen, not queued
@@ -297,7 +298,7 @@ def stored_profile_age(db: Any, symbol: str, endpoint: str, now: datetime) -> ti
 
 def store_structured(db: Any, *, endpoint: str, symbol: str, fields: dict[str, Any], url: str,
                      fetched_at_utc: str, http_status: int,
-                     triggering_announcement_id: str | None = None) -> str:
+                     triggering_announcement_id: str | None = None, manual_gate_test: bool = False) -> str:
     """Persist STRUCTURED FIELDS ONLY (never the raw body). Every record is tagged source = investify.pk."""
     content = json.dumps(fields, ensure_ascii=False, sort_keys=True)
     metadata = {
@@ -307,6 +308,7 @@ def store_structured(db: Any, *, endpoint: str, symbol: str, fields: dict[str, A
         "endpoint": endpoint,
         "fetched_at_utc": fetched_at_utc,
         "triggering_announcement_id": triggering_announcement_id,
+        "manual_gate_test": manual_gate_test,
         "storage": "structured_fields_only",
     }
     out = record_source_item(

@@ -22,7 +22,7 @@ def test_profile_fields_from_a_synthetic_page():
     assert p["share_float_split"]["locked_pct"] == 50.0 and p["share_float_split"]["free_float_pct"] == 50.0
     assert p["registered_address"] == "1 Test Street, Testville"
     assert p["website"] == "www.example.test"
-    assert "description" not in p  # company descriptions are never extracted
+    assert p["description"] == "Synthetic description."  # stored, attributed (owner decision)
 
 
 def test_amount_keeps_printed_text_and_scales_units():
