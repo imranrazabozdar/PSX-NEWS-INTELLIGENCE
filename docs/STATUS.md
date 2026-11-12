@@ -296,3 +296,21 @@ Handover: `docs/handover/PILOT-CHECKPOINT-2026-11-12.md`.
 - **Phase 2:** free macro-factor feed (Brent, SBP policy rate, SBP FX reserves, policy items; manual analyst intake).
 - **Phase 3:** per-company dossier and analytical layer (baselines, narrative threads, driver model, context-aware ingestion, grounded research brief).
 - **Phase 4:** scale across the validated watchlist (cap-gated), wire macro routing and manual intake into dossiers, surface only in the private local app.
+
+## Phase 1 close (Part A): scheduled for the trading window, Fri 13 Nov 04:05Z. GATE: owner review.
+| Item | State |
+|---|---|
+| Notable-events routing (`engines/notable_events.py`): categorized announcements and insider records routed as VERIFIED; commentary as UNVERIFIED; Other not routed; no generated text on any routed event | IMPLEMENTED and TESTED (synthetic) |
+| Filter-count verification against the page's own tabs | SCHEDULED: one HUBC announcements fetch in the window; not yet run |
+| Insider payload mapping; image disclosure | SCHEDULED with the same fetch. No OCR engine exists in the repository and OCR is not approved, so an unreadable insider disclosure is stored as `{type: image_disclosure, machine_readable: false}` |
+| News | NOT FETCHED. Consent not confirmed by the owner; flag off; no request made |
+
+## ROADMAP (approved-pending; NOT started; owner approval required for each phase)
+- **Phase 2: Free macro-factor feed.** Brent, SBP policy rate, SBP FX reserves, IMF, budget and power-policy items from free primary sources. Each factor is linked to stocks through the driver model. Manual intake for pasted analyst takes (logged and classified). No paid API and no disallowed scraping.
+- **Phase 3: Per-company dossier and analytical layer.** Static facts, financial time series, baselines and norms, narrative threads, expectations, driver model, descriptive screening signals, context-aware ingestion (beat or miss, thread update, routine or notable), and a grounded research-brief generator that narrates computed numbers with cited sources. HUBC is the reference.
+- **Phase 4: Scale.** The dossier and signals across the validated watchlist, in the background and gated by the cap. Macro routing and manual intake wired into each dossier. Surfaced only in the private local app.
+- **Phase 5: Event-impact and forecasting engine** (capstone, on the dossier, factors and a technicals feed).
+  (a) Event-impact per material item: materiality against the earnings base; direction and rationale; certainty and timing (confirmed, probable or speculative; when it reaches earnings); priced-in check against consensus or recent action; dependencies; link to the driver model and threads. A structured verdict.
+  (b) Technicals engine: OHLCV to accumulation and distribution (OBV, A/D line, volume trend), support and resistance; flags fundamental-versus-technical divergence.
+  (c) Scenario synthesis: bull, base and bear, combining the driver-based earnings path, a valuation range, the catalyst calendar, technical positioning and macro state, each with named swing factors and rough probabilities.
+  (d) Guardrails, non-negotiable: scenario-based only, never a point prediction or certainty; every estimate labelled with its assumptions; every fact traceable; observation separated from inference; confidence and "what would make this wrong" always stated; never buy or sell.
