@@ -71,7 +71,7 @@ THIRD_PARTY_IMPORTS = {
 # top-level package requires changing this list in its own PR, because CI also runs the
 # base branch's copy of this guard.
 LOCAL_MODULES = {"app", "config", "scripts", "tests",
-                 "database", "collectors", "engines", "models", "prompts", "pages"}
+                 "database", "collectors", "engines", "models", "prompts", "pages", "services"}
 
 ALLOWED_ACTION_OWNERS = {"actions"}
 ALLOWED_SECRETS = {"GITHUB_TOKEN"}
