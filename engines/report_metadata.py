@@ -40,7 +40,7 @@ AMOUNT_PAGE_MIN = 6  # amount-bearing lines a statement page needs
 DOC_AMOUNT_PAGES_MIN = 3  # pages with amounts a report needs before it counts as having a readable body
 HEADER_LINES = 30
 HEADING_CONTEXT = 3
-SUMMARY_MARKERS = ("six years", "at a glance")
+SUMMARY_MARKERS = ("six years", "at a glance", "notes to the")
 
 _MONTHS = {
     "jan": 1,
@@ -208,12 +208,29 @@ def _scan_statement_pages(doc: pe.DocumentText) -> dict:
                 continue
             basis = heading_basis(joined)
             if amount_lines(lines) >= AMOUNT_PAGE_MIN:
-                readable.setdefault(code, []).append({"page": page.number, "basis": basis, "heading": joined})
+                readable.setdefault(code, []).append(
+                    {"page": page.number, "basis": basis, "heading": joined, "amounts": amount_lines(lines)}
+                )
             else:
                 unreadable.setdefault(code, []).append(page.number)
             _ = consumed
             break
     return {"readable": readable, "unreadable": unreadable, "summaries_excluded": summaries}
+
+
+def _primary_run(entries: list[dict]) -> list[dict]:
+    """Alternative presentations (horizontal and vertical) or stray mentions sit on separate page runs.
+    Keep the one run with the most amounts, reduced to its first page, so a statement is never read twice."""
+    if not entries:
+        return entries
+    runs: list[list[dict]] = [[entries[0]]]
+    for e in entries[1:]:
+        if e["page"] == runs[-1][-1]["page"] + 1:
+            runs[-1].append(e)
+        else:
+            runs.append([e])
+    best = max(runs, key=lambda r: sum(e["amounts"] for e in r))
+    return best[:1]
 
 
 def _choose_basis(entries: list[dict]) -> tuple[str | None, list[dict], bool]:
@@ -262,6 +279,7 @@ def detect_layout(doc: pe.DocumentText, period_end: str) -> dict:
     parallel = False
     for code, entries in readable.items():
         basis, chosen, par = _choose_basis(entries)
+        chosen = _primary_run(chosen) if chosen else chosen
         chosen_pages[code] = sorted({e["page"] for e in chosen})
         basis_of[code] = basis
         parallel = parallel or par
