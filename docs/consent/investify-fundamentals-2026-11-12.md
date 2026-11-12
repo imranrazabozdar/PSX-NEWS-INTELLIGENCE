@@ -77,3 +77,17 @@ the announcements conditions still apply to the announcements collector.
 - **Fundamentals first fill:** a company with no fundamentals on record is filled once from its most recent
   financial result, however old. After that, refreshes fire only on results newer than the last one seen, within
   three days, deduplicated by symbol, date and headline.
+
+## Gate decisions (owner-confirmed, recorded 2026-11-12 at the HUBC pilot checkpoint)
+
+- **First-fill rule (confirmed):** a watchlist company with no fundamentals on record is filled ONCE, from its most
+  recent financial result, however old. Refreshes after that fire only on results newer than the last one seen,
+  within three days, deduplicated by symbol, Pakistan-time date and headline.
+- **Competitors (confirmed):** the peer set is the SECTOR-DERIVED list from the embedded company index (16 for
+  HUBC), recorded as `peer_source = "sector-derived"`. It is a superset of Investify's displayed tab (14) by two.
+- **Private retention (consent condition 1, already in force):** Investify-sourced data stays private to the local
+  database. It is never redistributed, and never shown on a public dashboard.
+- **Analysis outputs (PROPOSED, NOT YET CONFIRMED):** analysis outputs should not reproduce Investify's text or data
+  verbatim in public. This extends condition 1; the owner has not yet confirmed it. Pending owner confirmation.
+- **Audit correction:** the 09:47:26Z competitors request was logged `manual=true` in error. It was the first
+  backfill. A correction line is appended to the audit log; the original line is kept.

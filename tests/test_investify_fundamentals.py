@@ -423,3 +423,18 @@ def test_first_fill_seeds_from_a_financial_result_not_a_newer_report_transmissio
     st, queued = fund.enqueue_from_announcements(pol.PollState(), [result, transmission], now=NOW,
                                                  has_fundamentals={"FCL": False})
     assert len(queued) == 1 and queued[0]["announcement_id"] == result.content_sha256
+
+
+def test_a_first_fill_is_never_recorded_as_manual():
+    assert fund.manual_refresh_flag(True, {"kind": "first_fill"}) is False
+    assert fund.manual_refresh_flag(False, None) is False
+    assert fund.manual_refresh_flag(True, None) is True  # a genuine manual refresh is still recorded as one
+
+
+def test_the_audit_flag_on_a_first_fill_request_is_false(db, entry, state_path, audit):
+    # a financial result queues a first fill (no fundamentals on record yet)
+    queue(state_path, announcement("FCL"))
+    t = FakeTransport(ok(SYNTHETIC_FEED.read_text(encoding="utf-8")))
+    run(db, entry, state_path, audit, t, endpoint="fundamentals", symbol="FCL", manual=False)
+    events = [e for e in audit_events(audit) if e["event"] == "endpoint_request"]
+    assert len(events) == 1 and events[0]["manual"] is False  # no manual label on a triggered request

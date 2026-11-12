@@ -298,7 +298,8 @@ def run_endpoint(*, now: datetime, state_path: Path, entry: dict[str, Any], db: 
                   "url": url, "status": status, "outcome": _outcome_label(status, error),
                   "bytes": len(body), "jitter_s": jitter, "source": SOURCE_NAME,
                   "triggering_announcement_id": trigger["announcement_id"] if trigger else None,
-                  "manual": manual, "user_agent": pol.USER_AGENT, "error": error})
+                  "manual": manual_refresh_flag(manual, trigger),
+                  "user_agent": pol.USER_AGENT, "error": error})
 
     if error is not None:
         pol.save_state(state_path, pol.finish_request(state, send))
@@ -402,6 +403,13 @@ def store_structured(db: Any, *, endpoint: str, symbol: str, fields: dict[str, A
                     "source_metadata_json": json.dumps(metadata, ensure_ascii=False, sort_keys=True)},
     )
     return out.outcome
+
+
+def manual_refresh_flag(manual: bool, trigger: dict[str, Any] | None) -> bool:
+    """A request is recorded as a manual refresh only when it is one.
+
+    A first fill or a refresh always carries an event trigger; a manual refresh never does."""
+    return bool(manual) and trigger is None
 
 
 def has_fundamentals(db: Any, symbol: str) -> bool:

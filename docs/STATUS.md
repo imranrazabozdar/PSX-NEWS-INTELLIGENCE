@@ -250,3 +250,20 @@ Consent: `docs/consent/investify-fundamentals-2026-11-12.md` (owner-reported exp
 - 2026-11-12T10:24:38Z: profile refreshed as a MANUAL refresh (owner-authorized) to add the description; stored as structured fields. Earlier profile rows (08:32Z) and the earlier announcements (08:50Z) and the early fundamentals store belong to a pre-fix, hash-only throwaway database and are NOT part of the gate evidence.
 - Storage fix: structured fields are kept in the metadata JSON. Refreshed snapshots use a timestamped identifier because the table is append-only.
 - Audit note: the 09:47:26Z competitors request is logged manual=true by mistake; it was the first backfill. All other gaps are at least 16.9 minutes.
+
+## Checkpoint 2026-11-12: branch `feature/financial-pdf-reconciliation` (NOT merged)
+Handover: `docs/handover/PILOT-CHECKPOINT-2026-11-12.md`.
+
+| Subsystem | State |
+|---|---|
+| Investify HUBC pilot (announcements, fundamentals first fill and refresh, profile with description, competitors sector-derived) | IMPLEMENTED and TESTED. Gate evidence in the operational SQLite, not in the throwaway pre-fix file |
+| Investify first-fill and refresh rules; competitors as sector-derived (16 vs displayed 14) | Owner-confirmed; recorded in `docs/consent/investify-fundamentals-2026-11-12.md` |
+| Investify analysis-output restriction (no verbatim public reproduction) | PROPOSED; pending owner confirmation |
+| Investify audit label (09:47:26Z competitors) | Corrected: code records manual only for genuine manual refreshes; correction line in the audit log |
+| IR fetcher (robots, interval, backoff, vault) | IMPLEMENTED and TESTED; live on four companies |
+| PDF extraction and de-shadow engine | IMPLEMENTED and TESTED with synthetic fixtures; pilots reconcile (UBL, OGDC, LUCK) |
+| Interim income-statement roles; independent equity | IMPLEMENTED and TESTED with synthetic fixtures; not yet wired into the batch gate |
+| NRL, LUCK, HUBC quarterly, PSO | needs_manual / needs_OCR (see handover) |
+
+**Deferred:** watchlist scale-up (needs owner approval); on-demand PDF-upload tab (separate phase); acquisition-strategy decision (owner); OCR (not approved); archive and production migrations (awaiting owner approval).
+**Merge to main:** an owner decision. Not done.
