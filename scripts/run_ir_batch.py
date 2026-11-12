@@ -64,6 +64,37 @@ def _record(row: dict, status: str, reason: str, **extra: Any) -> dict:
     return base
 
 
+def positional_gate(pdf: Path, statement_pages: dict[str, list[int]]) -> dict:
+    """Integrity gate on the statement pages, by coordinates. Verdict 'ok' only when every selected
+    statement page
+    shows two period columns, its figures sit in two non-copied columns, and no row is ambiguous. The gate
+    never
+    produces values: it can only block a reconciliation."""
+    from engines import layout_words as lw
+
+    per_page: dict[str, dict] = {}
+    reasons: list[str] = []
+    for code, pages in statement_pages.items():
+        if not pages:
+            continue
+        number = pages[0]
+        chars = pdf_reader.page_chars(pdf, number)
+        page = lw.read_page(chars)
+        words = lw.words_from_chars(lw.dedupe_chars(chars)[0])
+        first_figure_top = min((r.top for r in page["rows"] if r.cells), default=float("inf"))
+        header = lw.header_year_columns(words, above_top=first_figure_top)
+        verdict = lw.integrity_verdict(page, expected_columns=2, header_columns=header)
+        per_page[code] = {
+            "page": number,
+            **verdict,
+            "dropped_overprint_chars": page["dropped_overprint_chars"],
+        }
+        if verdict["verdict"] != "ok":
+            reasons += [f"{code} p{number}: {r}" for r in verdict["reasons"]]
+    verdict = "requires_review" if reasons else "ok"
+    return {"verdict": verdict, "reasons": reasons, "pages": per_page}
+
+
 def process(row: dict, *, vault: Path, adb: SQLiteDatabase, now: datetime) -> dict:
     pdf = vault / row["vault_path"]
     try:
@@ -73,6 +104,15 @@ def process(row: dict, *, vault: Path, adb: SQLiteDatabase, now: datetime) -> di
     if not any(p.has_text for p in doc.pages):
         return _record(row, "needs_OCR", "no text layer (image-only): not attempted; OCR is a later decision")
     layout = rm.detect_layout(doc, row["period_end"])
+    gate = positional_gate(pdf, layout.get("statement_pages", {}))
+    if gate["verdict"] != "ok":
+        return _record(
+            row,
+            "requires_review",
+            "integrity gate: " + "; ".join(gate["reasons"]),
+            statement_pages=dict(layout.get("statement_pages", {})),
+            positional_gate=gate,
+        )
     pages = dict(layout.get("statement_pages", {}))
     if layout.get("blocker") == "no_text_layer":
         return _record(
