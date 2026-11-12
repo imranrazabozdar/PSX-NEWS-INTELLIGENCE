@@ -1,6 +1,7 @@
 """Company view and descriptive screening signals, from STORED Investify data only (local, private).
 
-Reads only. Nothing here fetches, writes, or publishes. The data is Investify's (investify.pk); every view
+Reads only (SELECT statements through the app's database handle). Nothing here fetches, writes, or
+publishes. The data is Investify's (investify.pk); every view
 carries the attribution. Signals describe a company's state against owner-visible thresholds
 (config/screening_thresholds.json). They are not buy or sell rules and never use directive language.
 
@@ -10,7 +11,6 @@ A dataset that is not stored is reported as NOT YET COLLECTED. No number is fill
 from __future__ import annotations
 
 import json
-import sqlite3
 from pathlib import Path
 from typing import Any
 
@@ -41,22 +41,22 @@ def group_for(label: str) -> str:
     return "Other"
 
 
-def _connect_readonly(path: str | Path) -> sqlite3.Connection:
-    text = str(path)
-    if "://" in text:
-        raise ValueError("refused: a local database file is required, not a URL")
-    return sqlite3.connect(f"file:{Path(text).resolve()}?mode=ro", uri=True)
+def _select(db: Any, sql: str, params: tuple = ()) -> list[Any]:
+    """The only way this module reads the database. It runs SELECT statements and nothing else."""
+    if not sql.lstrip().upper().startswith("SELECT"):
+        raise ValueError("refused: the company view is read-only (SELECT only)")
+    return db.execute(sql, params)
 
 
-def _newest_record(con: sqlite3.Connection, symbol: str, endpoint: str) -> dict[str, Any] | None:
+def _newest_record(db: Any, symbol: str, endpoint: str) -> dict[str, Any] | None:
     """The newest stored record for this company and endpoint, if it carries Investify attribution."""
-    row = con.execute(
-        "SELECT source_metadata_json FROM source_items WHERE source_id = ? "
-        "AND (external_id = ? OR external_id LIKE ?) ORDER BY collected_at_utc DESC LIMIT 1",
-        (SOURCE_ID, f"{symbol}:{endpoint}", f"{symbol}:{endpoint}:%")).fetchone()
-    if row is None:
+    rows = _select(
+        db, "SELECT source_metadata_json, collected_at_utc FROM source_items WHERE source_id = ? "
+            "AND (external_id = ? OR external_id LIKE ?) ORDER BY collected_at_utc DESC LIMIT 1",
+        (SOURCE_ID, f"{symbol}:{endpoint}", f"{symbol}:{endpoint}:%"))
+    if not rows:
         return None
-    meta = json.loads(row[0])
+    meta = json.loads(rows[0]["source_metadata_json"])
     if meta.get("source") != SOURCE:
         return None  # not Investify-attributed: never shown
     return {"fields": meta.get("fields") or {}, "fetched_at_utc": meta.get("fetched_at_utc"),
@@ -64,24 +64,15 @@ def _newest_record(con: sqlite3.Connection, symbol: str, endpoint: str) -> dict[
             "attribution": meta.get("attribution")}
 
 
-def company_symbols(path: str | Path) -> list[str]:
-    con = _connect_readonly(path)
-    try:
-        rows = con.execute(
-            "SELECT DISTINCT substr(external_id, 1, instr(external_id, ':') - 1) FROM source_items "
-            "WHERE source_id = ? AND external_id LIKE '%:%'", (SOURCE_ID,)).fetchall()
-    finally:
-        con.close()
-    return sorted({r[0] for r in rows if r[0]})
+def company_symbols(db: Any) -> list[str]:
+    rows = _select(db, "SELECT DISTINCT substr(external_id, 1, instr(external_id, ':') - 1) AS symbol "
+                       "FROM source_items WHERE source_id = ? AND external_id LIKE '%:%'", (SOURCE_ID,))
+    return sorted({r["symbol"] for r in rows if r["symbol"]})
 
 
-def load_company(path: str | Path, symbol: str) -> dict[str, dict[str, Any] | None]:
+def load_company(db: Any, symbol: str) -> dict[str, dict[str, Any] | None]:
     """Each dataset, or None where it has not been collected. Read-only."""
-    con = _connect_readonly(path)
-    try:
-        return {ep: _newest_record(con, symbol, ep) for ep in DATASETS}
-    finally:
-        con.close()
+    return {ep: _newest_record(db, symbol, ep) for ep in DATASETS}
 
 
 def grouped_metrics(fundamentals: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:

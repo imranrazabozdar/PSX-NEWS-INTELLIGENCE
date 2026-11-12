@@ -24,9 +24,17 @@ PHASES = [  # master programme (docs/PROJECT_ROADMAP.md); code status only, noth
 ]
 
 
+PAGE_OVERVIEW = "Overview"
+PAGE_COMPANY = "Company intelligence"
+
+
 def main() -> None:
     st.set_page_config(page_title="PSX News Intelligence", layout="wide")
     settings = load_settings()
+    page = st.sidebar.radio("Page", [PAGE_OVERVIEW, PAGE_COMPANY], key="app_page")
+    if page == PAGE_COMPANY:
+        _company_page(settings)
+        return
 
     st.title("PSX Fundamental & News Intelligence")
     st.caption(
@@ -46,6 +54,24 @@ def main() -> None:
 
     st.subheader("Implementation status")
     st.table([{"Phase": p, "Scope": s, "Status": status} for p, s, status in PHASES])
+
+
+def _company_page(settings) -> None:
+    """Local, private company view on the same database handle as the other pages. Read-only (SELECT only)."""
+    st.title("Company intelligence")
+    if not settings.database_configured:
+        st.info("No database is configured (set PSXNI_TURSO_DATABASE_URL). Nothing collected can be shown.")
+        return
+    from database.connection import connect
+    from engines.company_intelligence_view import company_intelligence_view
+
+    # A fresh handle per render, from the same configured connect(): Streamlit reruns on other threads, and a
+    # SQLite handle cannot be shared across them. Read-only: the view issues SELECT statements only.
+    db = connect()
+    try:
+        company_intelligence_view(db)
+    finally:
+        db.close()
 
 
 @st.cache_resource

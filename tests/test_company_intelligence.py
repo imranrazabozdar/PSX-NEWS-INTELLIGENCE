@@ -8,7 +8,6 @@ shared database.
 from __future__ import annotations
 
 import json
-import sqlite3
 from pathlib import Path
 
 import pytest
@@ -117,7 +116,7 @@ def local_db(tmp_path):
 
 
 def test_company_view_reads_only_the_stored_datasets(local_db):
-    data = ci.load_company(local_db, "TST")
+    data = ci.load_company(_open(local_db), "TST")
     assert set(data) == set(ci.DATASETS)
     assert data["fundamentals"]["fields"]["metric_count"] == 4
     assert data["profile"]["fields"]["sector"] == "Power Generation & Distribution"
@@ -125,7 +124,7 @@ def test_company_view_reads_only_the_stored_datasets(local_db):
 
 
 def test_a_company_without_a_dataset_gets_none_for_it(local_db):
-    data = ci.load_company(local_db, "NONE")
+    data = ci.load_company(_open(local_db), "NONE")
     assert all(v is None for v in data.values())
 
 
@@ -136,37 +135,72 @@ def test_a_record_not_attributed_to_investify_is_never_shown(tmp_path):
     seed_loader.load(db)
     _store(db, "profile", "ZZZ", {"sector": "X"}, source="someone-else")
     db.close()
-    assert ci.load_company(path, "ZZZ")["profile"] is None
+    assert ci.load_company(_open(path), "ZZZ")["profile"] is None
 
 
-def test_the_loader_refuses_urls_and_cannot_write(local_db):
+def test_the_company_view_refuses_any_statement_that_is_not_a_select(local_db):
+    db = _open(local_db)
     with pytest.raises(ValueError):
-        ci.company_symbols("libsql://example.invalid/db")
-    con = ci._connect_readonly(local_db)
-    with pytest.raises(sqlite3.OperationalError):
-        con.execute("DELETE FROM source_items")
-    con.close()
+        ci._select(db, "DELETE FROM source_items")
+    with pytest.raises(ValueError):
+        ci._select(db, "UPDATE source_items SET source_id = 'x'")
+    before = db.execute("SELECT COUNT(*) AS n FROM source_items")[0]["n"]
+    ci.load_company(db, "TST")  # reads only
+    assert db.execute("SELECT COUNT(*) AS n FROM source_items")[0]["n"] == before
 
 
-# ------------------------------------------------------------------ the page, through Streamlit's AppTest
+# ------------------------------------------------------------------ the page, through the main app
 
-def test_the_local_page_shows_attribution_and_not_yet_collected(local_db, monkeypatch):
+def _open(path):
+    from database.connection import SQLiteDatabase
+
+    return SQLiteDatabase(str(path))
+
+
+def _app(monkeypatch, url: str | None):
+    import streamlit as st
     from streamlit.testing.v1 import AppTest
 
-    monkeypatch.setenv("PSXNI_LOCAL_OPERATIONAL_DB", str(local_db))
-    at = AppTest.from_file(str(ROOT / "app_company.py"), default_timeout=30).run()
+    st.cache_resource.clear()  # the app caches its database handle; each test uses its own file
+    if url is None:
+        monkeypatch.delenv("PSXNI_TURSO_DATABASE_URL", raising=False)
+    else:
+        monkeypatch.setenv("PSXNI_TURSO_DATABASE_URL", url)
+    return AppTest.from_file(str(ROOT / "app.py"), default_timeout=30).run()
+
+
+def _company_page(at):
+    at.sidebar.radio[0].set_value("Company intelligence").run()
+    return at
+
+
+def test_the_company_page_shows_attribution_and_not_yet_collected(local_db, monkeypatch):
+    at = _company_page(_app(monkeypatch, f"sqlite:///{local_db}"))
     assert not at.exception
     assert ci.ATTRIBUTION in " ".join(w.value for w in at.warning)
-    # the fixture has no P/E Annual or Net Margin, so those signals read as not yet collected, in a table
     cells = [str(c) for t in at.table for row in t.value.values.tolist() for c in row]
-    assert ci.NOT_COLLECTED in cells
-    assert "5.4" not in " ".join(cells)  # no P/E was invented
+    assert ci.NOT_COLLECTED in cells  # no P/E Annual or Net Margin in the fixture: never a number
+    assert "5.4" not in " ".join(cells)  # and no P/E was invented
 
 
-def test_the_local_page_refuses_a_url_setting(monkeypatch):
-    from streamlit.testing.v1 import AppTest
+def test_the_company_picker_lists_stored_symbols(local_db, monkeypatch):
+    at = _company_page(_app(monkeypatch, f"sqlite:///{local_db}"))
+    assert at.selectbox[0].options == ["TST"]
 
-    monkeypatch.setenv("PSXNI_LOCAL_OPERATIONAL_DB", "libsql://example.invalid/db")
-    at = AppTest.from_file(str(ROOT / "app_company.py"), default_timeout=30).run()
+
+def test_overview_still_renders_and_the_company_page_says_when_no_database(monkeypatch):
+    at = _app(monkeypatch, None)
     assert not at.exception
-    assert any("Set PSXNI_LOCAL_OPERATIONAL_DB" in i.value for i in at.info)
+    assert at.title[0].value == "PSX Fundamental & News Intelligence"  # overview untouched
+    at = _company_page(at)
+    assert not at.exception
+    assert any("No database is configured" in i.value for i in at.info)
+
+
+def test_navigation_switches_between_the_pages_without_errors(local_db, monkeypatch):
+    at = _app(monkeypatch, f"sqlite:///{local_db}")
+    assert at.title[0].value == "PSX Fundamental & News Intelligence"
+    at = _company_page(at)
+    assert not at.exception and at.title[0].value == "Company intelligence"
+    at.sidebar.radio[0].set_value("Overview").run()
+    assert not at.exception and at.title[0].value == "PSX Fundamental & News Intelligence"

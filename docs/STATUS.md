@@ -273,7 +273,8 @@ Handover: `docs/handover/PILOT-CHECKPOINT-2026-11-12.md`.
 |---|---|
 | Read-only company data layer over stored Investify records (`engines/company_intelligence.py`) | IMPLEMENTED and TESTED (synthetic fixtures) |
 | Descriptive screening signals with owner-visible thresholds (`config/screening_thresholds.json`): Low P/E, High net margin, Strong ROE, Positive earnings growth, Comfortable liquidity | IMPLEMENTED and TESTED; each shows the criterion and the observed value; no action language |
-| Local Streamlit page (`app_company.py`): profile, fundamentals grouped as on the source, peers, announcements; attribution on every view | IMPLEMENTED and TESTED (AppTest); reads a local SQLite file read-only; refuses URLs |
+| Company intelligence page in the main app (`app.py`, "Company intelligence" page): profile, fundamentals grouped as on the source, peers, announcements, company picker; attribution on every view | IMPLEMENTED and TESTED (AppTest, navigation included); reads the configured operational database through SELECT-only queries; the standalone page was retired |
 | Not-yet-collected handling (no number filled in for a missing dataset or metric) | IMPLEMENTED and TESTED |
 | Dashboard sharing or publication | NOT IMPLEMENTED and NOT PERMITTED: private research use only |
 | Live fetching | NONE. The page reads stored data only |
+| SQLite handle across Streamlit reruns | FIXED: `check_same_thread=False` on the SQLite handle (the app caches it); existing pages rendered against a local file before this fix would fail on the second rerun |
