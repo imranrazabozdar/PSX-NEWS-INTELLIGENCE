@@ -26,6 +26,10 @@ def permissive_investify_policy(monkeypatch):
         "ttl_hours": {"announcements": 0, "fundamentals": 0, "profile": 0, "competitors": 0, "news": 0},
     })
     monkeypatch.setattr(gc, "safe_active_policy", lambda *a, **k: permissive)
+    # The suite's timestamps are not the real calendar. The calendar rule is tested directly, in
+    # tests/test_investify_library_calendar.py, so the wrappers are allowed here.
+    monkeypatch.setattr(gc, "calendar_verdict",
+                        lambda *a, **k: gc.Verdict(True, "test: calendar not under test"))
     yield permissive
 
 

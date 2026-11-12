@@ -44,3 +44,38 @@ Private research use. Announcements are the stored records as of their fetch tim
 1. **Global announcements page parser.** The earlier global page fetch parsed 0 watchlist announcements with the legacy parser. The company page is structured; the global page needs the same structured parser, which needs one sample inside the trading window.
 2. **Turso library secret** (above), set by the owner.
 3. **Probe table** for the Turso link test (append-only constraint), approved by the owner.
+
+
+## Second gate pass: target is psx-library (owner-confirmed)
+
+**Target:** `psx-library-turso202601` (`libsql://psx-library-turso202601.aws-us-east-1.turso.io`), the dedicated library
+database. Separate from psx-data-capture (production and ingestion) and psx-data-archival-test (rehearsal). The backfill
+writes only here.
+
+**Secrets (owner action, through the secure secret flow, never in chat):** `PSXNI_LIBRARY_TURSO_DATABASE_URL` and
+`PSXNI_LIBRARY_TURSO_AUTH_TOKEN` (a token generated in the Turso dashboard for psx-library). **Status: NOT SET in this
+environment.** The link test cannot run until both are set. Per the instruction, no other database is used as a fallback.
+
+**Target guard (`engines/investify_library.py`):** the host must contain `psx-library`. The guard refuses any URL that
+contains `data-capture`, `data-archival`, `archival`, `archive`, `production`, `prod` or `capture`. Tested:
+- accepts `psx-library-turso202601`, returns only the name;
+- refuses `psx-data-capture`, `psx-data-archival-test`, `psx-archive`, `psx-prod`, `psx-production`, and a library name
+  with a production marker;
+- refuses an unnamed or missing URL.
+
+**Link test (approved probe table `library_probe`):** writes one synthetic record (under 1 KB, `source="test"`), reads it
+back, and deletes it in a finally block. Tested on an in-memory copy. The live run is skipped until the secrets are set.
+
+**Calendar and fetch window (no-fetch-when-uncertain):** a fetch is allowed only on a trading day, inside the recorded
+hours (`config/psx_calendar.json`), and outside the Friday break. Refuses on weekends, holidays, unrecorded hours, an
+unreadable calendar, and the Friday break.
+- **Discrepancy to resolve:** the owner's stated hours are 09:15 to 16:30 PKT. The calendar records Mon to Thu 09:15 to
+  15:50 and Friday 09:00 to 16:50, from the PSX Trading Hours page. The calendar is owner-maintained, so it was not changed.
+- **Jumma break (pending):** no official break time is recorded. The policy refuses Friday 12:00 to 15:00 PKT until the
+  owner confirms the official window.
+
+**Plan, unchanged:** 108 companies, fundamentals first and core names first; daily ceiling 12; one global announcements
+page per trading day; resumable; cache-only until approved.
+
+**Blockers before the live start:** the library secrets (owner); the global announcements parser (needs one in-window
+sample); the Jumma break window (owner); the 15:50 versus 16:30 close discrepancy (owner).

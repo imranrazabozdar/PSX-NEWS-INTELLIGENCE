@@ -225,6 +225,9 @@ def run_endpoint(*, now: datetime, state_path: Path, entry: dict[str, Any], db: 
     policy = good if good is not None else gc.safe_active_policy()
     if policy is None:
         return RunOutcome("refused", "policy missing or invalid: fail closed")
+    cal = gc.calendar_verdict(now, gc.load_calendar_safe(), policy)  # fetch only in a confirmed-open window
+    if not cal.allowed:
+        return RunOutcome("skipped", cal.reason)
     with gc.single_flight() as got:
         if not got:
             return RunOutcome("skipped", "queued: single-flight, another request holds the slot")

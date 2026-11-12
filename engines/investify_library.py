@@ -12,6 +12,7 @@ No network. No Investify traffic.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any
 
@@ -21,8 +22,12 @@ from database.connection import SQLiteDatabase
 from database.migrate import migrate
 from engines import investify_extract as x
 
-LIBRARY_MARKER = "library"  # the URL must name the library database
-FORBIDDEN_MARKERS = ("prod", "production", "capture", "data-capture", "live")
+LIBRARY_MARKER = "psx-library"  # the host must name the dedicated library database
+# Any of these in the URL refuses the run. They cover the production, data-capture and archival databases.
+FORBIDDEN_MARKERS = ("data-capture", "data-archival", "archival", "archive", "production", "prod", "capture")
+# The approved probe table for the link test. Approved by the owner; created only in the library database.
+PROBE_TABLE_DDL = ("CREATE TABLE IF NOT EXISTS library_probe (marker TEXT PRIMARY KEY, source TEXT NOT NULL, "
+                   "payload TEXT NOT NULL CHECK (length(payload) < 1024))")
 SYNTHETIC_SYMBOL = "ZZTEST"  # clearly synthetic: no listed company uses it
 FIXTURE = (Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "investify"
            / "fundamentals_synthetic.html")
@@ -33,16 +38,36 @@ class LibraryTargetError(RuntimeError):
 
 
 def check_library_target(url: str | None) -> str:
-    """Return the database name, or raise. Never returns credentials."""
+    """Return the database name for logging, or raise. Refuses before any write. Never returns credentials."""
     if not url:
-        raise LibraryTargetError("library database URL is not set (set the library secret; never paste it)")
-    lowered = url.lower()
-    if any(m in lowered for m in FORBIDDEN_MARKERS):
-        raise LibraryTargetError("refused: the URL resolves to a production or data-capture database")
-    if LIBRARY_MARKER not in lowered:
-        raise LibraryTargetError("refused: the URL does not name the library database")
-    host = url.split("://", 1)[-1].split("/", 1)[0].split("?", 1)[0]
-    return host.split(".", 1)[0]  # the database name, without the secret
+        raise LibraryTargetError("library database URL is not set (set PSXNI_LIBRARY_TURSO_DATABASE_URL "
+                                 "through the secure secret flow; never paste it)")
+    host = url.split("://", 1)[-1].split("/", 1)[0].split("?", 1)[0].lower()
+    if any(m in host for m in FORBIDDEN_MARKERS):
+        raise LibraryTargetError("refused: the URL resolves to a production, data-capture or archival "
+                                 "database")
+    if LIBRARY_MARKER not in host:
+        raise LibraryTargetError("refused: the URL does not name the psx-library database")
+    return host.split(".", 1)[0]
+
+
+def link_test(db: Any, *, marker: str = "psxni-link-test-0001") -> dict[str, Any]:
+    """Write ONE synthetic record to the probe table, read it back, and delete it. The record is marked as
+    a test. The delete runs in a finally block, so a mismatch cannot leave the record behind."""
+    payload = json.dumps({"synthetic": True, "purpose": "library link test", "source": "test"},
+                         sort_keys=True)
+    if len(payload.encode("utf-8")) >= 1024:
+        raise ValueError("probe payload must be under 1 KB")
+    db.execute(PROBE_TABLE_DDL)
+    try:
+        db.execute("INSERT INTO library_probe (marker, source, payload) VALUES (?, ?, ?)",
+                   (marker, "test", payload))
+        rows = db.execute("SELECT source, payload FROM library_probe WHERE marker = ?", (marker,))
+        matched = bool(rows) and rows[0]["source"] == "test" and rows[0]["payload"] == payload
+    finally:
+        db.execute("DELETE FROM library_probe WHERE marker = ?", (marker,))
+    remaining = db.execute("SELECT COUNT(*) AS n FROM library_probe WHERE marker = ?", (marker,))[0]["n"]
+    return {"written": True, "read_back": matched, "deleted": remaining == 0, "marker": marker}
 
 
 def synthetic_dry_run(db: SQLiteDatabase) -> dict[str, Any]:

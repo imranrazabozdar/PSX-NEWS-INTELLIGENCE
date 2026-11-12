@@ -66,6 +66,7 @@ class Policy:
     backfill_paused: bool
     backfill_reserve: int
     ttl: dict[str, timedelta] = field(default_factory=dict)
+    friday_break: tuple[time, time] | None = None  # pending owner confirmation of the official break
 
 
 def _hhmm(text: str) -> time:
@@ -97,13 +98,15 @@ def parse_policy(data: dict[str, Any]) -> Policy:
         if not qs < qe:
             raise PolicyError("quiet window must start before it ends")
         ttl = {k: timedelta(hours=float(v)) for k, v in data["ttl_hours"].items()}
+        fb = data.get("friday_break_pkt")
+        friday_break = (_hhmm(fb["start"]), _hhmm(fb["end"])) if fb else None
         return Policy(
             mode=mode, kill_switch=bool(data["kill_switch"]), collectors_enabled=enabled, min_gap=gap,
             daily_ceiling=daily, weekly_ceiling=weekly, warn_fraction=warn, quiet_start=qs, quiet_end=qe,
             cooldown_base=base, cooldown_max=cmax, breaker_threshold=int(data["breaker_threshold"]),
             backfill_paused=bool(data["backfill"]["paused"]),
             backfill_reserve=int(data["backfill"]["reserve_daily"]),
-            ttl=ttl)
+            ttl=ttl, friday_break=friday_break)
     except PolicyError:
         raise
     except (KeyError, TypeError, ValueError, AttributeError) as exc:
@@ -208,6 +211,41 @@ def gate(*, now: datetime, state: Any, policy: Policy | None, endpoint: str,
     if (day_n + 1) >= policy.warn_fraction * policy.daily_ceiling:
         warning = f"WARN: {day_n + 1} of {policy.daily_ceiling} daily requests (at or above the warn level)"
     return Verdict(True, "allowed", warning)
+
+
+def calendar_verdict(now: datetime, calendar: Any, policy: Policy | None) -> Verdict:
+    """Fetch only inside a confirmed-open window: a trading day, inside its recorded hours, outside the
+    Friday break. Uncertainty refuses: an unreadable calendar, unrecorded hours, or an unconfirmed break."""
+    if policy is None:
+        return Verdict(False, "policy missing or invalid: fail closed")
+    if calendar is None:
+        return Verdict(False, "trading calendar unreadable: fail closed")
+    local = now.astimezone(PKT)
+    day = local.date().isoformat()
+    if not calendar.is_trading_day(day):
+        return Verdict(False, f"not a trading day ({calendar.day_type(day)}): no fetch")
+    hours = calendar.hours(day)
+    if hours is None:
+        return Verdict(False, "trading hours not recorded for this day: fail closed")
+    minutes = local.hour * 60 + local.minute
+    open_m, close_m = hours
+    if not open_m <= minutes <= close_m:
+        return Verdict(False, "outside recorded trading hours: no fetch")
+    if local.weekday() == 4 and policy.friday_break is not None:
+        start, end = policy.friday_break
+        if start <= local.time() < end:
+            return Verdict(False, "Friday break window (pending owner confirmation): no fetch")
+    return Verdict(True, "inside a confirmed-open window")
+
+
+def load_calendar_safe(path: Path | None = None) -> Any:
+    """The PSX calendar, or None if it cannot be read. None refuses every fetch."""
+    from engines import market_calendar as mc
+
+    try:
+        return mc.load_calendar(path or mc.DEFAULT_PATH)
+    except Exception:  # noqa: BLE001 - any failure to read the calendar means fail closed
+        return None
 
 
 def cooldown_until(now: datetime, consecutive_blocks: int, policy: Policy,

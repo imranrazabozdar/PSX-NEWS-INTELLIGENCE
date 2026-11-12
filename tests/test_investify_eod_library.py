@@ -72,20 +72,20 @@ def test_the_library_url_must_be_set():
 
 
 @pytest.mark.parametrize("url", ["libsql://psxni-prod.turso.io", "libsql://psxni-data-capture.turso.io",
-                                 "libsql://live-psx.turso.io"])
+                                 "libsql://psx-library-prod.turso.io"])
 def test_a_production_or_data_capture_target_is_refused_before_any_write(url):
-    with pytest.raises(lib.LibraryTargetError, match="production or data-capture|not name the library"):
+    with pytest.raises(lib.LibraryTargetError, match="production|does not name the psx-library"):
         lib.check_library_target(url)
 
 
 def test_a_url_that_does_not_name_the_library_is_refused():
-    with pytest.raises(lib.LibraryTargetError, match="does not name the library"):
+    with pytest.raises(lib.LibraryTargetError, match="does not name the psx-library"):
         lib.check_library_target("libsql://psxni-operational.turso.io")
 
 
 def test_the_guard_returns_the_database_name_and_never_the_credentials():
-    name = lib.check_library_target("libsql://psxni-library.turso.io?authToken=SECRET123")
-    assert name == "psxni-library" and "SECRET123" not in name and "authToken" not in name
+    name = lib.check_library_target("libsql://psx-library-turso202601.aws-us-east-1.turso.io?authToken=SECRET123")
+    assert name == "psx-library-turso202601" and "SECRET123" not in name and "authToken" not in name
 
 
 @pytest.mark.skipif(not os.environ.get("PSXNI_LIBRARY_TURSO_DATABASE_URL"),

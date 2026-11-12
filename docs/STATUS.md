@@ -351,3 +351,15 @@ Plan and gate results: `docs/ops/INVESTIFY_BACKFILL_PLAN.md`.
 | Live Investify requests tonight | NONE. Gated by the quiet window; tested |
 | Live backfill | NOT STARTED. Requires owner approval of the plan |
 | Global announcements page parser | OPEN: needs a structured parser and one sample in the trading window before the live start |
+
+### Second gate pass (feature/investify-good-citizen): target psx-library
+| Item | State |
+|---|---|
+| Target: psx-library-turso202601 (dedicated library DB; separate from data-capture and archival-test) | Owner-confirmed |
+| Secrets `PSXNI_LIBRARY_TURSO_DATABASE_URL` and `PSXNI_LIBRARY_TURSO_AUTH_TOKEN` | NOT SET. Owner to set through the secure secret flow |
+| Target guard: accepts psx-library only; refuses data-capture, archival and production markers | IMPLEMENTED, TESTED |
+| Link test on the approved probe table (write, read back, delete; under 1 KB; test-marked) | IMPLEMENTED; tested on an in-memory copy; live run BLOCKED on the secrets |
+| Calendar: trading days, recorded hours, Friday break (pending owner confirmation), no fetch when uncertain | IMPLEMENTED, TESTED |
+| Hours discrepancy (owner 09:15-16:30 versus calendar 15:50 and 16:50) | OPEN, owner to resolve |
+| Jumma break window | PENDING owner confirmation (refused 12:00-15:00 Friday until confirmed) |
+| Live backfill | NOT STARTED; requires owner approval of the plan |
