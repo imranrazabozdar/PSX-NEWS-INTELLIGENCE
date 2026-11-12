@@ -22,6 +22,9 @@ memory, and honesty.
   and other policy items.
 - **Market flows (public, legitimately sourced):** FIPI and LIPI, traded volume, end-of-day settlements.
 - **Technicals:** OHLCV price and volume bars.
+- **Sources policy:** free and legitimately accessible sources only. No paid X API. No disallowed scraping.
+- **Manual paste intake (macro and analyst takes):** the owner pastes an analyst take or commentary. The system logs
+  the paste with its date and source, classifies it, and stores it as UNVERIFIED signal. It is never promoted to fact.
 - **Deep reports (owner uploads):** audited statements, stored in the financial archive as verified facts.
 
 ### 2. Exposure map (per company)
@@ -122,3 +125,103 @@ flip it." It is not an order. The human decides.
   `image_disclosure` with `machine_readable: false`, and no field is guessed from it.
 - **News:** off until Investify confirms that news is within the consent scope.
 - **Phases 2 to 5:** approved-pending. Each one starts only on explicit owner approval.
+
+## Technicals engine (Phase 5b input)
+
+Reads OHLCV bars and computes:
+- **Accumulation and distribution:** on-balance volume (OBV), the accumulation/distribution line, and the volume trend.
+- **Support and resistance:** levels from repeated price and volume reactions.
+- **Fundamental-versus-technical divergence:** for example, good fundamentals with persistent distribution is a
+  caution flag, and weak fundamentals with accumulation is a watch flag. The flag shows its criterion and its values.
+
+Technicals describe the tape. They never produce a buy or sell signal on their own.
+
+## Tiered understanding model (coverage without deep-diving every company)
+
+The watchlist has about 110 companies. Deep research on each is not required.
+
+**Tier 1: baseline understanding of every watchlist company, automatic.** No report upload is needed. It is derived
+from the auto-collected Investify profile (business description, sector, geography hints), competitors, and
+fundamentals. That is enough for first-pass transmission reasoning: routing an event to sectors and companies, and
+flagging the likely affected ones. Each Tier 1 output states its confidence as baseline, and notes where deeper data
+would sharpen it.
+
+**Tier 2: deep understanding for roughly 10 to 20 owner-priority names, from uploaded reports.** This is the precise
+exposure map: specific plant locations, trade routes, debt and FX structure, and customer concentration. It answers
+"who is affected most, and exactly how." Any name can be deepened on demand when an event makes it matter.
+
+**Learning from news.** Exposures are enriched over time from the news and announcement flow. For example, a flood
+item that names a company's northern plant teaches the system that exposure. Understanding grows from the flow, not
+only from PDFs.
+
+**Operating guidance.** Seed deep dives for the five to ten core names first. The other roughly 100 run on the
+automatic Tier 1 layer, and Tier 2 expands gradually. No one needs to upload 100 reports.
+
+## Knowledge base ("the brain"): distilled, compact, learning
+
+**Store distilled knowledge, not documents.** Per company, the knowledge base holds verified facts, the exposure map,
+computed baselines and norms, live narrative threads, relationships (peers, supply chain), and reasoned
+interpretations. All of it is compact: numbers and short text.
+
+**PDFs never enter Turso.** A report is processed once. The raw file lives in the cheap vault, or it is discarded
+after extraction with its provenance kept. The operational and analytical database never carries heavy documents.
+This is what keeps Turso lean.
+
+**Reasoning reads the brain, not the PDFs.** Once a document is distilled, the system does not reopen it. It reasons
+from the knowledge base, which is fast and light.
+
+**It accumulates and learns.** Each new report, news item, insider filing, or event updates the relevant part of the
+brain: a corrected fact, a revised baseline, a new exposure, an updated thread, or a sharper interpretation.
+Understanding compounds over time.
+
+**Honesty (non-negotiable).** Verified facts (from filings and statements) and derived interpretations (reasoned
+conclusions) are stored separately, and each is clearly labelled. A derived item stays traceable to its basis and is
+never promoted to fact. Confidence and sources travel with every stored item.
+
+## Illustrative transmission examples (reasoned hypotheses, to be tested against flows)
+
+These show the pattern the engine reasons with: event, then channel, then exposed companies ranked by intensity, then
+direction and why, then confidence, then verification against flows. Reason first, then verify.
+
+1. **Political unrest or road closures.** Channel: inter-city logistics and supply routes. Exposed: logistics-
+   dependent names, and companies with a northern footprint. Direction: negative for exposed names; possible positive
+   for an alternative route owner. Confidence: low to moderate, and the event's duration is the main unknown. Verify:
+   flows and volume in the affected names.
+2. **Open-market operations or T-bill injection.** Channel: bank liquidity and yields. Exposed: banks with large
+   government-securities books. Direction: mixed, depending on the yield path. Confidence: moderate, if the injection
+   size and tenor are known. Verify: FIPI and bank volume.
+3. **Global market crash.** Channel: foreign portfolio outflow (FIPI). Exposed: PSX names with high foreign ownership.
+   Direction: negative, with liquidity and valuation effects. Confidence: moderate. Verify: FIPI and settlements, not
+   the price move alone.
+4. **Housing-loan policy change.** Channel: construction and lending demand. Exposed: cement, steel, and construction
+   names, and the lending banks. Direction: positive for demand-linked names, with a possible credit-quality effect on
+   banks. Confidence: low to moderate. Verify: sector volume and the company's own disclosures.
+
+## Completeness pass (this section records what each checklist item maps to)
+
+| Element | Where it is recorded |
+|---|---|
+| Data layer: Investify fundamentals, profile, competitors, announcements (insider, material, actions, meetings), news | Layer 1; Phase 1 |
+| Data layer: macro factors (oil, SBP rate, FX reserves, IMF, budget, policy), free sources only | Layer 1; Phase 2 |
+| Data layer: market flows (FIPI, LIPI, settlements, volume) | Layer 1; Layer 5; Phase 2b |
+| Data layer: technicals (OHLCV) | Layer 1; Layer 7; Phase 5b |
+| Data layer: deep report uploads into the archive | Layer 1; Tiered model; Knowledge base |
+| Tiered understanding model | Tiered understanding model |
+| Knowledge-base "brain": distilled, PDFs never in Turso, learns, verified vs derived | Knowledge base |
+| Exposure map: geography, supply chain and trade routes, commodity, rate and FX, customer concentration, sector | Layer 2 |
+| Dossier: static facts, time series, baselines, threads, expectations; context-aware ingestion (beat or miss, deviation, thread update) | Layer 3; Phase 3 |
+| Macro-factor layer linked to stocks through the driver model (per-stock weights) | Layer 4 |
+| Market-flow layer as the reality check; reason, then verify | Layer 5; Layer 7 |
+| Event-transmission engine: channels, exposure, ranked by intensity, both directions and offsets, confidence and what breaks it, hypothesis not certainty | Layer 6; Transmission examples; Phase 5a |
+| Composite and divergence engine: driver-weighted, interaction-aware, narrative versus money | Layer 7; Phase 5b |
+| Scenario and forecast engine: bull, base, bear; swing factors; probabilities | Layer 8; Phase 5c |
+| Technicals: accumulation and distribution, support and resistance, divergence | Layer 7; Phase 5b (technicals engine) |
+| Dashboard: ranked, reasoned, descriptive, not buy or sell; score breakdown; scenario; divergence flags; transmission chain | Layer 9; Phase 5d |
+| Guardrails: legitimacy (consent, robots, caps, no scraping, private, attribution); three-database separation; grounding; verified versus derived; no buy or sell; probabilistic, not prediction; estimates labelled; observation versus inference; confidence and what breaks it; reason, then verify; phased and gated; prove on HUBC | Cross-cutting guardrails |
+| Build sequence Phases 1 to 5, including 5a, 5b, 5c, 5d | Build sequence |
+| Decisions: OCR (small future phase; image_disclosure fallback until approved); News off until consent; per-phase approvals; free sources only (no paid X API, no disallowed scraping) with a manual paste intake | Recorded owner decisions; Phase 2 (manual intake) |
+
+**Gaps closed by this pass:** the manual paste intake for analyst takes, and the technicals engine (5b), which were
+mentioned only in passing before, are now stated in the sections above.
+
+**Status of this blueprint:** complete as of this pass. It is a design record only and changes no runtime behavior.

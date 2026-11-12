@@ -317,3 +317,5 @@ Handover: `docs/handover/PILOT-CHECKPOINT-2026-11-12.md`.
 
 ## Architecture blueprint
 The full agreed system design (data layer, exposure map, dossier, macro and market-flow layers, event-transmission, composite and divergence, scenario and forecast engines, and the private dashboard), with the cross-cutting guardrails and the phase sequence, is recorded in `docs/architecture/INTELLIGENCE_BLUEPRINT.md`. The blueprint is a design record. It changes no runtime behavior. Phases 2 to 5 remain approved-pending.
+
+**Blueprint status (2026-11-12):** `docs/architecture/INTELLIGENCE_BLUEPRINT.md` is complete as of the completeness pass. It now includes the tiered understanding model, the knowledge base ("the brain"), the technicals engine, the paste intake, the sources policy, and worked transmission examples. It is a design record and changes no runtime behavior. Phases 2 to 5 remain approved-pending.
