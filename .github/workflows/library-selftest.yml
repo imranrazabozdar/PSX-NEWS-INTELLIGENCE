@@ -1,11 +1,9 @@
 # Library self-test: proves the psx-library destination with the GitHub secrets. Turso only; no Investify.
-# Runs on this branch (TEMPORARY push trigger, removed after the merge) and on demand on main (workflow_dispatch).
-# Order: self-test first; the migration step runs only if the self-test is green.
+# Runs on demand (workflow_dispatch). Order: self-test first; the migration step runs only on a push, after a
+# green self-test. The one-time pre-merge push trigger was removed at the merge.
 name: psx-library self-test
 
 on:
-  push:
-    branches: [feature/investify-good-citizen]  # TEMPORARY: remove this trigger after the merge
   workflow_dispatch:
 
 permissions:
@@ -29,5 +27,5 @@ jobs:
       - name: Self-test (target guard, SELECT 1, probe round trip)
         run: python -m engines.library_db
       - name: Apply approved state migration (psx-library only; only after a green self-test)
-        if: github.event_name == 'push'
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
         run: python -m scripts.apply_library_migration

@@ -376,7 +376,7 @@ Plan and gate results: `docs/ops/INVESTIFY_BACKFILL_PLAN.md`.
 
 **Next step (owner):** confirm both variables are visible in a new session of this environment (names only), then run `python -m engines.library_db`. Report the exact output. If auth fails, the verbatim error is printed.
 
-### Autonomous fetcher (feature/investify-good-citizen): BUILT, live by default (no mode toggle); self-test and merge pending
+### Autonomous fetcher (merged to main): BUILT, live by default (no mode toggle)
 Runbook: `docs/ops/AUTONOMOUS_FETCHER.md`.
 
 | Item | State |
@@ -389,5 +389,5 @@ Runbook: `docs/ops/AUTONOMOUS_FETCHER.md`.
 | Clean no-op without library variables; contact required for any live request; no request when psx-library is unreachable | TESTED |
 | End-of-day fetch log (renderer) | BUILT, TESTED; the scheduled write is not yet wired |
 | Live fetching | Live by default. Gated only by structural guards; the state migration must be applied first (until then every tick no-ops). Manual pause: disable the workflow in the Actions UI |
-| Library self-test (`library-selftest.yml`: `python -m engines.library_db`, then guarded migration) | RUNNING on this branch (temporary push trigger); the result is recorded in the PR and the runbook |
+| Library self-test (`library-selftest.yml`: `python -m engines.library_db`, then guarded migration) | PASSED pre-merge: connected to psx-library-turso202601, probe clean, 3 state tables present. Now workflow_dispatch on main |
 | Trading hours | One source: `config/psx_calendar.json` `open_sessions` (Mon-Thu 09:32-15:30; Fri 09:17-12:00, 14:32-16:30; Jumma 12:00-14:32). Policy break agrees (tested). Grading `regular_hours` unchanged |
