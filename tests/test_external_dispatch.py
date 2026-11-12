@@ -51,7 +51,8 @@ def test_schedule_slots_and_classification():
 
 def test_workflow_records_trigger_origin_and_keeps_cron_and_concurrency():
     text = WF.read_text()
-    assert '- cron: "17 */6 * * *"' in text  # GitHub cron stays as the fallback
+    # The schedule was removed by the scheduler audit: the autonomous tick is the only scheduled workflow.
+    assert "schedule:" not in text and "- cron:" not in text
     assert "      trigger:\n" in text and "options: [manual, external]" in text and "default: manual" in text
     assert "group: scheduled-collection\n  cancel-in-progress: false" in text
     assert "PSXNI_TRIGGER: ${{ github.event_name == 'schedule' && 'schedule' || inputs.trigger }}" in text

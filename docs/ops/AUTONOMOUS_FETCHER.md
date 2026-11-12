@@ -46,6 +46,16 @@
   the 200 store path, the core-first order, the state round trip on the migration (in memory), the clean no-op
   without the library variables, the honest User-Agent, and the end-of-day log. All passed.
 
+## Scheduler (audit)
+- The autonomous tick (`psx_fetch.yml`) is the ONLY scheduled workflow. `scheduled-jobs.yml` had its schedule removed
+  (dispatch only; code kept). Any other workflow with a `schedule:` trigger is a finding to report, not to leave running.
+- `regular_hours` in `config/psx_calendar.json` is GRADING-ONLY (market-data quality checks, full pre-open-to-post-close
+  window). It is left as-is. Fetching uses only `open_sessions`. The scheduled tick is the sole fetcher.
+
+## Owner prerequisite before the first live fetch
+- Set the Actions repository variable `PSXNI_CONTACT_EMAIL` (Settings, Secrets and variables, Actions, Variables).
+  Without it every tick is a no-op: `no-op: PSXNI_CONTACT_EMAIL is not set`.
+
 ## Self-test (before merge, then on demand)
 - `.github/workflows/library-selftest.yml`: runs `python -m engines.library_db` (target guard, SELECT 1, probe round trip)
   with the library secrets. Turso only; no Investify. On a green self-test it then applies the approved state migration
