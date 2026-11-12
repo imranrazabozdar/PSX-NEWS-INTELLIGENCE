@@ -79,7 +79,7 @@ def positional_gate(pdf: Path, statement_pages: dict[str, list[int]]) -> dict:
             continue
         number = pages[0]
         chars = pdf_reader.page_chars(pdf, number)
-        page = lw.read_page(chars)
+        page = lw.apply_deshadow(lw.read_page(chars))  # collapse copy-columns, then judge
         words = lw.words_from_chars(lw.dedupe_chars(chars)[0])
         first_figure_top = min((r.top for r in page["rows"] if r.cells), default=float("inf"))
         header = lw.header_year_columns(words, above_top=first_figure_top)

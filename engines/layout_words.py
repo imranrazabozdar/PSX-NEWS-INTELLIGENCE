@@ -143,7 +143,7 @@ def positional_rows(words: list[Word], columns: list[tuple[float, int]]) -> list
             continue  # the note-reference band: never a value
         else:
             row.label = (row.label + " " + w.text).strip()
-    return [r for r in rows.values() if r.cells or r.label]
+    return [r for r in rows.values() if r.cells or r.label or r.ambiguous]  # an ambiguity is never dropped
 
 
 def _nearest_column(x1: float, columns: list[tuple[float, int]]) -> int | None:
@@ -217,19 +217,113 @@ def shadow_pairs(rows: list[Row], columns: list[tuple[float, int]]) -> list[tupl
 
 
 def integrity_verdict(page: dict, *, expected_columns: int, header_columns: list[float]) -> dict:
-    """The gate. 'ok' only when the header shows the expected number of period columns, the figure columns
-    match it,
-    no row is ambiguous, and no two columns are copies. Anything else is requires_review with the reasons."""
+    """The gate, applied AFTER de-shadow. 'ok' only when the page has exactly the expected number of distinct
+    value columns, the header years reach that many, and no row is ambiguous. Anything else is requires_review
+    with the reasons; the gate never resolves a page."""
     reasons: list[str] = []
-    if len(header_columns) != expected_columns:
-        reasons.append(f"header shows {len(header_columns)} year columns, expected {expected_columns}")
-    if len(page["columns"]) != expected_columns:
-        reasons.append(f"figures fall into {len(page['columns'])} columns, expected {expected_columns}")
-    shadows = shadow_pairs(page["rows"], page["columns"])
-    if shadows:
+    distinct = len(page["columns"])
+    if distinct != expected_columns:
+        bands = [round(c, 1) for c, _ in page["columns"]]
         reasons.append(
-            "columns are copies of each other: " + ", ".join(f"{i}~{j} ({s:.0%})" for i, j, s in shadows)
+            f"{distinct} distinct value columns after de-shadow, expected {expected_columns} "
+            f"(x-bands {bands})"
         )
+    # each header year belongs to its nearest value column; the header covers the columns it reaches
+    covered = {
+        min(range(len(page["columns"])), key=lambda i: abs(page["columns"][i][0] - h))
+        for h in header_columns
+        if page["columns"]
+    }
+    if len(header_columns) != expected_columns:
+        reasons.append(f"header shows {len(header_columns)} year groups, expected {expected_columns}")
+    if len(covered) != expected_columns:
+        reasons.append(f"header years reach {len(covered)} value column(s), expected {expected_columns}")
     if page["ambiguous"]:
         reasons.append(f"{len(page['ambiguous'])} ambiguous figure(s) or row(s)")
     return {"verdict": "requires_review" if reasons else "ok", "reasons": reasons}
+
+
+# Multi-word statement headings printed glued to a line item. Single words such as EQUITY or LIABILITIES
+# are real data labels ('TOTAL EQUITY', 'TOTAL LIABILITIES') and are never split off.
+_HEADINGS = ("EQUITYANDLIABILITIES", "NONCURRENTLIABILITIES", "CURRENTLIABILITIES")
+
+
+def split_heading_label(label: str) -> tuple[str, str | None]:
+    """Split a multi-word statement heading glued to the END of a label ('TOTAL EQUITY AND LIABILITIES' ->
+    ('TOTAL', 'EQUITY AND LIABILITIES')). The heading is not a data row. A label of its own kind is
+    returned whole:
+    'TOTAL EQUITY' and 'TOTAL LIABILITIES' stay data labels. Matching ignores case, spaces and punctuation."""
+    letters = re.sub(r"[^A-Za-z]", "", label).upper()
+    for heading in _HEADINGS:
+        if letters.endswith(heading) and len(letters) > len(heading):
+            prefix = _strip_to_letters(label, len(letters) - len(heading))
+            return prefix.strip(), _HEADING_TEXT[heading]
+    return label.strip(), None
+
+
+_HEADING_TEXT = {
+    "EQUITYANDLIABILITIES": "EQUITY AND LIABILITIES",
+    "NONCURRENTLIABILITIES": "NON-CURRENT LIABILITIES",
+    "CURRENTLIABILITIES": "CURRENT LIABILITIES",
+}
+
+
+def _strip_to_letters(label: str, n_letters: int) -> str:
+    """The prefix of `label` holding the first n letters (spaces and punctuation kept as printed)."""
+    count = 0
+    for i, ch in enumerate(label):
+        if ch.isalpha():
+            count += 1
+            if count == n_letters:
+                return label[: i + 1]
+    return label
+
+
+def deshadow(
+    rows: list[Row], columns: list[tuple[float, int]]
+) -> tuple[list[tuple[float, int]], dict[int, int]]:
+    """Collapse copy-columns. Two value columns are copies when they carry the same figure in at least
+    SHADOW_SHARE of the rows where both are populated. Each copy group keeps its leftmost column as the
+    representative. Returns the surviving columns and a map from each original index to its representative."""
+    parent = {i: i for i in range(len(columns))}
+
+    def find(i: int) -> int:
+        while parent[i] != i:
+            i = parent[i]
+        return i
+
+    for i in range(len(columns)):
+        for j in range(i + 1, len(columns)):
+            common = [r for r in rows if i in r.cells and j in r.cells]
+            if (
+                len(common) >= 3
+                and sum(1 for r in common if r.cells[i][0] == r.cells[j][0]) / len(common) >= SHADOW_SHARE
+            ):
+                parent[find(j)] = find(i)
+    reps = sorted({find(i) for i in range(len(columns))})
+    survivors = [columns[i] for i in reps]
+    mapping = {i: reps.index(find(i)) for i in range(len(columns))}
+    return survivors, mapping
+
+
+def apply_deshadow(page: dict) -> dict:
+    """Re-key every row's cells onto the surviving columns. A value that lands on a copy is re-keyed to its
+    representative only when the copy holds the same figure; otherwise the row is ambiguous."""
+    survivors, mapping = deshadow(page["rows"], page["columns"])
+    extra: list[str] = []
+    for r in page["rows"]:
+        new_cells: dict[int, tuple[str, float, float]] = {}
+        for col, cell in r.cells.items():
+            target = mapping[col]
+            if target in new_cells and new_cells[target][0] != cell[0]:
+                extra.append(
+                    f"row '{r.label[:40]}': copy column {col} disagrees with representative {target}"
+                )
+            new_cells.setdefault(target, cell)
+        r.cells = new_cells
+    page = dict(page)
+    page["columns"] = survivors
+    page["ambiguous"] = list(page["ambiguous"]) + extra
+    page["distinct_columns"] = len(survivors)
+    page["column_map"] = mapping
+    return page

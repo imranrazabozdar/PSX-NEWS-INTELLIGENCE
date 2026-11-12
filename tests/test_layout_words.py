@@ -87,13 +87,13 @@ def test_a_row_with_two_figures_in_one_column_stays_ambiguous_and_is_requires_re
 def test_a_page_whose_columns_are_copies_of_each_other_is_requires_review():
     # the same figure in both columns on every row: one column is a copy of the other (the overprint pattern)
     rows = [(label, cur, cur, top) for label, cur, _, top in ROWS]
-    page = lw.read_page(two_column_page(rows))
+    page = lw.apply_deshadow(lw.read_page(two_column_page(rows)))
     header = lw.header_year_columns(
         lw.words_from_chars(lw.dedupe_chars(two_column_page(rows))[0]), above_top=90
     )
     verdict = lw.integrity_verdict(page, expected_columns=2, header_columns=header)
     assert verdict["verdict"] == "requires_review"
-    assert any("copies" in r for r in verdict["reasons"])
+    assert page["distinct_columns"] == 1  # identical copies collapse to one column: not two periods
 
 
 def test_four_year_columns_where_two_are_expected_is_requires_review():
