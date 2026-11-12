@@ -165,6 +165,22 @@ CHILD_TAX_LABEL = re.compile(
 )
 
 
+def _without_percent_tokens(s: str, n: int) -> str:
+    """Defensive: a row that alternates value and percent (an analysis table) is read as its values only.
+    Percent tokens are dropped only when the remaining trailing figures are exactly the column count, so a
+    genuine statement row is never altered."""
+    if "%" not in s:
+        return s
+    kept = [x for x in s.split() if not x.endswith("%")]
+    count = 0
+    for x in reversed(kept):
+        if _NUM.match(x) or x.casefold() in _BLANK:
+            count += 1
+        else:
+            break
+    return " ".join(kept) if count == n else s
+
+
 def parse_statement_text(text: str, *, statement: str, columns: list[str], page: int | None = None) -> dict:
     """Parse lines of already-extracted statement text into line records.
 
@@ -182,6 +198,7 @@ def parse_statement_text(text: str, *, statement: str, columns: list[str], page:
         s = raw.strip()
         if not s:
             continue
+        s = _without_percent_tokens(s, len(columns))
         toks = s.split()
         vals: list[str] = []
         while toks and (_NUM.match(toks[-1]) or toks[-1].casefold() in _BLANK):

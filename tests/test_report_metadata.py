@@ -14,7 +14,7 @@ from engines import report_metadata as rm
 from tests.pdf_fixture_builder import write_pdf
 
 BS_LINES = [
-    "Horizontal Statement of Financial Position",
+    "Statement of Financial Position",
     "As at June 30, 2026 2025",
     "Rupees in million",
     "Fixed assets 68,249 67,882",
@@ -113,3 +113,54 @@ def test_units_are_read_from_the_common_forms():
     assert rm.detect_unit_scale(["Rupees in million"]) == 1_000_000
     assert rm.detect_unit_scale(["Rs. (Millions)"]) == 1_000_000
     assert rm.detect_unit_scale(["in thousands", "in million"]) is None  # both stated: ambiguous
+
+
+# ---- analysis pages are never statutory; the two-column statement is preferred ----
+
+ANALYSIS_LINES = [
+    "Horizontal Statement of Financial Position",
+    "As at June 30, 2026 2025 2024 2023 2022 2021",
+    "Rupees in million % Rupees in million % Rupees in million % Rupees in million %",
+    "Fixed assets 68,249 218.6% 67,882 217.4% 23,559 100.0% 21,000 90.0%",
+    "Long term loans 6.50 17.6% 12.59 34.0% 9.10 50.0% 8.00 40.0%",
+    "Stock-in-trade 1,000 100.0% 900 90.0% 800 80.0% 700 70.0%",
+    "Trade debts 2,000 50.0% 1,800 45.0% 1,600 40.0% 1,400 35.0%",
+    "Cash and bank balances 3,000 12.0% 2,500 10.0% 2,000 8.0% 1,500 6.0%",
+    "Total assets 74,000 100.0% 72,000 100.0% 70,000 100.0% 65,000 100.0%",
+]
+
+
+def test_a_horizontal_analysis_page_is_rejected_even_when_it_is_the_only_balance_sheet(tmp_path):
+    lay = _layout(tmp_path, [ANALYSIS_LINES, IS_LINES])
+    assert "BS" not in lay["statement_pages"]
+    assert lay["blocker"] == "layout"
+
+
+def test_the_statutory_two_column_statement_is_selected_over_a_horizontal_analysis_page(tmp_path):
+    lay = _layout(tmp_path, [ANALYSIS_LINES, BS_LINES, IS_LINES])
+    assert lay["statement_pages"]["BS"] == [2]
+    assert 1 not in lay["statement_pages"].get("BS", [])
+
+
+def test_a_six_column_history_table_is_never_selected_as_statutory(tmp_path):
+    history = [
+        "Statement of Financial Position",
+        "As at June 30, 2026 2025 2024 2023 2022 2021",
+        *BS_LINES[3:],
+    ]
+    lay = _layout(tmp_path, [history, IS_LINES])
+    assert "BS" not in lay["statement_pages"]
+
+
+def test_a_percent_row_reads_as_its_values_only_and_a_genuine_row_is_untouched():
+    from engines.financials import parse_statement_text
+
+    rows = parse_statement_text(
+        "Fixed assets 68,249.43 218.6% 67,882.48 217.4%\nTotal assets 74,000 72,000",
+        statement="BS",
+        columns=["2026-06-30", "2025-06-30"],
+    )
+    values = {(r["raw_label"], r["column_period_end"]): r["value"] for r in rows["lines"]}
+    assert values[("Fixed assets", "2026-06-30")] == 68249.43
+    assert values[("Fixed assets", "2025-06-30")] == 67882.48
+    assert values[("Total assets", "2025-06-30")] == 72000

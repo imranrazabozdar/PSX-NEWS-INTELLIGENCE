@@ -92,12 +92,28 @@ def _norm(line: str) -> str:
     return re.sub(r"\s+", " ", line.strip().lower().replace("’", "'").replace("‘", "'"))
 
 
+def _undouble(text: str) -> str:
+    """Undo doubled glyphs in uppercase words ("SSTTAATTEEMMEENNTT" -> "STATEMENT"), a text-layer artifact."""
+    out = []
+    for tok in text.split(" "):
+        if len(tok) >= 4 and len(tok) % 2 == 0 and tok.isupper() and tok[0::2] == tok[1::2]:
+            out.append(tok[0::2])
+        else:
+            out.append(tok)
+    return " ".join(out)
+
+
 def heading_code(line: str) -> str | None:
-    n = _norm(line)
-    for code, rx in _HEADINGS.items():
-        if rx.match(n):
-            return code
+    for candidate in (line, _undouble(line)):
+        n = _norm(candidate)
+        for code, rx in _HEADINGS.items():
+            if rx.match(n):
+                return code
     return None
+
+
+# Analytical appendix pages (trend tables, common-size analysis, ratios): never statutory statements.
+ANALYSIS_HEADING = re.compile(r"horizontal|vertical|six[- ]year|analysis|summary|ratios?")
 
 
 def heading_basis(text: str) -> str | None:
@@ -207,15 +223,33 @@ def _scan_statement_pages(doc: pe.DocumentText) -> dict:
             if code is None:
                 continue
             basis = heading_basis(joined)
+            if ANALYSIS_HEADING.search(_norm(_undouble(joined))):
+                summaries.append(page.number)  # an analytical page carrying a statement title
+                break
             if amount_lines(lines) >= AMOUNT_PAGE_MIN:
                 readable.setdefault(code, []).append(
-                    {"page": page.number, "basis": basis, "heading": joined, "amounts": amount_lines(lines)}
+                    {
+                        "page": page.number,
+                        "basis": basis,
+                        "heading": joined,
+                        "amounts": amount_lines(lines),
+                        "columns": len(detect_column_dates(lines[:HEADER_LINES])),
+                    }
                 )
             else:
                 unreadable.setdefault(code, []).append(page.number)
             _ = consumed
             break
     return {"readable": readable, "unreadable": unreadable, "summaries_excluded": summaries}
+
+
+def _prefer_statutory(entries: list[dict]) -> list[dict]:
+    """A statutory statement has two period columns (current and comparative). Pages with more are analysis or
+    history tables and are never selected; among two-column pages the statutory layout is preferred."""
+    two = [e for e in entries if e["columns"] == 2]
+    if two:
+        return two
+    return [e for e in entries if e["columns"] <= 2]
 
 
 def _primary_run(entries: list[dict]) -> list[dict]:
@@ -247,7 +281,8 @@ def _choose_basis(entries: list[dict]) -> tuple[str | None, list[dict], bool]:
 def detect_layout(doc: pe.DocumentText, period_end: str) -> dict:
     """Facts for one report: statement pages for one basis, unit, basis, columns and any blocker."""
     scan = _scan_statement_pages(doc)
-    readable, unreadable = scan["readable"], scan["unreadable"]
+    readable = {c: p for c, p in ((c, _prefer_statutory(e)) for c, e in scan["readable"].items()) if p}
+    unreadable = scan["unreadable"]
     pages_with_amounts = sum(1 for p in doc.pages if amount_lines(p.lines) >= 1)
     base = {"summaries_excluded": scan["summaries_excluded"], "unreadable_pages": unreadable}
     if not readable and unreadable:
