@@ -247,3 +247,6 @@ Consent: `docs/consent/investify-fundamentals-2026-11-12.md` (owner-reported exp
 - Profile: IMPLEMENTED and TESTED. Fields stored earlier (08:32Z) without the description; a re-fetch to add the description is pending at >= 10:20Z.
 - Storage: structured fields only, in the metadata JSON; the raw body is never persisted. Every record is tagged source = investify.pk. The fundamentals trigger follows the first-fill and refresh rules, deduplicated by symbol, date and headline.
 - Gate: pending owner approval. Archive, production and Turso: not touched. Scaling to the full watchlist is NOT started.
+- 2026-11-12T10:24:38Z: profile refreshed as a MANUAL refresh (owner-authorized) to add the description; stored as structured fields. Earlier profile rows (08:32Z) and the earlier announcements (08:50Z) and the early fundamentals store belong to a pre-fix, hash-only throwaway database and are NOT part of the gate evidence.
+- Storage fix: structured fields are kept in the metadata JSON. Refreshed snapshots use a timestamped identifier because the table is append-only.
+- Audit note: the 09:47:26Z competitors request is logged manual=true by mistake; it was the first backfill. All other gaps are at least 16.9 minutes.

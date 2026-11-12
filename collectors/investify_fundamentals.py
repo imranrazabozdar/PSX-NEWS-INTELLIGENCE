@@ -171,9 +171,13 @@ def pending_trigger(state: pol.PollState, symbol: str) -> dict[str, Any] | None:
 # ---------------------------------------------------------------- storage
 
 def _stored_record(db: Any, symbol: str, endpoint: str) -> dict[str, Any] | None:
+    """The newest stored record for this company and endpoint.
+
+    Refreshed snapshots carry a timestamp suffix on their identifier."""
     rows = db.execute(
-        "SELECT source_item_id, collected_at_utc FROM source_items "
-        "WHERE source_id = ? AND external_id = ?", (SOURCE_ID, f"{symbol}:{endpoint}"))
+        "SELECT source_item_id, collected_at_utc FROM source_items WHERE source_id = ? "
+        "AND (external_id = ? OR external_id LIKE ?) ORDER BY collected_at_utc DESC LIMIT 1",
+        (SOURCE_ID, f"{symbol}:{endpoint}", f"{symbol}:{endpoint}:%"))
     return rows[0] if rows else None
 
 
@@ -385,9 +389,13 @@ def store_structured(db: Any, *, endpoint: str, symbol: str, fields: dict[str, A
         "storage": "structured_fields_only",
         "fields": fields,  # the structured record itself; no raw body
     }
+    # The table is append-only and keeps the metadata of the first row for an identifier. A later snapshot
+    # of the same endpoint gets its own identifier, so its structured fields are kept.
+    base = f"{symbol}:{endpoint}"
+    external_id = base if _stored_record(db, symbol, endpoint) is None else f"{base}:{fetched_at_utc}"
     out = record_source_item(
         db, source_id=SOURCE_ID, collected_at_utc=fetched_at_utc, url=url,
-        external_id=f"{symbol}:{endpoint}", content=content, title=f"{symbol} {endpoint} (Investify)",
+        external_id=external_id, content=content, title=f"{symbol} {endpoint} (Investify)",
         published_at_utc=None, published_at_raw=None, excerpt=None,
         provenance={"original_url": url, "retrieval_method": "html", "http_status": http_status,
                     "document_type": endpoint, "publication_time_status": "unknown",
