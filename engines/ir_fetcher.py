@@ -31,13 +31,14 @@ import urllib.error
 import urllib.request
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
 from urllib.parse import unquote, urljoin, urlsplit, urlunsplit
 from urllib.robotparser import RobotFileParser
 
-from engines.document_intake import vault_dir
+from engines import fiscal_period as fp
+from engines.document_intake import store_manual_upload, vault_dir
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 REGISTRY_PATH = REPO_ROOT / "config" / "ir_registry.json"
@@ -48,7 +49,14 @@ USER_AGENT = (
 )
 ROBOTS_TOKEN = "psx-news-intelligence"  # noqa: S105 - a robots.txt user-agent token, not a secret
 TARGET_TYPES = ("annual_report", "half_year", "quarterly", "financial_statements")
-STATUSES = ("live", "todo_unverified", "todo_js_rendered", "blocked_by_site", "todo_unreachable")
+STATUSES = (
+    "live",
+    "todo_unverified",
+    "todo_js_rendered",
+    "blocked_by_site",
+    "todo_unreachable",
+    "manual_import",
+)
 DEFAULT_MIN_INTERVAL_S = 10.0
 DEFAULT_BACKOFF_S = 1800.0
 MAX_BACKOFF_S = 3600.0
@@ -79,8 +87,9 @@ class RobotsDisallowed(RuntimeError):
 class IrEntry:
     symbol: str
     name: str
-    url: str
+    url: str | None
     status: str
+    fye: str = "06-30"  # fiscal year-end, MM-DD
     allowed_hosts: tuple[str, ...] = ()  # the company's own domains; PDFs on other hosts are ignored
     report_types: tuple[str, ...] = TARGET_TYPES
     exclude: tuple[str, ...] = ()
@@ -94,18 +103,23 @@ def load_registry(path: Path = REGISTRY_PATH) -> dict[str, IrEntry]:
         status = raw["status"]
         if status not in STATUSES:
             raise ValueError(f"{symbol}: unknown status {status!r}")
-        url = raw["ir_reports_url"]
-        if not url.startswith("https://"):
+        url = raw.get("ir_reports_url")
+        if url is not None and not url.startswith("https://"):
             raise ValueError(f"{symbol}: the IR URL must be https")
+        if url is None and status != "manual_import":
+            raise ValueError(f"{symbol}: only manual_import entries may omit the IR URL")
+        fye = raw.get("fye", "06-30")
+        fp.parse_fye(fye)  # refuses an invalid fiscal year-end
         types = tuple(raw.get("report_types", TARGET_TYPES))
         if not set(types) <= set(TARGET_TYPES):
             raise ValueError(f"{symbol}: unknown report types {types}")
-        hosts = tuple(raw.get("allowed_hosts", [urlsplit(url).netloc]))
+        hosts = tuple(raw.get("allowed_hosts", [urlsplit(url).netloc] if url else []))
         out[symbol] = IrEntry(
             symbol=symbol,
             name=raw.get("name", symbol),
             url=url,
             status=status,
+            fye=fye,
             allowed_hosts=hosts,
             report_types=types,
             exclude=tuple(raw.get("exclude_patterns", [])),
@@ -123,11 +137,29 @@ class Candidate:
     text: str
     source_page_url: str
     report_type: str
-    period: str
-    year: int
+    period_end: str  # ISO date: the canonical key, as the report states it
+    fiscal_label: str  # derived from period_end and the company's fiscal year-end
+    fiscal_year: int
 
 
 _ORDINAL = {"1st": 1, "first": 1, "2nd": 2, "second": 2, "3rd": 3, "third": 3, "4th": 4, "fourth": 4}
+_MONTHS = {
+    "jan": 1,
+    "feb": 2,
+    "mar": 3,
+    "apr": 4,
+    "may": 5,
+    "jun": 6,
+    "jul": 7,
+    "aug": 8,
+    "sep": 9,
+    "oct": 10,
+    "nov": 11,
+    "dec": 12,
+}
+_MONTH = r"(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?"
+_DATE_MDY = re.compile(rf"\b{_MONTH}\s+(\d{{1,2}})(?:st|nd|rd|th)?,?\s+(20\d{{2}})\b")
+_DATE_DMY = re.compile(rf"\b(\d{{1,2}})(?:st|nd|rd|th)?\s+{_MONTH},?\s+(20\d{{2}})\b")
 _QUARTER_PATTERNS = (
     re.compile(r"\b(1st|2nd|3rd|4th|first|second|third|fourth)\s+quarter"),
     re.compile(r"\bq([1-4])\s*(?:fy)?\s*\d{2,4}\b"),
@@ -141,7 +173,9 @@ _ANNUAL_PATTERN = re.compile(r"\bannual\s*report|\bintegrated\s*annual")
 _FS_PATTERN = re.compile(r"\bfinancial\s*statements\b")
 
 
-def _year(text: str) -> int | None:
+def _printed_year(text: str) -> int | None:
+    """The year printed in the title or filename. For a fiscal-year label it is the fiscal year (FY26 ->
+    2026)."""
     m = re.search(r"\b(20\d{2})\b", text)
     if m:
         return int(m.group(1))
@@ -153,29 +187,84 @@ def _normal(text: str) -> str:
     return re.sub(r"\s+", " ", text.lower().replace("_", " ").replace("-", " ")).strip()
 
 
-def classify(text: str) -> tuple[str, str, int] | None:
-    """(report_type, period, year) for a link's text plus filename, or None when it cannot be stated
-    reliably."""
-    t = _normal(text)
-    year = _year(t)
-    if year is None:
-        return None
-    m = next((p.search(t) for p in _QUARTER_PATTERNS if p.search(t)), None)
+def _explicit_period_end(t: str) -> date | None:
+    """A period end the report states outright ('March 31, 2026', '31st March 2026'), or None."""
+    m = _DATE_MDY.search(t)
     if m:
-        if m.group(0).startswith(("9", "nine")):
-            quarter = 3
-        elif m.group(1).isdigit():
-            quarter = int(m.group(1))
-        else:
-            quarter = _ORDINAL[m.group(1)]
-        return "quarterly", f"Q{quarter}-{year}", year
+        month, day, year = _MONTHS[m.group(1)], int(m.group(2)), int(m.group(3))
+    else:
+        m = _DATE_DMY.search(t)
+        if not m:
+            return None
+        day, month, year = int(m.group(1)), _MONTHS[m.group(2)], int(m.group(3))
+    try:
+        return date(year, month, day)
+    except ValueError:
+        return None
+
+
+def classify(text: str, fye: str = "06-30") -> tuple[str, date, str, int] | None:
+    """(report_type, period_end, fiscal_label, fiscal_year) for a link's text plus filename, or None.
+
+    The period end is the date the report states. When it does not state one, it is worked out from the
+    printed
+    fiscal year and the company's fiscal year-end. Anything that cannot be placed reliably is None, not
+    guessed."""
+    t = _normal(text)
+    report_type = _report_type(t)
+    if report_type is None:
+        return None
+    period_end = _explicit_period_end(t)
+    if period_end is None:
+        fy = _printed_year(t)
+        if fy is None:
+            return None
+        try:
+            period_end = _period_end_from_fiscal_year(t, report_type, fy, fye)
+        except ValueError:
+            return None
+    try:
+        label = fp.fiscal_label(period_end, fye, report_type)
+    except ValueError:
+        return None  # the stated date does not fit this report type for this company: skip it
+    return report_type, period_end, label, fp.fiscal_year_of(period_end, fye)
+
+
+def _report_type(t: str) -> str | None:
+    if any(p.search(t) for p in _QUARTER_PATTERNS) or re.search(r"\bquarterly\b", t):
+        return "quarterly"  # a quarter number or an explicit date is still needed to place it
     if _HALF_PATTERN.search(t):
-        return "half_year", f"H1-{year}", year
+        return "half_year"
     if _ANNUAL_PATTERN.search(t):
-        return "annual_report", str(year), year
+        return "annual_report"
     if _FS_PATTERN.search(t):
-        return "financial_statements", str(year), year
+        return "financial_statements"
     return None
+
+
+def _period_end_from_fiscal_year(t: str, report_type: str, fy: int, fye: str) -> date:
+    if report_type == "half_year":
+        return fp.period_end_for_half(fy, fye)
+    is_full_year = report_type == "annual_report" or (
+        report_type == "financial_statements" and _quarter_number(t) is None
+    )
+    if is_full_year:
+        return fp.fye_date(fy, fye)
+    quarter = _quarter_number(t)
+    if quarter is None:
+        raise ValueError("no quarter stated")
+    return fp.period_end_for_quarter(fy, quarter, fye)
+
+
+def _quarter_number(t: str) -> int | None:
+    m = next((p.search(t) for p in _QUARTER_PATTERNS if p.search(t)), None)
+    if m is None:
+        return None
+    if m.group(0).startswith(("9", "nine")):
+        return 3
+    if m.group(1).isdigit():
+        return int(m.group(1))
+    return _ORDINAL[m.group(1)]
 
 
 _HREF = re.compile(r'<a\b[^>]*?href="([^"#]+?\.pdf(?:\?[^"#]*)?)"[^>]*>(.*?)</a>', re.I | re.S)
@@ -188,11 +277,13 @@ def _on_allowed_host(url: str, allowed: tuple[str, ...]) -> bool:
     return any(host == h or host.endswith("." + h) for h in allowed)
 
 
-def extract_candidates(html: str, page_url: str, allowed_hosts: tuple[str, ...] = ()) -> list[Candidate]:
+def extract_candidates(
+    html: str, page_url: str, allowed_hosts: tuple[str, ...] = (), fye: str = "06-30"
+) -> list[Candidate]:
     """Classifiable PDF links on the page: anchors first, then PDF URLs embedded in the page's own data.
 
     Only hosts in `allowed_hosts` (the company's own domains) are kept. De-duplicated by resolved URL.
-    Pure: no I/O."""
+    Pure."""
     found: list[tuple[str, str]] = []  # (url, link text)
     for href, inner in _HREF.findall(html):
         found.append((urljoin(page_url, href.strip()), re.sub(r"\s+", " ", _TAG.sub(" ", inner)).strip()))
@@ -205,18 +296,19 @@ def extract_candidates(html: str, page_url: str, allowed_hosts: tuple[str, ...] 
             continue
         seen.add(url)
         filename = unquote(urlsplit(url).path.rsplit("/", 1)[-1])
-        classified = classify(f"{text} {filename}")
+        classified = classify(f"{text} {filename}", fye)
         if classified is None:
             continue
-        report_type, period, year = classified
+        report_type, period_end, label, fiscal_year = classified
         out.append(
             Candidate(
                 pdf_url=url,
                 text=text,
                 source_page_url=page_url,
                 report_type=report_type,
-                period=period,
-                year=year,
+                period_end=period_end.isoformat(),
+                fiscal_label=label,
+                fiscal_year=fiscal_year,
             )
         )
     return out
@@ -228,14 +320,15 @@ def _canonical(url: str) -> str:
 
 
 def in_scope(c: Candidate, entry: IrEntry, *, today: datetime, years_back: int = 2) -> bool:
-    """Target types only, inside the window, and not excluded by the registry's patterns.
+    """Target types only, inside the FISCAL window, and not excluded by the registry's patterns.
 
-    years_back=2 keeps the current year and the year before it (today 2026 keeps 2025 and 2026). A report
-    labelled
-    with the following year is kept too, as companies label quarters that way."""
+    The window is counted in fiscal years from the company's year-end: years_back=2 keeps the current
+    fiscal year
+    and the one before it, plus the next one (companies label quarters ahead of the year-end)."""
     if c.report_type not in entry.report_types:
         return False
-    if not (today.year - (years_back - 1) <= c.year <= today.year + 1):
+    low, high = fp.scope_window(today.date(), entry.fye, years_back)
+    if not (low <= c.fiscal_year <= high):
         return False
     text = f"{c.text} {c.pdf_url}"
     return not any(re.search(p, text, re.I) for p in (*DEFAULT_EXCLUDE.split("|"), *entry.exclude))
@@ -384,12 +477,12 @@ class Manifest:
             fh.write(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n")
 
 
-def _store_pdf(vault: Path, symbol: str, report_type: str, period: str, data: bytes, sha: str) -> Path:
+def _store_pdf(vault: Path, symbol: str, report_type: str, period_end: str, data: bytes, sha: str) -> Path:
     folder = vault / symbol
     folder.mkdir(parents=True, exist_ok=True, mode=0o700)
-    target = folder / f"{report_type}_{period}.pdf"
+    target = folder / f"{report_type}_{period_end}.pdf"  # keyed by the stated period-end date
     if target.exists():  # the name is taken by a different document: keep both, distinguished by hash
-        target = folder / f"{report_type}_{period}_{sha[:8]}.pdf"
+        target = folder / f"{report_type}_{period_end}_{sha[:8]}.pdf"
     tmp = target.with_suffix(".pdf.tmp")
     tmp.write_bytes(data)
     os.replace(tmp, target)
@@ -430,7 +523,7 @@ def run_company(
     if len(page.body) > MAX_PAGE_BYTES:
         return CompanyResult(entry.symbol, "failed", "reports page larger than the limit")
     html = page.body.decode("utf-8", "replace")
-    candidates = extract_candidates(html, entry.url, entry.allowed_hosts)
+    candidates = extract_candidates(html, entry.url, entry.allowed_hosts, entry.fye)
     wanted = scoped(candidates, entry, today=now, years_back=years_back)
     result = CompanyResult(entry.symbol, "ok", found=len(candidates), in_scope=len(wanted))
     for c in wanted[:max_downloads]:
@@ -452,12 +545,16 @@ def run_company(
         if manifest.has_sha(sha):
             result.duplicates += 1
             continue
-        path = _store_pdf(vault, entry.symbol, c.report_type, c.period, pdf.body, sha)
+        path = _store_pdf(vault, entry.symbol, c.report_type, c.period_end, pdf.body, sha)
         manifest.add(
             {
                 "symbol": entry.symbol,
                 "report_type": c.report_type,
-                "period": c.period,
+                "period_end": c.period_end,
+                "fiscal_label": c.fiscal_label,
+                "fiscal_year": c.fiscal_year,
+                "fiscal_year_end": entry.fye,
+                "source": "ir_fetch",
                 "source_page_url": entry.url,
                 "pdf_url": c.pdf_url,
                 "sha256": sha,
@@ -496,7 +593,103 @@ def run_registry(
     ]
 
 
+def import_manual(
+    pdf: Path,
+    *,
+    symbol: str,
+    report_type: str,
+    period_end: str,
+    fye: str,
+    vault: Path,
+    manifest: Manifest,
+    imported_at: datetime,
+) -> dict[str, Any]:
+    """Owner intake for a report the owner downloaded by hand (a source that cannot be fetched automatically).
+
+    The PDF is verified and stored by the existing owner intake
+    (engines.document_intake.store_manual_upload) under
+    its SHA-256. A manifest row records full provenance with source='manual'. The period end and fiscal
+    label are
+    checked BEFORE anything is stored, so a mismatched report is refused without a write."""
+    if report_type not in TARGET_TYPES:
+        raise ValueError(f"unknown report type {report_type!r}")
+    end = date.fromisoformat(period_end)
+    label = fp.fiscal_label(end, fye, report_type)  # refuses a period end that does not fit the report type
+    stored = store_manual_upload(pdf, vault)
+    sha = stored["report_sha256"]
+    if manifest.has_sha(sha):
+        return {
+            "status": "duplicate",
+            "sha256": sha,
+            "fiscal_label": label,
+            "vault_path": stored["vault_ref"],
+        }
+    manifest.add(
+        {
+            "symbol": symbol,
+            "report_type": report_type,
+            "period_end": period_end,
+            "fiscal_label": label,
+            "fiscal_year": fp.fiscal_year_of(end, fye),
+            "fiscal_year_end": fye,
+            "source": "manual",
+            "sha256": sha,
+            "imported_at": imported_at.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "bytes": stored["size_bytes"],
+            "vault_path": stored["vault_ref"],
+            "original_filename": Path(pdf).name,
+            "source_page_url": None,
+            "pdf_url": None,
+            "retrieved_at": None,
+        }
+    )
+    return {
+        "status": stored["status"],
+        "sha256": sha,
+        "fiscal_label": label,
+        "vault_path": stored["vault_ref"],
+    }
+
+
+def _main_import(argv: list[str]) -> int:
+    import argparse
+    import sys
+
+    ap = argparse.ArgumentParser(
+        prog="ir_fetcher import-manual", description="Import a manually downloaded report"
+    )
+    ap.add_argument("--symbol", required=True)
+    ap.add_argument("--type", required=True, choices=TARGET_TYPES, dest="report_type")
+    ap.add_argument("--period-end", required=True, help="the report's period-end date, YYYY-MM-DD")
+    ap.add_argument("--file", required=True, type=Path)
+    ap.add_argument("--vault", help="vault directory (default: PSXNI_DOCUMENT_VAULT)")
+    ap.add_argument("--fye", help="fiscal year-end MM-DD (default: from the registry)")
+    args = ap.parse_args(argv)
+    fye = args.fye
+    if fye is None:
+        entry = load_registry().get(args.symbol)
+        if entry is None:
+            print(f"{args.symbol}: not in the registry; pass --fye", file=sys.stderr)
+            return 2
+        fye = entry.fye
+    vault = vault_dir(args.vault)
+    result = import_manual(
+        args.file,
+        symbol=args.symbol,
+        report_type=args.report_type,
+        period_end=args.period_end,
+        fye=fye,
+        vault=vault,
+        manifest=Manifest(vault),
+        imported_at=datetime.now(UTC),
+    )
+    print(json.dumps({"symbol": args.symbol, **result}, ensure_ascii=False))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
+    if argv and argv[0] == "import-manual":
+        return _main_import(argv[1:])
     import argparse
 
     ap = argparse.ArgumentParser(description="Fetch company IR report PDFs into the document vault")

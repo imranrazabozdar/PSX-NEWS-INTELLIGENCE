@@ -1,41 +1,103 @@
 {
-  "_schema": "Investor-relations report sources, keyed by ticker. Only status \"live\" entries are fetched. Every other status is a TODO that the owner must resolve. The fetcher uses the company's own domains only (allowed_hosts), obeys robots.txt for each host, and writes PDFs to the document vault (never Git, never a database). See engines/ir_fetcher.py.",
-  "_verified_on": "2026-11-11 (one plain GET per company, plus robots.txt; see the notes on each entry)",
+  "_schema": "Investor-relations report sources, keyed by ticker. Only status \"live\" entries are fetched automatically. \"manual_import\" entries are filed by the owner through the manual-import path. Every other status is a TODO. Each entry has its fiscal year-end (fye, MM-DD); the fiscal label is derived from the stated period-end date, never from the calendar year alone. The fetcher uses the company's own domains only (allowed_hosts), obeys robots.txt for each host, and writes PDFs to the document vault (never Git, never a database). See engines/ir_fetcher.py and engines/fiscal_period.py.",
+  "_verified_on": "2026-11-12 (one plain GET per host plus robots.txt; see the notes on each entry)",
   "companies": {
     "OGDC": {
-      "name": "Oil & Gas Development Company Limited",
-      "ir_reports_url": "https://www.ogdcl.com/investor-relations",
-      "allowed_hosts": ["ogdcl.com"],
-      "status": "blocked_by_site",
-      "notes": "robots.txt reachable. The investor-relations page returns HTTP 403 with a Cloudflare 'Just a moment' challenge to this client. The challenge is not bypassed. TODO for the owner: a permitted route to the reports (for example an official feed or an emailed list) or a manual vault import."
-    },
-    "LUCK": {
-      "name": "Lucky Cement Limited",
-      "ir_reports_url": "https://www.lucky-cement.com/en/corporate/investor-relations/financial-reports",
-      "allowed_hosts": ["lucky-cement.com"],
-      "status": "live",
-      "notes": "Reachable. The report PDFs are on assets.lucky-cement.com and are listed in the page's own embedded data, not as HTML links. The assets host's robots.txt is checked at run time."
+      "name": "Oil and Gas Development Company Limited",
+      "fye": "06-30",
+      "ir_reports_url": "https://ogdcl.com/all-financial-reports",
+      "allowed_hosts": [
+        "ogdcl.com"
+      ],
+      "status": "manual_import",
+      "notes": "The reports page is protected by a Cloudflare challenge (HTTP 403 seen earlier on the investor-relations page). The challenge is not bypassed. Reports are filed through the manual-import path."
     },
     "UBL": {
       "name": "United Bank Limited",
-      "ir_reports_url": "https://www.ubl.com.pk/investor-relations",
-      "allowed_hosts": ["ubl.com.pk"],
+      "fye": "12-31",
+      "ir_reports_url": null,
+      "allowed_hosts": [
+        "ubl.com.pk"
+      ],
+      "status": "manual_import",
+      "notes": "No clean self-host for reports. The reports are on the gated PSX store, which is not fetched here. Filed through the manual-import path."
+    },
+    "POL": {
+      "name": "Pakistan Oilfields Limited",
+      "fye": "06-30",
+      "ir_reports_url": "https://www.pakoil.com.pk/financial-reports.html",
+      "allowed_hosts": [
+        "pakoil.com.pk"
+      ],
       "status": "todo_unreachable",
-      "notes": "Both requests were refused at the connection (connection reset by peer). The path is unverified. TODO for the owner: confirm the real investor-relations URL and whether this environment can reach the site."
+      "notes": "Unreachable from this environment: the TLS certificate chain failed local verification, so the request never reached the site. Verification was not disabled. Reports are expected at pakoil.com.pk/investor_relations/reports. Re-test from an environment with the site's CA trusted."
+    },
+    "NRL": {
+      "name": "National Refinery Limited",
+      "fye": "06-30",
+      "ir_reports_url": "https://nrlpak.com/",
+      "allowed_hosts": [
+        "nrlpak.com"
+      ],
+      "status": "live",
+      "notes": "Reachable (HTTP 200, robots allows). Report PDFs are linked from the homepage under assets/pdf/. The reports listing is investors/financial-report.html; not fetched yet (one GET per host in this test)."
+    },
+    "ATRL": {
+      "name": "Attock Refinery Limited",
+      "fye": "06-30",
+      "ir_reports_url": "https://www.arl.com.pk/",
+      "allowed_hosts": [
+        "arl.com.pk"
+      ],
+      "status": "todo_unverified",
+      "notes": "Reachable (HTTP 200, robots allows). The homepage links the financial pages /financial-annual/ and /financial-quarter/, which hold the reports. Those pages are not fetched yet, so the report links are unverified. PDFs live under wp-content/uploads."
+    },
+    "PPL": {
+      "name": "Pakistan Petroleum Limited",
+      "fye": "06-30",
+      "ir_reports_url": "https://www.ppl.com.pk/",
+      "allowed_hosts": [
+        "ppl.com.pk"
+      ],
+      "status": "blocked_by_site",
+      "notes": "Blocked by the site: robots.txt and the homepage both return HTTP 403 with a Cloudflare challenge. Not bypassed. Reports go through the manual-import path."
     },
     "HUBC": {
       "name": "The Hub Power Company Limited",
+      "fye": "06-30",
       "ir_reports_url": "https://hubpower.com/investors/",
-      "allowed_hosts": ["hubpower.com"],
+      "allowed_hosts": [
+        "hubpower.com"
+      ],
       "status": "live",
-      "notes": "Reachable. Annual reports are linked as PDFs. Several older links have no report type or year in their filenames (for example 'June2022.pdf'), so they are not classified and are skipped."
+      "notes": "Reachable. Annual reports are linked as PDFs."
     },
     "PSO": {
       "name": "Pakistan State Oil Company Limited",
+      "fye": "06-30",
       "ir_reports_url": "https://www.psopk.com/en/investors/financial",
-      "allowed_hosts": ["psopk.com"],
+      "allowed_hosts": [
+        "psopk.com"
+      ],
       "status": "live",
-      "notes": "Reachable. Quarterly and annual reports are linked as PDFs with their period in the link text. Summary PDFs are excluded."
+      "notes": "Reachable. Quarterly and annual PDFs are linked, with the fiscal period in the link text."
+    },
+    "LUCK": {
+      "name": "Lucky Cement Limited",
+      "fye": "06-30",
+      "ir_reports_url": "https://www.lucky-cement.com/en/corporate/investor-relations/financial-reports",
+      "allowed_hosts": [
+        "lucky-cement.com"
+      ],
+      "status": "live",
+      "notes": "Reachable. The report PDFs are on assets.lucky-cement.com and are listed in the page's embedded data, not as HTML links."
+    }
+  },
+  "fallback_candidates": {
+    "financials.psx.com.pk": {
+      "status": "candidate_single_test_only",
+      "tested": "2026-11-12: GET https://financials.psx.com.pk/lib/DownloadPDF.php?id=261117 returned HTTP 200, application/pdf (a real PDF); the root returned HTTP 200 HTML; robots.txt returned 404.",
+      "notes": "A PSX-operated host, separate from the gated dps.psx.com.pk. Not wired into the fetcher: PSX's terms prohibit systematic retrieval, and a cross-company fallback needs the owner's decision first. Not mass-fetched."
     }
   }
 }
