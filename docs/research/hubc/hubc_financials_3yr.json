@@ -1,0 +1,43 @@
+{
+  "company": "The Hub Power Company Limited",
+  "symbol": "HUBC",
+  "basis": "consolidated",
+  "currency": "PKR_thousands",
+  "shares_outstanding_m": 1297.15,
+  "source": "Audited annual accounts FY2025 (filed 2025-09-03) and FY2026 (filed 2026-08-27); figures read from the statements of profit or loss, financial position and cash flows.",
+  "income_statement": {
+    "revenue":              {"FY24": 130525533, "FY25": 83351492, "FY26": 71126352},
+    "cost_of_revenue":      {"FY24": -62179577, "FY25": -43527604, "FY26": -41438192},
+    "gross_profit":         {"FY24": 68345956,  "FY25": 39823888, "FY26": 29688160},
+    "profit_from_operations":{"FY24": 67357098, "FY25": 38035711, "FY26": 34067964},
+    "finance_costs":        {"FY24": -26743574, "FY25": -15230753, "FY26": -9135708},
+    "share_of_associates_jv":{"FY24": 49360882, "FY25": 41310192, "FY26": 45315750},
+    "pbt_continuing":       {"FY24": 89974406,  "FY25": 64115150, "FY26": 69600910},
+    "taxation":             {"FY24": -14656150, "FY25": -12502566,"FY26": -13343732},
+    "net_profit":           {"FY24": 75297382,  "FY25": 51774561, "FY26": 56257178},
+    "profit_attrib_owners": {"FY24": 70018253,  "FY25": 46131156, "FY26": 49630724},
+    "eps_rs":               {"FY24": 53.98,     "FY25": 35.56,    "FY26": 38.26}
+  },
+  "cash_flow": {
+    "op_profit_before_wc":  {"FY24": 72221791,  "FY25": 42293188, "FY26": 31812267},
+    "working_capital_change":{"FY24": -3259526, "FY25": 52423266, "FY26": -4217207},
+    "cash_from_operations": {"FY24": 68962265,  "FY25": 94716454, "FY26": 27595060},
+    "net_cash_operating":   {"FY24": 42162722,  "FY25": 78760833, "FY26": 11428574},
+    "dividend_recd_from_associates":{"FY24": 20114603, "FY25": 216000, "FY26": 43921748},
+    "dividends_paid_owners":{"FY24": -22593093, "FY25": -17480463, "FY26": -32371486},
+    "repayment_lt_loans":   {"FY24": -20287046, "FY25": -28478084, "FY26": -7383942}
+  },
+  "balance_sheet": {
+    "ppe":                  {"FY25": 124751778, "FY26": 119413260},
+    "long_term_investments":{"FY25": 196124862, "FY26": 207071521},
+    "trade_debts":          {"FY25": 28966134,  "FY26": 32430708},
+    "cash_and_bank":        {"FY25": 31247676,  "FY26": 25823657},
+    "total_assets":         {"FY25": 414722187, "FY26": 422563444},
+    "equity_attrib_owners": {"FY25": 219708081, "FY26": 235381655},
+    "total_equity":         {"FY25": 243921905, "FY26": 258007509},
+    "long_term_loans":      {"FY25": 71824944,  "FY26": 62943930},
+    "unappropriated_profit":{"FY25": 198007417, "FY26": 212926195}
+  },
+  "dividend_per_share_rs": {"FY25": 15.0, "FY26": 20.0},
+  "dividend_split_rs": {"FY25": {"interim": 5, "final": 10}, "FY26": {"interim": 15, "final": 5}}
+}

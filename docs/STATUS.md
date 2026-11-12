@@ -398,3 +398,14 @@ Runbook: `docs/ops/AUTONOMOUS_FETCHER.md`.
 | Live fetching | Live by default. Gated only by structural guards; the state migration must be applied first (until then every tick no-ops). Manual pause: disable the workflow in the Actions UI |
 | Library self-test (`library-selftest.yml`: `python -m engines.library_db`, then guarded migration) | PASSED pre-merge: connected to psx-library-turso202601, probe clean, 3 state tables present. Now workflow_dispatch on main |
 | Trading hours | One source: `config/psx_calendar.json` `open_sessions` (Mon-Thu 09:32-15:30; Fri 09:17-12:00, 14:32-16:30; Jumma 12:00-14:32). Policy break agrees (tested). Grading `regular_hours` unchanged |
+
+### HUBC research (pilot, one company)
+
+| Item | State |
+|---|---|
+| Research folder `docs/research/hubc/` (five files, byte-identical to the uploads) with README and disclaimer | IMPLEMENTED, TESTED |
+| `research_fact` table: `database/library/0002_research_fact.sql` | PROPOSED; NOT APPLIED. Waiting for the owner's approval |
+| Row rules: every fact needs a source name and a source date; analyst views labelled `analyst_view`; 300-character limit | IMPLEMENTED, TESTED (`engines/research_facts.py`) |
+| Distilled rows in psx-library and read-back counts | PENDING the schema approval |
+| Per-company pattern (other companies) | PENDING the owner's decision. No other company folders exist |
+
