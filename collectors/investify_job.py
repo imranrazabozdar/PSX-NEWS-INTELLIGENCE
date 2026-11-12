@@ -286,7 +286,9 @@ def _page_cycle(*, send, state, state_path, transport, cfg, jitter, audit, db, d
         # rule (a): queue one fundamentals refresh per NEW financial-result announcement. Imported here,
         # because the fundamentals module imports this one.
         from collectors import investify_fundamentals as fund
-        state, _ = fund.enqueue_from_announcements(state, result.records, now=send)
+        symbols = {r.symbol for r in result.records}
+        has = {sym: fund.has_fundamentals(db, sym) for sym in symbols}
+        state, _ = fund.enqueue_from_announcements(state, result.records, now=send, has_fundamentals=has)
     pol.save_state(state_path, pol.finish_request(
         state, send, etag=resp_headers.get("etag", state.etag),
         last_modified=resp_headers.get("last-modified", state.last_modified),

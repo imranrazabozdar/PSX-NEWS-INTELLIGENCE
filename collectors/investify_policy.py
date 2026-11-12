@@ -119,6 +119,9 @@ class PollState:
     pending_triggers: list = field(default_factory=list)
     consumed_triggers: list = field(default_factory=list)  # announcement ids already acted on
     seen_announcements: list = field(default_factory=list)  # every announcement id seen, to detect NEW ones
+    seen_result_keys: list = field(default_factory=list)  # symbol|date|headline of every result seen
+    first_filled_symbols: list = field(default_factory=list)  # companies whose first fill is queued
+    last_result_at: dict = field(default_factory=dict)  # symbol -> newest result time seen
 
 
 def load_state(path: Path) -> PollState:

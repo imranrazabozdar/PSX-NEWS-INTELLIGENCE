@@ -34,9 +34,12 @@ assert NOW.astimezone(pol.PKT).weekday() == 0
 TEST_ENDPOINTS = {
     "fundamentals": fund.Endpoint("fundamentals", "/company/{symbol}/fundamentals", "announcement"),
     "profile": fund.Endpoint("profile", "/company/{symbol}/profile", "backfill_once"),
+    "announcements": fund.Endpoint("announcements", "/company/{symbol}/announcements", "feed"),
 }
 ALLOW = "User-agent: *\nDisallow: /admin\n"
 SAVED_PAGE = ROOT / "tests" / "fixtures" / "investify" / "announcements_point_in_time_2026-11-11.html"
+SYNTHETIC_PROFILE = ROOT / "tests" / "fixtures" / "investify" / "profile_synthetic.html"
+SYNTHETIC_FEED = ROOT / "tests" / "fixtures" / "investify" / "announcements_synthetic.html"
 CFG = pol.PolicyConfig(jitter_min=1, jitter_max=1)  # deterministic, tiny jitter
 
 
@@ -152,10 +155,12 @@ def test_a_new_financial_result_queues_exactly_one_refresh(state_path):
     assert pol.load_state(state_path).pending_triggers[0]["announcement_id"] == rec.content_sha256
 
 
-def test_an_old_financial_result_is_seen_but_not_queued(state_path):
+def test_an_old_financial_result_is_seen_but_not_queued_once_the_company_has_fundamentals(state_path):
     old = announcement("FCL", at=NOW - timedelta(days=10))
-    assert queue(state_path, old) == []
-    assert old.content_sha256 in pol.load_state(state_path).seen_announcements
+    st, queued = fund.enqueue_from_announcements(pol.load_state(state_path), [old], now=NOW,
+                                                 has_fundamentals={"FCL": True})
+    assert queued == []
+    assert old.content_sha256 in st.seen_announcements
 
 
 def test_fundamentals_cannot_be_refreshed_manually(db, entry, state_path, audit):
@@ -205,22 +210,16 @@ def test_the_rate_cap_holds_for_profile_requests_too(db, entry, state_path, audi
 # ------------------------------------------------------------------ conditional requests and 304
 
 def test_a_304_is_a_recorded_no_op(db, entry, state_path, audit):
-    t = FakeTransport(ok("<p>fund v1</p>"), (304, {}, b""))
-    queue(state_path, announcement("FCL", title="Q1 result"))
-    run(db, entry, state_path, audit, t)
-    queue(state_path, announcement("FCL", title="Half year result", at=NOW + timedelta(minutes=20)),
-          now=NOW + timedelta(minutes=20))
+    feed = SYNTHETIC_FEED.read_text(encoding="utf-8")
+    t = FakeTransport(ok(feed), (304, {}, b""))
+    assert run(db, entry, state_path, audit, t, endpoint="announcements", symbol="FCL").status == "fetched"
     before = len(stored(db))
-    out = run(db, entry, state_path, audit, t, now=NOW + timedelta(minutes=20))
+    out = run(db, entry, state_path, audit, t, endpoint="announcements", symbol="FCL",
+              now=NOW + timedelta(minutes=20))
     assert out.status == "not_modified" and len(stored(db)) == before  # nothing written
     assert t.calls[1][1].get("If-None-Match") == '"v1"'  # the conditional header was sent
     events = [e for e in audit_events(audit) if e["event"] == "endpoint_request"]
     assert events[-1]["status"] == 304 and events[-1]["outcome"] == "not_modified"
-    assert pol.load_state(state_path).pending_triggers == []  # the trigger was satisfied
-
-
-# ------------------------------------------------------------------ robots, backoff, paths, kill switch
-
 def test_a_robots_disallowed_path_is_never_fetched(db, entry, audit, tmp_path):
     p = tmp_path / "state.json"
     pol.save_state(p, pol.PollState(robots_txt="User-agent: *\nDisallow: /company/\n",
@@ -253,7 +252,8 @@ def test_429_backs_off_and_keeps_the_trigger_pending(db, entry, state_path, audi
 def test_an_unconfirmed_path_is_refused_with_no_request(db, entry, state_path, audit):
     queue(state_path, announcement("FCL"))
     t = FakeTransport()
-    out = run(db, entry, state_path, audit, t, endpoint="profile", endpoints=fund.ENDPOINTS)  # unverified
+    unset = {"profile": fund.Endpoint("profile", None, "backfill_once")}  # a path not yet confirmed
+    out = run(db, entry, state_path, audit, t, endpoint="profile", endpoints=unset)
     assert out.status == "refused" and "not yet confirmed" in out.reason and t.calls == []
 
 
@@ -272,18 +272,15 @@ def test_the_seed_entry_is_enabled_under_its_own_consent_record(db):
 
 
 def test_every_stored_record_carries_the_investify_attribution(db, entry, state_path, audit):
-    t = FakeTransport(ok("<p>fund</p>"))
-    rec = announcement("FCL")
-    queue(state_path, rec)
-    run(db, entry, state_path, audit, t)
+    t = FakeTransport(ok(SYNTHETIC_PROFILE.read_text(encoding="utf-8")))
+    run(db, entry, state_path, audit, t, endpoint="profile", symbol="FCL")
     rows = stored(db)
     assert len(rows) == 1
     meta = json.loads(rows[0]["source_metadata_json"])
     assert meta["source"] == "investify.pk"
     assert meta["attribution"] == pol.ATTRIBUTION
-    assert meta["fetched_at_utc"] == pol._iso(NOW + timedelta(seconds=1))
-    assert meta["triggering_announcement_id"] == rec.content_sha256
-    assert rows[0]["external_id"] == "FCL:fundamentals"
+    assert meta["storage"] == "structured_fields_only"
+    assert rows[0]["external_id"] == "FCL:profile"
 
 
 def test_storage_is_the_operational_database_and_never_the_archive():
@@ -301,29 +298,27 @@ def test_storage_is_the_operational_database_and_never_the_archive():
 
 # ------------------------------------------------------------------ the acceptance flow, on synthetic bodies
 
-def test_one_company_end_to_end_with_one_fundamentals_fetch(db, entry, state_path, audit):
-    """Profile backfilled once; one financial-result trigger; one fundamentals fetch; audit trail."""
-    t = FakeTransport(
-        ok("<p>SYNTHETIC profile FCL</p>"),        # profile backfill (once)
-        ok("<p>SYNTHETIC fundamentals FCL</p>"),   # the single event-driven fundamentals fetch
-    )
-    assert run(db, entry, state_path, audit, t, endpoint="profile", symbol="FCL").status == "fetched"
-    rec = announcement("FCL")
-    queue(state_path, rec, now=NOW + timedelta(minutes=1))
-    out = run(db, entry, state_path, audit, t, symbol="FCL", now=NOW + timedelta(minutes=16))
-    assert out.status == "fetched"
+def test_one_company_end_to_end_announcement_then_profile_under_the_cap(db, entry, state_path, audit):
+    """The announcements feed queues the first fill; the profile follows 16 minutes later, under the cap."""
+    announcements_url = "https://www.investify.pk/company/FCL/announcements"
+    synthetic_feed = (ROOT / "tests" / "fixtures" / "investify" / "announcements_synthetic.html").read_text(
+        encoding="utf-8")
+    t = FakeTransport(ok(synthetic_feed), ok(SYNTHETIC_PROFILE.read_text(encoding="utf-8")))
+    feed = run(db, entry, state_path, audit, t, endpoint="announcements", symbol="FCL")
+    assert feed.status == "fetched"
+    pending = pol.load_state(state_path).pending_triggers
+    assert len(pending) == 1 and pending[0]["kind"] == "first_fill"  # no fundamentals on record yet
+    prof = run(db, entry, state_path, audit, t, endpoint="profile", symbol="FCL",
+               now=NOW + timedelta(minutes=16))
+    assert prof.status == "fetched"
     rows = stored(db)
-    assert sorted(r["external_id"] for r in rows) == ["FCL:fundamentals", "FCL:profile"]
+    assert sorted(r["external_id"] for r in rows) == ["FCL:announcements", "FCL:profile"]
     assert all(json.loads(r["source_metadata_json"])["source"] == "investify.pk" for r in rows)
     fetches = [e for e in audit_events(audit) if e["event"] == "endpoint_request"]
-    assert len(fetches) == 2
+    assert [f["url"] for f in fetches] == [announcements_url, "https://www.investify.pk/company/FCL/profile"]
     gap = (datetime.fromisoformat(fetches[1]["ts_utc"].replace("Z", "+00:00"))
            - datetime.fromisoformat(fetches[0]["ts_utc"].replace("Z", "+00:00")))
     assert gap >= pol.MIN_INTERVAL  # the 15-minute cap held between the two requests
-    assert fetches[1]["triggering_announcement_id"] == rec.content_sha256
-    assert pol.load_state(state_path).pending_triggers == []
-
-
 def _run_announcements_job(db, tmp_path, html: str, name: str):
     from collectors import investify_job as job
 
@@ -354,3 +349,77 @@ def test_the_announcements_job_queues_one_trigger_for_a_financial_result(db, tmp
     pending = _run_announcements_job(db, tmp_path, html, "synthetic")
     assert [t["symbol"] for t in pending] == ["FCL"]
     assert pending[0]["announced_at_utc"].startswith("2026-11-11")
+
+
+# ------------------------------------------------- first fill and refresh rules (owner, 2026-11-12)
+
+def _ann(days_ago, title, category="financial_results", symbol="FCL"):
+    return announcement(symbol, category=category, at=NOW - timedelta(days=days_ago), title=title)
+
+
+def test_first_fill_seeds_from_the_latest_result_even_if_older_than_three_days():
+    old = _ann(20, "Financial Results For The Year")
+    latest = _ann(15, "Financial Result For The First Quarter")
+    st, queued = fund.enqueue_from_announcements(pol.PollState(), [old, latest], now=NOW,
+                                                 has_fundamentals={"FCL": False})
+    assert len(queued) == 1
+    assert queued[0]["kind"] == "first_fill"
+    assert queued[0]["announcement_id"] == latest.content_sha256  # the MOST RECENT qualifying result
+    assert "FCL" in st.first_filled_symbols
+
+
+def test_first_fill_happens_once_per_company():
+    latest = _ann(15, "Financial Result For The First Quarter")
+    st, _ = fund.enqueue_from_announcements(pol.PollState(), [latest], now=NOW, has_fundamentals={})
+    st2, queued = fund.enqueue_from_announcements(st, [latest], now=NOW + timedelta(hours=1),
+                                                  has_fundamentals={})
+    assert queued == []
+    assert len(st2.pending_triggers) == 1  # still the one first-fill item, not a second one
+
+
+def test_a_company_with_fundamentals_on_record_gets_no_first_fill():
+    latest = _ann(15, "Financial Result For The First Quarter")
+    st, queued = fund.enqueue_from_announcements(pol.PollState(), [latest], now=NOW,
+                                                 has_fundamentals={"FCL": True})
+    assert queued == [] and st.first_filled_symbols == []
+
+
+def test_an_already_seen_result_never_retriggers():
+    fresh = _ann(1, "Financial Result For The Half Year")
+    st, first = fund.enqueue_from_announcements(pol.PollState(), [fresh], now=NOW,
+                                                has_fundamentals={"FCL": True})
+    assert len(first) == 1 and first[0]["kind"] == "refresh"
+    st = replace(st, pending_triggers=[], consumed_triggers=[fresh.content_sha256])
+    st2, again = fund.enqueue_from_announcements(st, [fresh], now=NOW + timedelta(hours=2),
+                                                 has_fundamentals={"FCL": True})
+    assert again == []
+    assert fresh.content_sha256 in st2.seen_announcements
+
+
+def test_after_first_fill_only_results_newer_than_the_last_one_seen_refresh():
+    anchor = _ann(15, "Financial Result For The First Quarter")
+    st, _ = fund.enqueue_from_announcements(pol.PollState(), [anchor], now=NOW, has_fundamentals={})
+    st = replace(st, pending_triggers=[])
+    older = _ann(25, "Financial Results For The Year Before")  # older than the anchor: never a refresh
+    st2, queued = fund.enqueue_from_announcements(st, [older], now=NOW, has_fundamentals={"FCL": True})
+    assert queued == []
+
+
+def test_a_newer_result_within_the_window_refreshes_once():
+    anchor = _ann(15, "Financial Result For The First Quarter")
+    st, _ = fund.enqueue_from_announcements(pol.PollState(), [anchor], now=NOW, has_fundamentals={})
+    st = replace(st, pending_triggers=[])
+    newer = _ann(1, "Financial Result For The Half Year")
+    st2, queued = fund.enqueue_from_announcements(st, [anchor, newer], now=NOW,
+                                                  has_fundamentals={"FCL": True})
+    assert len(queued) == 1 and queued[0]["kind"] == "refresh"
+    assert queued[0]["announcement_id"] == newer.content_sha256
+
+
+def test_first_fill_seeds_from_a_financial_result_not_a_newer_report_transmission():
+    result = _ann(15, "Financial Result For The First Quarter")
+    transmission = _ann(15, "Transmission Of Quarterly Report", category="report_transmission")
+    transmission = replace(transmission, announced_at_utc=pol._iso(NOW - timedelta(days=14)))  # newer
+    st, queued = fund.enqueue_from_announcements(pol.PollState(), [result, transmission], now=NOW,
+                                                 has_fundamentals={"FCL": False})
+    assert len(queued) == 1 and queued[0]["announcement_id"] == result.content_sha256

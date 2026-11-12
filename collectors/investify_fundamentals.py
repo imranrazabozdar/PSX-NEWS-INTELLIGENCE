@@ -26,6 +26,7 @@ import hashlib
 import json
 import random
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -67,7 +68,8 @@ class Endpoint:
 ENDPOINTS: dict[str, Endpoint] = {
     "fundamentals": Endpoint("fundamentals", "/company/{symbol}/fundamentals", "announcement"),
     "competitors": Endpoint("competitors", "/company/{symbol}/competitors", "backfill_once"),
-    "profile": Endpoint("profile", None, "backfill_once"),
+    "profile": Endpoint("profile", "/company/{symbol}/profile", "backfill_once"),  # verified 200, 2026-11-12
+    "announcements": Endpoint("announcements", "/company/{symbol}/announcements", "feed"),
 }
 
 
@@ -81,33 +83,81 @@ def _iso(moment: datetime) -> str:
 
 # ---------------------------------------------------------------- rule (a): event triggers
 
-def enqueue_from_announcements(state: pol.PollState, records: list[ic.AnnouncementRecord], *,
-                               now: datetime) -> tuple[pol.PollState, list[dict[str, Any]]]:
-    """Queue ONE fundamentals refresh per NEW financial-result announcement. Pure: returns the new state.
+def result_key(rec: ic.AnnouncementRecord) -> str:
+    """Dedupe key: symbol, Pakistan-time date and headline. One result never triggers twice."""
+    return f"{rec.symbol}|{rec.announced_on_pkt}|{rec.title}"
 
-    An announcement id is seen once. Only a financial-result announcement published within TRIGGER_MAX_AGE is
-    queued; everything else is recorded as seen and ignored."""
-    seen = set(state.seen_announcements)
+
+def enqueue_from_announcements(state: pol.PollState, records: list[ic.AnnouncementRecord], *,
+                               now: datetime,
+                               has_fundamentals: Mapping[str, bool] | None = None,
+                               ) -> tuple[pol.PollState, list[dict[str, Any]]]:
+    """Queue fundamentals refreshes from financial-result announcements. Pure: returns the new state.
+
+    FIRST FILL: a watchlist company with NO fundamentals on record gets ONE fetch, seeded from its most recent
+    qualifying announcement, however old. It happens once per company.
+    REFRESH: after that, a qualifying announcement queues a refresh only if it is NEWER than the last result
+    seen for that company AND within TRIGGER_MAX_AGE (3 days). An already-seen result (same symbol, date and
+    headline) never queues again.
+    """
+    has = dict(has_fundamentals or {})
     pending = list(state.pending_triggers)
     done = set(state.consumed_triggers)
+    seen_ids = set(state.seen_announcements)
+    keys = set(state.seen_result_keys)
+    first_filled = set(state.first_filled_symbols)
+    last_at = dict(state.last_result_at)
     queued: list[dict[str, Any]] = []
+
     for rec in records:
-        announcement_id = rec.content_sha256
-        if announcement_id in seen:
+        seen_ids.add(rec.content_sha256)
+    by_symbol: dict[str, list[ic.AnnouncementRecord]] = {}
+    for rec in records:
+        if rec.category in x.QUALIFYING_CATEGORIES:
+            by_symbol.setdefault(rec.symbol, []).append(rec)
+
+    for symbol, recs in by_symbol.items():
+        recs.sort(key=lambda r: r.announced_at_utc, reverse=True)
+        newest = recs[0].announced_at_utc
+        if symbol not in first_filled and not has.get(symbol, False):
+            financial = [r for r in recs if r.category == "financial_results"]
+            if financial and not any(t["symbol"] == symbol for t in pending):
+                latest = financial[0]  # the most recent FINANCIAL RESULT (not a transmission)
+                item = _trigger_item(latest, kind="first_fill", now=now)
+                pending.append(item)
+                queued.append(item)
+                first_filled.add(symbol)
+                keys.update(result_key(r) for r in recs)
+            last_at[symbol] = max(last_at.get(symbol, newest), newest)
             continue
-        seen.add(announcement_id)
-        if rec.category not in x.QUALIFYING_CATEGORIES:
-            continue
-        if now - _utc(rec.announced_at_utc) > TRIGGER_MAX_AGE:
-            continue  # an old result is not news: recorded as seen, not queued
-        if any(t["announcement_id"] == announcement_id for t in pending) or announcement_id in done:
-            continue
-        item = {"symbol": rec.symbol, "announcement_id": announcement_id,
-                "announced_at_utc": rec.announced_at_utc, "title": rec.title, "queued_utc": _iso(now)}
-        pending.append(item)
-        queued.append(item)
-    new_state = replace(state, seen_announcements=sorted(seen), pending_triggers=pending)
+        last = last_at.get(symbol)
+        for rec in recs:  # newest first
+            k = result_key(rec)
+            if k in keys:
+                continue  # already seen: never re-triggers
+            keys.add(k)
+            if last and rec.announced_at_utc <= last:
+                continue  # not newer than the last result seen
+            if now - _utc(rec.announced_at_utc) > TRIGGER_MAX_AGE:
+                continue  # outside the window for ongoing refreshes
+            if rec.content_sha256 in done or any(t["announcement_id"] == rec.content_sha256 for t in pending):
+                continue
+            item = _trigger_item(rec, kind="refresh", now=now)
+            pending.append(item)
+            queued.append(item)
+            break
+        last_at[symbol] = max(last_at.get(symbol, newest), newest)
+
+    new_state = replace(state, seen_announcements=sorted(seen_ids), seen_result_keys=sorted(keys),
+                        pending_triggers=pending, first_filled_symbols=sorted(first_filled),
+                        last_result_at=last_at)
     return new_state, queued
+
+
+def _trigger_item(rec: ic.AnnouncementRecord, *, kind: str, now: datetime) -> dict[str, Any]:
+    return {"symbol": rec.symbol, "announcement_id": rec.content_sha256, "kind": kind,
+            "result_key": result_key(rec), "announced_at_utc": rec.announced_at_utc, "title": rec.title,
+            "queued_utc": _iso(now)}
 
 
 def pending_trigger(state: pol.PollState, symbol: str) -> dict[str, Any] | None:
@@ -161,8 +211,12 @@ def run_endpoint(*, now: datetime, state_path: Path, entry: dict[str, Any], db: 
                  transport: Transport = default_transport,
                  cfg: pol.PolicyConfig = pol.DEFAULT_CONFIG,
                  sleep=lambda s: None, rng: random.Random | None = None,
-                 audit: AuditLog | None = None) -> RunOutcome:
-    """Fetch ONE Investify endpoint for ONE symbol, if every rule allows it. At most one HTTP request."""
+                 audit: AuditLog | None = None, dev_copy: Path | None = None) -> RunOutcome:
+    """Fetch ONE Investify endpoint for ONE symbol, if every rule allows it. At most one HTTP request.
+
+    dev_copy: development only. When given, the body is written to that path so the page can be mapped; the
+    caller must delete it. Nothing is persisted from the body except the structured fields.
+    """
     audit = audit or AuditLog()
     rng = rng or random.SystemRandom()
 
@@ -186,7 +240,10 @@ def run_endpoint(*, now: datetime, state_path: Path, entry: dict[str, Any], db: 
 
     state = pol.load_state(state_path)
     trigger: dict[str, Any] | None = None
-    if spec.cadence == "announcement":  # rule (a)
+    if spec.cadence == "feed":
+        if manual:
+            return RunOutcome("refused", "the announcements feed is polled by its own schedule, not manually")
+    elif spec.cadence == "announcement":  # rule (a)
         if manual:
             return RunOutcome("refused",
                               "fundamentals are refreshed only by a new announcement, not manually")
@@ -220,6 +277,8 @@ def run_endpoint(*, now: datetime, state_path: Path, entry: dict[str, Any], db: 
     pol.save_state(state_path, state)
 
     cache = state.endpoint_cache.get(url, {})
+    if _stored_record(db, symbol, endpoint) is None:
+        cache = {}  # nothing stored yet: a 304 would have nothing to point to, so send no conditional headers
     headers = {"User-Agent": pol.USER_AGENT, "Accept": "text/html"}
     if cache.get("etag"):
         headers["If-None-Match"] = cache["etag"]
@@ -263,10 +322,24 @@ def run_endpoint(*, now: datetime, state_path: Path, entry: dict[str, Any], db: 
         return RunOutcome("failed", f"HTTP {status}", http_requests=1)
 
     collected = _iso(send)
-    outcome_label = _store(db, url=url, symbol=symbol, endpoint=endpoint, body=body,
-                           collected_at_utc=collected, http_status=status, trigger=trigger)
+    if dev_copy is not None:
+        dev_copy.write_bytes(body)  # transient, for mapping only; the caller deletes it
+    outcome_label = "no_extractor"
+    extractor = EXTRACTORS.get(endpoint)
+    if extractor is not None:
+        fields = extractor(body, symbol)
+        outcome_label = store_structured(
+            db, endpoint=endpoint, symbol=symbol, fields=fields, url=url, fetched_at_utc=collected,
+            http_status=status, triggering_announcement_id=trigger["announcement_id"] if trigger else None)
+    if endpoint == "announcements":
+        records = x.to_announcement_records(fields, collected)
+        has = {symbol: has_fundamentals(db, symbol)}
+        state, queued = enqueue_from_announcements(state, records, now=send, has_fundamentals=has)
+        audit.record({"event": "triggers_queued", "ts_utc": collected, "symbol": symbol,
+                      "queued": [q["kind"] + ":" + q["result_key"] for q in queued]})
     new_cache = dict(state.endpoint_cache)
-    new_cache[url] = {"etag": resp_headers.get("etag", cache.get("etag")),
+    if extractor is not None:  # cache validators only for bodies that were actually stored
+        new_cache[url] = {"etag": resp_headers.get("etag", cache.get("etag")),
                       "last_modified": resp_headers.get("last-modified", cache.get("last_modified")),
                       "fetched_utc": collected}
     new_state = pol.finish_request(state, send, endpoint_cache=new_cache, consecutive_blocks=0,
@@ -320,3 +393,14 @@ def store_structured(db: Any, *, endpoint: str, symbol: str, fields: dict[str, A
                     "source_metadata_json": json.dumps(metadata, ensure_ascii=False, sort_keys=True)},
     )
     return out.outcome
+
+
+def has_fundamentals(db: Any, symbol: str) -> bool:
+    """True when a fundamentals record exists for this company in the operational database."""
+    return _stored_record(db, symbol, "fundamentals") is not None
+
+
+EXTRACTORS: dict[str, Any] = {
+    "profile": x.parse_profile,
+    "announcements": x.parse_announcements,
+}
