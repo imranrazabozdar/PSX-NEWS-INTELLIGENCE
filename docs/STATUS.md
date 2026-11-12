@@ -406,6 +406,7 @@ Runbook: `docs/ops/AUTONOMOUS_FETCHER.md`.
 | Research folder `docs/research/hubc/` (five files, byte-identical to the uploads) with README and disclaimer | IMPLEMENTED, TESTED |
 | `research_fact` table: `database/library/0002_research_fact.sql` | PROPOSED; NOT APPLIED. Waiting for the owner's approval |
 | Row rules: every fact needs a source name and a source date; analyst views labelled `analyst_view`; 300-character limit | IMPLEMENTED, TESTED (`engines/research_facts.py`) |
-| Distilled rows in psx-library and read-back counts | PENDING the schema approval |
-| Per-company pattern (other companies) | PENDING the owner's decision. No other company folders exist |
+| `research_fact` schema applied to psx-library (CREATE TABLE IF NOT EXISTS only, guarded connection) | DONE, run 43292869225 on main, host psx-library-turso202601.aws-us-east-1.turso.io |
+| Distilled HUBC rows in psx-library | DONE: 23 rows inserted (sourced, dated; analyst views labelled `analyst_view`). Counts per topic: analyst_thesis 1, associate_cash 1, associate_share 1, balance_sheet 3, dividend 2, eps 2, ev_plan 1, ev_policy 1, ev_target 1, finance_costs 1, land_optionality 1, net_profit_owners 2, operating_cash 1, policy_rate 1, rating 1, receivables 1, revenue 2 |
+| Per-company pattern (other companies) | Follows the HUBC pattern: `docs/research/<ticker>/` and rows keyed by ticker, one table. Other companies are NOT added until the owner confirms HUBC works |
 
