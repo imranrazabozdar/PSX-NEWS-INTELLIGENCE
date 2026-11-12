@@ -22,6 +22,8 @@ from datetime import timezone
 from decimal import Decimal
 from typing import Any
 
+from engines import investify_taxonomy as taxonomy
+
 _FLIGHT = re.compile(r'self\.__next_f\.push\(\[1,"((?:[^"\\]|\\.)*)"\]\)')
 _TAGS = re.compile(r"<[^>]+>")
 _SPACE = re.compile(r"\s+")
@@ -142,6 +144,7 @@ def parse_announcements(body: bytes | str, symbol: str) -> dict[str, Any]:
             "event_type": cls.get("eventType"),
             "sub_type": sub,
             "category": _CATEGORY.get(sub, "other"),
+            "taxonomy": taxonomy.classify(cls.get("eventType"), sub),
             "materiality": cls.get("materiality"),
             "sentiment": cls.get("sentiment"),
             "pdf_url": obj.get("pdfUrl"),

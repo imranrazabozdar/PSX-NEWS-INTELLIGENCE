@@ -1,0 +1,4 @@
+{
+  "_note": "Feature flags for Investify collection. news_enabled stays false until the owner confirms that the News tab is in scope of the consent (it is not in the fundamentals consent).",
+  "news_enabled": false
+}

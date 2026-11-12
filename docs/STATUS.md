@@ -278,3 +278,21 @@ Handover: `docs/handover/PILOT-CHECKPOINT-2026-11-12.md`.
 | Dashboard sharing or publication | NOT IMPLEMENTED and NOT PERMITTED: private research use only |
 | Live fetching | NONE. The page reads stored data only |
 | SQLite handle across Streamlit reruns | FIXED: `check_same_thread=False` on the SQLite handle (the app caches it); existing pages rendered against a local file before this fix would fail on the second rerun |
+
+## Investify Phase 1: finish ingestion (feature/investify-phase1-ingestion). GATE: owner review.
+| Item | State |
+|---|---|
+| Announcement taxonomy: Financials, Material, Actions, Insiders, Meetings, Briefings, Other; total mapping; the group is stored per record (`engines/investify_taxonomy.py`) | IMPLEMENTED and TESTED (synthetic mix). HUBC stored data: Financials 8, Material 6, Actions 8, Insiders 1, Meetings 7, Briefings 9, Other 1 (sum 40) |
+| Completeness against the page's filter counts | NOT YET VERIFIED: needs one announcements fetch inside the trading window; the stored counts are not compared with the page's own filter tabs |
+| Insider transactions: record model, required fields, refusal of guesses, dedupe by (symbol, insider, date, action) (`engines/investify_insiders.py`) | Record model IMPLEMENTED and TESTED. Payload mapping NOT DONE: needs one fetched insider sample inside the trading window. HUBC's one Insiders item is a `dps:image` disclosure, so its text may not be readable; verify on the sample |
+| Material, actions, meetings: stored categorized with structured fields | Stored with group and sub-type (existing announcements records). Routing to a notable-events layer NOT BUILT (no such layer exists yet) |
+| News extractor behind a disabled flag (`config/investify_flags.json`, `news_enabled: false`) | Flag and refusal IMPLEMENTED and TESTED (refused before any request; also refused while the path is unconfirmed). Extractor body NOT BUILT: needs one News page sample, and owner confirmation that News is in scope of the consent |
+| Nothing written to archive, production or Turso | Confirmed: Phase 1 modules import no archive or production connection (tested); the gate used the local operational SQLite, read-only |
+
+**Gate evidence (HUBC, stored data):** 40 announcements; group counts above; 0 insider transaction records; News off.
+**Blocked on the next trading window (Fri 13 Nov, 04:00 to 11:30 UTC):** the filter-count check, one insider sample, one News sample.
+
+### Roadmap (approved-pending owner approval; NOT started)
+- **Phase 2:** free macro-factor feed (Brent, SBP policy rate, SBP FX reserves, policy items; manual analyst intake).
+- **Phase 3:** per-company dossier and analytical layer (baselines, narrative threads, driver model, context-aware ingestion, grounded research brief).
+- **Phase 4:** scale across the validated watchlist (cap-gated), wire macro routing and manual intake into dossiers, surface only in the private local app.

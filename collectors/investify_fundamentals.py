@@ -70,6 +70,8 @@ ENDPOINTS: dict[str, Endpoint] = {
     "competitors": Endpoint("competitors", "/company/{symbol}/competitors", "backfill_once"),
     "profile": Endpoint("profile", "/company/{symbol}/profile", "backfill_once"),  # verified 200, 2026-11-12
     "announcements": Endpoint("announcements", "/company/{symbol}/announcements", "feed"),
+    # News is built behind a flag and stays off. Its path is unset until the owner confirms the scope.
+    "news": Endpoint("news", None, "backfill_once"),
 }
 
 
@@ -231,6 +233,8 @@ def run_endpoint(*, now: datetime, state_path: Path, entry: dict[str, Any], db: 
 
     if cfg.kill_switch:
         return skip("kill switch is on")
+    if endpoint == "news" and not news_enabled():
+        return RunOutcome("refused", "news is off: not yet confirmed in the consent scope (owner decision)")
     problem = pol.registry_problem(entry, source_id=SOURCE_ID, consent_record=CONSENT_RECORD)
     if problem:
         return RunOutcome("refused", problem)
@@ -410,6 +414,17 @@ def manual_refresh_flag(manual: bool, trigger: dict[str, Any] | None) -> bool:
 
     A first fill or a refresh always carries an event trigger; a manual refresh never does."""
     return bool(manual) and trigger is None
+
+
+FLAGS_PATH = Path(__file__).resolve().parents[1] / "config" / "investify_flags.json"
+
+
+def news_enabled(path: Path = FLAGS_PATH) -> bool:
+    """News is off unless the owner turns the flag on. A missing or unreadable flag file means off."""
+    try:
+        return bool(json.loads(path.read_text(encoding="utf-8")).get("news_enabled") is True)
+    except (OSError, ValueError):
+        return False
 
 
 def has_fundamentals(db: Any, symbol: str) -> bool:
