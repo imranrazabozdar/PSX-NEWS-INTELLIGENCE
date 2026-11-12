@@ -16,7 +16,7 @@ ONE policy file (config/investify_good_citizen.json):
 * any single 403, 429 or 503 starts a multi-hour cooldown (floor 4 hours, doubling, capped) and trips the
   breaker;
 * backfill yields to pending event triggers, can be paused, and keeps a daily reserve;
-* cache-only mode and the kill switch refuse before anything is sent.
+* the kill switch refuses before anything is sent.
 
 Pure decisions plus one process lock. No network access here."""
 
@@ -51,7 +51,6 @@ class PolicyError(ValueError):
 
 @dataclass(frozen=True)
 class Policy:
-    mode: str
     kill_switch: bool
     collectors_enabled: dict[str, bool]
     min_gap: timedelta
@@ -76,9 +75,6 @@ def _hhmm(text: str) -> time:
 
 def parse_policy(data: dict[str, Any]) -> Policy:
     try:
-        mode = data["mode"]
-        if mode not in ("cache_only", "live"):
-            raise PolicyError(f"mode must be cache_only or live, not {mode!r}")
         enabled = {c: bool(data["collectors_enabled"].get(c, False)) for c in COLLECTORS}
         gap = timedelta(minutes=float(data["min_gap_minutes"]))
         if gap < MIN_GAP_FLOOR:
@@ -101,7 +97,7 @@ def parse_policy(data: dict[str, Any]) -> Policy:
         fb = data.get("friday_break_pkt")
         friday_break = (_hhmm(fb["start"]), _hhmm(fb["end"])) if fb else None
         return Policy(
-            mode=mode, kill_switch=bool(data["kill_switch"]), collectors_enabled=enabled, min_gap=gap,
+            kill_switch=bool(data["kill_switch"]), collectors_enabled=enabled, min_gap=gap,
             daily_ceiling=daily, weekly_ceiling=weekly, warn_fraction=warn, quiet_start=qs, quiet_end=qe,
             cooldown_base=base, cooldown_max=cmax, breaker_threshold=int(data["breaker_threshold"]),
             backfill_paused=bool(data["backfill"]["paused"]),
@@ -169,8 +165,6 @@ def gate(*, now: datetime, state: Any, policy: Policy | None, endpoint: str,
     if policy is None:
         return Verdict(False, "policy missing or invalid: fail closed")
     env = os.environ if env is None else env
-    if policy.mode == "cache_only":
-        return Verdict(False, "cache-only mode: zero Investify requests")
     if policy.kill_switch or any(env.get(k, "").lower() == "true" for k in ENV_KILL):
         return Verdict(False, "kill switch is on")
     if endpoint not in COLLECTORS and endpoint != "robots":

@@ -32,7 +32,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FIX = ROOT / "tests" / "fixtures" / "investify"
 NOW = datetime(2026, 11, 10, 11, 0, tzinfo=UTC)  # 16:00 PKT, Nov 10
 PERMISSIVE = gc.parse_policy({
-    "mode": "live", "kill_switch": False,
+    "kill_switch": False,
     "collectors_enabled": {k: True for k in gc.COLLECTORS},
     "min_gap_minutes": 15, "daily_ceiling": 96, "weekly_ceiling": 672, "warn_fraction": 0.99,
     "quiet_window_pkt": {"start": "00:00", "end": "23:59"},
@@ -204,6 +204,6 @@ def test_no_live_request_is_made_after_trading_hours_even_with_every_limit_permi
     assert out.status in ("skipped", "refused") and NoNetwork.calls == 0
 
 
-def test_the_shipped_good_citizen_policy_is_still_cache_only_and_every_collector_is_off():
+def test_the_shipped_good_citizen_policy_has_every_collector_off():
     shipped = gc.load_policy()
-    assert shipped.mode == "cache_only" and not any(shipped.collectors_enabled.values())
+    assert not any(shipped.collectors_enabled.values())

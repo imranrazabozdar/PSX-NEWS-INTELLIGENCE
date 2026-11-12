@@ -1,7 +1,7 @@
--- psx-library: fetch state for the autonomous good-citizen fetcher. PROPOSED. Not applied to any database until the
+-- psx-library: fetch state for the autonomous good-citizen fetcher (live by default). PROPOSED. Not applied to any database until the
 -- owner approves the migration. Append-only style: rows are upserted by key, never deleted.
 CREATE TABLE IF NOT EXISTS fetch_control (
-    key TEXT PRIMARY KEY,              -- 'fetch_mode' | 'kill_switch' | 'breaker_tripped' | 'cooldown_until_utc'
+    key TEXT PRIMARY KEY,              -- 'kill_switch' | 'breaker_tripped' | 'cooldown_until_utc'
                                        -- | 'global_last_request_utc' | 'daily_day_pkt' | 'daily_count'
     value TEXT NOT NULL,
     updated_utc TEXT NOT NULL

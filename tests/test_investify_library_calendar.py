@@ -141,6 +141,6 @@ def test_the_friday_break_is_a_config_value_marked_pending_owner_confirmation():
     assert "PENDING" in raw["friday_break_pkt"]["_note"]
 
 
-def test_the_shipped_policy_is_still_cache_only_with_every_collector_off():
+def test_the_shipped_policy_has_every_collector_off():
     shipped = gc.load_policy()
-    assert shipped.mode == "cache_only" and not any(shipped.collectors_enabled.values())
+    assert not any(shipped.collectors_enabled.values())

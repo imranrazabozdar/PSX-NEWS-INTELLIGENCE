@@ -10,7 +10,6 @@ not a convention. Nothing here sends a message to Investify; it is ethical disci
 
 | Setting | Default | Meaning |
 |---|---|---|
-| `mode` | `cache_only` | Zero Investify requests. Owner switches to `live` deliberately |
 | `collectors_enabled` | all `false` | Each collector must be turned on in the policy file |
 | `kill_switch` | `false` | Halts all Investify traffic instantly; also env `PSXNI_INVESTIFY_KILL` or `PSXNI_KILL_SWITCH` = `true` |
 | `min_gap_minutes` | 15 (floor 15) | At least 15 minutes between ANY two requests, all resources, measured from the real send |

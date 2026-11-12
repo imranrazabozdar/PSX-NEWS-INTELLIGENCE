@@ -16,7 +16,7 @@ from collectors import investify_good_citizen as gc
 @pytest.fixture(autouse=True)
 def permissive_investify_policy(monkeypatch):
     permissive = gc.parse_policy({
-        "mode": "live", "kill_switch": False,
+        "kill_switch": False,
         "collectors_enabled": {"announcements": True, "fundamentals": True, "profile": True,
                                "competitors": True, "news": True},
         "min_gap_minutes": 15, "daily_ceiling": 96, "weekly_ceiling": 672, "warn_fraction": 0.99,

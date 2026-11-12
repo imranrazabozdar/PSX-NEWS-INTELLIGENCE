@@ -15,12 +15,13 @@ from database import seed_loader
 from database.connection import SQLiteDatabase
 from database.migrate import migrate
 from engines import autonomous_tick as at
+from engines import library_db
 from engines import market_calendar as mc
 
 ROOT = Path(__file__).resolve().parents[1]
 CAL = mc.load_calendar(ROOT / "config" / "psx_calendar.json")
 ROBOTS = "User-agent: *\nDisallow: /admin\n"
-ROBOTS_OK = at.Control(fetch_mode="live", kill_switch=False, robots_txt=ROBOTS,
+ROBOTS_OK = at.Control(kill_switch=False, robots_txt=ROBOTS,
                        robots_fetched_utc="2026-11-16T04:00:00Z")
 RESOURCES = [("MEBL", "fundamentals"), ("LUCK", "profile")]
 
@@ -53,13 +54,45 @@ def d(now, control=None, **kw):
 
 # ---------- every guard, fail closed
 
-def test_the_default_is_cache_only_and_kill_switched():
-    assert at.Control().fetch_mode == "cache_only" and at.Control().kill_switch is True
-    assert d(pkt("2026-11-16 10:00"), at.Control()).action == "noop"
+def test_live_by_default_so_only_the_structural_guards_decide():
+    assert at.Control().kill_switch is False
+    assert not hasattr(at.Control(), "fetch_mode")
+    assert d(pkt("2026-11-16 10:00"), at.Control(robots_txt=ROBOTS,
+             robots_fetched_utc="2026-11-16T04:00:00Z")).action == "fetch"
 
 
-def test_cache_only_mode_does_nothing_even_in_the_window():
-    assert d(pkt("2026-11-16 10:00"), open_control(fetch_mode="cache_only")).action == "noop"
+def test_no_fetch_mode_toggle_exists_anywhere_in_the_code_or_config():
+    banned = ("fetch_mode", "FETCH_MODE", "cache_only")
+    roots = [ROOT / "engines", ROOT / "collectors", ROOT / "config", ROOT / ".github", ROOT / "tests",
+             ROOT / "docs" / "ops", ROOT / "database" / "library"]
+    hits = []
+    for base in roots:
+        for path in base.rglob("*"):
+            if path.is_file() and path.suffix in {".py", ".json", ".yml", ".yaml", ".md", ".sql"} \
+                    and path.name != Path(__file__).name and "__pycache__" not in path.parts:
+                text = path.read_text(encoding="utf-8", errors="ignore")
+                hits += [f"{path.relative_to(ROOT)}: {b}" for b in banned if b in text]
+    assert hits == []
+
+
+def test_the_library_is_checked_before_any_investify_request(monkeypatch, capsys):
+    calls = []
+    monkeypatch.setattr(library_db, "get_library_connection",
+                        lambda env: library_db.LibraryConnection(host="x", db=None))
+
+    def unreachable(conn):
+        raise RuntimeError("connection refused")
+
+    monkeypatch.setattr(library_db, "auth_check", unreachable)
+    monkeypatch.setattr(at, "fetch_http", lambda ua: calls.append(ua) or (lambda s, e: (200, {}, b"")))
+    env = {"PSXNI_CONTACT_EMAIL": "ops@example.test"}
+    assert at.main(env) == 1
+    assert calls == [] and "unreachable" in capsys.readouterr().out
+
+
+def test_the_breaker_cooldown_is_checked_before_everything_else():
+    c = open_control(breaker_tripped=True, cooldown_until_utc="2026-11-16T12:00:00Z", kill_switch=False)
+    assert d(pkt("2026-11-16 10:00"), c).reason.startswith("breaker cooling")
 
 
 def test_the_kill_switch_halts_instantly():
@@ -118,7 +151,7 @@ def test_a_breaker_that_is_still_cooling_is_a_no_op_and_expires_on_time():
 
 
 def test_robots_is_refreshed_first_and_disallowed_paths_are_never_fetched():
-    assert d(pkt("2026-11-16 10:00"), at.Control(fetch_mode="live", kill_switch=False)).resource == (
+    assert d(pkt("2026-11-16 10:00"), at.Control(kill_switch=False)).resource == (
         "robots", "robots.txt")
     blocked = [("ADMIN", "fundamentals")]
     stricter = open_control(robots_txt="User-agent: *\nDisallow: /company/ADMIN\n")
@@ -235,11 +268,11 @@ def test_the_state_migration_creates_the_three_tables():
 
 def test_control_and_progress_round_trip_through_the_store():
     store = at.LibraryState(_state_db())
-    c = open_control(fetch_mode="live", kill_switch=False, global_last_request_utc="2026-11-16T05:00:00Z",
+    c = open_control(kill_switch=False, global_last_request_utc="2026-11-16T05:00:00Z",
                      daily_day_pkt="2026-11-16", daily_count=1, first_live_day="2026-11-16")
     store.save_control(c)
     back = store.load_control()
-    assert back.fetch_mode == "live" and back.kill_switch is False and back.daily_count == 1
+    assert back.kill_switch is False and back.daily_count == 1
     assert back.global_last_request_utc == "2026-11-16T05:00:00Z" and back.first_live_day == "2026-11-16"
     store.save_done("MEBL:fundamentals")
     assert store.load_done() == {"MEBL:fundamentals"}
@@ -248,10 +281,10 @@ def test_control_and_progress_round_trip_through_the_store():
     assert rows[0]["n"] == 1
 
 
-def test_the_default_store_state_is_cache_only_and_killed():
+def test_the_default_store_state_is_live_with_the_kill_switch_off():
     store = at.LibraryState(_state_db())
     c = store.load_control()
-    assert c.fetch_mode == "cache_only" and c.kill_switch is True
+    assert c.kill_switch is False
 
 
 # ---------- the entrypoint and the honest User-Agent
@@ -277,6 +310,7 @@ def test_the_workflow_is_scheduled_on_the_default_branch_and_uses_library_secret
     assert "cron:" in text and "workflow_dispatch" in text
     assert "PSXNI_LIBRARY_TURSO_DATABASE_URL" in text and "PSXNI_LIBRARY_TURSO_AUTH_TOKEN" in text
     assert "PSXNI_PROD" not in text and "data-capture" not in text.lower()
+    assert "PSXNI_FETCH_MODE" not in text
     assert "python -m engines.autonomous_tick" in text
 
 

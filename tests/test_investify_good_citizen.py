@@ -25,7 +25,7 @@ from database.migrate import migrate
 ROOT = Path(__file__).resolve().parents[1]
 NOW = datetime(2026, 11, 16, 5, 0, tzinfo=UTC)  # Monday 10:00 PKT
 BASE = {
-    "mode": "live", "kill_switch": False,
+    "kill_switch": False,
     "collectors_enabled": {"announcements": True, "fundamentals": True, "profile": True, "competitors": True,
                            "news": True},
     "min_gap_minutes": 15, "daily_ceiling": 12, "weekly_ceiling": 60, "warn_fraction": 0.6,
@@ -149,7 +149,7 @@ def test_the_policy_refuses_values_outside_its_floors():
     with pytest.raises(gc.PolicyError):
         gc.parse_policy({**BASE, "cooldown_base_hours": 1})  # a cooldown must be multi-hour
     with pytest.raises(gc.PolicyError):
-        gc.parse_policy({**BASE, "mode": "burst"})
+        gc.parse_policy({**BASE, "cooldown_base_hours": 1, "cooldown_max_hours": 0.5})
 
 
 # ---------- 3. no scheduled polling path exists
@@ -219,13 +219,13 @@ def test_a_backfill_counts_against_the_same_daily_budget(tmp_path):
 
 # ---------- 7. cache-only and the kill switch
 
-def test_cache_only_mode_refuses_every_resource():
-    cache_only = policy(mode="cache_only")
+def test_the_kill_switch_refuses_every_resource():
+    halted = policy(kill_switch=True)
     for ep in ("announcements", "fundamentals", "profile", "competitors", "news", "robots"):
-        assert gc.gate(now=NOW, state=state(), policy=cache_only, endpoint=ep).allowed is False
+        assert gc.gate(now=NOW, state=state(), policy=halted, endpoint=ep).allowed is False
 
 
-def test_cache_only_mode_makes_zero_investify_calls_through_the_request_path(tmp_path):
+def test_the_kill_switch_makes_zero_investify_calls_through_the_request_path(tmp_path):
     db = SQLiteDatabase()
     migrate(db)
     seed_loader.load(db)
@@ -234,7 +234,7 @@ def test_cache_only_mode_makes_zero_investify_calls_through_the_request_path(tmp
     out = fund.run_endpoint(now=NOW, state_path=tmp_path / "s.json", entry=entry, db=db,
                             endpoint="profile", symbol="HUBC",
                             watchlist=frozenset({"HUBC"}), transport=transport,
-                            good=policy(mode="cache_only"))
+                            good=policy(kill_switch=True))
     assert out.status in ("skipped", "refused") and NoNetwork.calls == 0
 
 
@@ -275,7 +275,7 @@ def test_a_request_path_refuses_while_another_request_holds_the_slot(tmp_path):
 
 def test_the_shipped_policy_is_fail_safe():
     shipped = gc.load_policy()
-    assert shipped.mode == "cache_only" and shipped.kill_switch is False
+    assert shipped.kill_switch is False and not hasattr(shipped, "mode")
     assert not any(shipped.collectors_enabled.values())  # every collector off
     for ep in gc.COLLECTORS:
         assert gc.gate(now=NOW, state=state(), policy=shipped, endpoint=ep).allowed is False

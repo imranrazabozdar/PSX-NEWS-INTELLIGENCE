@@ -1,7 +1,9 @@
 """One autonomous tick of the good-citizen fetcher. Self-contained: it reads state, decides, acts at most
 once, writes state back. Runs from a scheduled GitHub Actions job (see .github/workflows/psx_fetch.yml).
 
-Fail-closed at every step. Default: cache_only, so the tick does nothing until the owner sets live.
+Live by default. Nothing is switched off by a mode toggle: every tick is gated by structural guards only
+(library reachable, breaker/cooldown, owner window, calendar, throttle, daily ceiling, robots.txt), and each
+guard fails closed. Stop controls: the automatic breaker, and disabling the workflow in the Actions UI.
 
 Pure decision: `decide()`. Side effects only in `tick()`, through injected dependencies, so every branch is
 testable without the network.
@@ -50,8 +52,7 @@ def _trimmed(t: time, lo: time, hi: time) -> bool:
 
 @dataclass(frozen=True)
 class Control:
-    fetch_mode: str = "cache_only"  # the default; only the owner sets live
-    kill_switch: bool = True  # fail-safe: halted until the owner clears it
+    kill_switch: bool = False  # manual stop row in psx-library; off by default
     breaker_tripped: bool = False
     cooldown_until_utc: str | None = None
     global_last_request_utc: str | None = None
@@ -92,12 +93,10 @@ def decide(now: datetime, control: Control, *, calendar: Any, resources: list[tu
            done: set[str], first_live_day: str | None, env: Mapping[str, str] | None = None) -> Decision:
     """The tick's decision. At most one request. Every guard fails closed."""
     env = os.environ if env is None else env
-    if control.kill_switch or any(env.get(k, "").lower() == "true" for k in gc.ENV_KILL):
-        return Decision("noop", "kill switch is on")
-    if control.fetch_mode != "live":
-        return Decision("noop", f"fetch_mode is {control.fetch_mode!r}: cache-only")
     if control.breaker_tripped and control.cooldown_until_utc and now < _utc(control.cooldown_until_utc):
         return Decision("noop", f"breaker cooling until {control.cooldown_until_utc}")
+    if control.kill_switch or any(env.get(k, "").lower() == "true" for k in gc.ENV_KILL):
+        return Decision("noop", "kill switch is on")
     if calendar is None:
         return Decision("noop", "trading calendar unreadable: fail closed")
     local = now.astimezone(gc.PKT)
@@ -193,8 +192,7 @@ class LibraryState:
     def load_control(self) -> Control:
         kv = {r["key"]: r["value"] for r in self.db.execute("SELECT key, value FROM fetch_control")}
         return Control(
-            fetch_mode=kv.get("fetch_mode", "cache_only"),
-            kill_switch=kv.get("kill_switch", "true").lower() == "true",
+            kill_switch=kv.get("kill_switch", "false").lower() == "true",
             breaker_tripped=kv.get("breaker_tripped", "false").lower() == "true",
             cooldown_until_utc=kv.get("cooldown_until_utc") or None,
             global_last_request_utc=kv.get("global_last_request_utc") or None,
@@ -205,7 +203,7 @@ class LibraryState:
             first_live_day=kv.get("first_live_day") or None)
 
     def save_control(self, c: Control) -> None:
-        values = {"fetch_mode": c.fetch_mode, "kill_switch": str(c.kill_switch).lower(),
+        values = {"kill_switch": str(c.kill_switch).lower(),
                   "breaker_tripped": str(c.breaker_tripped).lower(),
                   "cooldown_until_utc": c.cooldown_until_utc or "",
                   "global_last_request_utc": c.global_last_request_utc or "",
@@ -292,24 +290,27 @@ def main(environ: Mapping[str, str] | None = None) -> int:
 
     env = os.environ if environ is None else environ
     now = datetime.now(UTC)
+    # Library first: nothing touches Investify until psx-library answers and the state tables exist.
     try:
         conn = library_db.get_library_connection(env)
+        library_db.auth_check(conn)
     except library_db.LibraryConfigError as exc:
         print(f"no-op: {exc}")
         return 0
+    except Exception as exc:  # noqa: BLE001 - unreachable or unauthenticated: stop before any request
+        print(f"no-op: psx-library unreachable or unauthenticated: {exc}")
+        return 1
     state = LibraryState(conn.db)
     if not state.tables_present():
         print("no-op: fetch-state tables are not in psx-library (the migration needs owner approval)")
         return 0
     ua = user_agent(env.get("PSXNI_CONTACT_EMAIL"))
-    contact_ok = ua is not None
-    forced_cache = env.get("PSXNI_FETCH_MODE", "cache_only").strip().lower() != "live"
+    if ua is None:
+        print("no-op: PSXNI_CONTACT_EMAIL is not set; no request is made without a contact address")
+        return 0
 
     def load_control() -> Control:
-        c = state.load_control()
-        if forced_cache or not contact_ok:
-            return Control(**{**c.__dict__, "fetch_mode": "cache_only"})  # both keys must say live
-        return c
+        return state.load_control()
 
     def save_control(c: Control) -> None:
         if c.first_live_day is None and c.global_last_request_utc:
@@ -317,8 +318,7 @@ def main(environ: Mapping[str, str] | None = None) -> int:
         state.save_control(c)
 
     deps = Dependencies(load_control=load_control, save_control=save_control, load_done=state.load_done,
-                        save_done=state.save_done,
-                        fetch=fetch_http(ua) if ua else (lambda s, e: (None, {}, b"")),
+                        save_done=state.save_done, fetch=fetch_http(ua),
                         store=store_fields(conn.db), log=state.log)
     symbols = [c["symbol"] for c in json.loads(WATCHLIST_PATH.read_text(encoding="utf-8"))["companies"]]
     d = tick(now, deps, calendar=gc.load_calendar_safe(), resources=resources_for(symbols),
@@ -347,7 +347,7 @@ def render_fetch_log(*, day: str, done: int, total: int, control: Control, event
         "Private research use. Source: investify.pk.",
         "",
         f"- Backfill: {done} of {total} resources complete ({pct}%).",
-        f"- Mode: {control.fetch_mode}; kill switch: {'on' if control.kill_switch else 'off'}.",
+        f"- Kill switch: {'on' if control.kill_switch else 'off'} (manual stop: psx-library fetch_control).",
         f"- Requests today: {control.daily_count if control.daily_day_pkt == day else 0}.",
         f"- Breaker: {_breaker_text(control)}.",
     ]
