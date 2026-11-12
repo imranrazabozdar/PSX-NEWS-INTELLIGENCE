@@ -338,3 +338,16 @@ Record: `docs/ops/INVESTIFY_GOOD_CITIZEN.md`. Policy: `config/investify_good_cit
 | Fail-safe defaults: cache-only, collectors off | IMPLEMENTED, TESTED |
 
 **Changes to earlier behaviour (deliberate):** the announcements cron is removed (dispatch-only); backoff is a multi-hour cooldown rather than 60 minutes; a single block trips the breaker; the cadence test now asserts no schedule. **Caveats:** a state file without weekly counters refuses until reset; the validation driver on its own branch must treat "queued" and "cooldown" as waits when it merges.
+
+## Backfill setup (feature/investify-good-citizen): GATE, owner approval before the live backfill
+Plan and gate results: `docs/ops/INVESTIFY_BACKFILL_PLAN.md`.
+
+| Item | State |
+|---|---|
+| Turso library link test | BLOCKED: the library secret is not set in this environment; the owner must set it through the secure secret flow. Live test also needs a non-append-only probe table (owner approval) |
+| Library target guard (refuses prod and data-capture; names the library; never returns credentials) | IMPLEMENTED, TESTED |
+| Synthetic end-to-end dry run (parse, distill, store, read back, verify) | PASSED on a disposable in-memory database; not written to Turso |
+| EOD progress report (backfill coverage, breadth and depth, today's announcements grouped and highlighted, footprint, persisted per day) | IMPLEMENTED, TESTED on synthetic data |
+| Live Investify requests tonight | NONE. Gated by the quiet window; tested |
+| Live backfill | NOT STARTED. Requires owner approval of the plan |
+| Global announcements page parser | OPEN: needs a structured parser and one sample in the trading window before the live start |
