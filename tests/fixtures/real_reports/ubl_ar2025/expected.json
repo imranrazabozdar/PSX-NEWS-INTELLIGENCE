@@ -1,0 +1,187 @@
+{
+  "report_key": "ubl_ar2025",
+  "values": [
+    {
+      "item": "profit_after_tax_2025",
+      "printed": "128,008,847",
+      "page": 44,
+      "status": "reconciled",
+      "check": "income_statement",
+      "label": "Profit after taxation for the year"
+    },
+    {
+      "item": "total_comprehensive_income_2025",
+      "printed": "237,707,671",
+      "page": 44,
+      "status": "reconciled",
+      "check": "comprehensive_income",
+      "page_note": "p.44 right half (OCI block) gives PAT + OCI = TCI",
+      "label": "Total comprehensive income for the year"
+    },
+    {
+      "item": "other_comprehensive_income_net_of_tax_2025",
+      "printed": "109,698,824",
+      "page": 45,
+      "status": "reconciled",
+      "label": "Other comprehensive income - net of tax",
+      "check": "oci_components",
+      "note": "sum of the OCI components on p.44 right equals this p.45 figure (test checks it)"
+    },
+    {
+      "item": "total_assets_2025",
+      "printed": "12,620,193,445",
+      "page": 43,
+      "status": "reconciled",
+      "check": "balance_sheet",
+      "label": "total assets (unlabelled row, equals the sum of the mapped assets)"
+    },
+    {
+      "item": "total_liabilities_2025",
+      "printed": "12,121,461,879",
+      "page": 43,
+      "status": "reconciled",
+      "check": "balance_sheet",
+      "label": "total liabilities (unlabelled row, equals the sum of the mapped liabilities)"
+    },
+    {
+      "item": "net_assets_2025",
+      "printed": "498,731,566",
+      "page": 43,
+      "status": "printed_only",
+      "label": "NET ASSETS"
+    }
+  ],
+  "kams": {
+    "printed_count": 1,
+    "pages_checked": [
+      41,
+      42,
+      43,
+      98
+    ],
+    "items": [
+      {
+        "n": 1,
+        "title": "Expected credit loss against advances",
+        "page": 42
+      },
+      {
+        "n": 1,
+        "title": "Expected credit loss against advances",
+        "page": 98
+      }
+    ]
+  },
+  "pipeline_checks": {
+    "balance_sheet": "RECONCILED",
+    "cash_flow": "RECONCILED",
+    "equity_statement": "RECONCILED",
+    "comprehensive_income": "RECONCILED",
+    "income_statement": "RECONCILED"
+  },
+  "pipeline_reported": {
+    "income_statement": 128008847.0,
+    "balance_sheet": 12620193445.0,
+    "comprehensive_income": 237707671.0
+  },
+  "statements": [
+    {
+      "statement": "BS",
+      "page": 43,
+      "side": "R",
+      "check": "balance_sheet",
+      "status": "reconciled",
+      "column": "2025-12-31",
+      "closing_printed": "12,620,193,445",
+      "note": "total assets (unlabelled row); liabilities and equity inferred from their components"
+    },
+    {
+      "statement": "IS",
+      "page": 44,
+      "side": "L",
+      "check": "income_statement",
+      "status": "reconciled",
+      "column": "2025-12-31",
+      "closing_printed": "128,008,847"
+    },
+    {
+      "statement": "OCI",
+      "page": 44,
+      "side": "R",
+      "check": "comprehensive_income",
+      "status": "reconciled",
+      "column": "2025-12-31",
+      "closing_printed": "237,707,671",
+      "note": "OCI block; total comprehensive income = PAT + OCI"
+    },
+    {
+      "statement": "CF",
+      "page": 45,
+      "side": "R",
+      "check": "cash_flow",
+      "status": "reconciled",
+      "column": "2025-12-31",
+      "closing_printed": "604,826,656"
+    },
+    {
+      "statement": "EQ",
+      "page": 45,
+      "side": "L",
+      "check": "equity_statement",
+      "status": "reconciled",
+      "column": "2025-12-31",
+      "closing_printed": "498,731,566",
+      "note": "closing 'Balance as at December 31, 2025' row"
+    },
+    {
+      "statement": "BS",
+      "page": 43,
+      "side": "R",
+      "check": "balance_sheet",
+      "status": "reconciled",
+      "column": "2024-12-31",
+      "closing_printed": "8,063,132,134",
+      "note": "2024 comparative: total assets"
+    },
+    {
+      "statement": "IS",
+      "page": 44,
+      "side": "L",
+      "check": "income_statement",
+      "status": "reconciled",
+      "column": "2024-12-31",
+      "closing_printed": "80,527,534",
+      "note": "2024 comparative: profit after taxation"
+    },
+    {
+      "statement": "OCI",
+      "page": 44,
+      "side": "R",
+      "check": "comprehensive_income",
+      "status": "reconciled",
+      "column": "2024-12-31",
+      "closing_printed": "121,913,442",
+      "note": "2024 comparative: total comprehensive income"
+    },
+    {
+      "statement": "CF",
+      "page": 45,
+      "side": "R",
+      "check": "cash_flow",
+      "status": "reconciled",
+      "column": "2024-12-31",
+      "closing_printed": "369,714,157",
+      "note": "2024 comparative: closing cash"
+    },
+    {
+      "statement": "EQ",
+      "page": 45,
+      "side": "L",
+      "check": "equity_statement",
+      "status": "reconciled",
+      "column": "2024-12-31",
+      "closing_printed": "316,222,251",
+      "note": "2024 comparative: 'Balance as at December 31, 2024'"
+    }
+  ]
+}

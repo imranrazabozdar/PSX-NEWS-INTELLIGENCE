@@ -23,12 +23,19 @@ import pytest
 
 from database.connection import DatabaseError, TursoHTTPDatabase
 from database.migrate import discover, migrate
-from tests.turso_guard import DISPOSABLE_TOKEN_VAR, DISPOSABLE_URL_VAR, disposable_config_status
+from tests.turso_guard import (
+    DISPOSABLE_TOKEN_VAR,
+    DISPOSABLE_URL_VAR,
+    SUITE_NOT_RUN_MESSAGE,
+    disposable_config_status,
+)
 
 URL = os.environ.get(DISPOSABLE_URL_VAR, "").strip()
 TOKEN = os.environ.get(DISPOSABLE_TOKEN_VAR, "").strip()
 NOW = "2026-11-08T00:00:00Z"
 _STATUS, _REASON = disposable_config_status(os.environ)
+if _STATUS == "skip":  # nothing configured: NOT_RUN, named as such (never a failure offline)
+    _REASON = SUITE_NOT_RUN_MESSAGE
 
 pytestmark = pytest.mark.skipif(_STATUS == "skip", reason=_REASON)
 

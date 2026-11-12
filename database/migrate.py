@@ -93,8 +93,13 @@ def discover(directory: Path = MIGRATIONS_DIR) -> list[Migration]:
     return found
 
 
-def applied(db: Database) -> dict[int, dict]:
-    db.execute(SCHEMA_MIGRATIONS_DDL)
+def applied(db: Database, *, create: bool = True) -> dict[int, dict]:
+    """Applied migrations by version. With create=False (dry run) nothing is written: a missing ledger is
+    treated as empty instead of being created."""
+    if create:
+        db.execute(SCHEMA_MIGRATIONS_DDL)
+    elif not db.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'schema_migrations'"):
+        return {}
     return {r["version"]: r for r in db.execute(
         "SELECT version, name, checksum, applied_at_utc FROM schema_migrations ORDER BY version")}
 
@@ -104,15 +109,27 @@ def migrate(db: Database, *, dry_run: bool = False,
     """Apply pending migrations. Returns a log of what happened."""
     log = []
     migrations = discover(directory)
-    done = applied(db)
+    done = applied(db, create=not dry_run)  # a dry run issues no DDL
+    known = {m.version: m for m in migrations}
     for v, row in done.items():
-        known = {m.version: m for m in migrations}
         if v not in known:
             raise MigrationError(f"database has migration {v} that is not in the repository")
+        if row["name"] != known[v].name:
+            raise MigrationError(f"migration {v} is recorded as {row['name']!r} but the repository has "
+                                 f"{known[v].name!r}; refusing (version reuse or rename)")
         if row["checksum"] != known[v].checksum:
             raise MigrationError(
                 f"migration {v} ({row['name']}) was changed after it was applied; "
                 "add a new migration instead of editing an applied one")
+    if done:
+        applied_versions = sorted(done)
+        if applied_versions != list(range(1, len(applied_versions) + 1)):
+            raise MigrationError(f"migration ledger has a gap or is out of order: {applied_versions}")
+        pending_below = [m.version for m in migrations if m.version not in done
+                         and m.version < applied_versions[-1]]
+        if pending_below:
+            raise MigrationError(f"pending migrations {pending_below} are below applied version "
+                                 f"{applied_versions[-1]}; refusing out-of-order application")
     for mig in migrations:
         if mig.version in done:
             log.append(f"skip   {mig.version:04d}_{mig.name} (already applied)")

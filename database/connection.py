@@ -14,12 +14,14 @@ from __future__ import annotations
 import base64
 import json
 import os
+import re
 import sqlite3
 import time
 import urllib.error
 import urllib.request
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 Row = dict[str, Any]
@@ -90,7 +92,8 @@ class SQLiteDatabase(Database):
     backend = "sqlite"
 
     def __init__(self, path: str = ":memory:") -> None:
-        self._conn = sqlite3.connect(path, isolation_level=None)
+        # check_same_thread=False: Streamlit reruns on other threads and the app caches this handle.
+        self._conn = sqlite3.connect(path, isolation_level=None, check_same_thread=False)
         self._conn.row_factory = sqlite3.Row
         self._conn.execute("PRAGMA foreign_keys = ON")
 
@@ -291,3 +294,114 @@ def connect(url: str | None = None, auth_token: str | None = None) -> Database:
             return SQLiteDatabase(":memory:")
         return SQLiteDatabase(path)  # sqlite:///abs/path.db -> /abs/path.db
     raise DatabaseConfigError("unsupported database URL scheme")
+
+
+# ---------------------------------------------------------------- dual database: main and archive
+# Main (operational): events, news, active company data. Variables: PSXNI_TURSO_DATABASE_URL and
+#   PSXNI_TURSO_AUTH_TOKEN (the existing names, used by CI; renaming them would break production secrets).
+# Archive (multi-year financial history): PSXNI_ARCHIVE_TURSO_URL and PSXNI_ARCHIVE_TURSO_AUTH_TOKEN.
+# Each handler reads only its own variables and never falls back to the other database's token or URL.
+MAIN_URL_ENV = "PSXNI_TURSO_DATABASE_URL"
+MAIN_TOKEN_ENV = "PSXNI_TURSO_AUTH_TOKEN"  # noqa: S105 (variable name, not a secret)
+ARCHIVE_URL_ENV = "PSXNI_ARCHIVE_TURSO_URL"
+ARCHIVE_TOKEN_ENV = "PSXNI_ARCHIVE_TURSO_AUTH_TOKEN"  # noqa: S105 (variable name, not a secret)
+# Table sets, derived from the migration directories (not hand-maintained). A database holding another
+# role's tables is refused (fail closed). The archive set is every table the archive migrations create.
+_CREATE_TABLE = re.compile(
+    r"CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([A-Za-z_][A-Za-z0-9_]*)", re.IGNORECASE
+)
+_DATABASE_DIR = Path(__file__).resolve().parent
+
+
+def tables_created_by(directory: Path) -> frozenset[str]:
+    """Every table name created by the .sql files in `directory`. SQL comments are ignored."""
+    names: set[str] = set()
+    for path in sorted(directory.glob("*.sql")):
+        code = re.sub(r"--[^\n]*", "", path.read_text(encoding="utf-8"))
+        names |= {m.group(1).lower() for m in _CREATE_TABLE.finditer(code)}
+    return frozenset(names)
+
+
+OPERATIONAL_TABLES = tables_created_by(_DATABASE_DIR / "migrations")
+ARCHIVE_TABLES = tables_created_by(_DATABASE_DIR / "archive_migrations")
+PORTFOLIO_TABLES = tables_created_by(_DATABASE_DIR / "portfolio_migrations")
+
+
+def _norm_db_identity(url: str) -> str:
+    """Compare database identities, not spellings: libsql:// and https:// name the same Turso database."""
+    u = url.strip().rstrip("/").lower()
+    for scheme in ("libsql://", "https://", "wss://", "http://"):
+        if u.startswith(scheme):
+            return "turso:" + u[len(scheme):].split("?")[0]
+    return u
+
+
+def same_database(a: str, b: str) -> bool:
+    if not a or not b or "memory" in a or "memory" in b:
+        return False
+    return _norm_db_identity(a) == _norm_db_identity(b)
+
+
+def _tables_present(db: Database) -> set[str]:
+    rows = db.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
+    return {r["name"] for r in rows}
+
+
+def assert_role(db: Database, role: str) -> None:
+    """Refuse a handle whose tables belong to the other role. Called by every connect_* function."""
+    present = _tables_present(db)
+    if role == "main":
+        if present & ARCHIVE_TABLES:
+            raise DatabaseConfigError(f"refusing: the main database holds archive tables "
+                                      f"{sorted(present & ARCHIVE_TABLES)}")
+        if present & PORTFOLIO_TABLES:
+            raise DatabaseConfigError(f"refusing: the main database holds portfolio tables "
+                                      f"{sorted(present & PORTFOLIO_TABLES)}")
+    if role == "archive":
+        if present & OPERATIONAL_TABLES:
+            raise DatabaseConfigError(f"refusing: the archive database holds operational tables "
+                                      f"{sorted(present & OPERATIONAL_TABLES)}; it must be separate")
+        if present & PORTFOLIO_TABLES:
+            raise DatabaseConfigError(f"refusing: the archive database holds portfolio tables "
+                                      f"{sorted(present & PORTFOLIO_TABLES)}; it must be separate")
+
+
+def connect_main(url: str | None = None, auth_token: str | None = None) -> Database:
+    """Operational database handle. Refuses the archive URL and any database holding archive tables."""
+    url = url if url is not None else os.environ.get(MAIN_URL_ENV, "")
+    if not url:
+        raise DatabaseConfigError(f"{MAIN_URL_ENV} is not set")
+    archive_url = os.environ.get(ARCHIVE_URL_ENV, "")
+    if archive_url and same_database(url, archive_url):
+        raise DatabaseConfigError("the main database URL is the archive database URL; they must be separate")
+    token = auth_token if auth_token is not None else os.environ.get(MAIN_TOKEN_ENV, "")
+    db = connect(url, token)
+    try:
+        assert_role(db, "main")
+    except DatabaseConfigError:
+        db.close()
+        raise
+    db.role = "main"
+    return db
+
+
+def connect_archive(url: str | None = None, auth_token: str | None = None) -> Database:
+    """Archive database handle. Requires its own URL and token; refuses the main database."""
+    url = url if url is not None else os.environ.get(ARCHIVE_URL_ENV, "")
+    if not url:
+        raise DatabaseConfigError(f"{ARCHIVE_URL_ENV} is not set: the archive database is not configured")
+    main_url = os.environ.get(MAIN_URL_ENV, "")
+    if main_url and same_database(url, main_url):
+        raise DatabaseConfigError("the archive database URL is the main database URL; they must be separate")
+    # never fall back to the main token: a missing archive token is an error, not a reuse
+    token = auth_token if auth_token is not None else os.environ.get(ARCHIVE_TOKEN_ENV, "")
+    if url.startswith(("libsql://", "https://")) and not token:
+        raise DatabaseConfigError(f"{ARCHIVE_TOKEN_ENV} is not set")
+    db = connect(url, token)
+    try:
+        assert_role(db, "archive")
+    except DatabaseConfigError:
+        db.close()
+        raise
+    db.role = "archive"
+    return db

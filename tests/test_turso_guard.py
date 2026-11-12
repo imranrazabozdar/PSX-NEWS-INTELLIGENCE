@@ -166,5 +166,8 @@ def test_ci_never_passes_production_secrets_to_tests():
     assert "secrets.PSXNI_TEST_TURSO_DATABASE_URL" in ci and "secrets.PSXNI_TEST_TURSO_AUTH_TOKEN" in ci
     for wf in (root / ".github" / "workflows").glob("*.yml"):
         text = wf.read_text(encoding="utf-8")
-        if "secrets.PSXNI_TURSO_" in text:   # only the scheduled collection workflow may hold them
-            assert wf.name == "scheduled-jobs.yml" and "pytest" not in text, wf.name
+        if "secrets.PSXNI_TURSO_" in text:
+            # Only the scheduled collection workflows may hold production secrets, and never run pytest.
+            # investify-collect.yml is the consented Investify job (docs/consent/investify-2026-11-12.md).
+            allowed = {"scheduled-jobs.yml", "investify-collect.yml"}
+            assert wf.name in allowed and "pytest" not in text, wf.name

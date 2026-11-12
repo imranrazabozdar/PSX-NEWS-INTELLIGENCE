@@ -1,0 +1,75 @@
+{
+  "_schema": "Fetch targets for services/source_fetcher.py. Nothing is fetched unless permission_status is \"permitted\", endpoint_url is https, AND the owner's source registry (config/sources_registry.json) holds a permitted, enabled annual_report entry for the symbol whose url_pattern matches the endpoint. The polling_schedule is read by the external scheduler that runs `python -m services.source_fetcher --once`; the fetcher does not schedule itself.",
+  "_fields": {
+    "symbol": "PSX ticker, e.g. UBL",
+    "company_id": "integer identifier in the operational database (owner to supply; null while paused)",
+    "endpoint_url": "https URL of the filing endpoint, or null while paused",
+    "permission_status": "permitted | paused (anything else is refused; the default is paused)",
+    "expected_framework": "bank | corporate",
+    "min_request_interval_seconds": "integer, default 5, never below 3",
+    "polling_schedule": "cron expression or interval text for the external scheduler, e.g. \"0 2 * * *\" (off-peak)",
+    "intake": "optional: the intake profile used to diagnose a new PDF (period_end, columns, unit_scale, consolidation, currency, page_map)"
+  },
+  "sources": [
+    {
+      "symbol": "UBL",
+      "company_id": 1,
+      "endpoint_url": null,
+      "permission_status": "paused",
+      "expected_framework": "bank",
+      "min_request_interval_seconds": 5,
+      "polling_schedule": "0 2 * * *",
+      "intake": {
+        "period_end": "2025-12-31",
+        "columns": [
+          "2025-12-31",
+          "2024-12-31"
+        ],
+        "unit_scale": 1000,
+        "consolidation": "unconsolidated",
+        "currency": "PKR",
+        "page_map": null
+      }
+    },
+    {
+      "symbol": "OGDC",
+      "company_id": 2,
+      "endpoint_url": null,
+      "permission_status": "paused",
+      "expected_framework": "corporate",
+      "min_request_interval_seconds": 5,
+      "polling_schedule": "0 2 * * *",
+      "intake": {
+        "period_end": "2026-06-30",
+        "columns": [
+          "2026-06-30",
+          "2025-06-30"
+        ],
+        "unit_scale": 1000,
+        "consolidation": "unconsolidated",
+        "currency": "PKR",
+        "page_map": null
+      }
+    },
+    {
+      "symbol": "LUCK",
+      "company_id": null,
+      "endpoint_url": null,
+      "permission_status": "paused",
+      "expected_framework": "corporate",
+      "min_request_interval_seconds": 5,
+      "polling_schedule": "0 2 * * *",
+      "intake": {
+        "period_end": "2026-06-30",
+        "columns": [
+          "2026-06-30",
+          "2025-06-30"
+        ],
+        "unit_scale": 1000,
+        "consolidation": "unconsolidated",
+        "currency": "PKR",
+        "page_map": null
+      }
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+                                                                                                            Rising
+                                                                                                            Through
+                                                                                                            Challenges
+Statement of Cash Flows
+For the year ended 30 June 2026
+				                                                                                  2026             2025
+    Note                                                                                  (Rupees ‘000)
+Cash flows from operating activities
+Profit before income tax		                                                         259,134,869       279,314,861
+Adjustments for:
+  Depreciation		                                                                     11,243,493        10,696,090
+  Amortization of development and production assets                           29     26,325,197        23,058,571
+  Delayed payments surcharge from customers                                   30                -       (8,503,459)
+  Amortization of premium on Pakistan Investment Bonds                        30        (569,609)                 -
+  Unwinding of loss on modification in terms of TFCs                          30      (8,612,951)     (14,495,379)
+  Royalty		                                                                          52,618,996        47,144,885
+  Workers’ profit participation fund		                                               13,639,816        14,700,782
+  Provision for deferred employee benefits		                                         18,693,110        10,372,469
+  Unwinding of discount on provision for decommissioning cost                 33       4,800,862         5,671,291
+  Reversal due to change in decommissioning cost estimates                    29      (1,570,316)         (778,983)
+  Interest income on investments and bank deposits                            30    (19,973,811)      (32,904,607)
+  Interest income on lease                                                    30    (17,211,607)      (19,399,542)
+  Unwinding of lease liability                                                33         287,522             95,663
+  Un-realized gain on investments at fair value through profit or loss        30        (166,779)         (213,485)
+  Realized gain on investments at fair value through profit or loss           30      (3,572,792)                 -
+  Exchange loss /(gain) on lease		                                                     1,898,885        (1,988,006)
+  Exchange (gain) /loss on foreign currency investments and deposit accounts		         1,896,201        (2,340,215)
+  Dividend income from investment at fair value through profit or loss        30          (86,537)          (17,389)
+  Gain on disposal of property, plant and equipment                           30          (97,970)        (155,665)
+  Provision for slow moving, obsolete and in transit stores                   29         376,941           143,182
+  Share of profit in associates -net of taxation		                                  (16,591,713)      (12,674,658)
+  Stores inventory written off                                                29         198,625           150,746
+  Advances written off		                                                                    2,828                 -
+  Cost of dry and abandoned wells during the year                             31       6,160,917         4,233,127
+  Reversal of trade debts provision                                           29          (41,105)          (15,836)
+				                                                                               328,783,072       302,094,443
+Changes in:
+  Stores, spare parts and loose tools		                                               4,256,259        (6,811,395)
+  Stock in trade		                                                                     (662,339)          320,114
+  Trade debts 		                                                                    18,856,947        21,371,188
+  Deposits and short term prepayments		                                                 667,073          (699,834)
+  Loan and advances and other receivables		                                          (4,451,838)       (6,199,924)
+  Trade and other payables		                                                        22,555,076         (6,581,843)
+Cash generated from operations		                                                   370,004,250       303,492,749
+  Royalty paid		                                                                     (53,278,004)      (68,953,549)
+  Deferred employee benefits paid		                                                  (15,580,876)      (21,637,259)
+  Long term advances and prepayments		                                                 1,324,789         (1,790,293)
+  Decommissioning cost paid                           8                                 (148,104)          (143,416)
+  Payment to workers’ profit participation fund-net		                                (14,700,782)      (15,462,479)
+  Income taxes paid                                  25                            (127,075,622)     (154,678,576)
+				                                                                               (209,458,599)     (262,665,572)
+Net cash generated from operating activities		                                      160,545,651         40,827,177
+Cash flows from investing activities
+  Capital expenditure 		                                                           (108,200,448)      (73,260,626)
+  Interest received		                                                               144,917,915        73,348,392
+  Lease payments received                                  19                         22,924,905       10,738,767
+  Dividends received		                                                                  7,230,240       3,562,783
+  Investments at fair value through profit or loss - net		                           (36,602,286)      10,000,000
+  Investment in associates		                                                         (32,834,245)     (19,665,636)
+  Proceeds from disposal of property, plant and equipment 12.5                            136,332         206,941
+Net cash (used in) /generated from investing activities		                              (2,427,587)      4,930,621
+Cash flows from financing activities
+   Dividends paid		                                                                 (68,763,302)     (101,222,926)
+   Lease payments made                                             9                  (1,257,650)         (565,295)
+Net cash used in financing activities		                                             (70,020,952)     (101,788,221)
+Net increase /(decrease) in cash and cash equivalents		                              88,097,112        (56,030,424)
+Cash and cash equivalents at beginning of the year		                               204,923,032        258,613,241
+Effect of movements in exchange rate on cash and cash equivalents		                   (1,896,201)        2,340,215
+Cash and cash equivalents at end of the year                       41              291,123,943        204,923,032
+The annexed notes 1 to 51 form an integral part of these financial statements.
+Chief Financial Officer                                 Chief Executive                               Director
+                                                                                                                  215

@@ -11,6 +11,7 @@
  "companies": [
   {
    "ticker": "ATRL",
+   "in_scope": true,
    "legal_name": "Attock Refinery Limited",
    "psx_sector": "REFINERY",
    "fiscal_year_end_month": "June",
@@ -26,6 +27,7 @@
   },
   {
    "ticker": "BAFL",
+   "in_scope": true,
    "legal_name": "Bank Alfalah Limited",
    "psx_sector": "COMMERCIAL BANKS",
    "fiscal_year_end_month": "December",
@@ -41,6 +43,7 @@
   },
   {
    "ticker": "BOP",
+   "in_scope": true,
    "legal_name": "The Bank of Punjab",
    "psx_sector": "COMMERCIAL BANKS",
    "fiscal_year_end_month": "December",
@@ -56,6 +59,7 @@
   },
   {
    "ticker": "DGKC",
+   "in_scope": true,
    "legal_name": "D.G. Khan Cement Company Limited",
    "psx_sector": "CEMENT",
    "fiscal_year_end_month": "June",
@@ -71,6 +75,7 @@
   },
   {
    "ticker": "EFERT",
+   "in_scope": true,
    "legal_name": "Engro Fertilizers Limited",
    "psx_sector": "FERTILIZER",
    "fiscal_year_end_month": "December",
@@ -86,6 +91,7 @@
   },
   {
    "ticker": "ENGROH",
+   "in_scope": true,
    "legal_name": "Engro Holdings Limited",
    "psx_sector": "INV. BANKS / INV. COS. / SECURITIES COS.",
    "fiscal_year_end_month": "December",
@@ -101,6 +107,7 @@
   },
   {
    "ticker": "FATIMA",
+   "in_scope": true,
    "legal_name": "Fatima Fertilizer Company Limited",
    "psx_sector": "FERTILIZER",
    "fiscal_year_end_month": "December",
@@ -116,6 +123,7 @@
   },
   {
    "ticker": "FCCL",
+   "in_scope": true,
    "legal_name": "Fauji Cement Company Limited",
    "psx_sector": "CEMENT",
    "fiscal_year_end_month": "June",
@@ -131,6 +139,7 @@
   },
   {
    "ticker": "FFC",
+   "in_scope": true,
    "legal_name": "Fauji Fertilizer Company Limited",
    "psx_sector": "FERTILIZER",
    "fiscal_year_end_month": "December",
@@ -146,6 +155,7 @@
   },
   {
    "ticker": "HBL",
+   "in_scope": true,
    "legal_name": "Habib Bank Limited",
    "psx_sector": "COMMERCIAL BANKS",
    "fiscal_year_end_month": "December",
@@ -161,6 +171,7 @@
   },
   {
    "ticker": "HUBC",
+   "in_scope": true,
    "legal_name": "The Hub Power Company Limited",
    "psx_sector": "POWER GENERATION & DISTRIBUTION",
    "fiscal_year_end_month": "June",
@@ -176,6 +187,7 @@
   },
   {
    "ticker": "KEL",
+   "in_scope": true,
    "legal_name": "K-Electric Limited",
    "psx_sector": "POWER GENERATION & DISTRIBUTION",
    "fiscal_year_end_month": "June",
@@ -191,6 +203,7 @@
   },
   {
    "ticker": "LUCK",
+   "in_scope": true,
    "legal_name": "Lucky Cement Limited",
    "psx_sector": "CEMENT",
    "fiscal_year_end_month": "June",
@@ -206,6 +219,7 @@
   },
   {
    "ticker": "MARI",
+   "in_scope": true,
    "legal_name": "Mari Energies Limited",
    "psx_sector": "OIL & GAS EXPLORATION COMPANIES",
    "fiscal_year_end_month": "June",
@@ -221,6 +235,7 @@
   },
   {
    "ticker": "MCB",
+   "in_scope": true,
    "legal_name": "MCB Bank Limited",
    "psx_sector": "COMMERCIAL BANKS",
    "fiscal_year_end_month": "December",
@@ -236,6 +251,7 @@
   },
   {
    "ticker": "MEBL",
+   "in_scope": true,
    "legal_name": "Meezan Bank Limited",
    "psx_sector": "COMMERCIAL BANKS",
    "fiscal_year_end_month": "December",
@@ -251,6 +267,7 @@
   },
   {
    "ticker": "MLCF",
+   "in_scope": true,
    "legal_name": "Maple Leaf Cement Factory Limited",
    "psx_sector": "CEMENT",
    "fiscal_year_end_month": "June",
@@ -266,6 +283,7 @@
   },
   {
    "ticker": "NBP",
+   "in_scope": true,
    "legal_name": "National Bank of Pakistan",
    "psx_sector": "COMMERCIAL BANKS",
    "fiscal_year_end_month": "December",
@@ -281,6 +299,7 @@
   },
   {
    "ticker": "NRL",
+   "in_scope": true,
    "legal_name": "National Refinery Limited",
    "psx_sector": "REFINERY",
    "fiscal_year_end_month": "June",
@@ -296,6 +315,7 @@
   },
   {
    "ticker": "OGDC",
+   "in_scope": true,
    "legal_name": "Oil & Gas Development Company Limited",
    "psx_sector": "OIL & GAS EXPLORATION COMPANIES",
    "fiscal_year_end_month": "June",
@@ -311,6 +331,7 @@
   },
   {
    "ticker": "PAEL",
+   "in_scope": true,
    "legal_name": "Pak Elektron Limited",
    "psx_sector": "CABLE & ELECTRICAL GOODS",
    "fiscal_year_end_month": "December",
@@ -326,6 +347,7 @@
   },
   {
    "ticker": "POL",
+   "in_scope": true,
    "legal_name": "Pakistan Oilfields Limited",
    "psx_sector": "OIL & GAS EXPLORATION COMPANIES",
    "fiscal_year_end_month": "June",
@@ -341,6 +363,7 @@
   },
   {
    "ticker": "PPL",
+   "in_scope": true,
    "legal_name": "Pakistan Petroleum Limited",
    "psx_sector": "OIL & GAS EXPLORATION COMPANIES",
    "fiscal_year_end_month": "June",
@@ -356,6 +379,7 @@
   },
   {
    "ticker": "PSO",
+   "in_scope": true,
    "legal_name": "Pakistan State Oil Company Limited",
    "psx_sector": "OIL & GAS MARKETING COMPANIES",
    "fiscal_year_end_month": "June",
@@ -371,6 +395,7 @@
   },
   {
    "ticker": "PTC",
+   "in_scope": true,
    "legal_name": "Pakistan Telecommunication Company Ltd",
    "psx_sector": "TECHNOLOGY & COMMUNICATION",
    "fiscal_year_end_month": "December",
@@ -386,6 +411,7 @@
   },
   {
    "ticker": "SAZEW",
+   "in_scope": true,
    "legal_name": "Sazgar Engineering Works Limited",
    "psx_sector": "AUTOMOBILE ASSEMBLER",
    "fiscal_year_end_month": "June",
@@ -401,6 +427,7 @@
   },
   {
    "ticker": "SEARL",
+   "in_scope": true,
    "legal_name": "The Searle Company Limited",
    "psx_sector": "PHARMACEUTICALS",
    "fiscal_year_end_month": "June",
@@ -416,6 +443,7 @@
   },
   {
    "ticker": "SNGP",
+   "in_scope": true,
    "legal_name": "Sui Northern Gas Pipelines Limited",
    "psx_sector": "OIL & GAS MARKETING COMPANIES",
    "fiscal_year_end_month": "June",
@@ -431,6 +459,7 @@
   },
   {
    "ticker": "SYS",
+   "in_scope": true,
    "legal_name": "Systems Limited",
    "psx_sector": "TECHNOLOGY & COMMUNICATION",
    "fiscal_year_end_month": "December",
@@ -446,6 +475,7 @@
   },
   {
    "ticker": "UBL",
+   "in_scope": true,
    "legal_name": "United Bank Limited",
    "psx_sector": "COMMERCIAL BANKS",
    "fiscal_year_end_month": "December",
@@ -461,6 +491,7 @@
   },
   {
    "ticker": "ABL",
+   "in_scope": true,
    "legal_name": "Allied Bank Limited",
    "psx_sector": "COMMERCIAL BANKS",
    "fiscal_year_end_month": "December",
@@ -476,6 +507,7 @@
   },
   {
    "ticker": "BAHL",
+   "in_scope": true,
    "legal_name": "Bank AL Habib Limited",
    "psx_sector": "COMMERCIAL BANKS",
    "fiscal_year_end_month": "December",
@@ -491,6 +523,7 @@
   },
   {
    "ticker": "AKBL",
+   "in_scope": true,
    "legal_name": "Askari Bank Limited",
    "psx_sector": "COMMERCIAL BANKS",
    "fiscal_year_end_month": "December",
@@ -506,6 +539,7 @@
   },
   {
    "ticker": "FABL",
+   "in_scope": true,
    "legal_name": "Faysal Bank Limited",
    "psx_sector": "COMMERCIAL BANKS",
    "fiscal_year_end_month": "December",
@@ -521,6 +555,7 @@
   },
   {
    "ticker": "SSGC",
+   "in_scope": true,
    "legal_name": "Sui Southern Gas Company Limited",
    "psx_sector": "OIL & GAS MARKETING COMPANIES",
    "fiscal_year_end_month": "June",
@@ -536,6 +571,7 @@
   },
   {
    "ticker": "APL",
+   "in_scope": true,
    "legal_name": "Attock Petroleum Limited",
    "psx_sector": "OIL & GAS MARKETING COMPANIES",
    "fiscal_year_end_month": "June",
@@ -551,6 +587,7 @@
   },
   {
    "ticker": "SHEL",
+   "in_scope": true,
    "legal_name": "Shell Pakistan Limited",
    "psx_sector": "OIL & GAS MARKETING COMPANIES",
    "fiscal_year_end_month": "December",
@@ -566,6 +603,7 @@
   },
   {
    "ticker": "PRL",
+   "in_scope": true,
    "legal_name": "Pakistan Refinery Limited",
    "psx_sector": "REFINERY",
    "fiscal_year_end_month": "June",
@@ -581,6 +619,7 @@
   },
   {
    "ticker": "CNERGY",
+   "in_scope": true,
    "legal_name": "Cnergyico PK  Limited",
    "psx_sector": "REFINERY",
    "fiscal_year_end_month": "June",
@@ -596,6 +635,7 @@
   },
   {
    "ticker": "KAPCO",
+   "in_scope": true,
    "legal_name": "Kot Addu Power Company Limited",
    "psx_sector": "POWER GENERATION & DISTRIBUTION",
    "fiscal_year_end_month": "June",
@@ -611,6 +651,7 @@
   },
   {
    "ticker": "NPL",
+   "in_scope": true,
    "legal_name": "Nishat Power Limited",
    "psx_sector": "POWER GENERATION & DISTRIBUTION",
    "fiscal_year_end_month": "June",
@@ -626,6 +667,7 @@
   },
   {
    "ticker": "CHCC",
+   "in_scope": true,
    "legal_name": "Cherat Cement Company Limited",
    "psx_sector": "CEMENT",
    "fiscal_year_end_month": "June",
@@ -641,6 +683,7 @@
   },
   {
    "ticker": "KOHC",
+   "in_scope": true,
    "legal_name": "Kohat Cement Company Limited",
    "psx_sector": "CEMENT",
    "fiscal_year_end_month": "June",
@@ -656,6 +699,7 @@
   },
   {
    "ticker": "ISL",
+   "in_scope": true,
    "legal_name": "International Steels Limited",
    "psx_sector": "ENGINEERING",
    "fiscal_year_end_month": "June",
@@ -671,6 +715,7 @@
   },
   {
    "ticker": "ASTL",
+   "in_scope": true,
    "legal_name": "Amreli Steels Limited",
    "psx_sector": "ENGINEERING",
    "fiscal_year_end_month": "June",
@@ -686,6 +731,7 @@
   },
   {
    "ticker": "MUGHAL",
+   "in_scope": true,
    "legal_name": "Mughal Iron & Steel Industries Limited",
    "psx_sector": "ENGINEERING",
    "fiscal_year_end_month": "June",
@@ -701,6 +747,7 @@
   },
   {
    "ticker": "TRG",
+   "in_scope": true,
    "legal_name": "TRG Pakistan Limited",
    "psx_sector": "TECHNOLOGY & COMMUNICATION",
    "fiscal_year_end_month": "June",
@@ -716,6 +763,7 @@
   },
   {
    "ticker": "INDU",
+   "in_scope": true,
    "legal_name": "Indus Motor Company Limited",
    "psx_sector": "AUTOMOBILE ASSEMBLER",
    "fiscal_year_end_month": "June",
@@ -731,6 +779,7 @@
   },
   {
    "ticker": "HCAR",
+   "in_scope": true,
    "legal_name": "Honda Atlas Cars (Pakistan) Limited",
    "psx_sector": "AUTOMOBILE ASSEMBLER",
    "fiscal_year_end_month": "March",
@@ -746,6 +795,7 @@
   },
   {
    "ticker": "EPCL",
+   "in_scope": true,
    "legal_name": "Engro Polymer & Chemicals Limited",
    "psx_sector": "CHEMICAL",
    "fiscal_year_end_month": "December",
@@ -761,6 +811,7 @@
   },
   {
    "ticker": "FFBL",
+   "in_scope": true,
    "legal_name": "Fauji Fertilizer Bin Qasim Limited",
    "psx_sector": "FERTILIZER",
    "fiscal_year_end_month": "December",

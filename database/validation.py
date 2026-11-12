@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from collections import Counter
+from pathlib import Path
 from typing import Any
 
 from database.canonical import canonical_url
@@ -61,6 +62,32 @@ def validate_company_seed(seed: dict[str, Any]) -> list[str]:
 LIFECYCLE = ("NOT REVIEWED", "REVIEWED", "APPROVED", "RESTRICTED", "LICENCE REQUIRED", "BLOCKED",
              "IMPLEMENTED", "TESTED", "ACTIVE", "DISABLED")
 ADAPTERS = ("rss", "atom", "json_api", "udf_ohlcv")  # udf_ohlcv: collectors/market_ohlcv.py
+# Sources collected under written consent, mapped to their consent record. Such a source is enabled but never
+# ACTIVE: the generic engine refuses it; only its consent-bound job (collectors/investify_job.py) collects it.
+CONSENT_RECORDS = {
+    "investify_announcements": "docs/consent/investify-2026-11-12.md",
+    "investify_fundamentals": "docs/consent/investify-fundamentals-2026-11-12.md",
+}
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def _consent_errors(s: dict[str, Any]) -> list[str]:
+    sid = s.get("source_id", "")
+    errors = []
+    record = CONSENT_RECORDS[sid]
+    if not (_REPO_ROOT / record).is_file():
+        errors.append(f"{sid}: consent record {record} is missing")
+    if s.get("lifecycle_status") != "APPROVED":
+        errors.append(f"{sid}: a consent-governed source must have lifecycle APPROVED (never ACTIVE)")
+    if s.get("terms_status") != "approved":
+        errors.append(f"{sid}: a consent-governed source must have terms_status approved")
+    if s.get("access_status") != "verified_permitted":
+        errors.append(f"{sid}: a consent-governed source must have access_status verified_permitted")
+    if s.get("access_method") != "html_permitted":
+        errors.append(f"{sid}: a consent-governed source must have access_method html_permitted")
+    if s.get("licensing_status") != "permission_required":
+        errors.append(f"{sid}: a consent-governed source must record licensing_status permission_required")
+    return errors
 
 
 def validate_source_registry(reg: dict[str, Any]) -> list[str]:
@@ -83,8 +110,11 @@ def validate_source_registry(reg: dict[str, Any]) -> list[str]:
         life = s.get("lifecycle_status", "NOT REVIEWED")
         if life not in LIFECYCLE:
             errors.append(f"{sid}: invalid lifecycle status {life!r}")
-        if s.get("enabled") and life != "ACTIVE":
+        consent_governed = sid in CONSENT_RECORDS
+        if s.get("enabled") and life != "ACTIVE" and not consent_governed:
             errors.append(f"{sid}: enabled without being ACTIVE")
+        if consent_governed:
+            errors.extend(_consent_errors(s))
         if life == "ACTIVE" and (s.get("terms_status") != "approved"
                                  or s.get("access_status") != "verified_permitted"):
             errors.append(f"{sid}: ACTIVE requires approved terms and verified access")

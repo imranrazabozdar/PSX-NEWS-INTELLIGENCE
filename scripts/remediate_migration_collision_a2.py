@@ -51,7 +51,7 @@ FOREIGN_OBJECTS = (  # (type, name), in drop order
     ("table", "extraction_reviews"),
 )
 CONFIRM_PHRASE = "retire-migration-11"
-REPO_VERSIONS_AFTER = (11, 12, 13, 14)
+REPO_VERSIONS_AFTER = (11, 12, 13, 14, 15, 16)
 # Full-table reads in one execute run: counts before, counts after, and the foreign-key scan inside
 # integrity.check. The script itself runs no other foreign-key scan, to stay inside the per-run budget.
 READ_PASSES = 2  # one full count scan in pre-flight, one in post-flight (pre-flight result is reused)

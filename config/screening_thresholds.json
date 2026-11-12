@@ -1,0 +1,10 @@
+{
+  "_note": "Descriptive screening criteria, owner-visible. Each rule describes a company's state against a stated threshold. They are not buy or sell rules and carry no action. Metric names match the labels Investify shows.",
+  "rules": [
+    {"id": "low_pe", "label": "Low P/E", "metrics": ["P/E Annual"], "op": "<", "threshold": 10, "unit": "ratio"},
+    {"id": "high_net_margin", "label": "High net margin", "metrics": ["Net Margin"], "op": ">", "threshold": 20, "unit": "percent"},
+    {"id": "strong_roe", "label": "Strong ROE", "metrics": ["Return on Equity"], "op": ">", "threshold": 15, "unit": "percent"},
+    {"id": "positive_growth", "label": "Positive earnings growth", "metrics": ["Growth Expected", "Expected Growth"], "op": ">", "threshold": 0, "unit": "percent"},
+    {"id": "comfortable_liquidity", "label": "Comfortable liquidity", "metrics": ["Current Ratio"], "op": ">", "threshold": 1.5, "unit": "ratio"}
+  ]
+}

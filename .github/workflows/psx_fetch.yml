@@ -1,0 +1,37 @@
+# Autonomous good-citizen fetcher. One tick per schedule; every tick decides whether to act (see
+# engines/autonomous_tick.py). Scheduled runs use the DEFAULT branch: this file must be merged to take effect.
+#
+# Live by default. Structural guards only (library reachable, breaker, owner window, calendar, throttle,
+# daily ceiling, robots.txt). Manual pause: disable this workflow in the Actions UI (docs/ops/AUTONOMOUS_FETCHER.md).
+name: PSX good-citizen fetcher (autonomous)
+
+on:
+  schedule:
+    - cron: "*/30 1-11 * * 1-5"  # every 30 minutes, weekdays, UTC; each tick checks the PSX window itself
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: psx-fetch
+  cancel-in-progress: false
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PSXNI_LIBRARY_TURSO_DATABASE_URL: ${{ secrets.PSXNI_LIBRARY_TURSO_DATABASE_URL }}
+      PSXNI_LIBRARY_TURSO_AUTH_TOKEN: ${{ secrets.PSXNI_LIBRARY_TURSO_AUTH_TOKEN }}
+      PSXNI_CONTACT_EMAIL: ${{ vars.PSXNI_CONTACT_EMAIL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: One tick
+        run: python -m engines.autonomous_tick

@@ -139,7 +139,8 @@ def test_00_embedded_foreign_migration_is_the_recorded_one():
 
 def test_01_collision_is_reproduced_by_the_runner_and_the_integrity_check(db):
     for kwargs in ({"dry_run": True}, {}):
-        with pytest.raises(MigrationError, match=r"migration 11 \(extraction_reviews\) was changed"):
+        # the name check now refuses the foreign version-11 record before the checksum check is reached
+        with pytest.raises(MigrationError, match=r"migration 11 is recorded as 'extraction_reviews'"):
             migrate(db, **kwargs)
     report = integrity.check(db)
     assert report["state"] == "problems"
@@ -197,8 +198,10 @@ def test_07_remediation_executes_and_verifies(db):
     assert report["status"] == "remediated_verified", report
     post = report["postflight"]
     assert post["problems"] == [] and post["ledger_versions"] == list(range(1, 11))
-    assert post["runner_would_apply"] == ["0011_financial_documents", "0012_assessments_and_valuations",
-                                          "0013_macro_series", "0014_validation_and_reports"]
+    assert post["runner_would_apply"] == [
+        "0011_financial_documents", "0012_assessments_and_valuations",
+        "0013_macro_series", "0014_validation_and_reports", "0015_psx_announcements",
+        "0016_psx_financial_results"]
     assert post["integrity_state"] == "ok" and post["digest_matches_expected"] is True
     assert not db.execute("SELECT 1 FROM sqlite_master WHERE name LIKE '%extraction_reviews%' "
                           "OR name IN ('v_review_queue', '_a2_guard')")
@@ -217,7 +220,7 @@ def test_09_repository_migrations_then_apply_and_rerun_is_a_noop(db):
     log = migrate(db)
     assert [line.split()[1] for line in log if line.startswith("apply")] == [
         "0011_financial_documents", "0012_assessments_and_valuations", "0013_macro_series",
-        "0014_validation_and_reports"]
+        "0014_validation_and_reports", "0015_psx_announcements", "0016_psx_financial_results"]
     assert all(line.startswith("skip") for line in migrate(db))
     assert integrity.check(db)["state"] == "ok"
     assert db.execute("PRAGMA foreign_key_check") == []

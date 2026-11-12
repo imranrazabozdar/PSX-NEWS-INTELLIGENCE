@@ -48,7 +48,8 @@ INSURER_SECTORS = {"INSURANCE"}
 _NUM = re.compile(
     r"^(?:\((?P<b>[0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?|[0-9]{1,3}(?:,[0-9]{2})*,[0-9]{3}"
     r"(?:\.[0-9]+)?|[0-9]+(?:\.[0-9]+)?)\)|(?P<p>-?[0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?|"
-    r"-?[0-9]{1,3}(?:,[0-9]{2})*,[0-9]{3}(?:\.[0-9]+)?|-?[0-9]+(?:\.[0-9]+)?))$")
+    r"-?[0-9]{1,3}(?:,[0-9]{2})*,[0-9]{3}(?:\.[0-9]+)?|-?[0-9]+(?:\.[0-9]+)?))$"
+)
 _BLANK = {"-", "–", "—", "nil", "n/a"}
 
 
@@ -68,7 +69,9 @@ def normalise_label(label: str) -> str:
 def framework_for(db, company_id: str) -> str:
     rows = db.execute(
         "SELECT s.name FROM company_classifications cc JOIN sectors s USING(sector_id) "
-        "WHERE cc.company_id = ? AND cc.valid_to IS NULL", (company_id,))
+        "WHERE cc.company_id = ? AND cc.valid_to IS NULL",
+        (company_id,),
+    )
     names = {r["name"].upper() for r in rows}
     if names & BANK_SECTORS:
         return "bank"
@@ -88,24 +91,36 @@ def load_mappings(db, path: Path | str = MAPPINGS_PATH) -> int:
                 for lab in {normalise_label(x) for x in labels}:
                     if not db.execute(
                         "SELECT 1 FROM account_mappings WHERE framework = ? AND statement = ? "
-                        "AND raw_label_normalised = ?", (fw, st, lab)):
+                        "AND raw_label_normalised = ?",
+                        (fw, st, lab),
+                    ):
                         db.execute(
                             "INSERT INTO account_mappings(framework, raw_label_normalised, statement, "
                             "canonical_code, version, approved_by, approved_at_utc) VALUES (?,?,?,?,1,?,?)",
-                            (fw, lab, st, code, SEED_APPROVER, now))
+                            (fw, lab, st, code, SEED_APPROVER, now),
+                        )
                         n += 1
     return n
 
 
-def add_mapping(db, *, framework: str, statement: str, label: str, canonical_code: str,
-                approved_by: str) -> int:
+def add_mapping(
+    db, *, framework: str, statement: str, label: str, canonical_code: str, approved_by: str
+) -> int:
     """Add a new mapping version (an owner-approved correction or extension)."""
     lab = normalise_label(label)
-    v = db.execute("SELECT COALESCE(MAX(version), 0) AS v FROM account_mappings WHERE framework = ? AND "
-                   "statement = ? AND raw_label_normalised = ?", (framework, statement, lab))[0]["v"] + 1
-    db.execute("INSERT INTO account_mappings(framework, raw_label_normalised, statement, canonical_code, "
-               "version, approved_by, approved_at_utc) VALUES (?,?,?,?,?,?,?)",
-               (framework, lab, statement, canonical_code, v, approved_by, _now()))
+    v = (
+        db.execute(
+            "SELECT COALESCE(MAX(version), 0) AS v FROM account_mappings WHERE framework = ? AND "
+            "statement = ? AND raw_label_normalised = ?",
+            (framework, statement, lab),
+        )[0]["v"]
+        + 1
+    )
+    db.execute(
+        "INSERT INTO account_mappings(framework, raw_label_normalised, statement, canonical_code, "
+        "version, approved_by, approved_at_utc) VALUES (?,?,?,?,?,?,?)",
+        (framework, lab, statement, canonical_code, v, approved_by, _now()),
+    )
     return v
 
 
@@ -114,7 +129,9 @@ def _mapping(db, framework: str) -> dict[tuple[str, str], str]:
         "SELECT m.statement, m.raw_label_normalised, m.canonical_code FROM account_mappings m "
         "WHERE m.framework = ? AND m.version = (SELECT MAX(version) FROM account_mappings x WHERE "
         "x.framework = m.framework AND x.statement = m.statement "
-        "AND x.raw_label_normalised = m.raw_label_normalised)", (framework,))
+        "AND x.raw_label_normalised = m.raw_label_normalised)",
+        (framework,),
+    )
     return {(r["statement"], r["raw_label_normalised"]): r["canonical_code"] for r in rows}
 
 
@@ -132,41 +149,139 @@ def parse_number(tok: str) -> float | None:
     return float(m.group("p").replace(",", ""))
 
 
+def _is_header_row(vals: list[str], columns: list[str]) -> bool:
+    """A column-header row repeats the period years ('2025 2024').
+
+    It is not data and must not become a value.
+    """
+    if len(vals) != len(columns):
+        return False
+    return all(re.fullmatch(r"(19|20|21)\d\d", v) and v == c[:4] for v, c in zip(vals, columns, strict=True))
+
+
+# A tax effect printed under a component: bound to the component above it (context), not to its words alone.
+CHILD_TAX_LABEL = re.compile(
+    r"^[\W_]*(?:deferred tax thereon|current tax (?:credit|charge|expense)? ?related to)", re.I
+)
+
+
+def _dedupe_label(label: str) -> str:
+    """A label printed twice on top of itself (a text-layer overprint, e.g. 'TOTAL ASSETSTOTAL ASSETS') is
+    read once. Only an exact doubling is collapsed; anything else is left as printed."""
+    h = len(label) // 2
+    first, second = label[:h].strip(), label[h:].strip()
+    return first if first and first == second else label
+
+
+def _without_percent_tokens(s: str, n: int) -> str:
+    """Defensive: a row that alternates value and percent (an analysis table) is read as its values only.
+    Percent tokens are dropped only when the remaining trailing figures are exactly the column count, so a
+    genuine statement row is never altered."""
+    if "%" not in s:
+        return s
+    kept = [x for x in s.split() if not x.endswith("%")]
+    count = 0
+    for x in reversed(kept):
+        if _NUM.match(x) or x.casefold() in _BLANK:
+            count += 1
+        else:
+            break
+    return " ".join(kept) if count == n else s
+
+
 def parse_statement_text(text: str, *, statement: str, columns: list[str], page: int | None = None) -> dict:
     """Parse lines of already-extracted statement text into line records.
 
     Each line is `label  [note]  value_1 ... value_n` for the given column period ends. A leading small
-    integer before the expected value count is treated as a note reference. Lines whose trailing tokens
-    are not exactly the expected values are returned in `unparsed` for review, never guessed.
+    integer before the expected value count is treated as a note reference. Dashes are not reported (never
+    zero). Repeated column-header rows are skipped, not read as data. A long label printed on its own line is
+    joined to
+    the figures printed on the next line. Anything else that does not match exactly is returned in `unparsed`.
     """
     lines, unparsed = [], []
     n = len(columns)
+    parent_label: str | None = None  # the last row that is a component heading (not a tax effect)
+    pending_label: str | None = None  # a label-only line that may be continued by a figures-only line
     for raw in (text or "").splitlines():
         s = raw.strip()
         if not s:
             continue
+        s = _without_percent_tokens(s, len(columns))
         toks = s.split()
         vals: list[str] = []
         while toks and (_NUM.match(toks[-1]) or toks[-1].casefold() in _BLANK):
             vals.insert(0, toks.pop())
-        if len(vals) == n + 1 and re.fullmatch(r"[0-9]{1,2}(\.[0-9]{1,2})?", vals[0]):
+        if len(vals) == n + 1 and re.fullmatch(r"[0-9]{1,2}(\.[0-9]{1,2}){0,2}", vals[0]):
             vals = vals[1:]  # note reference
-        label = " ".join(toks)
+        elif len(vals) == n and toks and re.fullmatch(r"[0-9]{1,2}(\.[0-9]{1,2}){1,2}", toks[-1]):
+            # a dotted note reference (e.g. 23.1.2) printed at the end of the label, before the figures
+            toks.pop()
+        label = _dedupe_label(" ".join(toks))
+        if pending_label is not None:
+            if not label and len(vals) == n:  # the figures for the wrapped label above
+                label = pending_label
+            elif label and len(vals) == n and label[0].islower():
+                # a wrapped label whose second line carries its own figures ("...foreign associated" /
+                # "company of the associates - net of taxation  (848,606)"): one label, one line of figures
+                label = f"{pending_label} {label}"
+            else:
+                unparsed.append({"line": pending_label, "reason": "label without figures"})
+            pending_label = None
+            if not label:
+                continue
+        if not label and vals and _is_header_row(vals, columns):
+            unparsed.append({"line": s, "reason": "column header (not data)"})
+            continue
+        if label and not vals and not _NUM.match(label.split()[-1] if label.split() else ""):
+            if not any(ch.isdigit() for ch in label) and len(label.split()) <= 12:
+                pending_label = label  # may be continued on the next line
+                continue
+        if label and vals and _is_header_row(vals, columns):
+            unparsed.append({"line": s, "reason": "column header (not data)"})
+            continue
         if not label or len(vals) != n:
             if vals or label:
                 unparsed.append({"line": s, "reason": f"expected {n} values, found {len(vals)}"})
             continue
+        # Context: a tax effect ("Deferred tax thereon") belongs to the component printed just above it.
+        # The row
+        # keeps its own label and gets the parent as context, so the same words under two parents stay two
+        # rows.
+        is_child = bool(CHILD_TAX_LABEL.match(label))
+        context = f"{parent_label} {label}" if is_child and parent_label else None
+        if not is_child and label and vals:
+            parent_label = label
         for col, tok in zip(columns, vals, strict=True):
             v = parse_number(tok)
-            lines.append({"statement": statement, "raw_label": label, "column_period_end": col, "value": v,
-                          "page": page})
+            lines.append(
+                {
+                    "statement": statement,
+                    "raw_label": label,
+                    "context_label": context,
+                    "parent_label": parent_label if is_child else None,
+                    "column_period_end": col,
+                    "value": v,
+                    "page": page,
+                }
+            )
+    if pending_label is not None:
+        unparsed.append({"line": pending_label, "reason": "label without figures"})
     return {"lines": lines, "unparsed": unparsed}
 
 
 # ---------------------------------------------------------------- import
 def _validate(rec: dict) -> None:
-    need = ("company_ticker", "doc_type", "period_end", "scope", "currency", "unit_scale", "audit_status",
-            "document_sha256", "lines")
+    need = (
+        "company_ticker",
+        "doc_type",
+        "period_end",
+        "scope",
+        "currency",
+        "unit_scale",
+        "audit_status",
+        "document_sha256",
+        "lines",
+    )
     miss = [k for k in need if rec.get(k) in (None, "", [])]
     if miss:
         raise ImportError_(f"missing fields: {miss}")
@@ -199,47 +314,83 @@ def import_report(db, rec: dict, *, importer: str, rights_attestation: str) -> d
     if not importer.strip() or not rights_attestation.strip():
         raise ImportError_("importer and rights_attestation are required")
     _validate(rec)
-    comp = db.execute("SELECT company_id FROM company_identifiers WHERE id_type = 'psx_ticker' AND value = ? "
-                      "AND valid_to IS NULL", (rec["company_ticker"],))
+    comp = db.execute(
+        "SELECT company_id FROM company_identifiers WHERE id_type = 'psx_ticker' AND value = ? "
+        "AND valid_to IS NULL",
+        (rec["company_ticker"],),
+    )
     if not comp:
         raise ImportError_(f"ticker {rec['company_ticker']!r} is not in the company master (U4: not added)")
     company_id = comp[0]["company_id"]
     framework = framework_for(db, company_id)
     item = repo.record_source_item(
-        db, source_id=SOURCE_ID, collected_at_utc=rec.get("retrieved_at_utc") or _now(),
+        db,
+        source_id=SOURCE_ID,
+        collected_at_utc=rec.get("retrieved_at_utc") or _now(),
         url=rec.get("original_url"),
-        external_id=f"doc:{rec['document_sha256']}:{rec['scope']}", content_hash=rec["document_sha256"],
+        external_id=f"doc:{rec['document_sha256']}:{rec['scope']}",
+        content_hash=rec["document_sha256"],
         title=rec.get("title") or f"{rec['company_ticker']} {rec['doc_type']} {rec['period_end']}",
         published_at_utc=rec.get("filed_at_utc"),
-        provenance={"retrieval_method": "manual", "document_type": rec["doc_type"],
-                    "source_metadata_json": json.dumps({
-                        "importer": importer, "rights_attestation": rights_attestation,
-                        "extraction_method": rec.get("extraction_method", "manual")})})
+        provenance={
+            "retrieval_method": "manual",
+            "document_type": rec["doc_type"],
+            "source_metadata_json": json.dumps(
+                {
+                    "importer": importer,
+                    "rights_attestation": rights_attestation,
+                    "extraction_method": rec.get("extraction_method", "manual"),
+                }
+            ),
+        },
+    )
     sid = item.source_item_id
-    existing = db.execute("SELECT report_id FROM financial_reports WHERE company_id = ? AND doc_type = ? AND "
-                          "period_end = ? AND scope = ? AND source_item_id = ?",
-                          (company_id, rec["doc_type"], rec["period_end"], rec["scope"], sid))
+    existing = db.execute(
+        "SELECT report_id FROM financial_reports WHERE company_id = ? AND doc_type = ? AND "
+        "period_end = ? AND scope = ? AND source_item_id = ?",
+        (company_id, rec["doc_type"], rec["period_end"], rec["scope"], sid),
+    )
     if existing:
         rr = reconcile(db, existing[0]["report_id"])  # recompute: a crash may have left it unreconciled
         return {"report_id": existing[0]["report_id"], "status": "duplicate", "reconciliation": rr["status"]}
     restates = None
     if rec.get("restates_period_end"):
-        r = db.execute("SELECT report_id FROM financial_reports WHERE company_id = ? AND period_end = ? AND "
-                       "scope = ? ORDER BY report_id LIMIT 1", (company_id, rec["restates_period_end"],
-                                                                rec["scope"]))
+        r = db.execute(
+            "SELECT report_id FROM financial_reports WHERE company_id = ? AND period_end = ? AND "
+            "scope = ? ORDER BY report_id LIMIT 1",
+            (company_id, rec["restates_period_end"], rec["scope"]),
+        )
         restates = r[0]["report_id"] if r else None
     method = rec.get("extraction_method", "manual")
     mapping = _mapping(db, framework)
-    stmts = [(
-        "INSERT INTO financial_reports(company_id, source_item_id, doc_type, period_end, period_months, "
-        "scope, currency, unit_scale, audit_status, auditor_opinion, filed_at_utc, restates_report_id, "
-        "framework, extraction_method, created_at_utc) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-        (company_id, sid, rec["doc_type"], rec["period_end"], DOC_MONTHS[rec["doc_type"]], rec["scope"],
-         rec["currency"], int(rec["unit_scale"]), rec["audit_status"], rec.get("auditor_opinion"),
-         rec.get("filed_at_utc"), restates, framework, method, _now()),
-    )]
-    rid_sql = ("(SELECT report_id FROM financial_reports WHERE company_id = ? AND doc_type = ? AND "
-               "period_end = ? AND scope = ? AND source_item_id = ?)")
+    stmts = [
+        (
+            "INSERT INTO financial_reports(company_id, source_item_id, doc_type, period_end, period_months, "
+            "scope, currency, unit_scale, audit_status, auditor_opinion, filed_at_utc, restates_report_id, "
+            "framework, extraction_method, created_at_utc) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (
+                company_id,
+                sid,
+                rec["doc_type"],
+                rec["period_end"],
+                DOC_MONTHS[rec["doc_type"]],
+                rec["scope"],
+                rec["currency"],
+                int(rec["unit_scale"]),
+                rec["audit_status"],
+                rec.get("auditor_opinion"),
+                rec.get("filed_at_utc"),
+                restates,
+                framework,
+                method,
+                _now(),
+            ),
+        )
+    ]
+    rid_sql = (
+        "(SELECT report_id FROM financial_reports WHERE company_id = ? AND doc_type = ? AND "
+        "period_end = ? AND scope = ? AND source_item_id = ?)"
+    )
     rkey = (company_id, rec["doc_type"], rec["period_end"], rec["scope"], sid)
     unmapped = []
     line_no: dict[tuple[str, str], int] = {}
@@ -251,30 +402,50 @@ def import_report(db, rec: dict, *, importer: str, rights_attestation: str) -> d
             unmapped.append(ln["raw_label"])
         v = ln.get("value")
         state = "reported" if v is not None else ln.get("value_state", "not_reported")
-        stmts.append((
-            "INSERT INTO financial_line_items(report_id, statement, line_no, raw_label, canonical_code, "
-            "column_period_end, is_comparative, value, value_state, page, extraction_method, confidence) "
-            "VALUES (" + rid_sql + ",?,?,?,?,?,?,?,?,?,?,?)",
-            (*rkey, ln["statement"], line_no[k], ln["raw_label"], code, ln["column_period_end"],
-             int(ln["column_period_end"] != rec["period_end"]), v, state, ln.get("page"), method,
-             ln.get("confidence")),
-        ))
+        stmts.append(
+            (
+                "INSERT INTO financial_line_items(report_id, statement, line_no, raw_label, canonical_code, "
+                "column_period_end, is_comparative, value, value_state, page, extraction_method, confidence) "
+                "VALUES (" + rid_sql + ",?,?,?,?,?,?,?,?,?,?,?)",
+                (
+                    *rkey,
+                    ln["statement"],
+                    line_no[k],
+                    ln["raw_label"],
+                    code,
+                    ln["column_period_end"],
+                    int(ln["column_period_end"] != rec["period_end"]),
+                    v,
+                    state,
+                    ln.get("page"),
+                    method,
+                    ln.get("confidence"),
+                ),
+            )
+        )
     stmts.append((rid_sql[1:-1], rkey))
     report_id = db.batch(stmts, transactional=True)[-1][0]["report_id"]
     rec_result = reconcile(db, report_id)
     restatements = comparative_changes(db, report_id)
-    return {"report_id": report_id, "status": rec_result["status"], "framework": framework,
-            "checks": rec_result["checks"], "unmapped": sorted(set(unmapped)),
-            "comparative_changes": restatements}
+    return {
+        "report_id": report_id,
+        "status": rec_result["status"],
+        "framework": framework,
+        "checks": rec_result["checks"],
+        "unmapped": sorted(set(unmapped)),
+        "comparative_changes": restatements,
+    }
 
 
 # ---------------------------------------------------------------- reconciliation
 def _values(db, report_id: int, period_end: str, conflicts: list | None = None) -> dict[str, float | None]:
     """Canonical values for one column. A code mapped from two lines with different values is a conflict:
     it is reported and left out (never resolved by picking one)."""
-    rows = db.execute("SELECT canonical_code, value, raw_label FROM financial_line_items WHERE report_id = ? "
-                      "AND column_period_end = ? AND canonical_code IS NOT NULL ORDER BY statement, line_no",
-                      (report_id, period_end))
+    rows = db.execute(
+        "SELECT canonical_code, value, raw_label FROM financial_line_items WHERE report_id = ? "
+        "AND column_period_end = ? AND canonical_code IS NOT NULL ORDER BY statement, line_no",
+        (report_id, period_end),
+    )
     seen: dict[str, list] = {}
     for r in rows:
         seen.setdefault(r["canonical_code"], []).append(r)
@@ -283,8 +454,13 @@ def _values(db, report_id: int, period_end: str, conflicts: list | None = None) 
         vals = {x["value"] for x in rs}
         if len(vals) > 1:
             if conflicts is not None:
-                conflicts.append({"canonical_code": code, "lines": [x["raw_label"] for x in rs],
-                                  "values": sorted(vals, key=lambda v: (v is None, v))})
+                conflicts.append(
+                    {
+                        "canonical_code": code,
+                        "lines": [x["raw_label"] for x in rs],
+                        "values": sorted(vals, key=lambda v: (v is None, v)),
+                    }
+                )
             continue
         out[code] = rs[0]["value"]
     return out
@@ -298,16 +474,21 @@ IDENTITIES = (
     ("balance_sheet", "total_assets", ("total_liabilities", "total_equity"), lambda a, b: a + b),
     ("gross_profit", "gross_profit", ("revenue", "cost_of_sales"), lambda a, b: a - abs(b)),
     ("profit_after_tax", "profit_after_tax", ("profit_before_tax", "taxation"), lambda a, b: a - abs(b)),
-    ("net_interest_income", "net_interest_income", ("interest_earned", "interest_expensed"),
-     lambda a, b: a - abs(b)),
+    (
+        "net_interest_income",
+        "net_interest_income",
+        ("interest_earned", "interest_expensed"),
+        lambda a, b: a - abs(b),
+    ),
+    # opening cash + net movement = closing cash (cash flow statement)
+    ("cash_flow", "closing_cash", ("opening_cash", "net_change_in_cash"), lambda a, b: a + b),
 )
 
 
-def reconcile(db, report_id: int) -> dict:
-    rep = db.execute("SELECT period_end FROM financial_reports WHERE report_id = ?", (report_id,))[0]
-    conflicts: list = []
-    v = _values(db, report_id, rep["period_end"], conflicts)
-    checks = [{"check": "single_value_per_code", "result": "fail", **c} for c in conflicts]
+def identity_checks(v: dict[str, float | None]) -> list[dict]:
+    """Pure check of the reporting identities on canonical values (no database). Used by reconcile() and by
+    the archive loader, so both apply the same gate. A balance sheet with any reported total must balance."""
+    checks: list[dict] = []
     for name, total, (a, b), f in IDENTITIES:
         if total not in v and a not in v:
             continue  # identity not relevant to this report's lines
@@ -318,8 +499,32 @@ def reconcile(db, report_id: int) -> dict:
             continue
         expected = f(vals[1], vals[2])
         ok = abs(vals[0] - expected) <= _tol(vals[0], expected)
-        checks.append({"check": name, "result": "pass" if ok else "fail", "reported": vals[0],
-                       "expected": expected})
+        checks.append(
+            {"check": name, "result": "pass" if ok else "fail", "reported": vals[0], "expected": expected}
+        )
+    # A balance sheet that is present must be checked and must balance. An identity that cannot be checked
+    # (a missing total) never counts as reconciled just because a P&L identity passed.
+    bs_codes = ("total_assets", "total_liabilities", "total_equity")
+    if any(v.get(c) is not None for c in bs_codes):  # a reported balance-sheet total, not a blank one
+        bs = next((c for c in checks if c["check"] == "balance_sheet"), None)
+        if bs is None or bs["result"] != "pass":
+            checks.append(
+                {
+                    "check": "balance_sheet_required",
+                    "result": "fail",
+                    "reason": "balance sheet is present but the identity was not verified",
+                    "result_of_identity": bs["result"] if bs else "absent",
+                }
+            )
+    return checks
+
+
+def reconcile(db, report_id: int) -> dict:
+    rep = db.execute("SELECT period_end FROM financial_reports WHERE report_id = ?", (report_id,))[0]
+    conflicts: list = []
+    v = _values(db, report_id, rep["period_end"], conflicts)
+    checks = [{"check": "single_value_per_code", "result": "fail", **c} for c in conflicts]
+    checks.extend(identity_checks(v))
     if any(c["result"] == "fail" for c in checks):
         status = "needs_review"
     elif any(c["result"] == "pass" for c in checks):
@@ -332,8 +537,9 @@ def reconcile(db, report_id: int) -> dict:
 
 def comparative_changes(db, report_id: int) -> list[dict]:
     """Comparative figures that differ from the value an earlier report stated for that period."""
-    rep = db.execute("SELECT company_id, scope, period_months FROM financial_reports WHERE report_id = ?",
-                     (report_id,))[0]
+    rep = db.execute(
+        "SELECT company_id, scope, period_months FROM financial_reports WHERE report_id = ?", (report_id,)
+    )[0]
     out = []
     for r in db.execute(
         "SELECT l.canonical_code, l.column_period_end, l.value, e.value AS earlier, "
@@ -346,8 +552,11 @@ def comparative_changes(db, report_id: int) -> list[dict]:
         "AND (l.statement = 'BS' OR er.period_months = ?)",  # flows compare only like-for-like periods
         (rep["company_id"], rep["scope"], report_id, rep["period_months"]),
     ):
-        if r["value"] is not None and r["earlier"] is not None and abs(r["value"] - r["earlier"]) > _tol(
-                r["value"], r["earlier"]):
+        if (
+            r["value"] is not None
+            and r["earlier"] is not None
+            and abs(r["value"] - r["earlier"]) > _tol(r["value"], r["earlier"])
+        ):
             out.append(dict(r))
     return out
 
@@ -358,8 +567,9 @@ def _period_type(db, company_id: str, period_end: str, months: int) -> str:
         return "FY"
     if months == 9:
         return "9M"
-    fye = db.execute("SELECT fiscal_year_end_month AS m FROM companies WHERE company_id = ?",
-                     (company_id,))[0]["m"]
+    fye = db.execute("SELECT fiscal_year_end_month AS m FROM companies WHERE company_id = ?", (company_id,))[
+        0
+    ]["m"]
     if fye is None:
         raise ImportError_("fiscal year end unknown: cannot label an interim period")
     k = (date.fromisoformat(period_end).month - fye) % 12  # months after fiscal year end
@@ -392,21 +602,42 @@ def promote(db, report_id: int) -> dict:
             val, unit = v, "shares"  # share counts are entered as absolute numbers, never scaled
         else:
             val, unit = v * rep["unit_scale"], rep["currency"]
-        stmts.append((
-            "INSERT INTO financial_metrics(company_id, period_end, period_type, metric, value, unit, "
-            "currency, basis, calculation_method, source_item_id, recorded_at_utc, report_id, scope) "
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
-            (rep["company_id"], rep["period_end"], ptype, code, val, unit, rep["currency"], basis,
-             f"line_item:{rep['extraction_method']};{rec_status}", rep["source_item_id"], _now(), report_id,
-             rep["scope"]),
-        ))
-    done = {r["metric"] for r in db.execute("SELECT metric FROM financial_metrics WHERE report_id = ?",
-                                             (report_id,))}
+        stmts.append(
+            (
+                "INSERT INTO financial_metrics(company_id, period_end, period_type, metric, value, unit, "
+                "currency, basis, calculation_method, source_item_id, recorded_at_utc, report_id, scope) "
+                "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                (
+                    rep["company_id"],
+                    rep["period_end"],
+                    ptype,
+                    code,
+                    val,
+                    unit,
+                    rep["currency"],
+                    basis,
+                    f"line_item:{rep['extraction_method']};{rec_status}",
+                    rep["source_item_id"],
+                    _now(),
+                    report_id,
+                    rep["scope"],
+                ),
+            )
+        )
+    done = {
+        r["metric"]
+        for r in db.execute("SELECT metric FROM financial_metrics WHERE report_id = ?", (report_id,))
+    }
     stmts = [st for st in stmts if st[1][3] not in done]  # re-promotion is a no-op, never a silent drop
     if stmts:
         db.batch(stmts, transactional=True)
-    return {"promoted": len(stmts), "already_promoted": len(done), "period_type": ptype, "basis": basis,
-            "reconciliation": rec_status}
+    return {
+        "promoted": len(stmts),
+        "already_promoted": len(done),
+        "period_type": ptype,
+        "basis": basis,
+        "reconciliation": rec_status,
+    }
 
 
 def document_sha256(path: Path | str) -> str:

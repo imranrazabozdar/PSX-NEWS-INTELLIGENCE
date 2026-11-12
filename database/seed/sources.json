@@ -2324,6 +2324,68 @@
    "reviewed_at_utc": null,
    "review_notes": "Owner-attested manual import only (engines/fin_import.py). Per-company IR terms are reviewed under R1; nothing is fetched automatically.",
    "notes": "M2"
+  },
+  {
+   "source_id": "investify_announcements",
+   "name": "Investify - PSX announcements listing (aggregator; collector built, DISABLED)",
+   "source_type": "news_media",
+   "domain": "investify.pk",
+   "platform": null,
+   "official_url": "https://www.investify.pk/announcements",
+   "category": "pakistan_media",
+   "subcategory": "announcements aggregator",
+   "geographic_coverage": "Pakistan",
+   "industries": [
+    "all"
+   ],
+   "priority": 2,
+   "content_format": "html",
+   "feed_url": null,
+   "adapter": null,
+   "retention_mode": "metadata_only",
+   "terms_status": "approved",
+   "licensing_status": "permission_required",
+   "verification_status": "url_verified",
+   "access_status": "verified_permitted",
+   "access_method": "html_permitted",
+   "lifecycle_status": "APPROVED",
+   "reliability_tier": "unrated",
+   "collection_frequency_minutes": null,
+   "enabled": 1,
+   "reviewed_at_utc": "2026-11-11T00:00:00Z",
+   "review_notes": "Written consent from Investify granted 2026-11-12 (owner-reported; record: docs/consent/investify-2026-11-12.md). Conditions: <=1 request per 15 minutes; trading hours Mon-Fri 09:00-16:30 PKT; ETag/If-Modified-Since; robots.txt; backoff on 429/503; attribution to Investify; metadata only; revocable. Collector: collectors/investify_job.py. Owner to confirm investify.com and investify.pk are the same entity.",
+   "notes": "Point-in-time fixture tests/fixtures/investify/announcements_point_in_time_2026-11-11.html. PDF links point to dps.psx.com.pk (gated_dps: browser fetch only). Live collection would write metadata only, from the scheduled job, not from a session."
+  },
+  {
+   "source_id": "investify_fundamentals",
+   "name": "Investify - fundamentals, company profile, competitors, industry (consented; collector built, DISABLED)",
+   "source_type": "news_media",
+   "domain": "investify.pk",
+   "platform": null,
+   "official_url": "https://www.investify.pk",
+   "category": "pakistan_media",
+   "subcategory": "fundamentals and company profile aggregator",
+   "geographic_coverage": "Pakistan",
+   "industries": [
+    "all"
+   ],
+   "priority": 2,
+   "content_format": "html",
+   "feed_url": null,
+   "adapter": null,
+   "retention_mode": "metadata_only",
+   "terms_status": "approved",
+   "licensing_status": "permission_required",
+   "verification_status": "url_verified",
+   "access_status": "verified_permitted",
+   "access_method": "html_permitted",
+   "lifecycle_status": "APPROVED",
+   "reliability_tier": "unrated",
+   "collection_frequency_minutes": null,
+   "enabled": 1,
+   "reviewed_at_utc": "2026-11-11T00:00:00Z",
+   "review_notes": "Expanded written consent from Investify granted 2026-11-12 (owner-reported; record: docs/consent/investify-fundamentals-2026-11-12.md). Owner confirmed 2026-11-12: operator is investify.pk; fundamentals and competitors paths confirmed; profile path verified by one conditional GET (see the consent record). STRUCTURED FIELDS ONLY are stored: no raw page body, no Investify summary text. Private personal research only; no redistribution, public hosting or resale. Fundamentals refresh only on a new financial-result announcement; profile and competitors backfilled once, manual refresh only; <=1 request per 15 minutes shared across Investify endpoints; ETag/If-Modified-Since; robots.txt; backoff on 429/503; attribution to Investify (source = investify.pk). Collector: collectors/investify_fundamentals.py.",
+   "notes": "Enabled 2026-11-12 after the owner approved the live HUBC proof. Industry has no endpoint."
   }
  ]
 }

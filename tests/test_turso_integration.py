@@ -23,6 +23,7 @@ from database.migrate import discover
 from tests.turso_guard import (
     OPT_IN_VALUE,
     OPT_IN_VAR,
+    SUITE_NOT_RUN_MESSAGE,
     TEST_TOKEN_VAR,
     TEST_URL_VAR,
     integration_config_status,
@@ -30,6 +31,8 @@ from tests.turso_guard import (
 )
 
 _STATUS, _REASON = integration_config_status(os.environ)
+if _STATUS == "skip":  # nothing configured: NOT_RUN, named as such (never a failure offline)
+    _REASON = SUITE_NOT_RUN_MESSAGE
 pytestmark = pytest.mark.skipif(_STATUS == "skip", reason=_REASON)
 SEED = Path(__file__).resolve().parents[1] / "database" / "seed"
 

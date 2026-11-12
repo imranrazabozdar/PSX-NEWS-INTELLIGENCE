@@ -1,0 +1,31 @@
+# Library self-test: proves the psx-library destination with the GitHub secrets. Turso only; no Investify.
+# Runs on demand (workflow_dispatch). Order: self-test first; the migration step runs only on a dispatch from main, after a
+# green self-test. The one-time pre-merge push trigger was removed at the merge.
+name: psx-library self-test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  selftest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PSXNI_LIBRARY_TURSO_DATABASE_URL: ${{ secrets.PSXNI_LIBRARY_TURSO_DATABASE_URL }}
+      PSXNI_LIBRARY_TURSO_AUTH_TOKEN: ${{ secrets.PSXNI_LIBRARY_TURSO_AUTH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Self-test (target guard, SELECT 1, probe round trip)
+        run: python -m engines.library_db
+      - name: Apply approved state migration (psx-library only; only after a green self-test)
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+        run: python -m scripts.apply_library_migration

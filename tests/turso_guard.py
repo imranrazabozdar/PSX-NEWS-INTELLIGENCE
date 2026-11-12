@@ -8,6 +8,7 @@ sets it. Even then the DDL runs only inside a batch that is always rolled back.
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
 
 OPT_IN_VAR = "PSXNI_TURSO_ALLOW_PENDING_MIGRATION_DDL"
@@ -81,8 +82,10 @@ def integration_config_status(env: Mapping[str, str]) -> tuple[str, str]:
     url = env.get(TEST_URL_VAR, "").strip()
     token = env.get(TEST_TOKEN_VAR, "").strip()
     if not url and not token:
-        return "skip", (f"{TEST_URL_VAR} / {TEST_TOKEN_VAR} not set: real-Turso integration tests not run "
-                        "(production credentials are never used for tests)")
+        return "skip", (
+            f"{TEST_URL_VAR} / {TEST_TOKEN_VAR} not set: real-Turso integration tests not run "
+            "(production credentials are never used for tests)"
+        )
     if not (url and token):
         return "fail", f"incomplete configuration: set both {TEST_URL_VAR} and {TEST_TOKEN_VAR}"
     if not url.startswith(("libsql://", "https://")):
@@ -99,3 +102,41 @@ def integration_config_status(env: Mapping[str, str]) -> tuple[str, str]:
     if prod_token and prod_token == token:
         return "fail", "refusing to run: the integration-test token equals the production token"
     return "ok", ""
+
+
+# ------------------------------------------------------------------ suite-level status (offline-safe)
+# The disposable integration suite is a named suite. Its status is one of RUN, NOT_RUN or REFUSED, and the
+# offline test run never fails because of it.
+SUITE_NOT_RUN_MESSAGE = "DISPOSABLE_INTEGRATION_SUITE: NOT_RUN (No disposable credentials set)"
+TARGET_URL_VARS = (
+    "PSXNI_TURSO_DISPOSABLE_DATABASE_URL",
+    "PSXNI_TEST_TURSO_DATABASE_URL",
+    "TURSO_DATABASE_URL",
+)
+_DISPOSABLE_NAME = re.compile(r"(?<![a-z0-9])(?:test|disposable)(?![a-z0-9])")
+_FORBIDDEN_NAME = re.compile(r"(?<![a-z0-9])(?:prod|production|operational|technical|news)(?![a-z0-9])")
+
+
+def disposable_suite_status(env: Mapping[str, str]) -> tuple[str, str]:
+    """('RUN' | 'NOT_RUN' | 'REFUSED', message).
+
+    RUN only when a target URL explicitly names itself a test or disposable database (as a whole word) and
+    names no
+    production, operational, technical or news database, and does not point at the production host. Nothing
+    set
+    gives NOT_RUN with SUITE_NOT_RUN_MESSAGE. An ambiguous or unsafe target is REFUSED, never run. This
+    never reads
+    a production credential to connect; it only refuses."""
+    urls = [(v, env.get(v, "").strip()) for v in TARGET_URL_VARS if env.get(v, "").strip()]
+    if not urls:
+        return "NOT_RUN", SUITE_NOT_RUN_MESSAGE
+    for var, url in urls:
+        name = _host(url) + " " + url.lower()
+        if _FORBIDDEN_NAME.search(name):
+            return "REFUSED", f"{var} names a production/operational/technical/news database: refused"
+        if not _DISPOSABLE_NAME.search(name):
+            return "REFUSED", f"{var} does not explicitly name a test or disposable database: refused"
+        prod = env.get(PRODUCTION_URL_VAR, "").strip()
+        if prod and _host(prod) == _host(url):
+            return "REFUSED", f"{var} points at the production database host: refused"
+    return "RUN", "disposable target explicitly named and accepted"

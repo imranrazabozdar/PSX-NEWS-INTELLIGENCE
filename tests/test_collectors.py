@@ -343,10 +343,25 @@ OWNER_APPROVED_2026_11_08 = {"dawn", "dawn_pakistan", "dawn_world", "brecorder",
                              "scs_chart"}
 
 
+# Enabled under written consent (docs/consent/investify-2026-11-12.md). Not ACTIVE: only its own job
+# collects it.
+CONSENT_ENABLED_2026_11_12 = {"investify_announcements", "investify_fundamentals"}
+CONSENT_RECORD_BY_SOURCE = {
+    "investify_announcements": "docs/consent/investify-2026-11-12.md",
+    "investify_fundamentals": "docs/consent/investify-fundamentals-2026-11-12.md",
+}
+
+
 def test_only_owner_approved_sources_are_active_or_enabled(db):
     rows = db.execute("SELECT * FROM sources WHERE enabled=1 OR lifecycle_status='ACTIVE'")
-    assert {r["source_id"] for r in rows} == OWNER_APPROVED_2026_11_08
+    assert {r["source_id"] for r in rows} == OWNER_APPROVED_2026_11_08 | CONSENT_ENABLED_2026_11_12
     for r in rows:
+        if r["source_id"] in CONSENT_ENABLED_2026_11_12:
+            assert (r["lifecycle_status"], r["enabled"], r["terms_status"], r["access_status"]) == (
+                "APPROVED", 1, "approved", "verified_permitted")
+            assert CONSENT_RECORD_BY_SOURCE[r["source_id"]] in r["review_notes"]
+            assert r["retention_mode"] == "metadata_only"
+            continue
         assert (r["lifecycle_status"], r["enabled"], r["terms_status"], r["access_status"]) == (
             "ACTIVE", 1, "approved", "verified_permitted")
         assert "OWNER DECISION 2026-11-08" in r["review_notes"]

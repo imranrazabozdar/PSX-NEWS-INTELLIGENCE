@@ -62,9 +62,18 @@ PROHIBITED_TERMS = frozenset({"prohibits_automation", "licence_required", "restr
 PROHIBITED_LICENSING = frozenset({"licence_required", "paid_api", "permission_required"})
 
 
+# Sources collected only by their own consent-bound job (rate limit, trading hours, robots, backoff).
+# The generic engine must never fetch them, not even as a dry run.
+CONSENT_GOVERNED = frozenset({"investify_announcements", "investify_fundamentals"})
+# collectors/investify_job.py and collectors/investify_fundamentals.py
+
+
 def authorise(source: dict, *, dry_run: bool) -> None:
     """Raise CollectionRefused unless this source may be fetched in this mode. No network use."""
     sid, life = source["source_id"], source.get("lifecycle_status")
+    if sid in CONSENT_GOVERNED:
+        raise CollectionRefused(f"source '{sid}' is collected only by its consent-bound job "
+                                "(collectors.investify_job)")
     if not dry_run:
         if life != "ACTIVE":
             raise CollectionRefused(f"source '{sid}' is {life}; only ACTIVE sources are collected "

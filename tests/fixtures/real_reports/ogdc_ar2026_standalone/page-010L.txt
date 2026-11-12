@@ -1,0 +1,47 @@
+214
+      					                                                                                                                 Reserves
+                                                                                                                Capital reserves                                    Other reserves
+      			 Share   Capital     Self                                                                              Share of capital    Share of self    Share of          Foreign         Unappropriated     Total equity
+      			 Capital reserve insurance                                                                               redemption         insurance    general reserve    translation           profit
+      					                 reserve                                                                              reserve fund          reserve     in associate       currency
+      						                                                                                                     in associate       in associate 		                    reserve
+                                                                                                                                   (Rupees ‘000)
+      Balance as at 1 July 2024                                           43,009,284   836,000   19,300,000         2,118,000           920,000               -       15,147,066       1,169,165,868     1,250,496,218
+      Total comprehensive income for the year
+      Profit for the year                                                          -         -             -                 -                -               -                -         169,903,614      169,903,614
+      Other comprehensive loss for the year                                        -         -             -                 -                -               -       (3,743,670)          (7,990,422)     (11,734,092)
+      Total comprehensive (loss) /income for the year                              -         -             -                 -                -               -       (3,743,670)        161,913,192      158,169,522
+                                                                                                                                                                                                                             For the year ended 30 June 2026
+      Transfer to self insurance reserve                                           -         -    1,452,594                  -                -               -                    -      (1,452,594)                    -
+      Charge to self insurance reserve                                             -         -        (2,594)                -                -               -                    -           2,594                     -
+      Capital redemption reserve fund of an associated company utilized
+          for issuance of bonus shares                                             -         -             -       (2,118,000)                -               -                    -       2,118,000                     -
+      Transactions with owners of the Company
+      Distributions
+      Final dividend 2024: Rs 4.00 per share                                       -         -            -                  -                -               -                -          (17,203,714)      (17,203,714)
+      First interim dividend 2025: Rs 3.00 per share                               -         -            -                  -                -               -                -          (12,902,785)      (12,902,785)
+      Second interim dividend 2025: Rs 4.05 per share                              -         -            -                  -                -               -                -          (17,418,760)      (17,418,760)
+      Third interim dividend 2025: Rs 3.00 per share                               -         -            -                  -                -               -                -          (12,902,785)      (12,902,785)
+      Total distributions to owners of the Company                                 -         -            -                  -                -               -                -          (60,428,044)      (60,428,044)
+      Balance as at 30 June 2025                                          43,009,284   836,000   20,750,000                  -          920,000               -       11,403,396       1,271,319,016     1,348,237,696
+      Balance as at 1 July 2025                                           43,009,284   836,000   20,750,000                  -          920,000               -       11,403,396       1,271,319,016     1,348,237,696
+      Total comprehensive income for the year
+      Profit for the year                                                          -         -             -                 -                -               -                -         242,373,646       242,373,646
+      Other comprehensive (loss) for the year                                      -         -             -                 -                -               -       (1,265,745)           (980,579)        (2,246,324)
+      Total comprehensive (loss) /income for the year                              -         -             -                 -                -               -       (1,265,745)        241,393,067       240,127,322
+      Transfer to self insurance reserve                                           -         -    1,451,506                  -                -               -                    -       (1,451,506)                   -
+      Charge to self insurance reserve                                             -         -        (1,506)                -                -               -                    -            1,506                    -
+                                                                                                                                                                                                                                                          Statement of Changes in Equity
+      Transfer to general reserve by an associated company                         -         -             -                 -                -       1,200,000                    -       (1,200,000)                   -
+      Transactions with owners of the Company
+      Distributions
+      Final dividend 2025: Rs 5.00 per share                                       -         -            -                  -                -               -                -          (21,504,642)      (21,504,642)
+      First interim dividend 2026: Rs 3.50 per share                               -         -            -                  -                -               -                -          (15,053,249)      (15,053,249)
+      Second interim dividend 2026: Rs 4.25 per share                              -         -            -                  -                -               -                -          (18,278,946)      (18,278,946)
+      Third interim dividend 2026: Rs 3.25 per share                               -         -            -                  -                -               -                -          (13,978,017)      (13,978,017)
+      Total distributions to owners of the Company                                 -         -            -                  -                -               -                -          (68,814,854)      (68,814,854)
+      Balance as at 30 June 2026                                          43,009,284   836,000   22,200,000                  -          920,000       1,200,000       10,137,651       1,441,247,229     1,519,550,164
+      The annexed notes 1 to 51 form an integral part of these financial statements.
+                                                                                                                                                                                                                                                                                           2026
+                                                                                                                                                                                                                                                                                              Annual Report
+      Chief Financial Officer                                                                     Chief Executive                                                                                        Director
