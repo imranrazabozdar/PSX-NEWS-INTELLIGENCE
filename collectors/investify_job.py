@@ -45,6 +45,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from collectors import investify_good_citizen as gc
 from collectors import investify_policy as pol
 from database.repositories import record_source_item
 from engines import investify_collector as ic
@@ -153,7 +154,25 @@ def run_once(*, now: datetime, state_path: Path, entry: dict[str, Any], db: Any 
              transport: Transport = default_transport, watchlist: frozenset[str] | None = None,
              dry_run: bool = False, cfg: pol.PolicyConfig = pol.DEFAULT_CONFIG,
              sleep: Callable[[float], None] = time.sleep, rng: random.Random | None = None,
-             audit: AuditLog | None = None) -> RunOutcome:
+             audit: AuditLog | None = None, good: gc.Policy | None = None) -> RunOutcome:
+    """One consented cycle. Fail-closed on a missing policy. One request in flight process-wide.
+
+    Every decision comes from the good-citizen gate."""
+    policy = good if good is not None else gc.safe_active_policy()
+    if policy is None:
+        return RunOutcome("refused", "policy missing or invalid: fail closed")
+    with gc.single_flight() as got:
+        if not got:
+            return RunOutcome("skipped", "queued: single-flight, another request holds the slot")
+        return _run_once_inner(now=now, state_path=state_path, entry=entry, db=db, transport=transport,
+                               watchlist=watchlist, dry_run=dry_run, cfg=cfg, sleep=sleep, rng=rng,
+                               audit=audit, policy=policy)
+
+
+def _run_once_inner(*, now: datetime, state_path: Path, entry: dict[str, Any], db: Any | None,
+                    transport: Transport, watchlist: frozenset[str] | None, dry_run: bool,
+                    cfg: pol.PolicyConfig, sleep, rng: random.Random | None, audit: AuditLog | None,
+                    policy: gc.Policy) -> RunOutcome:
     audit = audit or AuditLog()
     rng = rng or random.SystemRandom()
 
@@ -167,6 +186,14 @@ def run_once(*, now: datetime, state_path: Path, entry: dict[str, Any], db: Any 
     if problem:
         return RunOutcome("refused", problem)
     state = pol.load_state(state_path)
+    endpoint = "robots" if pol.robots_needs_refresh(now, state) else "announcements"
+    # the announcements page is an event feed; the gate decides the rest
+    verdict = gc.gate(now=now, state=state, policy=policy, endpoint=endpoint)
+    if verdict.warning:
+        audit.record({"event": "warn", "ts_utc": pol._iso(now), "endpoint": endpoint,
+                      "warning": verdict.warning})
+    if not verdict.allowed:
+        return skip(verdict.reason)
     # the latest possible send time: if even that is too early, no send in this cycle can be valid
     latest_send = now + timedelta(seconds=cfg.jitter_max)
     decision = pol.may_poll(now, state, cfg, rate_at=latest_send)
@@ -188,12 +215,14 @@ def run_once(*, now: datetime, state_path: Path, entry: dict[str, Any], db: Any 
 
     if pol.robots_needs_refresh(send, state):
         return _robots_cycle(send=send, state=state, state_path=state_path, transport=transport,
-                             cfg=cfg, jitter=jitter, audit=audit)
+                             cfg=cfg, jitter=jitter, audit=audit, policy=policy)
     return _page_cycle(send=send, state=state, state_path=state_path, transport=transport, cfg=cfg,
-                       jitter=jitter, audit=audit, db=db, dry_run=dry_run, watchlist=watchlist)
+                       jitter=jitter, audit=audit, db=db, dry_run=dry_run, watchlist=watchlist,
+                       policy=policy)
 
 
-def _robots_cycle(*, send, state, state_path, transport, cfg, jitter, audit) -> RunOutcome:
+def _robots_cycle(*, send, state, state_path, transport, cfg, jitter, audit,
+                  policy: gc.Policy) -> RunOutcome:
     status, _, body, error = _request(
         transport, pol.ROBOTS_URL, {"User-Agent": pol.USER_AGENT, "Accept": "text/plain"},
         cycle="robots", send=send, state=state, cfg=cfg, jitter=jitter, audit=audit)
@@ -209,8 +238,12 @@ def _robots_cycle(*, send, state, state_path, transport, cfg, jitter, audit) -> 
             and not pol.robots_allows(text, pol.ANNOUNCEMENTS_URL):
         # the site has started to disallow the path: stop for the day and raise an alert
         tripped = True
+    extra: dict[str, Any] = {}
+    if status in BLOCK_STATUSES:  # a block on robots.txt is a multi-hour cooldown too
+        until = gc.cooldown_until(send, state.consecutive_blocks + 1, policy)
+        extra = {"cooldown_until_utc": pol._iso(until), "consecutive_blocks": state.consecutive_blocks + 1}
     new_state = pol.finish_request(state, send, robots_txt=text, robots_fetched_utc=pol._iso(send),
-                                   crawl_delay_s=pol.robots_crawl_delay(text))
+                                   crawl_delay_s=pol.robots_crawl_delay(text), **extra)
     if tripped:
         new_state = pol.trip_breaker(new_state, send)
         _alert_breaker(audit, send, "robots.txt now disallows the announcements path")
@@ -222,7 +255,7 @@ def _robots_cycle(*, send, state, state_path, transport, cfg, jitter, audit) -> 
 
 
 def _page_cycle(*, send, state, state_path, transport, cfg, jitter, audit, db, dry_run,
-                watchlist) -> RunOutcome:
+                watchlist, policy: gc.Policy) -> RunOutcome:
     if not pol.robots_allows(state.robots_txt or "", pol.ANNOUNCEMENTS_URL):
         pol.save_state(state_path, replace(state, in_flight_since_utc=None))
         audit.record({"event": "skip", "ts_utc": pol._iso(send), "reason": "robots.txt disallows the path"})
@@ -250,15 +283,16 @@ def _page_cycle(*, send, state, state_path, transport, cfg, jitter, audit, db, d
 
     if status in BLOCK_STATUSES:
         blocks = state.consecutive_blocks + 1
-        until = pol.backoff_until(send, resp_headers.get("retry-after"))
-        changes: dict[str, Any] = {"consecutive_blocks": blocks, "backoff_until_utc": pol._iso(until)}
-        tripped = blocks >= cfg.breaker_threshold
+        until = gc.cooldown_until(send, blocks, policy, resp_headers.get("retry-after"))
+        changes: dict[str, Any] = {"consecutive_blocks": blocks, "backoff_until_utc": pol._iso(until),
+                                   "cooldown_until_utc": pol._iso(until)}
+        tripped = blocks >= policy.breaker_threshold
         new_state = pol.finish_request(state, send, **changes)
         if tripped:
             new_state = pol.trip_breaker(new_state, send)
             _alert_breaker(audit, send, f"{blocks} consecutive HTTP {status}")
         pol.save_state(state_path, new_state)
-        reason = (f"HTTP {status}: no retry; backing off until {pol._iso(until)}"
+        reason = (f"HTTP {status}: multi-hour cooldown until {pol._iso(until)}"
                   + ("; circuit breaker opened for the day" if tripped else ""))
         return RunOutcome("backoff", reason, http_requests=1)
 

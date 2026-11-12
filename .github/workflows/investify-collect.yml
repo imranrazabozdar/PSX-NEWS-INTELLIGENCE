@@ -1,6 +1,6 @@
 # Investify announcements, collected under written consent (docs/consent/investify-2026-11-12.md).
 #
-# * Scheduled every 20 minutes on weekdays from 04:00 to 11:59 UTC (09:00-16:59 PKT). The in-code gate
+# * Manual dispatch only (no schedule). The in-code gate
 #   (collectors/investify_policy.py) enforces the exact trading window (09:00-16:30 PKT), the 15-minute rate
 #   limit, the consent effective date, robots.txt and backoff. The schedule is a ceiling, not the rule.
 # * Scheduled runs happen only from the default branch, so nothing runs until the owner merges.
@@ -14,8 +14,8 @@
 name: Investify announcements (consented)
 
 on:
-  schedule:
-    - cron: "7,27,47 4-11 * * 1-5"   # every 20 minutes, weekdays; off the hour (the 15-minute floor is in code)
+  # No schedule. Good-citizen policy: nothing polls Investify on a timer. A run starts only when the owner
+  # dispatches it, and the gate in code decides whether any request is allowed.
   workflow_dispatch:
     inputs:
       dry_run:

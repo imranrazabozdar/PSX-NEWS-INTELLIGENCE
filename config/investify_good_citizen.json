@@ -1,0 +1,16 @@
+{
+  "_note": "The single good-citizen policy for the Investify client. Fail-safe defaults: cache-only mode, every collector OFF. Limits can be made stricter here; the code refuses any value outside its floors and fails closed on an unreadable file.",
+  "mode": "cache_only",
+  "kill_switch": false,
+  "collectors_enabled": {"announcements": false, "fundamentals": false, "profile": false, "competitors": false, "news": false},
+  "min_gap_minutes": 15,
+  "daily_ceiling": 12,
+  "weekly_ceiling": 60,
+  "warn_fraction": 0.6,
+  "quiet_window_pkt": {"start": "10:00", "end": "15:30"},
+  "cooldown_base_hours": 4,
+  "cooldown_max_hours": 24,
+  "breaker_threshold": 1,
+  "backfill": {"paused": true, "reserve_daily": 3},
+  "ttl_hours": {"announcements": 24, "fundamentals": 720, "profile": 2160, "competitors": 2160, "news": 24}
+}

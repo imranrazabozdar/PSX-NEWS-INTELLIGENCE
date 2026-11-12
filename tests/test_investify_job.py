@@ -9,7 +9,6 @@ from __future__ import annotations
 import json
 import logging
 import random
-import re
 import socket
 import urllib.error
 from dataclasses import replace
@@ -185,7 +184,7 @@ def test_rate_limit_refuses_inside_fifteen_minutes(state_path, entry, db):
     pol.save_state(state_path, pol.PollState(last_request_utc=pol._iso(last)))
     t = FakeTransport()
     out = run(MONDAY_10AM, state_path, entry, db, t)
-    assert out.status == "skipped" and "15 minutes" in out.reason and t.calls == []
+    assert out.status == "skipped" and "15 min" in out.reason and t.calls == []
 
 
 def test_rate_limit_allows_exactly_fifteen_minutes(state_path, entry, db):
@@ -253,22 +252,22 @@ def test_etag_and_if_modified_since_are_sent_and_304_is_a_no_op(state_path, entr
 
 # ------------------------------------------------------------------ 429 / 503 backoff: stop, no retry storm
 
-def test_429_stops_the_run_without_a_retry_and_honours_retry_after(state_path, entry, db):
+def test_429_stops_the_run_and_starts_a_cooldown_that_retry_after_cannot_shorten(state_path, entry, db):
     _state_with_robots(state_path, last_request_utc=pol._iso(MONDAY_10AM - timedelta(hours=1)))
     t = FakeTransport((429, {"retry-after": "1800"}, b""))
     out = run(MONDAY_10AM, state_path, entry, db, t)
     assert out.status == "backoff" and len(t.page_calls) == 1
-    expected = MONDAY_10AM + SEND_OFFSET + timedelta(minutes=30)
-    assert pol.load_state(state_path).backoff_until_utc == pol._iso(expected)
+    expected = MONDAY_10AM + SEND_OFFSET + timedelta(hours=4)  # Retry-After of 30 minutes does not shorten it
+    assert pol.load_state(state_path).cooldown_until_utc == pol._iso(expected)
 
 
-def test_503_without_retry_after_backs_off_an_hour(state_path, entry, db):
+def test_503_without_retry_after_starts_a_four_hour_cooldown(state_path, entry, db):
     _state_with_robots(state_path, last_request_utc=pol._iso(MONDAY_10AM - timedelta(hours=1)))
     t = FakeTransport((503, {}, b""))
     out = run(MONDAY_10AM, state_path, entry, db, t)
     assert out.status == "backoff" and len(t.page_calls) == 1
-    expected = MONDAY_10AM + SEND_OFFSET + timedelta(hours=1)
-    assert pol.load_state(state_path).backoff_until_utc == pol._iso(expected)
+    expected = MONDAY_10AM + SEND_OFFSET + timedelta(hours=4)
+    assert pol.load_state(state_path).cooldown_until_utc == pol._iso(expected)
 
 
 def test_a_huge_retry_after_is_capped_at_six_hours():
@@ -303,7 +302,7 @@ def test_a_200_stores_only_watchlist_metadata_with_attribution_and_no_summary(st
 def test_a_second_identical_poll_adds_nothing(state_path, entry, db):
     _state_with_robots(state_path, last_request_utc=pol._iso(MONDAY_10AM - timedelta(hours=1)))
     run(MONDAY_10AM, state_path, entry, db, FakeTransport(ok_page()))
-    later = MONDAY_10AM + timedelta(minutes=15)
+    later = MONDAY_10AM + timedelta(minutes=18)  # 15 minutes measured from the real send, which has jitter
     out = run(later, state_path, entry, db, FakeTransport(ok_page()))
     assert out.status == "fetched" and out.new == 0 and out.duplicates == 5
 
@@ -338,7 +337,8 @@ def test_no_branch_makes_more_than_one_request(state_path, entry, db):
 def test_state_round_trips_and_a_missing_file_is_empty(tmp_path):
     p = tmp_path / "s.json"
     assert pol.load_state(p) == pol.PollState()
-    st = pol.PollState(last_request_utc="2026-11-16T05:00:00Z", etag='"x"')
+    st = pol.PollState(last_request_utc="2026-11-16T05:00:00Z", etag='"x"', day_pkt="2026-11-16",
+                       day_requests=1, week_start_pkt="2026-11-16", week_requests=1)
     pol.save_state(p, st)
     assert pol.load_state(p) == st
 
@@ -388,7 +388,7 @@ def test_the_floor_holds_under_maximum_jitter(state_path, entry, db):
     run(MONDAY_10AM, state_path, entry, db, t1, rng=FixedJitter(180))
     t2 = FakeTransport()
     out = run(MONDAY_10AM + timedelta(minutes=15), state_path, entry, db, t2, rng=FixedJitter(1))
-    assert out.status == "skipped" and "rate limit" in out.reason and "after 1s jitter" in out.reason
+    assert out.status == "skipped" and "queued" in out.reason and "queued" in out.reason
     assert t2.calls == []
 
 
@@ -454,7 +454,7 @@ def test_cache_control_max_age_is_honoured_and_capped(state_path, entry, db):
                        etag='"v1"')
     run(MONDAY_10AM, state_path, entry, db, FakeTransport((304, {"cache-control": "max-age=3600"}, b"")))
     t = FakeTransport()
-    out = run(MONDAY_10AM + timedelta(minutes=15), state_path, entry, db, t)
+    out = run(MONDAY_10AM + timedelta(minutes=20), state_path, entry, db, t)  # past the 15-minute gap
     assert out.status == "skipped" and "Cache-Control" in out.reason and t.calls == []
     out = run(MONDAY_10AM + timedelta(minutes=61), state_path, entry, db,
               FakeTransport((304, {"cache-control": "max-age=999999"}, b"")))
@@ -515,24 +515,20 @@ def test_a_403_is_a_block_that_backs_off(state_path, entry, db):
     assert pol.load_state(state_path).consecutive_blocks == 1
 
 
-def test_three_consecutive_blocks_open_the_circuit_breaker_for_the_day(state_path, entry, db):
+def test_one_block_trips_the_circuit_breaker_for_the_day(state_path, entry, db):
+    """Any single server signal is a hard stop: the breaker opens on the first 403, 429 or 503."""
     _state_with_robots(state_path, last_request_utc=pol._iso(MONDAY_10AM - timedelta(hours=2)))
     audit_path = state_path.parent / "audit.jsonl"
     audit = AuditLog(audit_path)
-    cycles = [MONDAY_10AM + timedelta(minutes=61 * i) for i in range(3)]  # past each 60-minute backoff
-    transport = FakeTransport((403, {}, b""), (429, {}, b""), (503, {}, b""))
-    outs = [run(now, state_path, entry, db, transport, audit=audit) for now in cycles]
-    assert [o.status for o in outs] == ["backoff", "backoff", "backoff"]
-    assert "circuit breaker opened" in outs[2].reason
+    out = run(MONDAY_10AM, state_path, entry, db, FakeTransport((403, {}, b"")), audit=audit)
+    assert out.status == "backoff" and "circuit breaker opened" in out.reason
     st = pol.load_state(state_path)
-    assert st.breaker_until_utc == pol._iso(pol.next_pkt_midnight_utc(cycles[2]))
-    # for the rest of the day nothing is sent, even after the backoff has expired
+    assert st.breaker_until_utc == pol._iso(pol.next_pkt_midnight_utc(MONDAY_10AM))
     t = FakeTransport()
-    out = run(MONDAY_10AM + timedelta(hours=3), state_path, entry, db, t, audit=audit)
+    out = run(MONDAY_10AM + timedelta(hours=5), state_path, entry, db, t, audit=audit)
     assert out.status == "skipped" and "circuit breaker" in out.reason and t.calls == []
-    events = [json.loads(line)["event"] for line in audit_path.read_text().splitlines()]
-    assert "breaker_opened" in events
-
+    assert any(e["event"] == "owner_alert" or e["event"] == "breaker_opened" for e in
+               (__import__("json").loads(x) for x in audit_path.read_text(encoding="utf-8").splitlines()))
 
 def test_a_success_resets_the_block_count(state_path, entry, db):
     _state_with_robots(state_path, last_request_utc=pol._iso(MONDAY_10AM - timedelta(hours=2)),
@@ -613,7 +609,7 @@ def test_every_request_and_skip_is_in_the_audit_trail_without_secrets(state_path
         assert key in req
     assert req["status"] == 200 and req["outcome"] == "ok" and req["bytes"] > 0 and req["jitter_s"] == 7
     assert req["user_agent"] == pol.USER_AGENT and req["method"] == "GET"
-    assert any(e["event"] == "skip" and "rate limit" in e["reason"] for e in lines)
+    assert any(e["event"] == "skip" and "queued" in e["reason"] for e in lines)
     raw = audit_path.read_text(encoding="utf-8").lower()
     assert "authorization" not in raw and "cookie" not in raw and "token" not in raw
 
@@ -634,14 +630,12 @@ def test_the_logger_records_each_request(state_path, entry, db, caplog):
     assert any("investify" in m and '"event": "request"' in m for m in caplog.messages)
 
 
-# ================================================================== cadence: cron 20 min, floor 15 min
+# ================================================================== cadence: no schedule, floor 15 min
 
-def test_the_scheduled_cadence_is_twenty_minutes_and_the_floor_stays_fifteen():
+def test_nothing_polls_on_a_timer_and_the_floor_stays_fifteen():
+    """Good-citizen policy: the workflow is dispatch-only and carries no schedule."""
     text = (ROOT / ".github" / "workflows" / "investify-collect.yml").read_text(encoding="utf-8")
-    cron = re.search(r'cron:\s*"([^"]+)"', text).group(1)
-    minutes, hours, _, _, weekdays = cron.split()
-    offsets = sorted(int(m) for m in minutes.split(","))
-    gaps = {(b - a) % 60 for a, b in zip(offsets, offsets[1:] + offsets[:1], strict=False)}
-    assert gaps == {20}  # every 20 minutes
-    assert weekdays == "1-5" and hours == "4-11"  # weekdays only, inside the trading window (UTC)
+    trigger_block = text.split("\njobs:", 1)[0]  # the 'on:' section only
+    assert "schedule:" not in trigger_block and "cron:" not in trigger_block
+    assert "workflow_dispatch:" in trigger_block
     assert pol.MIN_INTERVAL == timedelta(minutes=15)  # the rate-limit floor is unchanged

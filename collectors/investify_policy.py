@@ -113,6 +113,9 @@ class PollState:
     consecutive_blocks: int = 0  # consecutive 403 / 429 / 503
     breaker_until_utc: str | None = None
     in_flight_since_utc: str | None = None
+    week_start_pkt: str | None = None  # Monday of the current week, Pakistan time
+    week_requests: int = 0  # requests counted in that week
+    cooldown_until_utc: str | None = None  # multi-hour cooldown after any 403, 429 or 503
     # Per-URL conditional-request cache: {url: {etag, last_modified}} (fundamentals and profile endpoints).
     endpoint_cache: dict = field(default_factory=dict)
     # Event triggers for fundamentals: queued financial-result announcements not yet consumed.
@@ -271,11 +274,15 @@ def mark_in_flight(state: PollState, now: datetime) -> PollState:
 
 
 def finish_request(state: PollState, now: datetime, **changes) -> PollState:
-    """Record that a request was sent: the rate clock, the daily count, and clear the in-flight marker."""
+    """Record that a request was sent: the rate clock, the daily and weekly counts, and clear the in-flight
+    marker."""
     day = today_pkt(now)
     count = requests_today(now, state) + 1
+    local = now.astimezone(PKT).date()
+    week = (local - timedelta(days=local.weekday())).isoformat()
+    week_count = (state.week_requests if state.week_start_pkt == week else 0) + 1
     return replace(state, last_request_utc=_iso(now), day_pkt=day, day_requests=count,
-                   in_flight_since_utc=None, **changes)
+                   week_start_pkt=week, week_requests=week_count, in_flight_since_utc=None, **changes)
 
 
 def trip_breaker(state: PollState, now: datetime) -> PollState:

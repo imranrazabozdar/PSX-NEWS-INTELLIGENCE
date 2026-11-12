@@ -191,7 +191,7 @@ def test_one_request_per_fifteen_minutes_across_all_endpoints(db, entry, state_p
     assert run(db, entry, state_path, audit, t, symbol="FCL").status == "fetched"
     queue(state_path, announcement("PSO", at=NOW + timedelta(minutes=4)), now=NOW + timedelta(minutes=5))
     early = run(db, entry, state_path, audit, t, symbol="PSO", now=NOW + timedelta(minutes=5))
-    assert early.status == "skipped" and "rate limit" in early.reason
+    assert early.status == "skipped" and "queued" in early.reason
     assert len(t.calls) == 1
     later = run(db, entry, state_path, audit, t, symbol="PSO", now=NOW + timedelta(minutes=16))
     assert later.status == "fetched"
@@ -204,7 +204,7 @@ def test_the_rate_cap_holds_for_profile_requests_too(db, entry, state_path, audi
     run(db, entry, state_path, audit, t, symbol="FCL")
     out = run(db, entry, state_path, audit, t, endpoint="profile", symbol="PSO",
               now=NOW + timedelta(minutes=2))
-    assert out.status == "skipped" and "rate limit" in out.reason and len(t.calls) == 1
+    assert out.status == "skipped" and "queued" in out.reason and len(t.calls) == 1
 
 
 # ------------------------------------------------------------------ conditional requests and 304
@@ -242,11 +242,11 @@ def test_429_backs_off_and_keeps_the_trigger_pending(db, entry, state_path, audi
     t = FakeTransport((429, {"retry-after": "1800"}, b""))
     queue(state_path, announcement("FCL"))
     out = run(db, entry, state_path, audit, t)
-    assert out.status == "backoff" and "no retry" in out.reason
+    assert out.status == "backoff" and "cooldown" in out.reason
     st = pol.load_state(state_path)
-    assert st.backoff_until_utc and len(st.pending_triggers) == 1
+    assert st.cooldown_until_utc and len(st.pending_triggers) == 1  # the trigger stays pending
     later = run(db, entry, state_path, audit, t, now=NOW + timedelta(minutes=20))
-    assert later.status == "skipped" and "backing off" in later.reason and len(t.calls) == 1
+    assert later.status == "skipped" and "cooldown" in later.reason and len(t.calls) == 1
 
 
 def test_an_unconfirmed_path_is_refused_with_no_request(db, entry, state_path, audit):
@@ -298,27 +298,30 @@ def test_storage_is_the_operational_database_and_never_the_archive():
 
 # ------------------------------------------------------------------ the acceptance flow, on synthetic bodies
 
-def test_one_company_end_to_end_announcement_then_profile_under_the_cap(db, entry, state_path, audit):
-    """The announcements feed queues the first fill; the profile follows 16 minutes later, under the cap."""
+def test_one_company_end_to_end_profile_then_feed_under_the_cap(db, entry, state_path, audit):
+    """A backfill runs first; the announcements feed then queues the first fill. Backfill yields to pending
+    triggers, so the order matters and the test pins it. Requests are 16 minutes apart."""
     announcements_url = "https://www.investify.pk/company/FCL/announcements"
     synthetic_feed = (ROOT / "tests" / "fixtures" / "investify" / "announcements_synthetic.html").read_text(
         encoding="utf-8")
-    t = FakeTransport(ok(synthetic_feed), ok(SYNTHETIC_PROFILE.read_text(encoding="utf-8")))
-    feed = run(db, entry, state_path, audit, t, endpoint="announcements", symbol="FCL")
+    t = FakeTransport(ok(SYNTHETIC_PROFILE.read_text(encoding="utf-8")), ok(synthetic_feed))
+    prof = run(db, entry, state_path, audit, t, endpoint="profile", symbol="FCL")
+    assert prof.status == "fetched"
+    feed = run(db, entry, state_path, audit, t, endpoint="announcements", symbol="FCL",
+               now=NOW + timedelta(minutes=16))
     assert feed.status == "fetched"
     pending = pol.load_state(state_path).pending_triggers
     assert len(pending) == 1 and pending[0]["kind"] == "first_fill"  # no fundamentals on record yet
-    prof = run(db, entry, state_path, audit, t, endpoint="profile", symbol="FCL",
-               now=NOW + timedelta(minutes=16))
-    assert prof.status == "fetched"
     rows = stored(db)
     assert sorted(r["external_id"] for r in rows) == ["FCL:announcements", "FCL:profile"]
     assert all(json.loads(r["source_metadata_json"])["source"] == "investify.pk" for r in rows)
     fetches = [e for e in audit_events(audit) if e["event"] == "endpoint_request"]
-    assert [f["url"] for f in fetches] == [announcements_url, "https://www.investify.pk/company/FCL/profile"]
+    assert [f["url"] for f in fetches] == ["https://www.investify.pk/company/FCL/profile", announcements_url]
     gap = (datetime.fromisoformat(fetches[1]["ts_utc"].replace("Z", "+00:00"))
            - datetime.fromisoformat(fetches[0]["ts_utc"].replace("Z", "+00:00")))
     assert gap >= pol.MIN_INTERVAL  # the 15-minute cap held between the two requests
+
+
 def _run_announcements_job(db, tmp_path, html: str, name: str):
     from collectors import investify_job as job
 

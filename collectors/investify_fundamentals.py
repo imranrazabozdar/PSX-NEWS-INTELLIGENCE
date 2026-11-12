@@ -32,6 +32,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from collectors import investify_good_citizen as gc
 from collectors import investify_policy as pol
 from collectors.investify_job import (
     BLOCK_STATUSES,
@@ -217,7 +218,27 @@ def run_endpoint(*, now: datetime, state_path: Path, entry: dict[str, Any], db: 
                  transport: Transport = default_transport,
                  cfg: pol.PolicyConfig = pol.DEFAULT_CONFIG,
                  sleep=lambda s: None, rng: random.Random | None = None,
-                 audit: AuditLog | None = None, dev_copy: Path | None = None) -> RunOutcome:
+                 audit: AuditLog | None = None, dev_copy: Path | None = None,
+                 good: gc.Policy | None = None) -> RunOutcome:
+    """The only way to make an Investify request for an endpoint. Fail-closed: no readable policy, no request.
+    One request in flight process-wide. Everything else is decided by the good-citizen gate."""
+    policy = good if good is not None else gc.safe_active_policy()
+    if policy is None:
+        return RunOutcome("refused", "policy missing or invalid: fail closed")
+    with gc.single_flight() as got:
+        if not got:
+            return RunOutcome("skipped", "queued: single-flight, another request holds the slot")
+        return _run_endpoint_inner(
+            now=now, state_path=state_path, entry=entry, db=db, endpoint=endpoint, symbol=symbol,
+            watchlist=watchlist, endpoints=endpoints, manual=manual, transport=transport, cfg=cfg,
+            sleep=sleep, rng=rng, audit=audit, dev_copy=dev_copy, policy=policy)
+
+
+def _run_endpoint_inner(*, now: datetime, state_path: Path, entry: dict[str, Any], db: Any,
+                        endpoint: str, symbol: str, watchlist: frozenset[str],
+                        endpoints: dict[str, Endpoint], manual: bool, transport: Transport,
+                        cfg: pol.PolicyConfig, sleep, rng: random.Random | None,
+                        audit: AuditLog | None, dev_copy: Path | None, policy: gc.Policy) -> RunOutcome:
     """Fetch ONE Investify endpoint for ONE symbol, if every rule allows it. At most one HTTP request.
 
     dev_copy: development only. When given, the body is written to that path so the page can be mapped; the
@@ -247,6 +268,18 @@ def run_endpoint(*, now: datetime, state_path: Path, entry: dict[str, Any], db: 
         return RunOutcome("refused", f"{symbol!r} is not a watchlist symbol")
 
     state = pol.load_state(state_path)
+    record = _stored_record(db, symbol, endpoint) if db is not None else None
+    # Cache-first applies to feeds and backfills. A new financial result must still be able to fire a refresh.
+    cache_age = None
+    if record and spec.cadence in ("feed", "backfill_once"):
+        cache_age = now - _utc(record["collected_at_utc"])
+    verdict = gc.gate(now=now, state=state, policy=policy, endpoint=endpoint, cache_age=cache_age,
+                      backfill=spec.cadence == "backfill_once")
+    if verdict.warning and audit is not None:
+        audit.record({"event": "warn", "ts_utc": _iso(now), "endpoint": endpoint, "symbol": symbol,
+                      "warning": verdict.warning})
+    if not verdict.allowed:
+        return skip(verdict.reason)
     trigger: dict[str, Any] | None = None
     if spec.cadence == "feed":
         if manual:
@@ -317,13 +350,17 @@ def run_endpoint(*, now: datetime, state_path: Path, entry: dict[str, Any], db: 
         return RunOutcome("not_modified", "HTTP 304: nothing changed; no record written", http_requests=1)
 
     if status in BLOCK_STATUSES:
-        until = pol.backoff_until(send, resp_headers.get("retry-after"))
         blocks = state.consecutive_blocks + 1
-        new_state = pol.finish_request(state, send, consecutive_blocks=blocks, backoff_until_utc=_iso(until))
-        if blocks >= cfg.breaker_threshold:
+        until = gc.cooldown_until(send, blocks, policy, resp_headers.get("retry-after"))
+        new_state = pol.finish_request(state, send, consecutive_blocks=blocks, backoff_until_utc=_iso(until),
+                                       cooldown_until_utc=_iso(until))
+        if blocks >= policy.breaker_threshold:
             new_state = pol.trip_breaker(new_state, send)
         pol.save_state(state_path, new_state)  # the trigger stays pending for a later, allowed cycle
-        return RunOutcome("backoff", f"HTTP {status}: no retry; backing off until {_iso(until)}",
+        if audit is not None:
+            audit.record({"event": "owner_alert", "ts_utc": _iso(send), "endpoint": endpoint,
+                          "why": f"HTTP {status}: multi-hour cooldown until {_iso(until)}"})
+        return RunOutcome("backoff", f"HTTP {status}: multi-hour cooldown until {_iso(until)}",
                           http_requests=1)
 
     if status != 200:

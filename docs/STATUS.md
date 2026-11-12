@@ -319,3 +319,22 @@ Handover: `docs/handover/PILOT-CHECKPOINT-2026-11-12.md`.
 The full agreed system design (data layer, exposure map, dossier, macro and market-flow layers, event-transmission, composite and divergence, scenario and forecast engines, and the private dashboard), with the cross-cutting guardrails and the phase sequence, is recorded in `docs/architecture/INTELLIGENCE_BLUEPRINT.md`. The blueprint is a design record. It changes no runtime behavior. Phases 2 to 5 remain approved-pending.
 
 **Blueprint status (2026-11-12):** `docs/architecture/INTELLIGENCE_BLUEPRINT.md` is complete as of the completeness pass. It now includes the tiered understanding model, the knowledge base ("the brain"), the technicals engine, the paste intake, the sources policy, and worked transmission examples. It is a design record and changes no runtime behavior. Phases 2 to 5 remain approved-pending.
+
+## Investify good-citizen policy (feature/investify-good-citizen): IMPLEMENTED and TESTED against fixtures; GATE: owner review
+Record: `docs/ops/INVESTIFY_GOOD_CITIZEN.md`. Policy: `config/investify_good_citizen.json`. Code: `collectors/investify_good_citizen.py`.
+
+| Guarantee | State |
+|---|---|
+| One request in flight process-wide; 15-minute gap across all resources | IMPLEMENTED, TESTED |
+| Fail-closed budgets (daily and weekly ceilings; halt; WARN at 60%) | IMPLEMENTED, TESTED |
+| Event-driven only; no polling; workflow dispatch only | IMPLEMENTED, TESTED |
+| Off-peak quiet window; jitter; trading hours | IMPLEMENTED, TESTED |
+| Cache-first TTLs; ETag and If-Modified-Since; 304 no-op | IMPLEMENTED, TESTED |
+| Multi-hour cooldown (floor 4 h) on 403, 429, 503; owner alert; breaker on the first signal | IMPLEMENTED, TESTED |
+| Backfill yields, pausable, reserve, counts to budget | IMPLEMENTED, TESTED |
+| Cache-only mode: zero Investify calls | IMPLEMENTED, TESTED |
+| Kill switch, instant | IMPLEMENTED, TESTED |
+| Footprint and weekly observability from the audit log | IMPLEMENTED, TESTED |
+| Fail-safe defaults: cache-only, collectors off | IMPLEMENTED, TESTED |
+
+**Changes to earlier behaviour (deliberate):** the announcements cron is removed (dispatch-only); backoff is a multi-hour cooldown rather than 60 minutes; a single block trips the breaker; the cadence test now asserts no schedule. **Caveats:** a state file without weekly counters refuses until reset; the validation driver on its own branch must treat "queued" and "cooldown" as waits when it merges.
