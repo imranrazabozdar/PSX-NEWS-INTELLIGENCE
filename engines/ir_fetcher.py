@@ -34,7 +34,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
-from urllib.parse import unquote, urljoin, urlsplit, urlunsplit
+from urllib.parse import quote, unquote, urljoin, urlsplit, urlunsplit
 from urllib.robotparser import RobotFileParser
 
 from engines import fiscal_period as fp
@@ -315,8 +315,11 @@ def extract_candidates(
 
 
 def _canonical(url: str) -> str:
+    """The request form of a URL: host lower-cased, non-ASCII characters percent-encoded, no fragment."""
     parts = urlsplit(url)
-    return urlunsplit((parts.scheme, parts.netloc.lower(), parts.path, parts.query, ""))
+    path = quote(parts.path, safe="/%:@!$&'()*+,;=-._~")
+    query = quote(parts.query, safe="=&%+:/?@!$'()*,;-._~")
+    return urlunsplit((parts.scheme, parts.netloc.lower(), path, query, ""))
 
 
 def in_scope(c: Candidate, entry: IrEntry, *, today: datetime, years_back: int = 2) -> bool:
@@ -520,6 +523,8 @@ def run_company(
         page = client.get(entry.url)
     except (HostUnavailable, RobotsDisallowed, ResourceMissing) as exc:
         return CompanyResult(entry.symbol, "failed", str(exc))
+    except Exception as exc:  # never stop the batch on one company
+        return CompanyResult(entry.symbol, "failed", f"{type(exc).__name__}: {exc}")
     if len(page.body) > MAX_PAGE_BYTES:
         return CompanyResult(entry.symbol, "failed", "reports page larger than the limit")
     html = page.body.decode("utf-8", "replace")
@@ -538,6 +543,9 @@ def run_company(
         except HostUnavailable as exc:
             result.rejected.append(f"{c.pdf_url}: {exc}")
             break  # the host has asked us to stop: no further downloads this run
+        except Exception as exc:  # one bad URL must never stop the batch
+            result.rejected.append(f"{c.pdf_url}: {type(exc).__name__}: {exc}")
+            continue
         if not pdf.body.startswith(b"%PDF-") or len(pdf.body) > MAX_PDF_BYTES:
             result.rejected.append(f"{c.pdf_url}: not a PDF, or larger than the limit")
             continue
@@ -577,20 +585,26 @@ def run_registry(
     years_back: int = 2,
     max_downloads: int = 10,
 ) -> list[CompanyResult]:
+    """Run every chosen company. A failure in one company is recorded and the batch continues."""
     manifest = Manifest(vault)
     chosen = [registry[s] for s in symbols] if symbols else list(registry.values())
-    return [
-        run_company(
-            e,
-            now=now,
-            client=client,
-            vault=vault,
-            manifest=manifest,
-            years_back=years_back,
-            max_downloads=max_downloads,
-        )
-        for e in chosen
-    ]
+    results: list[CompanyResult] = []
+    for entry in chosen:
+        try:
+            results.append(
+                run_company(
+                    entry,
+                    now=now,
+                    client=client,
+                    vault=vault,
+                    manifest=manifest,
+                    years_back=years_back,
+                    max_downloads=max_downloads,
+                )
+            )
+        except Exception as exc:  # never stop the batch
+            results.append(CompanyResult(entry.symbol, "failed", f"{type(exc).__name__}: {exc}"))
+    return results
 
 
 def import_manual(

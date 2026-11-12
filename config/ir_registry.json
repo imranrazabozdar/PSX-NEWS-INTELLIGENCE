@@ -35,12 +35,12 @@
     "NRL": {
       "name": "National Refinery Limited",
       "fye": "06-30",
-      "ir_reports_url": "https://nrlpak.com/",
+      "ir_reports_url": "https://nrlpak.com/investors/financial-report.html",
       "allowed_hosts": [
         "nrlpak.com"
       ],
       "status": "live",
-      "notes": "Reachable (HTTP 200, robots allows). Report PDFs are linked from the homepage under assets/pdf/. The reports listing is investors/financial-report.html; not fetched yet (one GET per host in this test)."
+      "notes": "Reachable (HTTP 200, robots allows). The reports listing is investors/financial-report.html (the homepage links only two report PDFs). Report PDFs are under assets/pdf/ on the same host."
     },
     "ATRL": {
       "name": "Attock Refinery Limited",
