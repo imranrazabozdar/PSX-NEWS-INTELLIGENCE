@@ -253,7 +253,7 @@ def test_429_backs_off_and_keeps_the_trigger_pending(db, entry, state_path, audi
 def test_an_unconfirmed_path_is_refused_with_no_request(db, entry, state_path, audit):
     queue(state_path, announcement("FCL"))
     t = FakeTransport()
-    out = run(db, entry, state_path, audit, t, endpoints=fund.ENDPOINTS)  # the shipped, unconfirmed paths
+    out = run(db, entry, state_path, audit, t, endpoint="profile", endpoints=fund.ENDPOINTS)  # unverified
     assert out.status == "refused" and "not yet confirmed" in out.reason and t.calls == []
 
 
@@ -264,16 +264,12 @@ def test_the_kill_switch_stops_everything(db, entry, state_path, audit):
     assert out.status == "skipped" and t.calls == []
 
 
-def test_the_seed_entry_is_disabled_until_the_owner_approves(db, state_path, audit):
-    queue(state_path, announcement("FCL"))
-    t = FakeTransport()
-    out = fund.run_endpoint(now=NOW, state_path=state_path, entry=load_source(db, fund.SOURCE_ID), db=db,
-                            endpoint="fundamentals", symbol="FCL", watchlist=frozenset({"FCL"}),
-                            endpoints=TEST_ENDPOINTS, transport=t, cfg=CFG, audit=audit)
-    assert out.status == "refused" and "disabled" in out.reason and t.calls == []
+def test_the_seed_entry_is_enabled_under_its_own_consent_record(db):
+    seed = load_source(db, fund.SOURCE_ID)
+    assert seed["enabled"] == 1 and seed["lifecycle_status"] == "APPROVED"
+    assert pol.registry_problem(seed, source_id=fund.SOURCE_ID, consent_record=fund.CONSENT_RECORD) is None
+    assert seed["retention_mode"] == "metadata_only"  # structured fields only
 
-
-# ------------------------------------------------------------------ attribution and storage
 
 def test_every_stored_record_carries_the_investify_attribution(db, entry, state_path, audit):
     t = FakeTransport(ok("<p>fund</p>"))

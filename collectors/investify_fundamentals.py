@@ -22,6 +22,7 @@ endpoint is refused without any request.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import random
 import re
@@ -59,12 +60,13 @@ class Endpoint:
     cadence: str  # "announcement" (rule a) or "backfill_once" (rule b)
 
 
-# Paths are deliberately unset. They must be confirmed by the owner before any request is made.
+# Paths confirmed by the owner (2026-11-12): fundamentals and competitors. The profile path is INFERRED
+# and stays unset (None) until one conditional GET confirms it (a 404 leaves it unset). There is no
+# industry endpoint: sector or industry fields are derived from the profile or competitors payload.
 ENDPOINTS: dict[str, Endpoint] = {
-    "fundamentals": Endpoint("fundamentals", None, "announcement"),
+    "fundamentals": Endpoint("fundamentals", "/company/{symbol}/fundamentals", "announcement"),
+    "competitors": Endpoint("competitors", "/company/{symbol}/competitors", "backfill_once"),
     "profile": Endpoint("profile", None, "backfill_once"),
-    "competitors": Endpoint("competitors", None, "backfill_once"),
-    "industry": Endpoint("industry", None, "backfill_once"),
 }
 
 
@@ -138,7 +140,9 @@ def _store(db: Any, *, url: str, symbol: str, endpoint: str, body: bytes, collec
     }
     out = record_source_item(
         db, source_id=SOURCE_ID, collected_at_utc=collected_at_utc, url=url,
-        external_id=f"{symbol}:{endpoint}", content=body.decode("utf-8", "replace"),
+        external_id=f"{symbol}:{endpoint}",
+        # STRUCTURED FIELDS ONLY (owner, 2026-11-12): the raw body is never persisted, only its hash.
+        content_hash=hashlib.sha256(body).hexdigest(),
         title=f"{symbol} {endpoint} (Investify)", published_at_utc=None, published_at_raw=None,
         excerpt=None,
         provenance={"original_url": url, "retrieval_method": "html", "http_status": http_status,

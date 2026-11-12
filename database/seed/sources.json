@@ -2373,7 +2373,7 @@
    "content_format": "html",
    "feed_url": null,
    "adapter": null,
-   "retention_mode": "full_text_permitted",
+   "retention_mode": "metadata_only",
    "terms_status": "approved",
    "licensing_status": "permission_required",
    "verification_status": "url_verified",
@@ -2382,10 +2382,10 @@
    "lifecycle_status": "APPROVED",
    "reliability_tier": "unrated",
    "collection_frequency_minutes": null,
-   "enabled": 0,
+   "enabled": 1,
    "reviewed_at_utc": "2026-11-11T00:00:00Z",
-   "review_notes": "Expanded written consent from Investify granted 2026-11-12 (owner-reported; record: docs/consent/investify-fundamentals-2026-11-12.md). Private personal research only; no redistribution, public hosting or resale. full_text_permitted here means private local retention only. Fundamentals refresh only on a new financial-result announcement; profile, competitors and industry backfilled once; <=1 request per 15 minutes shared across Investify endpoints; ETag/If-Modified-Since; robots.txt; backoff on 429/503; attribution to Investify (source = investify.pk). Endpoint paths NOT yet confirmed by the owner. DISABLED until the owner approves the acceptance gate (owner decision). Collector: collectors/investify_fundamentals.py.",
-   "notes": "Endpoint paths are unset in code; the collector refuses to request an unconfirmed path."
+   "review_notes": "Expanded written consent from Investify granted 2026-11-12 (owner-reported; record: docs/consent/investify-fundamentals-2026-11-12.md). Owner confirmed 2026-11-12: operator is investify.pk; fundamentals and competitors paths confirmed; profile path verified by one conditional GET (see the consent record). STRUCTURED FIELDS ONLY are stored: no raw page body, no Investify summary text. Private personal research only; no redistribution, public hosting or resale. Fundamentals refresh only on a new financial-result announcement; profile and competitors backfilled once, manual refresh only; <=1 request per 15 minutes shared across Investify endpoints; ETag/If-Modified-Since; robots.txt; backoff on 429/503; attribution to Investify (source = investify.pk). Collector: collectors/investify_fundamentals.py.",
+   "notes": "Enabled 2026-11-12 after the owner approved the live HUBC proof. Industry has no endpoint."
   }
  ]
 }

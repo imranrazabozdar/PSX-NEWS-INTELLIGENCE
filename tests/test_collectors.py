@@ -345,7 +345,11 @@ OWNER_APPROVED_2026_11_08 = {"dawn", "dawn_pakistan", "dawn_world", "brecorder",
 
 # Enabled under written consent (docs/consent/investify-2026-11-12.md). Not ACTIVE: only its own job
 # collects it.
-CONSENT_ENABLED_2026_11_12 = {"investify_announcements"}
+CONSENT_ENABLED_2026_11_12 = {"investify_announcements", "investify_fundamentals"}
+CONSENT_RECORD_BY_SOURCE = {
+    "investify_announcements": "docs/consent/investify-2026-11-12.md",
+    "investify_fundamentals": "docs/consent/investify-fundamentals-2026-11-12.md",
+}
 
 
 def test_only_owner_approved_sources_are_active_or_enabled(db):
@@ -355,7 +359,7 @@ def test_only_owner_approved_sources_are_active_or_enabled(db):
         if r["source_id"] in CONSENT_ENABLED_2026_11_12:
             assert (r["lifecycle_status"], r["enabled"], r["terms_status"], r["access_status"]) == (
                 "APPROVED", 1, "approved", "verified_permitted")
-            assert "docs/consent/investify-2026-11-12.md" in r["review_notes"]
+            assert CONSENT_RECORD_BY_SOURCE[r["source_id"]] in r["review_notes"]
             assert r["retention_mode"] == "metadata_only"
             continue
         assert (r["lifecycle_status"], r["enabled"], r["terms_status"], r["access_status"]) == (

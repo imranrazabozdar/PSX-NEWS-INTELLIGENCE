@@ -49,3 +49,17 @@ the announcements conditions still apply to the announcements collector.
    behaviour, needed for the cache) or only the structured fields once a parser is approved.
 4. **Storage target.** The first proof uses the local operational SQLite database. Production Turso writes need
    owner approval.
+
+## Owner confirmations (2026-11-12, recorded before the live proof)
+
+- **Operator:** the owner confirms that **investify.pk is the operator** of the data served at `investify.pk`. The
+  earlier open item on `investify.com` versus `investify.pk` is closed on this basis.
+- **Endpoint paths** (confirmed by the owner from the browser):
+  - fundamentals: `/company/{symbol}/fundamentals`
+  - competitors: `/company/{symbol}/competitors`
+  - profile: `/company/{symbol}/profile`, inferred and verified by one conditional GET. It stays unset if it returns 404.
+- **Industry:** there is no Industry endpoint. Sector or industry fields are derived from the profile or competitors
+  payload, and no separate page is fetched.
+- **Storage:** STRUCTURED FIELDS ONLY. The raw page body and Investify's generated summary text are not persisted.
+  The owner may expand this later, and that would need a new record.
+- **Target:** the operational database only. Nothing goes to the archive, to production, or to Turso.

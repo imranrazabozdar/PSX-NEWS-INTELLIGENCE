@@ -229,3 +229,8 @@ Consent: `docs/consent/investify-fundamentals-2026-11-12.md` (owner-reported exp
 | Production or Turso writes | NONE. The local SQLite used for the gate is in memory | — |
 
 **Acceptance gate (for owner approval before scaling to the full watchlist):** the flow ran end to end on synthetic bodies (profile backfilled once; one financial-result trigger; one fundamentals fetch 16 minutes after the profile request; a later profile request skipped as already backfilled). The audit trail shows the two requests 16 minutes apart. Real Investify data has NOT been fetched. To proceed, the owner must (1) confirm the four endpoint paths, (2) confirm the investify.com / investify.pk entity, and (3) decide whether the raw page body (which may include Investify's summary text) is stored, and approve enabling the seed entry.
+
+### Update 2026-11-12: source enabled; live HUBC proof IN PROGRESS
+- `investify_fundamentals` is ENABLED in the seed (owner approval, 2026-11-12). Its consent record now carries the owner confirmations: operator investify.pk; fundamentals and competitors paths confirmed; profile path inferred and verified only by one conditional GET (unset on 404); no industry endpoint; STRUCTURED FIELDS ONLY.
+- Storage now persists only metadata and the SHA-256 of each response body. The raw body and Investify's summary text are not persisted. Field extraction is NOT yet written: it waits for the page samples from the live proof.
+- Live: robots.txt fetched once (HTTP 200, 2026-11-12T07:53:42Z); it allows all three company paths. The announcements page, the profile verification, the HUBC competitors and fundamentals requests are NOT yet made. Acceptance gate not yet reached.
