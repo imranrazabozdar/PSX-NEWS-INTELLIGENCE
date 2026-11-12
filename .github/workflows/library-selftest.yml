@@ -30,4 +30,4 @@ jobs:
         run: python -m engines.library_db
       - name: Apply approved state migration (psx-library only; only after a green self-test)
         if: github.event_name == 'push'
-        run: python scripts/apply_library_migration.py
+        run: python -m scripts.apply_library_migration

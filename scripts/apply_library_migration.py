@@ -30,7 +30,11 @@ def statements(sql: str) -> list[str]:
 
 
 def apply(environ: Mapping[str, str] | None = None, sql: str | None = None) -> int:
-    conn = library_db.get_library_connection(environ)  # target guard runs here
+    try:
+        conn = library_db.get_library_connection(environ)  # target guard runs here
+    except library_db.LibraryConfigError as exc:
+        print(f"migration REFUSED: {exc}")
+        return 2
     todo = statements(sql if sql is not None else MIGRATION.read_text(encoding="utf-8"))
     for stmt in todo:
         conn.db.execute(stmt)
@@ -45,4 +49,4 @@ def apply(environ: Mapping[str, str] | None = None, sql: str | None = None) -> i
 
 
 if __name__ == "__main__":
-    sys.exit(apply())
+    sys.exit(apply())  # run as: python -m scripts.apply_library_migration

@@ -29,8 +29,8 @@ def test_any_statement_other_than_creating_a_state_table_is_refused():
 def test_the_migration_is_refused_for_any_host_that_is_not_psx_library(monkeypatch):
     monkeypatch.setenv(library_db.URL_VAR, "libsql://prod-archive-turso.example.test")
     monkeypatch.setenv(library_db.TOKEN_VAR, "not-used")
-    with pytest.raises(library_db.LibraryConfigError):
-        mig.apply(None, "CREATE TABLE IF NOT EXISTS fetch_control (key TEXT);")
+    sql = "CREATE TABLE IF NOT EXISTS fetch_control (key TEXT);"
+    assert mig.apply(None, sql) == 2  # refused, nothing run
 
 
 @pytest.mark.parametrize("host", ["data-capture-turso.example.test", "psx-library-archival.example.test",
