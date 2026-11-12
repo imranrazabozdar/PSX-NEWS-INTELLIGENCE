@@ -31,6 +31,8 @@ from scripts import financial_intake as fi
 STATEMENTS = ("BS", "IS", "OCI", "CF", "EQ")
 GREEN = frozenset({"reconciled", "reconciled_with_rounding"})
 EXTRACTOR = fi.EXTRACTOR_VERSION
+# The archive accepts these document types only (archive_migrations/0001_financial_archive.sql).
+DOC_TYPE = {"annual_report": "annual", "half_year": "half_yearly", "quarterly": "quarterly"}
 
 
 def open_throwaway_archive(path: Path) -> SQLiteDatabase:
@@ -120,7 +122,7 @@ def process(row: dict, *, vault: Path, adb: SQLiteDatabase, now: datetime) -> di
             "report_sha256": out["_sha"],
             "psx_symbol": row["symbol"],
             "company_id": f"unassigned-{row['symbol']}",
-            "doc_type": "annual" if row["report_type"] == "annual_report" else "interim",
+            "doc_type": DOC_TYPE.get(row["report_type"], "annual"),
             "financial_year": int(row["fiscal_year"]),
             "period_end": row["period_end"],
             "consolidation": layout["consolidation"],
