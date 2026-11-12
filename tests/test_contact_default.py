@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 import pytest
 
 from collectors import investify_job as job
@@ -70,6 +72,6 @@ def test_the_personal_address_is_not_in_the_repository():
         if path.is_file() and ".git" not in path.parts and "__pycache__" not in path.parts \
                 and path.suffix in {".py", ".md", ".json", ".yml", ".yaml", ".txt", ".sql", ""}:
             text = path.read_text(encoding="utf-8", errors="ignore").lower()
-            if "gmail.com" in text or "imranrazabozdar@" in text:
+            if re.search(r"gmail\.com", text) or "imranrazabozdar@" in text:
                 hits.append(str(path.relative_to(root)))
     assert hits == []
