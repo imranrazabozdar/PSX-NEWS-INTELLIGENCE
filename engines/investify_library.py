@@ -42,7 +42,7 @@ def check_library_target(url: str | None) -> str:
     from engines import library_db
 
     if not url:
-        raise LibraryTargetError("library database URL is not set (set PSXNI_LIBRARY_TURSO_DATABASE_URL "
+        raise LibraryTargetError(f"library database URL is not set (set {library_db.URL_VAR} "
                                  "through the secure secret flow; never paste it)")
     try:
         host = library_db.resolve_host(url)

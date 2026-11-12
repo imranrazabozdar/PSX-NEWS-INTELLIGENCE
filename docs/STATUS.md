@@ -384,9 +384,10 @@ Runbook: `docs/ops/AUTONOMOUS_FETCHER.md`.
 | Scheduled runner `.github/workflows/psx_fetch.yml` (every 30 min weekdays UTC; dispatch; library secrets only) | BUILT. Takes effect only after merge to the default branch |
 | Single scheduler consolidation | Nothing removed. `scheduled-jobs.yml` (production collection, every 6 h) flagged for owner decision |
 | State schema in psx-library `database/library/0001_fetch_state.sql` | PROPOSED; NOT applied (owner approval) |
-| Tick logic: library-first, breaker cooldown, kill switch, calendar and owner window, throttle, day-1 ceiling, robots, one resource, throttle before request, breaker on 403/429/503/error | BUILT, TESTED (30 tests) |
+| Tick logic: library-first, breaker cooldown, kill switch, official open-session calendar, throttle, day-1 ceiling, robots, one resource, throttle before request, breaker on 403/429/503/error | BUILT, TESTED (30 tests) |
 | 304 no-op; 200 stores distilled fields only | TESTED |
 | Clean no-op without library variables; contact required for any live request; no request when psx-library is unreachable | TESTED |
 | End-of-day fetch log (renderer) | BUILT, TESTED; the scheduled write is not yet wired |
 | Live fetching | Live by default. Gated only by structural guards; the state migration must be applied first (until then every tick no-ops). Manual pause: disable the workflow in the Actions UI |
-| Library self-test (`python -m engines.library_db` via workflow_dispatch) | PENDING: needs the workflow on the default branch or a temporary trigger |
+| Library self-test (`library-selftest.yml`: `python -m engines.library_db`, then guarded migration) | RUNNING on this branch (temporary push trigger); the result is recorded in the PR and the runbook |
+| Trading hours | One source: `config/psx_calendar.json` `open_sessions` (Mon-Thu 09:32-15:30; Fri 09:17-12:00, 14:32-16:30; Jumma 12:00-14:32). Policy break agrees (tested). Grading `regular_hours` unchanged |

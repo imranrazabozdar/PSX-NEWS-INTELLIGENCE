@@ -27,8 +27,9 @@
    Investify request is made.
 1. Breaker tripped and still cooling: no-op.
 1a. Kill switch (library row `kill_switch` = true, or env `PSXNI_INVESTIFY_KILL` / `PSXNI_KILL_SWITCH` = true): no-op.
-3. Calendar: trading day; owner window Mon-Thu 09:32-15:30, Friday 09:32-12:00 and 14:32-15:30; first and last 15
-   minutes trimmed; the Jumma break 12:00-14:32 excluded. Unreadable calendar: no-op.
+3. Calendar: an official OPEN session, read from `config/psx_calendar.json` (`open_sessions`). Mon-Thu 09:32-15:30;
+   Friday 09:17-12:00 and 14:32-16:30. The Jumma break (Friday 12:00-14:32) is no trading. Close is exclusive. Weekends,
+   holidays and an unreadable calendar: no-op. The policy's `friday_break_pkt` must agree with the calendar (tested).
 4. Throttle: at least 15 minutes since the last request, across all resources.
 5. Daily ceiling: day 1 of live running is 2; thereafter 12.
 6. robots.txt: refreshed first when stale (it counts as the one request). Disallowed paths never fetched.
@@ -44,6 +45,12 @@
   clear, the throttle written before the request, the breaker on 403, 429, 503 and network error, the 304 no-op,
   the 200 store path, the core-first order, the state round trip on the migration (in memory), the clean no-op
   without the library variables, the honest User-Agent, and the end-of-day log. All passed.
+
+## Self-test (before merge, then on demand)
+- `.github/workflows/library-selftest.yml`: runs `python -m engines.library_db` (target guard, SELECT 1, probe round trip)
+  with the library secrets. Turso only; no Investify. On a green self-test it then applies the approved state migration
+  (`scripts/apply_library_migration.py`: psx-library only, `CREATE TABLE IF NOT EXISTS` only).
+- The temporary push trigger on this branch is removed after the merge; the workflow_dispatch trigger stays.
 
 ## Owner steps (in this order)
 1. **Merge the PR** to the default branch, so the scheduled workflow exists there.
@@ -67,7 +74,5 @@
 
 ## Open items
 - The global announcements parser still needs one in-window sample.
-- Hours discrepancy: the owner's stated hours are 09:15-16:30 PKT; the owner-maintained calendar records Mon-Thu
-  09:15-15:50 and Friday 09:00-16:50. The fetch window is the stricter owner window above.
-- The Friday break is 12:00-14:32 (owner-approved). The policy's `friday_break_pkt` in config is still
-  12:00-15:00 and is pending owner confirmation; the tick uses the owner window.
+- Grading hours (`regular_hours`, pre-open to post-close, used by market-data quality checks) are unchanged; only
+  fetching uses `open_sessions`. Owner to confirm that split.

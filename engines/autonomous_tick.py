@@ -15,7 +15,7 @@ import json
 import os
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, time, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -23,31 +23,13 @@ from collectors import investify_good_citizen as gc
 from collectors import investify_policy as pol
 
 MIN_GAP = timedelta(minutes=15)
-OFFPEAK_TRIM = timedelta(minutes=15)  # skip the first and last 15 minutes of each session
-# Owner-approved window, the intersection of the stated hours and the calendar: Mon-Thu 09:32-15:30;
-# Friday 09:32-12:00 and 14:32-15:30. The Jumma break is 12:00-14:32 Friday.
-WINDOW_MON_THU = (time(9, 32), time(15, 30))
-WINDOW_FRI = ((time(9, 32), time(12, 0)), (time(14, 32), time(15, 30)))
 DAY1_CEILING = 2  # conservative ramp: the first live day is a trickle
 DEFAULT_CEILING = 12
 
 
-def in_owner_window(local: datetime) -> bool:
-    """True only inside the owner window, trimmed by 15 minutes at each session edge (off-peak)."""
-    t = local.time()
-    if local.weekday() <= 3:
-        lo, hi = WINDOW_MON_THU
-        return _trimmed(t, lo, hi)
-    if local.weekday() == 4:
-        return any(_trimmed(t, lo, hi) for lo, hi in WINDOW_FRI)
-    return False  # Saturday, Sunday
-
-
-def _trimmed(t: time, lo: time, hi: time) -> bool:
-    lo_m = (lo.hour * 60 + lo.minute) + OFFPEAK_TRIM.seconds // 60
-    hi_m = (hi.hour * 60 + hi.minute) - OFFPEAK_TRIM.seconds // 60
-    m = t.hour * 60 + t.minute
-    return lo_m <= m <= hi_m
+def in_owner_window(local: datetime, calendar: Any) -> bool:
+    """True only inside an official OPEN session, read from the calendar (the single source of truth)."""
+    return calendar.in_open_session(local.date().isoformat(), local.hour * 60 + local.minute)
 
 
 @dataclass(frozen=True)
@@ -103,8 +85,8 @@ def decide(now: datetime, control: Control, *, calendar: Any, resources: list[tu
     day = local.date().isoformat()
     if not calendar.is_trading_day(day):
         return Decision("noop", f"not a trading day ({calendar.day_type(day)})")
-    if not in_owner_window(local):
-        return Decision("noop", "outside the owner window (off-peak trimmed)")
+    if not in_owner_window(local, calendar):
+        return Decision("noop", "outside an official open session (calendar)")
     if control.global_last_request_utc and now - _utc(control.global_last_request_utc) < MIN_GAP:
         return Decision("noop", "throttled: 15 minutes since the last request across all resources")
     count = control.daily_count if control.daily_day_pkt == day else 0

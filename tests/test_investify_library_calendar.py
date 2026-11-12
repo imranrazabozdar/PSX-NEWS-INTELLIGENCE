@@ -102,9 +102,9 @@ def test_after_the_recorded_close_there_is_no_fetch(cal):
     assert REAL_CALENDAR_VERDICT(pkt("2026-11-16 16:30"), cal, gc.load_policy()).allowed is False
 
 
-def test_the_friday_break_is_refused_while_its_window_is_unconfirmed(cal):
-    v = REAL_CALENDAR_VERDICT(pkt("2026-11-13 13:00"), cal, gc.load_policy())  # Friday 13:00 PKT
-    assert v.allowed is False and "Friday break" in v.reason
+def test_the_friday_break_is_refused_and_the_post_break_session_is_allowed(cal):
+    assert REAL_CALENDAR_VERDICT(pkt("2026-11-13 12:30"), cal, gc.load_policy()).allowed is False
+    assert REAL_CALENDAR_VERDICT(pkt("2026-11-13 14:40"), cal, gc.load_policy()).allowed is True
 
 
 def test_friday_before_the_break_is_open(cal):
@@ -129,16 +129,17 @@ def test_an_unreadable_calendar_refuses(cal):
 def test_unrecorded_hours_refuse_rather_than_guess(cal):
     empty = mc.TradingCalendar(regular_hours={})
     v = REAL_CALENDAR_VERDICT(pkt("2026-11-16 10:00"), empty, gc.load_policy())
-    assert v.allowed is False and "not recorded" in v.reason
+    assert v.allowed is False and "no fetch" in v.reason
 
 
-def test_the_friday_break_is_a_config_value_marked_pending_owner_confirmation():
+def test_the_friday_break_is_the_official_jumma_break_and_no_longer_pending():
     shipped = gc.load_policy()
-    assert shipped.friday_break is not None  # refused by default
+    assert shipped.friday_break is not None
     import json
 
     raw = json.loads((ROOT / "config" / "investify_good_citizen.json").read_text(encoding="utf-8"))
-    assert "PENDING" in raw["friday_break_pkt"]["_note"]
+    assert "PENDING" not in raw["friday_break_pkt"]["_note"]
+    assert (raw["friday_break_pkt"]["start"], raw["friday_break_pkt"]["end"]) == ("12:00", "14:32")
 
 
 def test_the_shipped_policy_has_every_collector_off():

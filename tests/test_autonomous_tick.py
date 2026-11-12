@@ -115,15 +115,29 @@ def test_before_the_window_and_after_it_is_a_no_op():
     assert d(pkt("2026-11-16 16:00")).action == "noop"
 
 
-def test_the_first_and_last_fifteen_minutes_of_the_session_are_trimmed():
-    assert d(pkt("2026-11-16 09:35")).action == "noop"  # 09:32 + 15 minutes
-    assert d(pkt("2026-11-16 15:20")).action == "noop"  # 15:30 - 15 minutes
-    assert d(pkt("2026-11-16 10:00")).action == "fetch"
+def test_fetches_only_inside_the_official_open_sessions():
+    assert d(pkt("2026-11-16 09:31")).action == "noop"  # Monday before 09:32
+    assert d(pkt("2026-11-16 09:32")).action == "fetch"
+    assert d(pkt("2026-11-16 15:29")).action == "fetch"
+    assert d(pkt("2026-11-16 15:30")).action == "noop"  # close is exclusive
 
 
-def test_friday_jumma_break_is_refused_and_friday_morning_is_open():
-    assert d(pkt("2026-11-13 13:00")).action == "noop"  # the break 12:00-14:32
+def test_friday_1240_is_refused_as_jumma_break_and_friday_1440_is_allowed_after_it():
+    assert d(pkt("2026-11-13 12:30")).action == "noop"  # the Jumma break 12:00-14:32
+    assert d(pkt("2026-11-13 14:40")).action == "fetch"  # post-break session 14:32-16:30
     assert d(pkt("2026-11-13 10:30")).action == "fetch"
+    assert d(pkt("2026-11-13 16:30")).action == "noop"
+
+
+def test_the_policy_jumma_break_agrees_with_the_calendar_friday_gap():
+    from collectors import investify_good_citizen as g
+
+    shipped = g.load_policy()
+    start, end = shipped.friday_break
+    morning_end = CAL.open_sessions["4"][0][1]
+    afternoon_start = CAL.open_sessions["4"][1][0]
+    assert (start.hour * 60 + start.minute, end.hour * 60 + end.minute) == (morning_end, afternoon_start)
+    assert (start.hour, start.minute) == (12, 0) and (end.hour, end.minute) == (14, 32)
 
 
 def test_the_throttle_holds_for_fifteen_minutes_across_all_resources():

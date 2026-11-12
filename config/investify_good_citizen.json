@@ -32,7 +32,7 @@
   },
   "friday_break_pkt": {
     "start": "12:00",
-    "end": "15:00",
-    "_note": "PENDING owner confirmation of the official Jumma break. Until confirmed, Friday 12:00-15:00 PKT is refused."
+    "end": "14:32",
+    "_note": "Official Jumma break (no trading), PKT. Must agree with the Friday gap in config/psx_calendar.json open_sessions (tested)."
   }
 }

@@ -51,6 +51,7 @@ class TradingCalendar:
     holidays: dict[str, str] = field(default_factory=dict)
     closures: dict[str, str] = field(default_factory=dict)
     special: dict[str, tuple[int, int] | None] = field(default_factory=dict)
+    open_sessions: dict[str, list[tuple[int, int]]] = field(default_factory=dict)  # weekday -> open sessions
 
     def day_type(self, day: str) -> str:
         if day in self.closures:
@@ -63,6 +64,15 @@ class TradingCalendar:
 
     def is_trading_day(self, day: str) -> bool:
         return self.day_type(day) not in NON_TRADING
+
+    def in_open_session(self, day: str, minute_of_day: int) -> bool:
+        """True only inside an official OPEN session of a trading day. Anything unrecorded refuses."""
+        if not self.is_trading_day(day) or self.day_type(day) == SPECIAL:
+            return False
+        sessions = self.open_sessions.get(str(date.fromisoformat(day).weekday()))
+        if not sessions:
+            return False
+        return any(lo <= minute_of_day < hi for lo, hi in sessions)  # close is exclusive
 
     def hours(self, day: str) -> tuple[int, int] | None:
         """Official (open, close) in PKT minutes after midnight, or None when not recorded."""
@@ -82,6 +92,15 @@ def load_calendar(path: Path | str = DEFAULT_PATH) -> TradingCalendar:
         if key not in {"default", "0", "1", "2", "3", "4", "5", "6"}:
             raise CalendarError(f"regular_hours key {key!r}: use 'default' or a weekday number 0-6")
         cal.regular_hours[key] = _hours(entry, f"regular_hours[{key}]")
+    for key, entry in (raw.get("open_sessions") or {}).items():
+        if key.startswith("_"):
+            continue
+        if key not in {"0", "1", "2", "3", "4"} or not isinstance(entry, dict) or not entry.get("source"):
+            raise CalendarError(f"open_sessions[{key!r}]: a weekday 0-4 with a cited 'source' is required")
+        spans = []
+        for lo, hi in entry["sessions"]:
+            spans.append(_hours({"open": lo, "close": hi}, f"open_sessions[{key}]"))
+        cal.open_sessions[key] = spans
     for section, target in (("holidays", cal.holidays), ("closures", cal.closures)):
         for day, entry in (raw.get(section) or {}).items():
             if not _DATE.match(day) or not isinstance(entry, dict) or not entry.get("source"):

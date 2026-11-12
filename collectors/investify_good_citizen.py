@@ -218,13 +218,8 @@ def calendar_verdict(now: datetime, calendar: Any, policy: Policy | None) -> Ver
     day = local.date().isoformat()
     if not calendar.is_trading_day(day):
         return Verdict(False, f"not a trading day ({calendar.day_type(day)}): no fetch")
-    hours = calendar.hours(day)
-    if hours is None:
-        return Verdict(False, "trading hours not recorded for this day: fail closed")
-    minutes = local.hour * 60 + local.minute
-    open_m, close_m = hours
-    if not open_m <= minutes <= close_m:
-        return Verdict(False, "outside recorded trading hours: no fetch")
+    if not calendar.in_open_session(day, local.hour * 60 + local.minute):
+        return Verdict(False, "outside an official open session (calendar): no fetch")
     if local.weekday() == 4 and policy.friday_break is not None:
         start, end = policy.friday_break
         if start <= local.time() < end:
