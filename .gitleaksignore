@@ -1,0 +1,7 @@
+# Per-line allowlist (fingerprints). Each entry is a synthetic test fixture or a test dummy, verified by hand.
+# Not a path exclusion: the scanner stays active on every other line.
+b87904f40cd59b4548ed4371c7c764c1f327ef7b:tests/fixtures/real_reports/ogdc_ar2026_standalone/expected.json:generic-api-key:2
+b87904f40cd59b4548ed4371c7c764c1f327ef7b:tests/fixtures/real_reports/ogdc_ar2026_standalone/manifest.json:generic-api-key:2
+8e169e1d82e206ea50be589c7189a67df1cb9523:tests/test_source_registry.py:generic-api-key:65
+a4d4d58b2a136ee295ba0d6186a8951d813224b4:tests/test_llm_live.py:generic-api-key:24
+80f9c8764f009106555fbd4a9c91291530d07830:tests/test_llm_live.py:generic-api-key:24
