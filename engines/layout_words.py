@@ -131,7 +131,8 @@ def positional_rows(words: list[Word], columns: list[tuple[float, int]]) -> list
     for w in sorted(words, key=lambda w: (w.top, w.x0)):
         key = round(w.top / ROW_TOL)
         row = rows.setdefault(key, Row(top=w.top, label=""))
-        if is_figure(w.text):
+        is_value_dash = w.text in {"-", "–", "—"} and w.x1 < min(c for c, _ in columns) - COLUMN_TOL
+        if is_figure(w.text) and not is_value_dash:
             col = _nearest_column(w.x1, columns)
             if col is None:
                 row.ambiguous.append(f"figure {w.text!r} outside every column at x1={w.x1:.1f}")
