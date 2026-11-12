@@ -106,8 +106,10 @@ def client_for(transport, clock=None):
 def test_the_registry_statuses_match_the_reachability_results():
     reg = f.load_registry()
     assert set(reg) == {"OGDC", "UBL", "POL", "NRL", "ATRL", "PPL", "HUBC", "PSO", "LUCK"}
-    assert reg["NRL"].status == "live" and reg["HUBC"].status == "live"
-    assert reg["PSO"].status == "live" and reg["LUCK"].status == "live"
+    assert reg["NRL"].status == "needs_manual"  # shadow-corrupted text layer; figures keyed by hand
+    assert reg["HUBC"].status == "live"  # annual PDF has a text layer; quarterly periods are needs_OCR
+    assert reg["PSO"].status == "needs_OCR"  # no text layer (vector-outline)
+    assert reg["LUCK"].status == "needs_manual"  # report host robots-disallowed
     assert reg["ATRL"].status == "todo_unverified"
     assert reg["POL"].status == "todo_unreachable"  # the TLS chain failed locally: an environment limit
     assert reg["PPL"].status == "blocked_by_site"  # Cloudflare challenge

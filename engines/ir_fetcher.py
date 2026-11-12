@@ -56,6 +56,8 @@ STATUSES = (
     "blocked_by_site",
     "todo_unreachable",
     "manual_import",
+    "needs_manual",
+    "needs_OCR",
 )
 DEFAULT_MIN_INTERVAL_S = 10.0
 DEFAULT_BACKOFF_S = 1800.0

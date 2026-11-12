@@ -39,8 +39,11 @@
       "allowed_hosts": [
         "nrlpak.com"
       ],
-      "status": "live",
-      "notes": "Reachable (HTTP 200, robots allows). The reports listing is investors/financial-report.html (the homepage links only two report PDFs). Report PDFs are under assets/pdf/ on the same host."
+      "status": "needs_manual",
+      "notes": "Reachable (HTTP 200, robots allows). The reports listing is investors/financial-report.html (the homepage links only two report PDFs). Report PDFs are under assets/pdf/ on the same host.",
+      "previous_status": "live",
+      "status_reason": "text layer shadow-corrupted; deterministic extraction unreliable; identities hand-verified; key totals to be keyed manually",
+      "status_set_on": "2026-11-12"
     },
     "ATRL": {
       "name": "Attock Refinery Limited",
@@ -70,7 +73,19 @@
         "hubpower.com"
       ],
       "status": "live",
-      "notes": "Reachable. Annual reports are linked as PDFs."
+      "notes": "Reachable. Annual reports are linked as PDFs.",
+      "previous_status": "live",
+      "period_status": {
+        "annual_report": {
+          "status": "live",
+          "reason": "text layer present; 2026-06-30 identity checks requires_review (balance sheet ambiguous, income statement unresolved)"
+        },
+        "quarterly": {
+          "status": "needs_OCR",
+          "reason": "no text layer (image-only); OCR is a later decision"
+        }
+      },
+      "status_set_on": "2026-11-12"
     },
     "PSO": {
       "name": "Pakistan State Oil Company Limited",
@@ -79,8 +94,11 @@
       "allowed_hosts": [
         "psopk.com"
       ],
-      "status": "live",
-      "notes": "Reachable. Quarterly and annual PDFs are linked, with the fiscal period in the link text."
+      "status": "needs_OCR",
+      "notes": "Reachable. Quarterly and annual PDFs are linked, with the fiscal period in the link text.",
+      "previous_status": "live",
+      "status_reason": "no text layer (image / vector-outline)",
+      "status_set_on": "2026-11-12"
     },
     "LUCK": {
       "name": "Lucky Cement Limited",
@@ -89,8 +107,11 @@
       "allowed_hosts": [
         "lucky-cement.com"
       ],
-      "status": "live",
-      "notes": "Reachable. The report PDFs are on assets.lucky-cement.com and are listed in the page's embedded data, not as HTML links."
+      "status": "needs_manual",
+      "notes": "Reachable. The report PDFs are on assets.lucky-cement.com and are listed in the page's embedded data, not as HTML links.",
+      "previous_status": "live",
+      "status_reason": "report host robots-disallowed",
+      "status_set_on": "2026-11-12"
     }
   },
   "fallback_candidates": {

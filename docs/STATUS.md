@@ -194,3 +194,20 @@ has run in production, and no migration has been applied to Turso.
 | Item | Code | Tests | Status |
 |---|---|---|---|
 | A2 remediation script (retire the foreign version 11) | `scripts/remediate_migration_collision_a2.py` | `tests/test_turso_disposable_a2_rehearsal.py` (SQLite leg) | TESTED offline (Option B guard); Turso rehearsal PASSED 2026-11-09 on a disposable database (26 passed; guard Option B proven on Turso); production EXECUTED 2026-11-09 and verified (`docs/MIGRATION_COLLISION_A2.md`) |
+
+## Financial PDF reconciliation (2026-11-12, branch feature/financial-pdf-reconciliation)
+Evidence: `docs/coverage/EXTRACTION_FINDINGS-2026-11-12.md`. Live fetch: no network fetch in this pass. No production or Turso write. No OCR.
+
+| Item | Status | Evidence |
+|---|---|---|
+| De-shadow of copy-columns, distinct-column gate, glued-heading split | IMPLEMENTED and TESTED with synthetic fixtures | `engines/layout_words.py`, `tests/test_deshadow.py`, `tests/test_layout_words.py` |
+| Interim income statement, four-column period roles from header groups | IMPLEMENTED and TESTED with synthetic fixture (a). Not yet wired into the batch gate; real-page header detection fails on most NRL pages | `engines/position_identities.py`, `tests/test_position_identities.py` |
+| Independent total equity (SOCE closing balance, balance-sheet components, printed subtotal; never assets minus liabilities) | IMPLEMENTED and TESTED with synthetic fixtures (b), (c), (d). Component matching is unreliable on some NRL pages (surplus row dropped) | `engines/position_identities.py`, `tests/test_position_identities.py` |
+| Deterministic extraction on the three pilots (UBL, OGDC, LUCK) | TESTED: 30 of 30 cells green from owner-supplied PDFs | `docs/coverage/EXTRACTION_COVERAGE.md`, `tests/test_real_report_regression.py` |
+| HUBC annual 2026-06-30 | NOT PROVEN: identity checks requires_review | identity run (throwaway, not committed) |
+| HUBC quarterly | needs_OCR (image-only) | `config/ir_registry.json` (`period_status`) |
+| PSO | needs_OCR (vector-outline, no text layer) | `config/ir_registry.json` |
+| NRL | needs_manual (shadow-corrupted text layer). Balance sheet 2026-09-30 reconciles on components (flagged); key totals keyed by hand; identities hand-verified | `config/ir_registry.json`, findings doc |
+| LUCK live fetch | needs_manual (report host robots-disallowed). Pilot figures come from the owner's upload | `config/ir_registry.json` |
+
+**Open owner decision (not acted on):** Acquisition strategy for scale: authorized data vendor (structured financials and announcements) vs free manual-import watchlist. Pending owner decision.
