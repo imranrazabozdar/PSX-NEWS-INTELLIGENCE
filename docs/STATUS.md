@@ -376,7 +376,14 @@ Plan and gate results: `docs/ops/INVESTIFY_BACKFILL_PLAN.md`.
 
 **Next step (owner):** confirm both variables are visible in a new session of this environment (names only), then run `python -m engines.library_db`. Report the exact output. If auth fails, the verbatim error is printed.
 
-### Autonomous fetcher (merged to main): BUILT, live by default (no mode toggle)
+### Autonomous fetcher (on main): IMPLEMENTED and TESTED; live by default (no mode toggle)
+
+Verified on main (commit a8e544c):
+- Self-test (`library-selftest.yml`, workflow_dispatch on main, run 43277037666): `library connection OK -> host=psx-library-turso202601.aws-us-east-1.turso.io`; probe `inserted/read_back_rows=1/exactly_one/matched/deleted` all true; `migration applied ...: 3 statement(s)`; `state tables present: ['fetch_control', 'fetch_progress', 'fetch_log']`.
+- Dry run (`tests/test_tick_dry_run.py`, mocked Investify transport, network blocked): in-window = exactly one request (robots); outside window, unreachable library, or no contact address = zero requests; kill switch defaults off.
+- Tick run on main (run 43277115897, 23:10 PKT, outside window): library and state tables confirmed, then `no-op: PSXNI_CONTACT_EMAIL is not set; no request is made without a contact address`. No Investify request.
+- OWNER PREREQUISITE: set the Actions repository variable `PSXNI_CONTACT_EMAIL` before the first live tick. Until it is set, every tick is a no-op. This is the only setting the owner still has to make.
+- Scheduler audit: `psx_fetch.yml` is the only scheduled workflow; `scheduled-jobs.yml` is dispatch-only.
 Runbook: `docs/ops/AUTONOMOUS_FETCHER.md`.
 
 | Item | State |
