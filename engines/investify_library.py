@@ -38,16 +38,16 @@ class LibraryTargetError(RuntimeError):
 
 
 def check_library_target(url: str | None) -> str:
-    """Return the database name for logging, or raise. Refuses before any write. Never returns credentials."""
+    """Return the database name for logging, or raise. One guard, shared with the single connection module."""
+    from engines import library_db
+
     if not url:
         raise LibraryTargetError("library database URL is not set (set PSXNI_LIBRARY_TURSO_DATABASE_URL "
                                  "through the secure secret flow; never paste it)")
-    host = url.split("://", 1)[-1].split("/", 1)[0].split("?", 1)[0].lower()
-    if any(m in host for m in FORBIDDEN_MARKERS):
-        raise LibraryTargetError("refused: the URL resolves to a production, data-capture or archival "
-                                 "database")
-    if LIBRARY_MARKER not in host:
-        raise LibraryTargetError("refused: the URL does not name the psx-library database")
+    try:
+        host = library_db.resolve_host(url)
+    except library_db.LibraryConfigError as exc:
+        raise LibraryTargetError(str(exc)) from exc
     return host.split(".", 1)[0]
 
 

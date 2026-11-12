@@ -363,3 +363,15 @@ Plan and gate results: `docs/ops/INVESTIFY_BACKFILL_PLAN.md`.
 | Hours discrepancy (owner 09:15-16:30 versus calendar 15:50 and 16:50) | OPEN, owner to resolve |
 | Jumma break window | PENDING owner confirmation (refused 12:00-15:00 Friday until confirmed) |
 | Live backfill | NOT STARTED; requires owner approval of the plan |
+
+### Definitive library integration (feature/investify-good-citizen): GATE, auth not yet proven
+| Item | State |
+|---|---|
+| Single connection module `engines/library_db.py`: the only place a library client is built; reads both variables from the environment; fail-closed; target guard (psx-library only; refuses data-capture, archival and production markers); logs the host only | IMPLEMENTED, TESTED |
+| Auth and placement check (`python -m engines.library_db`): SELECT 1, host print, probe round trip (insert, read back exactly one, delete in finally) | IMPLEMENTED; NOT RUN LIVE. In this session `PSXNI_LIBRARY_TURSO_DATABASE_URL` and `PSXNI_LIBRARY_TURSO_AUTH_TOKEN` are not visible, so it refuses cleanly (exit 2) |
+| Probe round trip on an in-memory copy | PASSED in tests |
+| Single-path rule (no other module constructs a Turso client) | TESTED |
+| Token scope (psx-library, write only, not account-wide) | To be confirmed by the owner in the Turso dashboard; not verifiable from here |
+| Live backfill | NOT STARTED. Requires owner approval after the auth check passes |
+
+**Next step (owner):** confirm both variables are visible in a new session of this environment (names only), then run `python -m engines.library_db`. Report the exact output. If auth fails, the verbatim error is printed.
