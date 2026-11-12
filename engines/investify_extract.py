@@ -119,8 +119,10 @@ def _object_at(flight: str, index: int) -> dict[str, Any] | None:
 
 
 def parse_announcements(body: bytes | str, symbol: str) -> dict[str, Any]:
-    """Announcement metadata for one company page. Investify's headline, summary and key findings are generated
-    text and are NOT returned. The PSX title, date, classification and document links are."""
+    """Announcement metadata for one company page.
+
+    Investify's headline, summary and key findings are generated text and are NOT returned. The PSX title,
+    date, classification and document links are."""
     flight = _flight(body)
     items: list[dict[str, Any]] = []
     seen: set[str] = set()
@@ -168,7 +170,8 @@ def to_announcement_records(parsed: dict[str, Any], retrieved_at_utc: str) -> li
         records.append(ic.AnnouncementRecord(
             symbol=parsed["symbol"], company_name="", announced_at_utc=at_utc,
             announced_on_pkt=at.astimezone(pkt).date().isoformat(), title=it["title"] or "",
-            investify_label=it["sub_type"] or "", category=it["category"], sentiment_label=it["sentiment"] or "",
+            investify_label=it["sub_type"] or "", category=it["category"],
+            sentiment_label=it["sentiment"] or "",
             source="investify.pk", source_url=source_url, pdf_url=it["pdf_url"],
             pdf_access="gated_dps" if it["pdf_url"] and "dps.psx.com.pk" in it["pdf_url"] else "none",
             retrieved_at_utc=retrieved_at_utc,
