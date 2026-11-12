@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import json
 import os
-import re
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
@@ -233,7 +232,19 @@ WATCHLIST_PATH = Path(__file__).resolve().parents[1] / "config" / "coverage_watc
 # THE one default contact, used when PSXNI_CONTACT_EMAIL is unset or empty; the variable overrides it.
 DEFAULT_CONTACT = "https://github.com/imranrazabozdar/psx-news-intelligence"
 CONTACT_VAR = "PSXNI_CONTACT_EMAIL"
-_EMAIL = re.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$")
+_LOCAL_CHARS = frozenset("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._%+-")
+_LABEL_CHARS = frozenset("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-")
+
+
+def _is_email(value: str) -> bool:
+    """Plain string checks, no regex: bounded length, one @, a dotted domain of clean labels."""
+    if len(value) > 254 or value.count("@") != 1:
+        return False
+    local, domain = value.split("@")
+    labels = domain.split(".")
+    return (bool(local) and set(local) <= _LOCAL_CHARS and len(labels) >= 2
+            and all(lab and set(lab) <= _LABEL_CHARS and not lab.startswith("-") and not lab.endswith("-")
+                    for lab in labels))
 
 
 def validate_contact(value: str) -> str | None:
@@ -243,7 +254,7 @@ def validate_contact(value: str) -> str | None:
     if value.startswith("https://"):
         parts = urlsplit(value)
         return value if parts.hostname and "." in parts.hostname and parts.username is None else None
-    return value if _EMAIL.match(value) else None
+    return value if _is_email(value) else None
 
 
 def resolve_contact(environ: Mapping[str, str]) -> str | None:
