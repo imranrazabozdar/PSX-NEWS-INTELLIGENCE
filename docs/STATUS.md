@@ -408,5 +408,10 @@ Runbook: `docs/ops/AUTONOMOUS_FETCHER.md`.
 | Row rules: every fact needs a source name and a source date; analyst views labelled `analyst_view`; 300-character limit | IMPLEMENTED, TESTED (`engines/research_facts.py`) |
 | `research_fact` schema applied to psx-library (CREATE TABLE IF NOT EXISTS only, guarded connection) | DONE, run 43292869225 on main, host psx-library-turso202601.aws-us-east-1.turso.io |
 | Distilled HUBC rows in psx-library | DONE: 23 rows inserted (sourced, dated; analyst views labelled `analyst_view`). Counts per topic: analyst_thesis 1, associate_cash 1, associate_share 1, balance_sheet 3, dividend 2, eps 2, ev_plan 1, ev_policy 1, ev_target 1, finance_costs 1, land_optionality 1, net_profit_owners 2, operating_cash 1, policy_rate 1, rating 1, receivables 1, revenue 2 |
-| Per-company pattern (other companies) | Follows the HUBC pattern: `docs/research/<ticker>/` and rows keyed by ticker, one table. Other companies are NOT added until the owner confirms HUBC works |
+| Per-company pattern (other companies) | CONFIRMED by the owner on HUBC: folder `docs/research/<ticker>/` plus `research_fact` rows keyed by ticker. No company gets a new table or structure. Other companies are NOT added yet |
+
+### Phase 2 macro factors: PLAN ONLY (not built)
+- Plan: `docs/plans/phase2_macro.md`. Status: awaiting owner approval; build not started.
+- Investify is not a consented source for rates, commodities or sentiment. Phase 2 uses manual import of official releases.
+- Blocked: SBP automated access (R3), EIA and World Bank (U2). Gaps: petrol, diesel, gold, silver and Fear & Greed have no named source.
 
