@@ -429,3 +429,9 @@ Runbook: `docs/ops/AUTONOMOUS_FETCHER.md`.
 - Live fetching resumes in the next trading window (not before).
 - Request limits (12 per day, 60 per week, 15-minute gap) are set by the OWNER. Investify's approval does not state a daily number.
 
+### Live run and open items (13 Nov 2026)
+- Live run 43377979015 (manual dispatch, 11:20 PKT, inside the Friday window): `tick: fetch: stored MEBL:fundamentals`. One request. Rows written to research_fact before the run was marked done. Not yet read back: a read-only check workflow (`library-readonly-check.yml`) is added for that.
+- Requests today: robots.txt, the earlier failed fetch, and the MEBL fundamentals fetch (three of the owner's cap of 12; the one-day exception lifts today's first-day cap of 2).
+- Open: (1) the scheduled tick has never fired since it reached main (zero scheduled runs; cron re-registered in PR #75). Needs a check of the Actions tab or an external dispatcher. (2) Monday 16 Nov: trading window 09:32-15:30 PKT, one session, no break. Trigger a run in the window if the scheduler is still silent. (3) Calendar: today is recorded as a trading day; a closure needs an official PSX notice before it is entered.
+- Monday's window is continuous 09:32-15:30 PKT. The Jumma break (12:00-14:32) applies to Fridays only.
+
