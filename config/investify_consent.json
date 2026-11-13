@@ -1,0 +1,26 @@
+{
+  "_note": "Investify consent scope. Lists the categories the owner approved. Listing a category here does NOT enable it: enablement is separate (collectors_enabled in config/investify_good_citizen.json and news_enabled in config/investify_flags.json) and stays off until a separate, approved step.",
+  "source": "Investify expanded-scope approval email",
+  "approval_date": "[APPROVAL DATE]",
+  "effective_from": "2026-11-12T00:00:00Z",
+  "scope": "Private, non-commercial research",
+  "conditions": [
+    "Private, non-commercial use only.",
+    "Attribution on every stored record: Source: Investify (investify.pk).",
+    "Revocable: revocation disables the source in the registry and stops all polling.",
+    "Good-citizen limits: at most one request per 15 minutes; trading hours only; conditional requests; obey robots.txt; back off on 429, 403 or 503 with a multi-hour cooldown; identifying User-Agent.",
+    "Metadata only from listings; no Investify summary text stored."
+  ],
+  "categories": {
+    "Announcements": {"collector": "announcements"},
+    "Fundamentals": {"collector": "fundamentals"},
+    "Profile": {"collector": "profile"},
+    "Competitors": {"collector": "competitors"},
+    "Market & Index": {"collector": null},
+    "Sectors": {"collector": null},
+    "Technicals": {"collector": null},
+    "News": {"collector": "news"},
+    "Sentiment": {"collector": null},
+    "Rates & Commodities": {"collector": null}
+  }
+}

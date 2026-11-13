@@ -410,3 +410,9 @@ Runbook: `docs/ops/AUTONOMOUS_FETCHER.md`.
 | Distilled HUBC rows in psx-library | DONE: 23 rows inserted (sourced, dated; analyst views labelled `analyst_view`). Counts per topic: analyst_thesis 1, associate_cash 1, associate_share 1, balance_sheet 3, dividend 2, eps 2, ev_plan 1, ev_policy 1, ev_target 1, finance_costs 1, land_optionality 1, net_profit_owners 2, operating_cash 1, policy_rate 1, rating 1, receivables 1, revenue 2 |
 | Per-company pattern (other companies) | Follows the HUBC pattern: `docs/research/<ticker>/` and rows keyed by ticker, one table. Other companies are NOT added until the owner confirms HUBC works |
 
+### Investify consent scope (expanded approval)
+- The consent record matches the owner's expanded-scope approval email: ten categories, exactly as the approval names them. Original four: Announcements, Fundamentals, Profile, Competitors. Expanded six: Market & Index, Sectors, Technicals, News, Sentiment, Rates & Commodities. Files: `config/investify_consent.json`, `docs/consent/investify-expanded-scope.md`.
+- Approval date: `[APPROVAL DATE]`, to be supplied by the owner.
+- Per-category enablement is still PENDING and stays OFF. Current flags: `collectors_enabled` all false; `news_enabled` false. The five categories with no collector have no fetch path. Enabling any category is a separate, approved step.
+- Tests: `tests/test_investify_consent_scope.py`.
+
