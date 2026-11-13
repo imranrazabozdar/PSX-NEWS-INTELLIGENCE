@@ -1,7 +1,7 @@
 {
   "_note": "Investify consent scope. Lists the categories the owner approved. Listing a category here does NOT enable it: enablement is separate (collectors_enabled in config/investify_good_citizen.json and news_enabled in config/investify_flags.json) and stays off until a separate, approved step.",
   "source": "Investify expanded-scope approval email",
-  "approval_date": "[APPROVAL DATE]",
+  "approval_date": "2026-11-12",
   "effective_from": "2026-11-12T00:00:00Z",
   "scope": "Private, non-commercial research",
   "conditions": [

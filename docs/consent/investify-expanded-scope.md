@@ -5,7 +5,7 @@ Status: **owner-reported approval. The approval email is held by the owner and i
 | Field | Value |
 |---|---|
 | Source | Investify expanded-scope approval email |
-| Approval date | [APPROVAL DATE] (owner to supply) |
+| Approval date | 2026-11-12 (owner-reported, "12-11-26", day-month-year) |
 | Effective from | 2026-11-12T00:00:00Z (as in the earlier records) |
 | Scope | Private, non-commercial research |
 | Revocable | Yes. Revocation disables the source in the registry and stops all polling. |
@@ -36,5 +36,5 @@ Consent does not switch anything on. The per-category flags stay as they are:
 
 ## Owner to confirm
 
-- The approval date, in place of `[APPROVAL DATE]`.
+- The approval date is recorded as 2026-11-12 (read from "12-11-26", day-month-year). Confirm it if the email says otherwise.
 - That `investify.com` (the sender) and `investify.pk` (the data host) are the same operator, as noted in the earlier record.

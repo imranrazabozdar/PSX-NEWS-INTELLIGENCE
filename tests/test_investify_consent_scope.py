@@ -27,7 +27,8 @@ def test_the_consent_record_lists_exactly_the_approved_ten_and_nothing_more():
 def test_the_consent_record_names_its_source_and_conditions_and_leaves_the_date_for_the_owner():
     data = _consent()
     assert data["source"] == "Investify expanded-scope approval email"
-    assert data["approval_date"] == "[APPROVAL DATE]"  # the owner supplies it; not invented here
+    assert data["approval_date"] == "2026-11-12"  # owner-reported "12-11-26", day-month-year
+    assert "APPROVAL DATE" not in json.dumps(data) and "[" not in data["approval_date"]
     joined = " ".join(data["conditions"])
     assert "Private, non-commercial" in joined and "Source: Investify (investify.pk)" in joined
     assert "Revocable" in joined and "one request per 15 minutes" in joined

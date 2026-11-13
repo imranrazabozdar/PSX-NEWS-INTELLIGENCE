@@ -412,7 +412,7 @@ Runbook: `docs/ops/AUTONOMOUS_FETCHER.md`.
 
 ### Investify consent scope (expanded approval)
 - The consent record matches the owner's expanded-scope approval email: ten categories, exactly as the approval names them. Original four: Announcements, Fundamentals, Profile, Competitors. Expanded six: Market & Index, Sectors, Technicals, News, Sentiment, Rates & Commodities. Files: `config/investify_consent.json`, `docs/consent/investify-expanded-scope.md`.
-- Approval date: `[APPROVAL DATE]`, to be supplied by the owner.
+- Approval date: 2026-11-12 (owner-reported, "12-11-26", day-month-year).
 - Per-category enablement is still PENDING and stays OFF. Current flags: `collectors_enabled` all false; `news_enabled` false. The five categories with no collector have no fetch path. Enabling any category is a separate, approved step.
 - Tests: `tests/test_investify_consent_scope.py`.
 
