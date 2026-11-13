@@ -1,0 +1,31 @@
+# Starts the autonomous tick (psx_fetch.yml) on the same weekday slots, as a backup to the tick's own cron.
+# Uses the repository secret PSXNI_DISPATCH_TOKEN (Actions read/write, this repository only, expires 15 Dec 2026).
+# The tick's own guards decide every run: trading window, daily ceiling, 15-minute gap, library check.
+# Prints only whether the secret is set; never its value.
+name: Tick dispatcher
+
+on:
+  schedule:
+    - cron: "0,30 1-11 * * 1-5"  # same slots as the tick: :00 and :30 UTC, weekdays, 01:00-11:30 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Start the tick workflow on main
+        env:
+          GH_TOKEN: ${{ secrets.PSXNI_DISPATCH_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "PSXNI_DISPATCH_TOKEN is not set: nothing dispatched."
+            exit 1
+          fi
+          echo "PSXNI_DISPATCH_TOKEN is set."
+          gh workflow run psx_fetch.yml --ref main --repo "$REPO"
+          echo "Tick dispatched."
