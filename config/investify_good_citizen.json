@@ -1,5 +1,5 @@
 {
-  "_note": "The single good-citizen policy for the Investify client. Defaults: every collector OFF (each must be turned on deliberately). Limits can be made stricter here; the code refuses any value outside its floors and fails closed on an unreadable file.",
+  "_note": "The single good-citizen policy for the Investify client. Every ceiling below is set by the OWNER, not by Investify: daily_ceiling 12 and weekly_ceiling 60 are the owner's own limits. Defaults: every collector OFF. Limits can be made stricter here; the code refuses any value outside its floors and fails closed on an unreadable file.",
   "kill_switch": false,
   "collectors_enabled": {
     "announcements": false,
@@ -34,5 +34,11 @@
     "start": "12:00",
     "end": "14:32",
     "_note": "Official Jumma break (no trading), PKT. Must agree with the Friday gap in config/psx_calendar.json open_sessions (tested)."
+  },
+  "one_day_exceptions": {
+    "2026-11-13": {
+      "ceiling": 12,
+      "note": "Owner's one-day exception (13 Nov 2026 only): lifts the first-day cap of 2 to the owner's normal daily ceiling of 12. Gap, trading windows and every other guard unchanged. Expires after this date."
+    }
   }
 }

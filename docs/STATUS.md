@@ -427,4 +427,5 @@ Runbook: `docs/ops/AUTONOMOUS_FETCHER.md`.
 - A failed store is logged (`store_failed`) and leaves the resource pending, so the next run retries it. A successful store marks it done.
 - Tests: `tests/test_tick_store_research.py` (no network): rows are sourced and dated, no description text, rows land in research_fact only, success marks done, failure stays pending.
 - Live fetching resumes in the next trading window (not before).
+- Request limits (12 per day, 60 per week, 15-minute gap) are set by the OWNER. Investify's approval does not state a daily number.
 

@@ -26,6 +26,13 @@ Only these ten are consented. Nothing else is. The machine-readable copy is `con
   backoff on 429, 403 or 503 with a multi-hour cooldown; identifying User-Agent.
 - Metadata only from listings; Investify's summary text is not stored.
 
+## Limits (set by the owner, not by Investify)
+
+- Daily ceiling: 12 requests per Pakistan day, set by the owner. The first live day is capped at 2.
+- Weekly ceiling: 60 requests, set by the owner.
+- Minimum gap: 15 minutes between any two requests, across all resources (the approval's condition).
+- Investify's approval does not state a daily or weekly number. These limits are the owner's own.
+
 ## Enablement is separate from consent
 
 Consent does not switch anything on. The per-category flags stay as they are:
