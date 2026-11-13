@@ -73,7 +73,8 @@ def resource_url(resource: tuple[str, str]) -> str:
 
 
 def decide(now: datetime, control: Control, *, calendar: Any, resources: list[tuple[str, str]],
-           done: set[str], first_live_day: str | None, env: Mapping[str, str] | None = None) -> Decision:
+           done: set[str], first_live_day: str | None, env: Mapping[str, str] | None = None,
+           exceptions: Mapping[str, Mapping[str, Any]] | None = None) -> Decision:
     """The tick's decision. At most one request. Every guard fails closed."""
     env = os.environ if env is None else env
     if control.breaker_tripped and control.cooldown_until_utc and now < _utc(control.cooldown_until_utc):
@@ -91,7 +92,8 @@ def decide(now: datetime, control: Control, *, calendar: Any, resources: list[tu
     if control.global_last_request_utc and now - _utc(control.global_last_request_utc) < MIN_GAP:
         return Decision("noop", "throttled: 15 minutes since the last request across all resources")
     count = control.daily_count if control.daily_day_pkt == day else 0
-    if count >= ceiling_for(day, first_live_day):
+    ceiling = (exceptions or {}).get(day, {}).get("ceiling") or ceiling_for(day, first_live_day)
+    if count >= ceiling:
         return Decision("noop", f"daily ceiling reached ({count})")
     if control.robots_txt is None or control.robots_fetched_utc is None or \
             now - _utc(control.robots_fetched_utc) >= ROBOTS_MAX_AGE:
@@ -119,11 +121,12 @@ class Dependencies:
 
 
 def tick(now: datetime, deps: Dependencies, *, calendar: Any, resources: list[tuple[str, str]],
-         first_live_day: str | None, env: Mapping[str, str] | None = None) -> Decision:
+         first_live_day: str | None, env: Mapping[str, str] | None = None,
+         exceptions: Mapping[str, Mapping[str, Any]] | None = None) -> Decision:
     control = deps.load_control()
     done = deps.load_done()
     d = decide(now, control, calendar=calendar, resources=resources, done=done,
-               first_live_day=first_live_day or control.first_live_day, env=env)
+               first_live_day=first_live_day or control.first_live_day, env=env, exceptions=exceptions)
     if d.action == "noop":
         deps.log("tick_noop", d.reason)
         return d
@@ -346,8 +349,9 @@ def main(environ: Mapping[str, str] | None = None) -> int:
                         save_done=state.save_done, fetch=fetch_http(ua),
                         store=store_fields(conn.db), log=state.log)
     symbols = [c["symbol"] for c in json.loads(WATCHLIST_PATH.read_text(encoding="utf-8"))["companies"]]
+    policy_file = json.loads(gc.POLICY_PATH.read_text(encoding="utf-8"))
     d = tick(now, deps, calendar=gc.load_calendar_safe(), resources=resources_for(symbols),
-             first_live_day=None, env=env)
+             first_live_day=None, env=env, exceptions=policy_file.get("one_day_exceptions", {}))
     print(f"tick: {d.action}: {d.reason} (host={conn.host})")
     return 0
 
