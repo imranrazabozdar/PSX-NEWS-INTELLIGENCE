@@ -8,8 +8,8 @@ approves this plan and clears the decisions in section 6.
   announcements, fundamentals, profile and competitors only (News is behind a disabled flag). Nothing consents to
   Investify USD interbank, petrol or diesel, Brent or WTI, gold or silver, or a Fear & Greed index. Phase 2 therefore
   does not use Investify for macro data. Using it would need a new consent record first.
-- **No source is named for petrol or diesel prices, gold or silver, or the Fear & Greed index** in any register in
-  this repository. They are not admissible until a source and its terms are recorded.
+- **Petrol, diesel, gold and silver are kept out of Investify's scope.** The owner has named public sources for them (OGRA; a public bullion source or SBP). They are not admissible until their access and terms are assessed.
+- **No source is named for the Fear & Greed index** in any register in this repository. It is not admissible.
 
 ## 2. Sources, cadence and status
 Series definitions come from `config/macro_series.json` (definitions only, no values). Values enter by owner-attested
@@ -25,8 +25,8 @@ manual import of official releases until the access decisions in section 6 are m
 | Brent crude spot | EIA | `brent_spot` | daily | T1, T7 | Automated access blocked pending U2; manual import only |
 | Coal (world) | World Bank Pink Sheet | `coal_world_bank` | monthly | T7 | Blocked pending U2; manual import only |
 | Urea (world) | World Bank Pink Sheet | `urea_world_bank` | monthly | T7 | Not relevant to HUBC; excluded |
-| Petrol, diesel | none identified | — | — | — | GAP: no source |
-| Gold, silver | none identified | — | — | — | GAP: no source |
+| Petrol, diesel | OGRA (public; owner-named) | petrol and diesel pump prices | at each official price notice | T1 (fuel cost) | Access and terms not yet assessed; not in the source register |
+| Gold, silver | public bullion source or SBP (owner-named; one to be chosen) | gold and silver prices | daily | context only; no HUBC mapping | Source and terms not yet chosen or assessed |
 | Fear & Greed index | none identified | — | — | — | GAP: no source; no sentiment factor in Phase 2 |
 
 Transmission definitions (`docs/PHASE_5_TRANSMISSION_FRAMEWORK.md`): T1 oil price, T3 interest rates, T4 PKR exchange rate,
@@ -71,7 +71,7 @@ Fails on any mismatch in 1 or 2, or on any missing label in 3 to 5.
 1. **R3:** SBP permission for automated access (currently blocked, HTTP 403).
 2. **U2:** EIA API key and terms, and World Bank non-commercial terms for private research.
 3. **Investify macro:** do you want Investify rates or commodities at all? If yes, a new consent record is needed first.
-4. **Petrol, diesel, gold, silver:** name a source and its terms, or drop them from Phase 2.
+4. **Petrol, diesel, gold, silver:** the owner has named OGRA (petrol and diesel) and a public bullion source or SBP (gold and silver). Assess their access and terms, and choose the gold and silver source, before any build.
 5. **Fear & Greed:** name a source and its terms, or drop the sentiment factor.
 6. **CPI (PBS):** access assessment.
 
@@ -87,7 +87,8 @@ section 2. Once enabled, the mapping would be:
   inputs for this plan, so they are not used here.
 - **From public sources (unchanged by enablement):** SBP policy rate, KIBOR, PKR/USD interbank and reserves; EIA Brent;
   World Bank coal; PBS CPI. Their access status is in section 2.
-- **Still no source:** petrol and diesel prices, gold and silver. The Investify approval does not name them as specific
-  series, so they stay gaps unless the owner confirms that Rates & Commodities covers them.
+- **Commodities on public sources:** petrol and diesel prices (OGRA); gold and silver (a public bullion source or SBP).
+  They stay out of Investify's scope: they are not added to the consent record, and no Investify request is made for them.
+  Their access and terms are not yet assessed, so they are not yet admissible inputs.
 
 Changing an input's source requires a plan revision and approval. This note approves nothing.
