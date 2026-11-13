@@ -76,3 +76,18 @@ Fails on any mismatch in 1 or 2, or on any missing label in 3 to 5.
 6. **CPI (PBS):** access assessment.
 
 Approval of this plan does not approve any of the above.
+
+## 7. Inputs by source, once categories are enabled (note added after the expanded consent)
+The expanded Investify approval lists Rates & Commodities and Sentiment as consented categories, but enablement is
+separate and stays off. Until an owner-approved step enables them, every macro input comes from the public sources in
+section 2. Once enabled, the mapping would be:
+
+- **From Investify (only after enablement):** the Rates & Commodities category for rates or commodity prices where Investify
+  is the chosen source, and the Sentiment category. Market & Index, Sectors and Technicals are consented but are not macro
+  inputs for this plan, so they are not used here.
+- **From public sources (unchanged by enablement):** SBP policy rate, KIBOR, PKR/USD interbank and reserves; EIA Brent;
+  World Bank coal; PBS CPI. Their access status is in section 2.
+- **Still no source:** petrol and diesel prices, gold and silver. The Investify approval does not name them as specific
+  series, so they stay gaps unless the owner confirms that Rates & Commodities covers them.
+
+Changing an input's source requires a plan revision and approval. This note approves nothing.
