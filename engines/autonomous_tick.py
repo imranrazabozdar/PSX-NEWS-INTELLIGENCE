@@ -152,9 +152,13 @@ def tick(now: datetime, deps: Dependencies, *, calendar: Any, resources: list[tu
         deps.log("not_modified", key)
         return Decision("fetch", f"304 on {key}: no-op", d.resource)
     if status == 200:
-        deps.store(d.resource[0], d.resource[1], body)
+        try:
+            written = deps.store(d.resource[0], d.resource[1], body)
+        except Exception as exc:  # noqa: BLE001 - a failed store leaves the resource pending for the next run
+            deps.log("store_failed", f"{key}: {type(exc).__name__}: {exc}"[:500])
+            return Decision("noop", f"store failed on {key}: resource stays pending", d.resource)
         deps.save_done(key)
-        deps.log("request", f"stored {key}")
+        deps.log("request", f"stored {key}: {written} row(s)")
         return Decision("fetch", f"stored {key}", d.resource)
     deps.log("request", f"HTTP {status} on {key}: not stored")
     return Decision("noop", f"HTTP {status} on {key}: not stored", d.resource)
@@ -287,19 +291,21 @@ def fetch_http(ua: str) -> Callable[[str, str], tuple[int | None, dict[str, str]
     return fetch
 
 
-def store_fields(db: Any) -> Callable[[str, str, bytes], None]:
-    """Distilled fields only: parse with the existing extractors, then store the structured record."""
+def store_fields(db: Any) -> Callable[[str, str, bytes], int]:
+    """Distilled fields only, written as sourced, dated rows of research_fact (never the raw body, never the
+    Investify description). Returns the number of rows written."""
     from collectors import investify_fundamentals as fund
+    from engines import research_facts as rf
 
-    def store(sym: str, endpoint: str, body: bytes) -> None:
+    def store(sym: str, endpoint: str, body: bytes) -> int:
         extractor = fund.EXTRACTORS.get(endpoint)
         if extractor is None:
-            return
+            return 0
         fields = extractor(body, sym)
-        fund.store_structured(db, endpoint=endpoint, symbol=sym, fields=fields,
-                              url=resource_url((sym, endpoint)),
-                              fetched_at_utc=datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
-                              http_status=200)
+        rows = rf.rows_from_fields(company=sym, endpoint=endpoint, fields=fields,
+                                   url=resource_url((sym, endpoint)),
+                                   fetched_at_utc=datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"))
+        return rf.insert_rows(db, rows)
 
     return store
 

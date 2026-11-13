@@ -421,3 +421,10 @@ Runbook: `docs/ops/AUTONOMOUS_FETCHER.md`.
 - Per-category enablement is still PENDING and stays OFF. Current flags: `collectors_enabled` all false; `news_enabled` false. The five categories with no collector have no fetch path. Enabling any category is a separate, approved step.
 - Tests: `tests/test_investify_consent_scope.py`.
 
+### Tick store fix (research_fact)
+- Incident: manual run 43373355669 (13 Nov 2026, 10:38 PKT) made one live request, then failed storing it: `no such table: source_items` (the tick wrote to a table that is not in psx-library). The body was discarded, so no Investify data was saved. Requests today: robots.txt and that one resource (the daily ceiling of 2 is used).
+- Fix: distilled fields are written as sourced, dated rows of `research_fact` (`engines/research_facts.py`, `rows_from_fields`, `insert_rows`). Metric label, value, unit and period are kept. Investify's description text is never stored.
+- A failed store is logged (`store_failed`) and leaves the resource pending, so the next run retries it. A successful store marks it done.
+- Tests: `tests/test_tick_store_research.py` (no network): rows are sourced and dated, no description text, rows land in research_fact only, success marks done, failure stays pending.
+- Live fetching resumes in the next trading window (not before).
+
