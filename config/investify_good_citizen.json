@@ -1,5 +1,5 @@
 {
-  "_note": "The single good-citizen policy for the Investify client. Defaults: every collector OFF (each must be turned on deliberately). Limits can be made stricter here; the code refuses any value outside its floors and fails closed on an unreadable file.",
+  "_note": "The single good-citizen policy for the Investify client. Every ceiling below is set by the OWNER, not by Investify: daily_ceiling 12 and weekly_ceiling 60 are the owner's own limits. Defaults: every collector OFF. Limits can be made stricter here; the code refuses any value outside its floors and fails closed on an unreadable file.",
   "kill_switch": false,
   "collectors_enabled": {
     "announcements": false,
