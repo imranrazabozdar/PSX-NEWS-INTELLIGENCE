@@ -10,9 +10,12 @@ TEXT = (ROOT / ".github" / "workflows" / "tick-dispatcher.yml").read_text(encodi
 TICK = (ROOT / ".github" / "workflows" / "psx_fetch.yml").read_text(encoding="utf-8")
 
 
-def test_the_dispatcher_uses_the_same_weekday_slots_as_the_tick():
-    cron = re.search(r'cron: "([^"]+)"', TEXT).group(1)
-    assert cron == re.search(r'cron: "([^"]+)"', TICK).group(1) == "0,30 1-11 * * 1-5"
+def test_both_schedules_are_off_the_top_of_the_hour_and_on_weekdays():
+    tick = re.search(r'cron: "([^"]+)"', TICK).group(1)
+    dispatch = re.search(r'cron: "([^"]+)"', TEXT).group(1)
+    assert tick == "17,47 1-11 * * 1-5" and dispatch == "7,37 1-11 * * 1-5"
+    for expr in (tick, dispatch):
+        assert "0" not in expr.split()[0].split(",") and "30" not in expr.split()[0].split(",")
 
 
 def test_the_dispatcher_reads_the_secret_and_never_echoes_it():
