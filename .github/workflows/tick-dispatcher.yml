@@ -6,7 +6,9 @@ name: Tick dispatcher
 
 on:
   schedule:
-    - cron: "0,30 1-11 * * 1-5"  # same slots as the tick: :00 and :30 UTC, weekdays, 01:00-11:30 UTC
+    # Backup, offset from the tick (its own cron is at :17 and :47): :07 and :37 UTC, weekdays, 01:07-11:37 UTC.
+    # Off the top of the hour, like the tick. A run within 15 minutes of the tick is refused by the throttle.
+    - cron: "7,37 1-11 * * 1-5"
   workflow_dispatch:
 
 permissions:
