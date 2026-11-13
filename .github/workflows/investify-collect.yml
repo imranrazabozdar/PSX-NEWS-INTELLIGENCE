@@ -39,8 +39,8 @@ jobs:
       PSXNI_TURSO_DATABASE_URL: ${{ secrets.PSXNI_TURSO_DATABASE_URL }}
       PSXNI_TURSO_AUTH_TOKEN: ${{ secrets.PSXNI_TURSO_AUTH_TOKEN }}
       # Polling state and the audit trail live together in one directory, kept between runs by the cache.
-      STATE_DIR: ${{ runner.temp }}/investify
-      STATE_FILE: ${{ runner.temp }}/investify/state.json
+      STATE_DIR: /tmp/investify
+      STATE_FILE: /tmp/investify/state.json
       INPUT_DRY_RUN: ${{ inputs.dry_run }}
     steps:
       - uses: actions/checkout@v4
