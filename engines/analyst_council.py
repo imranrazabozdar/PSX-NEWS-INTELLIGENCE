@@ -140,9 +140,10 @@ def provider_for_role(role: str, environ: Any = None) -> Any:
         if not keys:
             continue
         start = offset % len(keys)
-        ordered = keys[start:] + keys[:start]
+        numbered = list(enumerate(keys, start=1))
+        ordered = numbered[start:] + numbered[:start]
         model = str(env.get(model_var, "") or "").strip() or None
-        built = [cls(api_key=k, model=model) for k in ordered]
+        built = [cls(api_key=k, model=model, account=n) for n, k in ordered]
         chain.append(built[0] if len(built) == 1 else llm.RotatingProvider(built))
     if not chain:
         return llm.ClaudeProvider()

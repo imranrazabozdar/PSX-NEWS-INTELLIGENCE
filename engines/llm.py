@@ -213,7 +213,9 @@ class _ChatCompletionsProvider:
     default_model = ""
 
     def __init__(self, *, api_key: str | None = None, model: str | None = None,
-                 post: Any = None, timeout: float = 30.0, extra_headers: dict[str, str] | None = None):
+                 post: Any = None, timeout: float = 30.0, extra_headers: dict[str, str] | None = None,
+                 account: int = 0):
+        self.account = account
         if api_key is not None:
             self._key = api_key.strip()
         else:
@@ -276,7 +278,8 @@ class GeminiProvider:
     key_var = GEMINI_KEY_VAR
 
     def __init__(self, *, api_key: str | None = None, model: str | None = None,
-                 post: Any = None, timeout: float = 30.0):
+                 post: Any = None, timeout: float = 30.0, account: int = 0):
+        self.account = account
         if api_key is not None:
             self._key = api_key.strip()
         else:
@@ -331,6 +334,14 @@ class RotatingProvider:
     def key_count(self) -> int:
         return len(self._providers)
 
+    def _account(self, index: int) -> int:
+        """The account's own number, not its place in this role's rotated order.
+
+        Falls back to the position when a caller built the list without numbering it, so the label is
+        never silently wrong.
+        """
+        return getattr(self._providers[index], "account", 0) or index + 1
+
     def complete(self, *, system: str, user: str, json_schema: dict, max_output_tokens: int) -> Completion:
         total = len(self._providers)
         start = self._next % total
@@ -342,9 +353,9 @@ class RotatingProvider:
                 out = self._providers[index].complete(system=system, user=user, json_schema=json_schema,
                                                       max_output_tokens=max_output_tokens)
             except (ProviderNotConnected, TransientProviderError) as exc:
-                problems.append(f"{self.name}#{index + 1}: {exc}")
+                problems.append(f"{self.name}#{self._account(index)}: {exc}")
                 continue
-            self.last_used = f"{self.name}#{index + 1}"
+            self.last_used = f"{self.name}#{self._account(index)}"
             return out
         raise TransientProviderError("; ".join(problems))
 
@@ -382,7 +393,7 @@ def _vendor(cls: Any, environ: Any, model_var: str) -> Any | None:
     if not keys:
         return None
     model = str(env.get(model_var, "") or "").strip() or None
-    built = [cls(api_key=key, model=model) for key in keys]
+    built = [cls(api_key=key, model=model, account=n) for n, key in enumerate(keys, start=1)]
     return built[0] if len(built) == 1 else RotatingProvider(built)
 
 

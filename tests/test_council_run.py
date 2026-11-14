@@ -48,7 +48,7 @@ def test_a_topic_with_no_routing_rule_is_shown_to_nobody():
 
 
 def test_the_event_text_is_always_in_the_pack_even_with_no_stored_knowledge():
-    pack = council_run.build_pack("Oil spikes.", [], SQLiteDatabase() or _db())
+    pack = council_run.build_pack("Oil spikes.", [], _db())
     assert "Oil spikes." in pack.for_role("news")
 
 
@@ -83,3 +83,36 @@ def test_the_runner_refuses_cleanly_when_no_lens_can_answer():
                            gateway_for=_gateway("not json at all")) == 3
     tables = {r["name"] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
     assert "council_verdict" not in tables
+
+
+# ---------- the macro lens needs its sector knowledge or its work is all discarded
+
+def _db_with_sector() -> SQLiteDatabase:
+    db = _db()
+    db.execute(INSERT, ("LUCK", "profile.cement.status", "Lucky is the largest cement producer",
+                        None, None, None, "Capsule", None, "2026-11-01", "2026-11-01",
+                        "analyst_view", "2026-11-14T00:00:00Z"))
+    db.execute(INSERT, ("SECTOR:CEMENT", "macro.pkr_usd_impact", "A weaker rupee lifts coal costs",
+                        None, None, None, "Capsule", None, "2026-11-01", "2026-11-01",
+                        "analyst_view", "2026-11-14T00:00:00Z"))
+    return db
+
+
+def test_a_companys_sector_knowledge_is_pulled_in_so_the_macro_lens_has_something_to_cite():
+    db = _db_with_sector()
+    assert council_run.sectors_for(["LUCK"], db) == ["SECTOR:CEMENT"]
+    pack = council_run.build_pack("Rupee weakens.", ["LUCK"], db)
+    assert "weaker rupee lifts coal costs" in pack.for_role("macro")
+
+
+def test_a_sector_name_hidden_inside_a_longer_word_does_not_drag_the_sector_in():
+    """"announcements" contains "cement": a substring test would give every filer cement knowledge."""
+    db = _db_with_sector()
+    assert any("announcements" in r["topic"]
+               for r in db.execute("SELECT topic FROM research_fact WHERE company = 'OGDC'"))
+    assert council_run.sectors_for(["OGDC"], db) == []
+
+
+def test_a_sector_can_be_asked_for_explicitly():
+    db = _db_with_sector()
+    assert council_run.sectors_for(["OGDC"], db, ["cement"]) == ["SECTOR:CEMENT"]

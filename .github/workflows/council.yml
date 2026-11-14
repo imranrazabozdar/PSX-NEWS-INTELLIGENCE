@@ -14,6 +14,11 @@ on:
         required: false
         default: ""
         type: string
+      sectors:
+        description: "Comma-separated sector knowledge to add, e.g. CEMENT"
+        required: false
+        default: ""
+        type: string
       store:
         description: "Keep the verdict in psx-library"
         required: false
@@ -52,4 +57,5 @@ jobs:
           python -m scripts.council_run \
             --event "${{ inputs.event }}" \
             --companies "${{ inputs.companies }}" \
+            --sectors "${{ inputs.sectors }}" \
             ${{ inputs.store && '--store' || '' }}
