@@ -116,3 +116,24 @@ def test_a_sector_name_hidden_inside_a_longer_word_does_not_drag_the_sector_in()
 def test_a_sector_can_be_asked_for_explicitly():
     db = _db_with_sector()
     assert council_run.sectors_for(["OGDC"], db, ["cement"]) == ["SECTOR:CEMENT"]
+
+
+# ---------- every topic family we ingest must actually reach a lens
+
+def test_company_commentary_reaches_the_financial_lens():
+    """commentary.* routed nowhere once, so a whole archive of company analysis was invisible."""
+    for topic in ("commentary.thesis", "commentary.risk", "risk.leverage", "thesis.core",
+                  "catalyst.expansion", "method.oil_gas_valuation", "profile.business"):
+        assert council_run.kind_for(topic) == "note", topic
+
+
+def test_sector_and_macro_families_still_route_to_the_macro_lens():
+    for topic in ("cost.energy_share", "cycle.utilisation", "capacity.installed",
+                  "operations.kiln", "valuation.ev_per_ton", "strategy.pairing",
+                  "signal.rate_cut", "returns.20yr"):
+        assert council_run.kind_for(topic) == "sector_rule", topic
+    assert council_run.kind_for("macro.rate_cut_transmission") == "macro"
+
+
+def test_a_topic_family_nobody_routes_is_still_shown_to_nobody():
+    assert council_run.kind_for("random.unmapped") is None

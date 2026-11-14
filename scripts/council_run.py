@@ -48,6 +48,14 @@ TOPIC_KIND = (
     ("policy_rate", "macro"),
     ("profile.", "note"),
     ("competitors.", "note"),
+    # Analyst commentary about ONE company: its thesis, risks, catalysts, quality of management. This
+    # is the financial lens's business, not the macro lens's -- it is a reading of the company itself.
+    ("commentary.", "note"),
+    ("risk.", "note"),
+    ("thesis.", "note"),
+    ("catalyst.", "note"),
+    # How to analyse something (a valuation approach, a rule of thumb) belongs with the accounts.
+    ("method.", "note"),
 )
 
 
