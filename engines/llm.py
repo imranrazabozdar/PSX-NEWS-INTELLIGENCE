@@ -139,49 +139,84 @@ class ClaudeProvider:
 
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 GEMINI_URL_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
+OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+
 GROQ_KEY_VAR = "PSXNI_GROQ_API_KEY"  # noqa: S105 - a variable name, not a secret
+GEMINI_KEY_VAR = "PSXNI_GEMINI_API_KEY"  # noqa: S105 - a variable name, not a secret
+OPENROUTER_KEY_VAR = "PSXNI_OPENROUTER_API_KEY"  # noqa: S105 - a variable name, not a secret
 GROQ_MODEL_VAR = "PSXNI_LLM_GROQ_MODEL"
+GEMINI_MODEL_VAR = "PSXNI_LLM_GEMINI_MODEL"
+OPENROUTER_MODEL_VAR = "PSXNI_LLM_OPENROUTER_MODEL"
 DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile"
+DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
+DEFAULT_OPENROUTER_MODEL = "meta-llama/llama-3.3-70b-instruct:free"
+
+# A key may be set under the bare name or numbered, so several free-tier accounts can share the load.
+KEY_SUFFIXES = ("", "_ONE", "_TWO", "_THREE", "_FOUR", "_FIVE", "_SIX", "_SEVEN", "_EIGHT", "_NINE", "_TEN",
+                "_1", "_2", "_3", "_4", "_5", "_6", "_7", "_8", "_9")
+
+
+def keys_from_env(base: str, environ: Any = None) -> list[str]:
+    """Every distinct key set under `base` or `base` plus a number suffix, in declaration order.
+
+    Returns values, so a caller must never log the result. An empty list means the vendor is not connected.
+    """
+    env = os.environ if environ is None else environ
+    found: list[str] = []
+    for suffix in KEY_SUFFIXES:
+        value = str(env.get(base + suffix, "") or "").strip()
+        if value and value not in found:
+            found.append(value)
+    return found
 
 
 def _http_post(url: str, headers: dict[str, str], body: dict[str, Any], timeout: float) -> dict[str, Any]:
-    """Real transport. Maps overload and rate-limit answers to TransientProviderError."""
+    """Real transport. Maps overload, rate-limit and network answers to TransientProviderError."""
     import urllib.error
     import urllib.request
 
     data = json.dumps(body).encode("utf-8")
-    req = urllib.request.Request(url, data=data, headers=headers, method="POST")  # noqa: S310 - fixed https URL
+    req = urllib.request.Request(url, data=data, headers=headers, method="POST")  # noqa: S310 - https only
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 - fixed https URL
             return json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
-        if exc.code in (408, 429, 500, 502, 503, 504):
-            raise TransientProviderError(f"groq HTTP {exc.code}") from exc
-        raise LLMError(f"groq HTTP {exc.code}") from exc
+        if exc.code in (408, 409, 429, 500, 502, 503, 504):
+            raise TransientProviderError(f"HTTP {exc.code}") from exc
+        raise LLMError(f"HTTP {exc.code}") from exc
     except (urllib.error.URLError, TimeoutError) as exc:
-        raise TransientProviderError(f"groq network error: {type(exc).__name__}") from exc
+        raise TransientProviderError(f"network error: {type(exc).__name__}") from exc
 
 
-class GroqProvider:
-    """Live provider for fast macro and news analysis. Not connected without PSXNI_GROQ_API_KEY.
+class _ChatCompletionsProvider:
+    """Shared base for OpenAI-compatible chat APIs (Groq, OpenRouter).
 
-    The key is read from the environment only and is never logged or stored. The response is requested as
-    a JSON object; the gateway's caller validates it before anything is stored.
+    The key is read from the environment only, travels in the Authorization header, and is never logged.
+    JSON output is requested and the temperature is fixed at 0, so a given input gives a stable answer.
     """
 
-    name = "groq"
+    name = "chat"
+    url = ""
+    key_var = ""
+    model_var = ""
+    default_model = ""
 
     def __init__(self, *, api_key: str | None = None, model: str | None = None,
-                 post: Any = None, timeout: float = 30.0):
-        self._key = api_key if api_key is not None else os.environ.get(GROQ_KEY_VAR, "").strip()
-        self.model = model or os.environ.get(GROQ_MODEL_VAR, "").strip() or DEFAULT_GROQ_MODEL
+                 post: Any = None, timeout: float = 30.0, extra_headers: dict[str, str] | None = None):
+        if api_key is not None:
+            self._key = api_key.strip()
+        else:
+            keys = keys_from_env(self.key_var)
+            self._key = keys[0] if keys else ""
+        self.model = model or os.environ.get(self.model_var, "").strip() or self.default_model
         self._post = post or _http_post
         self._timeout = timeout
+        self._extra_headers = extra_headers or {}
 
     def complete(self, *, system: str, user: str, json_schema: dict, max_output_tokens: int) -> Completion:
         if not self._key:
             raise ProviderNotConnected(
-                f"Groq provider is not connected: set {GROQ_KEY_VAR} through the secret flow")
+                f"{self.name} is not connected: set {self.key_var} through the secret flow")
         body = {
             "model": self.model,
             "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
@@ -190,33 +225,52 @@ class GroqProvider:
             "max_tokens": max_output_tokens,
         }
         headers = {"Authorization": f"Bearer {self._key}", "Content-Type": "application/json",
-                   "User-Agent": "PSX-NI/1.0 (private research)"}
-        data = self._post(GROQ_URL, headers, body, self._timeout)
+                   "User-Agent": "PSX-NI/1.0 (private research)", **self._extra_headers}
+        data = self._post(self.url, headers, body, self._timeout)
         try:
             text = data["choices"][0]["message"]["content"]
             usage = data.get("usage", {})
         except (KeyError, IndexError, TypeError) as exc:
-            raise LLMError("groq response has an unexpected shape") from exc
-        return Completion(text, self.model, int(usage.get("prompt_tokens", 0)),
-                          int(usage.get("completion_tokens", 0)))
+            raise LLMError(f"{self.name} response has an unexpected shape") from exc
+        if not str(text or "").strip():
+            raise TransientProviderError(f"{self.name} returned an empty answer")
+        return Completion(text, self.model, int(usage.get("prompt_tokens", 0) or 0),
+                          int(usage.get("completion_tokens", 0) or 0))
 
 
-GEMINI_KEY_VAR = "PSXNI_GEMINI_API_KEY"  # noqa: S105 - a variable name, not a secret
-GEMINI_MODEL_VAR = "PSXNI_LLM_GEMINI_MODEL"
-DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
+class GroqProvider(_ChatCompletionsProvider):
+    """Groq free tier: the fastest provider, preferred for macro and news work."""
+
+    name = "groq"
+    url = GROQ_URL
+    key_var = GROQ_KEY_VAR
+    model_var = GROQ_MODEL_VAR
+    default_model = DEFAULT_GROQ_MODEL
+
+
+class OpenRouterProvider(_ChatCompletionsProvider):
+    """OpenRouter free tier: the last resort in the chain."""
+
+    name = "openrouter"
+    url = OPENROUTER_URL
+    key_var = OPENROUTER_KEY_VAR
+    model_var = OPENROUTER_MODEL_VAR
+    default_model = DEFAULT_OPENROUTER_MODEL
 
 
 class GeminiProvider:
-    """Live provider on the Gemini API free tier. Not connected without PSXNI_GEMINI_API_KEY.
-
-    The key travels in the x-goog-api-key header, never in the URL, so it cannot reach a log line.
-    """
+    """Gemini API free tier. The key travels in the x-goog-api-key header, never in the URL."""
 
     name = "gemini"
+    key_var = GEMINI_KEY_VAR
 
     def __init__(self, *, api_key: str | None = None, model: str | None = None,
                  post: Any = None, timeout: float = 30.0):
-        self._key = api_key if api_key is not None else os.environ.get(GEMINI_KEY_VAR, "").strip()
+        if api_key is not None:
+            self._key = api_key.strip()
+        else:
+            keys = keys_from_env(GEMINI_KEY_VAR)
+            self._key = keys[0] if keys else ""
         self.model = model or os.environ.get(GEMINI_MODEL_VAR, "").strip() or DEFAULT_GEMINI_MODEL
         self._post = post or _http_post
         self._timeout = timeout
@@ -224,7 +278,7 @@ class GeminiProvider:
     def complete(self, *, system: str, user: str, json_schema: dict, max_output_tokens: int) -> Completion:
         if not self._key:
             raise ProviderNotConnected(
-                f"Gemini provider is not connected: set {GEMINI_KEY_VAR} through the secret flow")
+                f"gemini is not connected: set {GEMINI_KEY_VAR} through the secret flow")
         url = f"{GEMINI_URL_BASE}/{self.model}:generateContent"
         body = {
             "systemInstruction": {"parts": [{"text": system}]},
@@ -240,12 +294,52 @@ class GeminiProvider:
             usage = data.get("usageMetadata", {})
         except (KeyError, IndexError, TypeError) as exc:
             raise LLMError("gemini response has an unexpected shape") from exc
-        return Completion(text, self.model, int(usage.get("promptTokenCount", 0)),
-                          int(usage.get("candidatesTokenCount", 0)))
+        if not str(text or "").strip():
+            raise TransientProviderError("gemini returned an empty answer")
+        return Completion(text, self.model, int(usage.get("promptTokenCount", 0) or 0),
+                          int(usage.get("candidatesTokenCount", 0) or 0))
+
+
+class RotatingProvider:
+    """Several accounts of ONE vendor, used round robin so no single free-tier quota carries every call.
+
+    Each call starts at the next account and walks the rest, so a rate-limited or unconnected key costs one
+    attempt and the call still succeeds. Raises TransientProviderError only when every account refused.
+    """
+
+    def __init__(self, providers: list[Any]):
+        if not providers:
+            raise ValueError("at least one provider is required")
+        self._providers = providers
+        self.name = providers[0].name
+        self.model = providers[0].model
+        self.last_used = ""
+        self._next = 0
+
+    @property
+    def key_count(self) -> int:
+        return len(self._providers)
+
+    def complete(self, *, system: str, user: str, json_schema: dict, max_output_tokens: int) -> Completion:
+        total = len(self._providers)
+        start = self._next % total
+        self._next = (start + 1) % total
+        problems: list[str] = []
+        for step in range(total):
+            index = (start + step) % total
+            try:
+                out = self._providers[index].complete(system=system, user=user, json_schema=json_schema,
+                                                      max_output_tokens=max_output_tokens)
+            except (ProviderNotConnected, TransientProviderError) as exc:
+                problems.append(f"{self.name}#{index + 1}: {exc}")
+                continue
+            self.last_used = f"{self.name}#{index + 1}"
+            return out
+        raise TransientProviderError("; ".join(problems))
 
 
 class FallbackProvider:
-    """Tries each provider in order. Moves on when one is not connected or is transiently failing."""
+    """Tries each vendor in order. Moves on when one is not connected or is transiently failing."""
 
     name = "fallback"
 
@@ -265,27 +359,38 @@ class FallbackProvider:
             except (ProviderNotConnected, TransientProviderError) as exc:
                 problems.append(f"{provider.name}: {exc}")
                 continue
-            self.last_used = provider.name
+            self.last_used = getattr(provider, "last_used", "") or provider.name
             return out
         raise TransientProviderError("no provider answered: " + "; ".join(problems))
 
 
-def provider_from_env(environ: Any = None) -> Any:
-    """Groq first, then Gemini, when their keys are present. Claude is the not-connected stub only.
+def _vendor(cls: Any, environ: Any, model_var: str) -> Any | None:
+    """One vendor, rotating over however many keys it has. None when the vendor has no key."""
+    env = os.environ if environ is None else environ
+    keys = keys_from_env(cls.key_var, env)
+    if not keys:
+        return None
+    model = str(env.get(model_var, "") or "").strip() or None
+    built = [cls(api_key=key, model=model) for key in keys]
+    return built[0] if len(built) == 1 else RotatingProvider(built)
 
-    Nothing depends on Claude: with no free-tier key the gateway reports not_connected and makes no call.
+
+def provider_from_env(environ: Any = None) -> Any:
+    """Groq first (rotating over its keys), then Gemini, then OpenRouter.
+
+    Nothing depends on Claude: with no free-tier key at all the gateway reports not_connected and makes
+    no call. Every vendor accepts numbered keys, so several free accounts share one vendor's load.
     """
     env = os.environ if environ is None else environ
-    chain: list[Any] = []
-    if str(env.get(GROQ_KEY_VAR, "")).strip():
-        chain.append(GroqProvider(api_key=str(env[GROQ_KEY_VAR]).strip(),
-                                  model=str(env.get(GROQ_MODEL_VAR, "")).strip() or None))
-    if str(env.get(GEMINI_KEY_VAR, "")).strip():
-        chain.append(GeminiProvider(api_key=str(env[GEMINI_KEY_VAR]).strip(),
-                                    model=str(env.get(GEMINI_MODEL_VAR, "")).strip() or None))
-    if not chain:
+    chain = [
+        _vendor(GroqProvider, env, GROQ_MODEL_VAR),
+        _vendor(GeminiProvider, env, GEMINI_MODEL_VAR),
+        _vendor(OpenRouterProvider, env, OPENROUTER_MODEL_VAR),
+    ]
+    live = [p for p in chain if p is not None]
+    if not live:
         return ClaudeProvider()
-    return chain[0] if len(chain) == 1 else FallbackProvider(chain)
+    return live[0] if len(live) == 1 else FallbackProvider(live)
 
 
 @dataclass
