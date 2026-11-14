@@ -138,6 +138,7 @@ class ClaudeProvider:
 
 
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+GEMINI_URL_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 GROQ_KEY_VAR = "PSXNI_GROQ_API_KEY"  # noqa: S105 - a variable name, not a secret
 GROQ_MODEL_VAR = "PSXNI_LLM_GROQ_MODEL"
 DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile"
@@ -200,13 +201,91 @@ class GroqProvider:
                           int(usage.get("completion_tokens", 0)))
 
 
+GEMINI_KEY_VAR = "PSXNI_GEMINI_API_KEY"  # noqa: S105 - a variable name, not a secret
+GEMINI_MODEL_VAR = "PSXNI_LLM_GEMINI_MODEL"
+DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
+
+
+class GeminiProvider:
+    """Live provider on the Gemini API free tier. Not connected without PSXNI_GEMINI_API_KEY.
+
+    The key travels in the x-goog-api-key header, never in the URL, so it cannot reach a log line.
+    """
+
+    name = "gemini"
+
+    def __init__(self, *, api_key: str | None = None, model: str | None = None,
+                 post: Any = None, timeout: float = 30.0):
+        self._key = api_key if api_key is not None else os.environ.get(GEMINI_KEY_VAR, "").strip()
+        self.model = model or os.environ.get(GEMINI_MODEL_VAR, "").strip() or DEFAULT_GEMINI_MODEL
+        self._post = post or _http_post
+        self._timeout = timeout
+
+    def complete(self, *, system: str, user: str, json_schema: dict, max_output_tokens: int) -> Completion:
+        if not self._key:
+            raise ProviderNotConnected(
+                f"Gemini provider is not connected: set {GEMINI_KEY_VAR} through the secret flow")
+        url = f"{GEMINI_URL_BASE}/{self.model}:generateContent"
+        body = {
+            "systemInstruction": {"parts": [{"text": system}]},
+            "contents": [{"role": "user", "parts": [{"text": user}]}],
+            "generationConfig": {"temperature": 0, "maxOutputTokens": max_output_tokens,
+                                 "responseMimeType": "application/json"},
+        }
+        headers = {"x-goog-api-key": self._key, "Content-Type": "application/json",
+                   "User-Agent": "PSX-NI/1.0 (private research)"}
+        data = self._post(url, headers, body, self._timeout)
+        try:
+            text = data["candidates"][0]["content"]["parts"][0]["text"]
+            usage = data.get("usageMetadata", {})
+        except (KeyError, IndexError, TypeError) as exc:
+            raise LLMError("gemini response has an unexpected shape") from exc
+        return Completion(text, self.model, int(usage.get("promptTokenCount", 0)),
+                          int(usage.get("candidatesTokenCount", 0)))
+
+
+class FallbackProvider:
+    """Tries each provider in order. Moves on when one is not connected or is transiently failing."""
+
+    name = "fallback"
+
+    def __init__(self, providers: list[Any]):
+        if not providers:
+            raise ValueError("at least one provider is required")
+        self._providers = providers
+        self.model = providers[0].model
+        self.last_used = ""
+
+    def complete(self, *, system: str, user: str, json_schema: dict, max_output_tokens: int) -> Completion:
+        problems: list[str] = []
+        for provider in self._providers:
+            try:
+                out = provider.complete(system=system, user=user, json_schema=json_schema,
+                                        max_output_tokens=max_output_tokens)
+            except (ProviderNotConnected, TransientProviderError) as exc:
+                problems.append(f"{provider.name}: {exc}")
+                continue
+            self.last_used = provider.name
+            return out
+        raise TransientProviderError("no provider answered: " + "; ".join(problems))
+
+
 def provider_from_env(environ: Any = None) -> Any:
-    """Groq when its key is present; otherwise the not-connected Claude stub. Nothing depends on Claude."""
+    """Groq first, then Gemini, when their keys are present. Claude is the not-connected stub only.
+
+    Nothing depends on Claude: with no free-tier key the gateway reports not_connected and makes no call.
+    """
     env = os.environ if environ is None else environ
+    chain: list[Any] = []
     if str(env.get(GROQ_KEY_VAR, "")).strip():
-        return GroqProvider(api_key=str(env[GROQ_KEY_VAR]).strip(),
-                            model=str(env.get(GROQ_MODEL_VAR, "")).strip() or None)
-    return ClaudeProvider()
+        chain.append(GroqProvider(api_key=str(env[GROQ_KEY_VAR]).strip(),
+                                  model=str(env.get(GROQ_MODEL_VAR, "")).strip() or None))
+    if str(env.get(GEMINI_KEY_VAR, "")).strip():
+        chain.append(GeminiProvider(api_key=str(env[GEMINI_KEY_VAR]).strip(),
+                                    model=str(env.get(GEMINI_MODEL_VAR, "")).strip() or None))
+    if not chain:
+        return ClaudeProvider()
+    return chain[0] if len(chain) == 1 else FallbackProvider(chain)
 
 
 @dataclass
