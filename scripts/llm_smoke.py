@@ -15,12 +15,18 @@ from engines import llm
 
 PROMPT = llm.Prompt("smoke.ping", "1",
                     'You are a JSON API. Reply with exactly {"ok": true} and nothing else.')
+SMOKE_TOKENS = 512  # a reasoning model emits nothing under a tight ceiling
 VENDORS = ((llm.GroqProvider, llm.GROQ_MODEL_VAR), (llm.GeminiProvider, llm.GEMINI_MODEL_VAR),
            (llm.OpenRouterProvider, llm.OPENROUTER_MODEL_VAR))
 
 
 def check_vendor(cls: type, model_var: str, environ: dict | None = None) -> tuple[int, int]:
-    """Return (answered, total) for one vendor. Each key is tried once, independently."""
+    """Return (answered, total) for one vendor. Each key is tried once, through the real gateway.
+
+    The gateway is used rather than a bare call so the check exercises the production path, including
+    the retry and backoff that a free tier needs: these vendors answer 429 and 503 under load, and a
+    single-shot check would report a working key as broken.
+    """
     import os
 
     env = os.environ if environ is None else environ
@@ -32,16 +38,15 @@ def check_vendor(cls: type, model_var: str, environ: dict | None = None) -> tupl
     answered = 0
     for position, key in enumerate(keys, start=1):
         label = f"{cls.name}#{position}"
-        try:
-            out = cls(api_key=key, model=model).complete(
-                system=PROMPT.text, user="ping", json_schema={}, max_output_tokens=32)
-        except llm.ProviderNotConnected:
-            print(f"{label}: not connected")
-        except llm.LLMError as exc:
-            print(f"{label}: FAILED ({type(exc).__name__}: {exc})")
-        else:
+        gateway = llm.LLMGateway(provider=cls(api_key=key, model=model), pricing=llm.Pricing(0.0, 0.0),
+                                 limits=llm.Limits(daily_cost_usd=1.0, max_output_tokens=SMOKE_TOKENS,
+                                                   max_attempts=3, backoff_seconds=2.0))
+        result = gateway.complete(PROMPT, "ping", {})
+        if result.outcome in ("ok", "cached") and result.text:
             answered += 1
-            print(f"{label}: ok model={out.model} in={out.input_tokens} out={out.output_tokens}")
+            print(f"{label}: ok model={result.model} in={result.input_tokens} out={result.output_tokens}")
+        else:
+            print(f"{label}: FAILED ({result.outcome}: {result.error})")
     return (answered, len(keys))
 
 

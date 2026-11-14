@@ -149,7 +149,7 @@ GEMINI_MODEL_VAR = "PSXNI_LLM_GEMINI_MODEL"
 OPENROUTER_MODEL_VAR = "PSXNI_LLM_OPENROUTER_MODEL"
 DEFAULT_GROQ_MODEL = "openai/gpt-oss-120b"
 DEFAULT_GEMINI_MODEL = "gemini-flash-latest"
-DEFAULT_OPENROUTER_MODEL = "google/gemma-4-31b-it:free"
+DEFAULT_OPENROUTER_MODEL = "nvidia/nemotron-3.5-lightning:free"
 
 # Model names are verified against each vendor's own listing (scripts/llm_models.py), not from memory:
 # the names written here earlier had been retired and every call answered HTTP 404. Override with the
