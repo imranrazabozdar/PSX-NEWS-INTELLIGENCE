@@ -453,3 +453,10 @@ Runbook: `docs/ops/AUTONOMOUS_FETCHER.md`.
 - No PDF text and no page images are stored, per the owner's rule that documents must not fill the Turso account. psx-library holds 221 rows in about 50 KB.
 - Totals: HUBC 118, MEBL 68, LUCK 15, OGDC 12, UBL 8.
 
+### HUBC YouTube commentary in the brain (14 Nov 2026)
+- 87 distilled rows loaded under `commentary.*` from owner-supplied YouTube transcripts: analyst SOTP (Abdul Rehman Najam), the CFO interview (Muhammad Saqib) and the CEO interview (Kamran Kamal), plus one unidentified compilation. Each row carries its video timestamp.
+- All 87 are `analyst_view`, never `fact`: commentary and management guidance, not audited filings. HUBC now holds 205 rows, 114 fact and 91 analyst_view.
+- Source dates are the date the material entered the system, because the video publication dates are unknown; `as_of` is left empty. The unidentified compilation is labelled as such and needs a link from the owner.
+- Conflicts are recorded on both sides rather than resolved: SECMC stake (8% per CFO and brief vs 17.5% per analyst), CPHGC stake (47.5% / 46% / 50%), and whether the base plant is active in FY2027.
+- `scripts/load_research_facts.py` gained `--scope`, so a company can gain a new body of knowledge without reloading what is already there.
+
