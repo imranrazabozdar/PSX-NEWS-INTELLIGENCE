@@ -70,3 +70,29 @@ Dry run by default: it prints the verdict as JSON and writes nothing. `--store` 
 
 No buy, sell or hold instruction. No target price. No scenario presented as a forecast. Financial
 strength comes only from computed ratios.
+
+## Free-tier quota: tracked, not assumed
+
+Earlier, nothing stopped a run from exhausting a free account's daily allowance. The retry logic only
+reacted to a 429 *after* wasting a call, and the cost-based daily budget never engages for a free
+provider, since its price is $0. `engines/llm_quota.py` fixes this: our own record of calls attempted,
+per vendor and per account, checked **before** a call is made.
+
+**What is verified vs. assumed**, as of November 2026:
+
+| Vendor | Reported limit | How solid |
+|---|---|---|
+| Groq | ~30 req/min, ~1,000 req/day, **per organization** | Third-party, consistent across sources. Adding a key under the *same* Groq account adds no capacity — only a separate signup does. |
+| Gemini | 5–20 req/min, 100–1,500 req/day depending on source and date | Google publishes nothing authoritative; limits have been cut more than once in 2026. The default here (10 rpm / 150 rpd) is a conservative guess, not a confirmed number. |
+| OpenRouter | 20 req/min, 50 req/day (1,000/day with $10+ lifetime credit ever added) | Vendor-documented, and checkable live: `GET /api/v1/key` returns the account's actual remaining count. `scripts/llm_quota_status.py` calls it. |
+
+Override any default with `PSXNI_LLM_<VENDOR>_RPM` / `PSXNI_LLM_<VENDOR>_RPD` (`0` means explicitly
+unlimited). Confirm the real number in each vendor's own dashboard — these move.
+
+**How it is wired in.** `council.provider_for_role(role, environ, db=...)` wraps every leaf provider
+with `QuotaGuardedProvider` when a database is supplied. `scripts/council_run.py` always supplies the
+open psx-library connection, so a live council run is quota-aware by default. The wrapping reuses
+`RotatingProvider`'s and `FallbackProvider`'s existing skip-on-`TransientProviderError` logic — an
+exhausted account is just one more thing they already know how to skip past, with no new control flow.
+
+**Check it**: `python -m scripts.llm_quota_status`, or the "LLM quota status" workflow.

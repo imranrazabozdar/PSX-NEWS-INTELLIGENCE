@@ -122,11 +122,16 @@ class RoleFinding:
         return self.outcome == "ok"
 
 
-def provider_for_role(role: str, environ: Any = None) -> Any:
+def provider_for_role(role: str, environ: Any = None, *, db: Any = None) -> Any:
     """The role's own account first, then the other accounts, then the other vendors.
 
     Three roles on three free Groq accounts means no single quota carries the whole council, while a
     role whose own account is exhausted still gets an answer from another.
+
+    With `db` given, every leaf is wrapped so an account already at its free-tier limit is skipped
+    BEFORE a call is made, not after it fails -- see engines.llm_quota. Without `db` the council still
+    runs, but nothing stops it exhausting an account's daily allowance; scripts/council_run.py always
+    passes the open psx-library connection here.
     """
     if role not in ROLES:
         raise ValueError(f"unknown role: {role}")
@@ -147,7 +152,12 @@ def provider_for_role(role: str, environ: Any = None) -> Any:
         chain.append(built[0] if len(built) == 1 else llm.RotatingProvider(built))
     if not chain:
         return llm.ClaudeProvider()
-    return chain[0] if len(chain) == 1 else llm.FallbackProvider(chain)
+    result = chain[0] if len(chain) == 1 else llm.FallbackProvider(chain)
+    if db is not None:
+        from engines import llm_quota
+
+        result = llm_quota.guard(result, llm_quota.QuotaTracker(db), env)
+    return result
 
 
 def _clean_assessments(raw: Any, pack: EvidencePack) -> tuple[list[Assessment], list[str]]:

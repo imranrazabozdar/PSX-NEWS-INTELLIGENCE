@@ -196,3 +196,44 @@ def test_a_role_falls_back_to_another_vendor_and_needs_no_claude():
     chain = council.provider_for_role("macro", env)
     assert [p.name for p in chain._providers] == ["groq", "gemini", "openrouter"]
     assert isinstance(council.provider_for_role("news", {}), llm.ClaudeProvider)
+
+
+# ---------- quota: an exhausted account is skipped before any call, when a database is supplied
+
+def test_provider_for_role_without_db_is_unguarded_exactly_as_before():
+    env = {"PSXNI_GROQ_API_KEY_ONE": "g1"}
+    assert isinstance(council.provider_for_role("news", env), llm.GroqProvider)
+
+
+def test_provider_for_role_with_db_wraps_every_leaf_in_a_quota_guard():
+    from database.connection import SQLiteDatabase
+    from engines import llm_quota
+
+    db = SQLiteDatabase()
+    env = {"PSXNI_GROQ_API_KEY_ONE": "g1", "PSXNI_GROQ_API_KEY_TWO": "g2"}
+    chain = council.provider_for_role("news", env, db=db)
+    assert all(isinstance(p, llm_quota.QuotaGuardedProvider) for p in chain._providers)
+
+
+def test_a_role_whose_own_account_is_exhausted_still_gets_an_answer_via_another_account():
+    from database.connection import SQLiteDatabase
+    from engines import llm_quota
+
+    db = SQLiteDatabase()
+    env = {"PSXNI_GROQ_API_KEY_ONE": "g1", "PSXNI_GROQ_API_KEY_TWO": "g2",
+           "PSXNI_GROQ_API_KEY_THREE": "g3"}
+    tracker = llm_quota.QuotaTracker(db)
+    for _ in range(llm_quota.DEFAULT_LIMITS["groq"][1]):
+        tracker.record("groq", 1)  # news prefers account #1 (ROLES.index("news") == 0)
+
+    calls: list[str] = []
+
+    def post(url, headers, body, timeout):
+        calls.append(headers["Authorization"])
+        return {"choices": [{"message": {"content": "{}"}}], "usage": {}}
+
+    chain = council.provider_for_role("news", env, db=db)
+    for leaf in chain._providers:
+        leaf._provider._post = post
+    chain.complete(system="s", user="u", json_schema={}, max_output_tokens=10)
+    assert calls == ["Bearer g2"]  # account #1 was skipped with no network call at all

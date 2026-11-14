@@ -1,0 +1,32 @@
+# Manual: report free-tier LLM usage. Our own tracked counts per account, plus OpenRouter's own
+# live number (the one vendor with a documented, checkable endpoint). Prints no key.
+name: LLM quota status
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PSXNI_GROQ_API_KEY_ONE: ${{ secrets.PSXNI_GROQ_API_KEY_ONE }}
+      PSXNI_GROQ_API_KEY_TWO: ${{ secrets.PSXNI_GROQ_API_KEY_TWO }}
+      PSXNI_GROQ_API_KEY_THREE: ${{ secrets.PSXNI_GROQ_API_KEY_THREE }}
+      PSXNI_GEMINI_API_KEY_ONE: ${{ secrets.PSXNI_GEMINI_API_KEY_ONE }}
+      PSXNI_OPENROUTER_API_KEY_ONE: ${{ secrets.PSXNI_OPENROUTER_API_KEY_ONE }}
+      PSXNI_LIBRARY_TURSO_DATABASE_URL: ${{ secrets.PSXNI_LIBRARY_TURSO_DATABASE_URL }}
+      PSXNI_LIBRARY_TURSO_AUTH_TOKEN: ${{ secrets.PSXNI_LIBRARY_TURSO_AUTH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Report quota status
+        run: python -m scripts.llm_quota_status
