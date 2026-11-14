@@ -1,0 +1,55 @@
+# Run the three-lens council over one event. Manual for now; the keys come from GitHub secrets.
+# Each lens runs on its own Groq account, so one free quota does not carry the whole council.
+name: Analyst council
+
+on:
+  workflow_dispatch:
+    inputs:
+      event:
+        description: "What happened (one or two sentences)"
+        required: true
+        type: string
+      companies:
+        description: "Comma-separated tickers, e.g. OGDC,PSO,LUCK"
+        required: false
+        default: ""
+        type: string
+      store:
+        description: "Keep the verdict in psx-library"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: analyst-council
+  cancel-in-progress: false
+
+jobs:
+  deliberate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PSXNI_GROQ_API_KEY_ONE: ${{ secrets.PSXNI_GROQ_API_KEY_ONE }}
+      PSXNI_GROQ_API_KEY_TWO: ${{ secrets.PSXNI_GROQ_API_KEY_TWO }}
+      PSXNI_GROQ_API_KEY_THREE: ${{ secrets.PSXNI_GROQ_API_KEY_THREE }}
+      PSXNI_GEMINI_API_KEY_ONE: ${{ secrets.PSXNI_GEMINI_API_KEY_ONE }}
+      PSXNI_OPENROUTER_API_KEY_ONE: ${{ secrets.PSXNI_OPENROUTER_API_KEY_ONE }}
+      PSXNI_LIBRARY_TURSO_DATABASE_URL: ${{ secrets.PSXNI_LIBRARY_TURSO_DATABASE_URL }}
+      PSXNI_LIBRARY_TURSO_AUTH_TOKEN: ${{ secrets.PSXNI_LIBRARY_TURSO_AUTH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Deliberate
+        run: |
+          python -m scripts.council_run \
+            --event "${{ inputs.event }}" \
+            --companies "${{ inputs.companies }}" \
+            ${{ inputs.store && '--store' || '' }}
