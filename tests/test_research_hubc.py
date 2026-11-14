@@ -24,9 +24,10 @@ def test_the_hubc_folder_holds_the_five_files_and_the_disclaimer():
     assert "not investment advice" in readme and "not an input to any buy or sell decision" in readme
 
 
-def test_no_other_company_folder_exists_yet():
-    research = [p.name for p in (ROOT / "docs" / "research").iterdir() if p.is_dir()]
-    assert research == ["hubc"]
+def test_only_the_recorded_research_folders_exist():
+    """A closed list: a new research folder is a deliberate act and must be added here with its rows."""
+    research = sorted(p.name for p in (ROOT / "docs" / "research").iterdir() if p.is_dir())
+    assert research == ["cement", "hubc", "nrl", "pso"]
 
 
 def test_the_schema_creates_only_research_fact_and_only_with_if_not_exists():

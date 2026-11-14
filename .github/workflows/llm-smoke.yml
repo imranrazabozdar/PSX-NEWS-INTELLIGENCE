@@ -1,0 +1,33 @@
+# Manual check that the free-tier LLM keys (GitHub Actions secrets) work. Prints no key.
+# Groq carries three keys from separate free accounts so no single quota takes every call.
+name: LLM key smoke test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PSXNI_GROQ_API_KEY_ONE: ${{ secrets.PSXNI_GROQ_API_KEY_ONE }}
+      PSXNI_GROQ_API_KEY_TWO: ${{ secrets.PSXNI_GROQ_API_KEY_TWO }}
+      PSXNI_GROQ_API_KEY_THREE: ${{ secrets.PSXNI_GROQ_API_KEY_THREE }}
+      PSXNI_GEMINI_API_KEY_ONE: ${{ secrets.PSXNI_GEMINI_API_KEY_ONE }}
+      PSXNI_OPENROUTER_API_KEY_ONE: ${{ secrets.PSXNI_OPENROUTER_API_KEY_ONE }}
+      PSXNI_LLM_GROQ_MODEL: ${{ vars.PSXNI_LLM_GROQ_MODEL }}
+      PSXNI_LLM_GEMINI_MODEL: ${{ vars.PSXNI_LLM_GEMINI_MODEL }}
+      PSXNI_LLM_OPENROUTER_MODEL: ${{ vars.PSXNI_LLM_OPENROUTER_MODEL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Check every key
+        run: python -m scripts.llm_smoke
