@@ -442,3 +442,8 @@ Runbook: `docs/ops/AUTONOMOUS_FETCHER.md`.
 - Weekends: no runs by design (crons are Mon-Fri). First in-window scheduled fetch: Monday 16 Nov, ~09:37 PKT onward (window 09:32-15:30 PKT).
 - Token expiry reminder: PSXNI_DISPATCH_TOKEN expires 15 Dec 2026; regenerate before then.
 
+### Pilot pages copied into psx-library (14 Nov 2026)
+- The 12 Nov 2026 pilot pages had been saved only in a local SQLite file in the session scratchpad (never in Turso; see docs/handover/PILOT-CHECKPOINT-2026-11-12.md). Copied into psx-library with `scripts/import_pilot_pages.py`, without any Investify request: HUBC fundamentals (25 rows), announcements (40), competitors (18), profile (12); MEBL announcements (52). Each page is marked done, so the tick does not fetch it again. Source date kept as the original fetch date, 2026-11-12.
+- psx-library now holds HUBC 118 rows (23 research + 95 Investify) and MEBL 68 rows (16 fundamentals + 52 announcements).
+- Mapping fix: profile and competitors have dedicated mappings (leadership, market structure, float split, peers). The company description, which is Investify's own text, is never stored; neither is the extractor's own note.
+

@@ -78,8 +78,14 @@ def rows_from_fields(*, company: str, endpoint: str, fields: dict[str, Any], url
                 "source_url": item.get("pdf_url") or url, "source_date": day, "as_of": when,
                 "confidence": "fact", "created_at": created}))
         return rows
+    if endpoint == "profile":
+        _profile_rows(fields, add)
+        return rows
+    if endpoint == "competitors":
+        _competitor_rows(fields, add)
+        return rows
     for key, val in fields.items():
-        if key in ("symbol", "metric_count"):
+        if key in ("symbol", "metric_count", "description"):  # description: Investify's own text
             continue
         if isinstance(val, (str, int, float)) and not isinstance(val, bool) and str(val).strip():
             add(key, f"{key}: {val}")
@@ -104,3 +110,53 @@ def insert_rows(db: Any, rows: list[dict[str, Any]]) -> int:
     for row in rows:
         db.execute(_INSERT, tuple(row[c] for c in COLUMNS))
     return len(rows)
+
+
+_ROLE = {"ceo": "CEO", "chairperson": "Chairperson", "company_secretary": "Company secretary", "cfo": "CFO"}
+
+
+def _text_value(entry: Any) -> tuple[str, Any]:
+    if isinstance(entry, dict):
+        return str(entry.get("text") or entry.get("value") or ""), entry.get("value")
+    return str(entry), entry
+
+
+def _profile_rows(fields: dict[str, Any], add: Any) -> None:
+    """Facts from the profile page. The company description is Investify's own text and is never stored."""
+    plain = (("sector", "Sector"), ("website", "Website"), ("registered_address", "Registered address"))
+    for key, label in plain:
+        val = fields.get(key)
+        if isinstance(val, str) and val.strip():
+            add(key, f"{label}: {val.strip()}")
+    for role, name in (fields.get("leadership") or {}).items():
+        if isinstance(name, str) and name.strip():
+            add("leadership", f"{_ROLE.get(role, role.replace('_', ' ').capitalize())}: {name.strip()}")
+    market = fields.get("market_structure") or {}
+    for key, label, unit in (("market_cap", "Market cap", "PKR"), ("price", "Price", "PKR"),
+                             ("total_shares", "Total shares", "shares"),
+                             ("free_float_shares", "Free-float shares", "shares")):
+        if key in market:
+            text, value = _text_value(market[key])
+            if text:
+                add("market_structure", f"{label}: {text}", value, unit)
+    split = fields.get("share_float_split") or {}
+    for key, label in (("free_float_pct", "Free float"), ("locked_pct", "Locked shares")):
+        value = split.get(key)
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            add("share_float", f"{label}: {value}%", value, "percent")
+
+
+def _competitor_rows(fields: dict[str, Any], add: Any) -> None:
+    """Sector, the same-sector count and one row per peer. The extractor's own note is not stored."""
+    sector = fields.get("sector")
+    if isinstance(sector, str) and sector.strip():
+        add("sector", f"Sector: {sector.strip()}")
+    count = fields.get("same_sector_count")
+    if isinstance(count, int) and not isinstance(count, bool):
+        add("peer_count", f"Same-sector listed companies: {count} ({fields.get('peer_source') or 'sector'})",
+            count, "companies")
+    for peer in fields.get("peers") or []:
+        if isinstance(peer, dict) and peer.get("ticker"):
+            name = str(peer.get("name") or "").strip()
+            add("peers", f"Peer: {peer['ticker']}" + (f" ({name})" if name else ""))
+
