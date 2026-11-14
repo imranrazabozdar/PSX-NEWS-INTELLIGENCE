@@ -148,9 +148,11 @@ GROQ_MODEL_VAR = "PSXNI_LLM_GROQ_MODEL"
 GEMINI_MODEL_VAR = "PSXNI_LLM_GEMINI_MODEL"
 OPENROUTER_MODEL_VAR = "PSXNI_LLM_OPENROUTER_MODEL"
 DEFAULT_GROQ_MODEL = "openai/gpt-oss-120b"
-DEFAULT_GEMINI_MODEL = "gemini-2.5-flash-lite"
+DEFAULT_GEMINI_MODEL = "gemini-flash-latest"
 DEFAULT_OPENROUTER_MODEL = "nvidia/nemotron-3.5-lightning:free"
 
+# Gemini: the 2.5 names are listed but closed to new accounts ("no longer available to new users"),
+# so this key can only reach the rolling alias. It is the one Gemini model observed to resolve here.
 # Model names are verified against each vendor's own listing (scripts/llm_models.py), not from memory:
 # the names written here earlier had been retired and every call answered HTTP 404. Override with the
 # PSXNI_LLM_*_MODEL variables when a vendor retires one again.
