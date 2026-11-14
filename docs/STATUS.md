@@ -435,3 +435,10 @@ Runbook: `docs/ops/AUTONOMOUS_FETCHER.md`.
 - Open: (1) the scheduled tick has never fired since it reached main (zero scheduled runs; cron re-registered in PR #75). Needs a check of the Actions tab or an external dispatcher. (2) Monday 16 Nov: trading window 09:32-15:30 PKT, one session, no break. Trigger a run in the window if the scheduler is still silent. (3) Calendar: today is recorded as a trading day; a closure needs an official PSX notice before it is entered.
 - Monday's window is continuous 09:32-15:30 PKT. The Jumma break (12:00-14:32) applies to Fridays only.
 
+### Scheduler: CONFIRMED WORKING (13 Nov 2026)
+- Root cause of the silent cron: both schedules fired at exactly :00/:30 UTC, GitHub's busiest minutes, where scheduled runs are dropped or delayed. Moved off-peak in PR #80 (tick 17,47; dispatcher 7,37; hours 1-11 UTC, weekdays).
+- First scheduled runs, 13 Nov: Tick dispatcher 16:42 UTC (`PSXNI_DISPATCH_TOKEN is set`, tick dispatched, token works) and the tick's own cron 16:45 UTC (`noop: outside an official open session` — correct, 21:45 PKT is after close). Both success.
+- The chain is proven end to end: GitHub cron -> tick directly, and GitHub cron -> dispatcher -> token -> tick. Guards behaved correctly.
+- Weekends: no runs by design (crons are Mon-Fri). First in-window scheduled fetch: Monday 16 Nov, ~09:37 PKT onward (window 09:32-15:30 PKT).
+- Token expiry reminder: PSXNI_DISPATCH_TOKEN expires 15 Dec 2026; regenerate before then.
+
