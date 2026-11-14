@@ -37,8 +37,14 @@ def load_rows(path: Path, ticker: str) -> list[dict[str, Any]]:
     return clean
 
 
-def load(ticker: str, facts: Path, environ: Mapping[str, str] | None = None, db: Any = None) -> int:
-    """Return 0 on success. db is for tests only; production always goes through library_db."""
+def load(ticker: str, facts: Path, environ: Mapping[str, str] | None = None, db: Any = None,
+         scope: str | None = None) -> int:
+    """Return 0 on success. db is for tests only; production always goes through library_db.
+
+    scope is an optional topic prefix (e.g. "commentary"). Without it the loader refuses a ticker that already
+    has any rows. With it, the refusal covers only rows in that scope, so a company can gain a new body of
+    knowledge without reloading what is already there.
+    """
     rows = load_rows(facts, ticker)
     if db is None:
         conn = library_db.get_library_connection(environ)  # target guard runs here
@@ -47,22 +53,32 @@ def load(ticker: str, facts: Path, environ: Mapping[str, str] | None = None, db:
         host = "test-database"
     for stmt in mig.statements(SCHEMA.read_text(encoding="utf-8")):
         db.execute(stmt)
-    existing = db.execute("SELECT COUNT(*) AS n FROM research_fact WHERE company = ?", (ticker,))[0]["n"]
+    if scope:
+        existing = db.execute("SELECT COUNT(*) AS n FROM research_fact WHERE company = ? AND topic LIKE ?",
+                              (ticker, f"{scope}.%"))[0]["n"]
+        where = f"{ticker} in scope {scope!r}"
+    else:
+        existing = db.execute("SELECT COUNT(*) AS n FROM research_fact WHERE company = ?", (ticker,))[0]["n"]
+        where = str(ticker)
     if existing:
-        print(f"refused: {existing} row(s) for {ticker} already exist; this loader does not load twice")
+        print(f"refused: {existing} row(s) for {where} already exist; this loader does not load twice")
         return 6
+    if scope and any(not r["topic"].startswith(f"{scope}.") for r in rows):
+        print(f"refused: the facts file has rows outside the scope {scope!r}")
+        return 7
     for row in rows:
         db.execute(INSERT, tuple(row[c] for c in rf.COLUMNS))
     print(f"research_fact loaded for {ticker} -> host={host}: {len(rows)} row(s) inserted")
-    counts = db.execute("SELECT topic, COUNT(*) AS n FROM research_fact WHERE company = ? "
-                        "GROUP BY topic ORDER BY topic", (ticker,))
+    like = f"{scope}.%" if scope else "%"
+    counts = db.execute("SELECT topic, COUNT(*) AS n FROM research_fact WHERE company = ? AND topic LIKE ? "
+                        "GROUP BY topic ORDER BY topic", (ticker, like))
     print("count per topic:")
     for r in counts:
         print(f"  {r['topic']}: {r['n']}")
     print("five sample rows:")
     sample_sql = ("SELECT id, topic, fact_text, value, unit, period, source_name, source_date, confidence "
-                  "FROM research_fact WHERE company = ? ORDER BY id LIMIT 5")
-    for r in db.execute(sample_sql, (ticker,)):
+                  "FROM research_fact WHERE company = ? AND topic LIKE ? ORDER BY id DESC LIMIT 5")
+    for r in db.execute(sample_sql, (ticker, like)):
         print(f"  {dict(r)}")
     return 0
 
@@ -71,9 +87,10 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--ticker", required=True)
     parser.add_argument("--facts", required=True, type=Path)
+    parser.add_argument("--scope", help="topic prefix, e.g. commentary: limits the already-loaded check")
     args = parser.parse_args(argv)
     try:
-        return load(args.ticker, args.facts)
+        return load(args.ticker, args.facts, scope=args.scope)
     except library_db.LibraryConfigError as exc:
         print(f"load REFUSED: {exc}")
         return 2
