@@ -447,3 +447,9 @@ Runbook: `docs/ops/AUTONOMOUS_FETCHER.md`.
 - psx-library now holds HUBC 118 rows (23 research + 95 Investify) and MEBL 68 rows (16 fundamentals + 52 announcements).
 - Mapping fix: profile and competitors have dedicated mappings (leadership, market structure, float split, peers). The company description, which is Investify's own text, is never stored; neither is the extractor's own note.
 
+### Annual-report facts in psx-library (14 Nov 2026)
+- The owner's uploaded PDFs cover OGDC, UBL and Lucky Cement (no HUBC report was ever uploaded; HUBC's data is the research briefs plus the Investify pages). The extracted figures lived only as reconciliation fixtures in the repo, not in Turso.
+- `scripts/import_report_facts.py` distils those fixtures into psx-library: LUCK 15 rows (13 figures, 2 KAMs), OGDC 12 (8, 4), UBL 8 (6, 2). Each row is one printed figure or key audit matter with its page cited, the statement date as source date, and the figure as a number in PKR thousands. Values printed but not cross-checked are flagged in the text.
+- No PDF text and no page images are stored, per the owner's rule that documents must not fill the Turso account. psx-library holds 221 rows in about 50 KB.
+- Totals: HUBC 118, MEBL 68, LUCK 15, OGDC 12, UBL 8.
+

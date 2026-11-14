@@ -160,3 +160,57 @@ def _competitor_rows(fields: dict[str, Any], add: Any) -> None:
             name = str(peer.get("name") or "").strip()
             add("peers", f"Peer: {peer['ticker']}" + (f" ({name})" if name else ""))
 
+
+
+def _printed_number(printed: str) -> float | None:
+    """A printed statement figure: '46,629,367' -> 46629367.0, '(38,160)' -> -38160.0."""
+    t = str(printed).strip().replace(",", "")
+    negative = t.startswith("(") and t.endswith(")")
+    if negative:
+        t = t[1:-1]
+    try:
+        value = float(t)
+    except ValueError:
+        return None
+    return -value if negative else value
+
+
+def rows_from_report(*, company: str, manifest: dict[str, Any], expected: dict[str, Any],
+                     created_at: str) -> list[dict[str, Any]]:
+    """Distilled rows from one audited report: printed figures and key audit matters, with the page cited.
+
+    No PDF text and no page images are stored: each row is one printed figure or KAM title. The source date is
+    the statement date (the report's period end); the real issue date is not in the document's figures.
+    """
+    period_end = str(manifest["period_end"])
+    unit = f"{manifest.get('currency', 'PKR')}_thousands" if manifest.get("unit_scale") == 1000 \
+        else str(manifest.get("currency") or "")
+    source = f"{str(manifest['description']).split(',')[0].strip()} annual report, audited statements"
+    rows: list[dict[str, Any]] = []
+
+    def add(topic: str, text: str, value: Any, period: str) -> None:
+        rows.append(validate_fact({
+            "company": company, "topic": topic, "fact_text": _clip(text), "value": value,
+            "unit": unit if value is not None else None, "period": period, "source_name": source,
+            "source_url": None, "source_date": period_end, "as_of": period_end, "confidence": "fact",
+            "created_at": created_at}))
+
+    for item in expected.get("values") or []:
+        label = str(item.get("label") or item.get("item") or "").strip()
+        printed = str(item.get("printed") or "").strip()
+        if not label or not printed:
+            continue
+        year = next((p for p in str(item.get("item", "")).split("_") if p.isdigit() and len(p) == 4), None)
+        page = item.get("page")
+        where = f", p.{page}" if page else ""
+        flag = "" if item.get("status") == "reconciled" else " [printed, not cross-checked]"
+        add("report.figure", f"{label}: {printed}{where}{flag}", _printed_number(printed),
+            f"FY{year}" if year else period_end)
+
+    for kam in (expected.get("kams") or {}).get("items") or []:
+        title = str(kam.get("title") or "").strip()
+        if title:
+            page = kam.get("page")
+            add("report.kam", f"Key audit matter: {title}" + (f", p.{page}" if page else ""), None,
+                f"FY{period_end[:4]}")
+    return rows
