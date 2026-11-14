@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -57,8 +58,32 @@ def kind_for(topic: str) -> str | None:
     return None
 
 
+def sectors_for(companies: list[str], db: Any, extra: list[str] | None = None) -> list[str]:
+    """Which SECTOR:* knowledge belongs with these companies.
+
+    A sector is included when it was asked for, or when its name is one of the dotted segments of a
+    company's own stored topic. The match is on whole segments, not on substrings: "announcements"
+    contains "cement", so a substring test would hand cement knowledge to every company that has ever
+    filed an announcement.
+
+    Without this the macro lens has nothing to cite, every assessment it makes is discarded for citing
+    no evidence, and the council loses the one lens that looks for second-order effects.
+    """
+    known = {str(r["company"]) for r in
+             db.execute("SELECT DISTINCT company FROM research_fact WHERE company LIKE 'SECTOR:%'")}
+    wanted = {f"SECTOR:{s.strip().upper()}" for s in (extra or []) if s.strip()} & known
+    segments: set[str] = set()
+    for company in companies:
+        for row in db.execute("SELECT DISTINCT topic FROM research_fact WHERE company = ?", (company,)):
+            segments.update(re.split(r"[^a-z0-9]+", str(row["topic"]).lower()))
+    for sector in known:
+        if sector.split(":", 1)[1].lower() in segments:
+            wanted.add(sector)
+    return sorted(wanted)
+
+
 def build_pack(event: str, companies: list[str], db: Any, *, limit_per_company: int = 40,
-               news: list[str] | None = None) -> council.EvidencePack:
+               news: list[str] | None = None, sectors: list[str] | None = None) -> council.EvidencePack:
     """The event, plus what the brain already knows about these companies and their sectors."""
     items: list[council.Evidence] = []
     for n, text in enumerate(news or [], start=1):
@@ -67,7 +92,7 @@ def build_pack(event: str, companies: list[str], db: Any, *, limit_per_company: 
     if not items:
         items.append(council.Evidence("n1", "news", event[:500], "Owner-supplied event text", ""))
     seq = 0
-    for company in companies:
+    for company in list(companies) + sectors_for(companies, db, sectors):
         rows = db.execute(
             "SELECT topic, fact_text, source_name, source_date FROM research_fact "
             "WHERE company = ? ORDER BY id DESC LIMIT ?", (company, limit_per_company))
@@ -83,12 +108,12 @@ def build_pack(event: str, companies: list[str], db: Any, *, limit_per_company: 
 
 
 def run(event: str, companies: list[str], *, store: bool, db: Any = None,
-        gateway_for: Any = None) -> int:
+        gateway_for: Any = None, sectors: list[str] | None = None) -> int:
     if db is None:
         conn = library_db.get_library_connection()  # target guard runs here
         db = conn.db
         print(f"library host: {conn.host}", file=sys.stderr)
-    pack = build_pack(event, companies, db)
+    pack = build_pack(event, companies, db, sectors=sectors)
     print(f"evidence pack: {len(pack.items)} item(s) across {len(pack.companies)} company(ies)",
           file=sys.stderr)
     if gateway_for is None:
@@ -122,11 +147,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--event", required=True, help="what happened, in one or two sentences")
     parser.add_argument("--companies", default="",
                         help="comma-separated tickers whose stored knowledge to put in the pack")
+    parser.add_argument("--sectors", default="",
+                        help="comma-separated sector knowledge to add, e.g. CEMENT")
     parser.add_argument("--store", action="store_true", help="keep the verdict (default: dry run)")
     args = parser.parse_args(argv)
     companies = [c.strip().upper() for c in args.companies.split(",") if c.strip()]
     try:
-        return run(args.event, companies, store=args.store)
+        sectors = [s.strip() for s in args.sectors.split(",") if s.strip()]
+        return run(args.event, companies, store=args.store, sectors=sectors)
     except library_db.LibraryConfigError as exc:
         print(f"REFUSED: {exc}", file=sys.stderr)
         return 2
