@@ -147,10 +147,13 @@ OPENROUTER_KEY_VAR = "PSXNI_OPENROUTER_API_KEY"  # noqa: S105 - a variable name,
 GROQ_MODEL_VAR = "PSXNI_LLM_GROQ_MODEL"
 GEMINI_MODEL_VAR = "PSXNI_LLM_GEMINI_MODEL"
 OPENROUTER_MODEL_VAR = "PSXNI_LLM_OPENROUTER_MODEL"
-DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile"
-DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
-DEFAULT_OPENROUTER_MODEL = "meta-llama/llama-3.3-70b-instruct:free"
+DEFAULT_GROQ_MODEL = "openai/gpt-oss-120b"
+DEFAULT_GEMINI_MODEL = "gemini-flash-latest"
+DEFAULT_OPENROUTER_MODEL = "google/gemma-4-31b-it:free"
 
+# Model names are verified against each vendor's own listing (scripts/llm_models.py), not from memory:
+# the names written here earlier had been retired and every call answered HTTP 404. Override with the
+# PSXNI_LLM_*_MODEL variables when a vendor retires one again.
 # A key may be set under the bare name or numbered, so several free-tier accounts can share the load.
 KEY_SUFFIXES = ("", "_ONE", "_TWO", "_THREE", "_FOUR", "_FIVE", "_SIX", "_SEVEN", "_EIGHT", "_NINE", "_TEN",
                 "_1", "_2", "_3", "_4", "_5", "_6", "_7", "_8", "_9")
