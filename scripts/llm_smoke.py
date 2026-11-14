@@ -20,8 +20,8 @@ VENDORS = ((llm.GroqProvider, llm.GROQ_MODEL_VAR), (llm.GeminiProvider, llm.GEMI
            (llm.OpenRouterProvider, llm.OPENROUTER_MODEL_VAR))
 
 
-def check_vendor(cls: type, model_var: str, environ: dict | None = None) -> tuple[int, int]:
-    """Return (answered, total) for one vendor. Each key is tried once, through the real gateway.
+def check_vendor(cls: type, model_var: str, environ: dict | None = None) -> tuple[int, int, int]:
+    """Return (answered, total, busy) for one vendor. Each key is tried once, through the real gateway.
 
     The gateway is used rather than a bare call so the check exercises the production path, including
     the retry and backoff that a free tier needs: these vendors answer 429 and 503 under load, and a
@@ -33,9 +33,9 @@ def check_vendor(cls: type, model_var: str, environ: dict | None = None) -> tupl
     keys = llm.keys_from_env(cls.key_var, env)
     if not keys:
         print(f"{cls.name}: no key set")
-        return (0, 0)
+        return (0, 0, 0)
     model = str(env.get(model_var, "") or "").strip() or None
-    answered = 0
+    answered = busy = 0
     for position, key in enumerate(keys, start=1):
         label = f"{cls.name}#{position}"
         gateway = llm.LLMGateway(provider=cls(api_key=key, model=model), pricing=llm.Pricing(0.0, 0.0),
@@ -45,26 +45,39 @@ def check_vendor(cls: type, model_var: str, environ: dict | None = None) -> tupl
         if result.outcome in ("ok", "cached") and result.text:
             answered += 1
             print(f"{label}: ok model={result.model} in={result.input_tokens} out={result.output_tokens}")
+        elif result.error_kind == "transient":
+            busy += 1
+            print(f"{label}: BUSY after retries ({result.error})")
         else:
             print(f"{label}: FAILED ({result.outcome}: {result.error})")
-    return (answered, len(keys))
+    return (answered, len(keys), busy)
 
 
 def main() -> int:
+    """A busy vendor is not a broken key: the chain routes around it, so it must not read as failure."""
     total_keys = 0
-    broken_vendors = []
+    broken: list[str] = []
+    degraded: list[str] = []
+    working = 0
     for cls, model_var in VENDORS:
-        answered, count = check_vendor(cls, model_var)
+        answered, count, busy = check_vendor(cls, model_var)
         total_keys += count
+        working += answered
         if count and not answered:
-            broken_vendors.append(cls.name)
+            (degraded if busy == count else broken).append(cls.name)
     if not total_keys:
         print("smoke: no LLM key reached this run (check the secret names and the job's env block)")
         return 1
-    if broken_vendors:
-        print(f"smoke: these vendors have keys but none answered: {', '.join(broken_vendors)}")
+    if degraded:
+        print(f"smoke: busy right now, the chain will route around them: {', '.join(degraded)}")
+    if broken:
+        print(f"smoke: these vendors have keys but failed for a reason retrying will not fix: "
+              f"{', '.join(broken)}")
         return 1
-    print(f"smoke: every vendor with keys answered ({total_keys} key(s) checked)")
+    if not working:
+        print("smoke: every vendor is busy; no call succeeded")
+        return 1
+    print(f"smoke: {working} of {total_keys} key(s) answered; no vendor is broken")
     return 0
 
 

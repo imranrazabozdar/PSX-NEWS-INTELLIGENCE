@@ -140,3 +140,35 @@ def test_an_empty_answer_is_transient_so_the_chain_tries_the_next_account():
     with pytest.raises(llm.TransientProviderError, match="empty answer"):
         llm.GroqProvider(api_key="k", post=empty).complete(
             system="s", user="u", json_schema={}, max_output_tokens=10)
+
+
+# ---------- a busy vendor and a broken one must be told apart
+
+def test_exhausted_retries_are_reported_as_transient_not_as_a_broken_key():
+    def busy(url, headers, body, timeout):
+        raise llm.TransientProviderError("HTTP 503: high demand")
+
+    gw = llm.LLMGateway(provider=llm.GroqProvider(api_key="k", post=busy),
+                        pricing=llm.Pricing(0, 0), sleep=lambda s: None)
+    res = gw.complete(_prompt(), "u", {})
+    assert res.outcome == "error" and res.error_kind == "transient"
+
+
+def test_a_rejected_request_is_reported_as_permanent():
+    def rejected(url, headers, body, timeout):
+        raise llm.LLMError("HTTP 400: model does not exist")
+
+    gw = llm.LLMGateway(provider=llm.GroqProvider(api_key="k", post=rejected),
+                        pricing=llm.Pricing(0, 0), sleep=lambda s: None)
+    res = gw.complete(_prompt(), "u", {})
+    assert res.outcome == "error" and res.error_kind == "permanent"
+
+
+def test_a_missing_key_is_neither_busy_nor_broken():
+    gw = llm.LLMGateway(provider=llm.GeminiProvider(api_key=""), pricing=llm.Pricing(0, 0))
+    res = gw.complete(_prompt(), "u", {})
+    assert res.outcome == "not_connected" and res.error_kind == "not_connected"
+
+
+def _prompt() -> llm.Prompt:
+    return llm.Prompt("test.macro", "1", "Return JSON.")

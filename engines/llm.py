@@ -148,7 +148,7 @@ GROQ_MODEL_VAR = "PSXNI_LLM_GROQ_MODEL"
 GEMINI_MODEL_VAR = "PSXNI_LLM_GEMINI_MODEL"
 OPENROUTER_MODEL_VAR = "PSXNI_LLM_OPENROUTER_MODEL"
 DEFAULT_GROQ_MODEL = "openai/gpt-oss-120b"
-DEFAULT_GEMINI_MODEL = "gemini-flash-latest"
+DEFAULT_GEMINI_MODEL = "gemini-2.5-flash-lite"
 DEFAULT_OPENROUTER_MODEL = "nvidia/nemotron-3.5-lightning:free"
 
 # Model names are verified against each vendor's own listing (scripts/llm_models.py), not from memory:
@@ -431,6 +431,10 @@ class GatewayResult:
     output_tokens: int = 0
     cost_usd: float = 0.0
     error: str | None = None
+    # Why it failed, when it did. "transient" means the vendor was busy and the same call may yet
+    # succeed; "permanent" means it will not. A caller must be able to tell a busy vendor from a
+    # broken one without reading the message text.
+    error_kind: str = ""
 
 
 @dataclass
@@ -475,8 +479,8 @@ class LLMGateway:
             res.call_id = self._log(prompt, ihash, res, 1)
             return res
 
-        def refuse(outcome: str, msg: str) -> GatewayResult:
-            res = GatewayResult(None, outcome, model, None, error=msg)
+        def refuse(outcome: str, msg: str, kind: str = "refused") -> GatewayResult:
+            res = GatewayResult(None, outcome, model, None, error=msg, error_kind=kind)
             res.call_id = self._log(prompt, ihash, res, 1)
             return res
 
@@ -489,14 +493,15 @@ class LLMGateway:
         if self.spent_today() + worst > self.limits.daily_cost_usd:
             return refuse("refused_budget", "daily LLM cost limit would be exceeded")
 
-        attempts, last = 0, ""
+        attempts, last, kind = 0, "", "transient"
         while attempts < self.limits.max_attempts:
             attempts += 1
             try:
                 c = self.provider.complete(system=prompt.text, user=user, json_schema=schema,
                                            max_output_tokens=self.limits.max_output_tokens)
             except ProviderNotConnected as exc:
-                res = GatewayResult(None, "not_connected", model, None, error=str(exc))
+                res = GatewayResult(None, "not_connected", model, None, error=str(exc),
+                                    error_kind="not_connected")
                 res.call_id = self._log(prompt, ihash, res, attempts)
                 return res
             except TransientProviderError as exc:
@@ -505,13 +510,13 @@ class LLMGateway:
                     self.sleep(self.limits.backoff_seconds * 2 ** (attempts - 1))
                 continue
             except LLMError as exc:
-                last = str(exc)
+                last, kind = str(exc), "permanent"
                 break
             res = GatewayResult(c.text, "ok", c.model, None, c.input_tokens, c.output_tokens,
                                 self.pricing.cost(c.input_tokens, c.output_tokens))
             res.call_id = self._log(prompt, ihash, res, attempts)
             self._cache[ihash] = res
             return res
-        res = GatewayResult(None, "error", model, None, error=last)
+        res = GatewayResult(None, "error", model, None, error=last, error_kind=kind)
         res.call_id = self._log(prompt, ihash, res, attempts)
         return res
