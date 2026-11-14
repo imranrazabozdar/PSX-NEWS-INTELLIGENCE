@@ -123,11 +123,11 @@ def _shift_utc(stamp: str, seconds: int) -> str:
 
 
 class QuotaGuardedProvider:
-    """Wraps one leaf provider. Refuses, with no network call, once its account is at its limit.
+    """Wraps one leaf provider with no siblings to balance against. Refuses, with no network call,
+    once its account is at its limit.
 
-    Raising TransientProviderError (not a new exception type) means RotatingProvider and
-    FallbackProvider need no changes at all: an exhausted account is simply one more account they
-    already know how to skip past.
+    Raising TransientProviderError (not a new exception type) means FallbackProvider needs no changes
+    at all: an exhausted account is simply one more thing it already knows how to skip past.
     """
 
     def __init__(self, provider: Any, quota: QuotaTracker, limits: QuotaLimits):
@@ -150,12 +150,76 @@ class QuotaGuardedProvider:
         return out
 
 
-def guard(provider: Any, quota: QuotaTracker, environ: Any = None) -> Any:
-    """Wrap every network-calling leaf of a provider or provider chain with its vendor's quota guard.
+class SmartRotatingProvider:
+    """Several accounts of ONE vendor. Each call tries the account with the MOST headroom left first,
+    not whichever is next in a fixed rotation.
 
-    Walks FallbackProvider and RotatingProvider in place (they only hold a list of sub-providers, so
-    replacing that list is enough) and wraps a bare leaf provider directly. A provider with no `name`
-    naming a known vendor (the not-connected Claude stub, a test double) passes through unchanged.
+    A plain round robin treats every account as equally fresh regardless of how much of its daily
+    budget other roles, or other runs earlier the same day, already spent. Left alone, that can drive
+    one account to its limit while a sibling account sits almost untouched -- the opposite of what
+    pooling several free accounts is for. This sorts by remaining headroom (most left first) before
+    every attempt, so usage spreads toward whichever account can still take it.
+
+    When accounts are equally fresh -- the common case, especially early in the day -- ties keep the
+    ORDER THEY WERE GIVEN IN (a stable sort), which is how three lenses deliberating on one event still
+    spread across three different accounts rather than all reaching for the same "best" one: the
+    caller hands each lens its own preferred order, and that preference survives until usage diverges.
+    """
+
+    def __init__(self, providers: list[Any], quota: QuotaTracker, limits: QuotaLimits):
+        if not providers:
+            raise ValueError("at least one provider is required")
+        self._providers = providers
+        self._quota = quota
+        self._limits = limits
+        self.name = providers[0].name
+        self.model = providers[0].model
+        self.last_used = ""
+
+    def _by_headroom(self) -> list[Any]:
+        def used_fraction(provider: Any) -> float:
+            account = getattr(provider, "account", 0)
+            if self._limits.requests_per_day:
+                return (self._quota.calls_since(self.name, account, DAY_SECONDS)
+                        / self._limits.requests_per_day)
+            if self._limits.requests_per_minute:
+                return (self._quota.calls_since(self.name, account, MINUTE_SECONDS)
+                        / self._limits.requests_per_minute)
+            return 0.0
+
+        return sorted(self._providers, key=used_fraction)  # stable: ties keep the given order
+
+    def complete(self, *, system: str, user: str, json_schema: dict, max_output_tokens: int) -> Any:
+        from engines.llm import ProviderNotConnected, TransientProviderError
+
+        problems: list[str] = []
+        for provider in self._by_headroom():
+            account = getattr(provider, "account", 0)
+            ok, reason = self._quota.available(self.name, account, self._limits)
+            if not ok:
+                problems.append(f"{self.name}#{account or '?'} quota reached: {reason}")
+                continue
+            try:
+                out = provider.complete(system=system, user=user, json_schema=json_schema,
+                                        max_output_tokens=max_output_tokens)
+            except (ProviderNotConnected, TransientProviderError) as exc:
+                problems.append(f"{self.name}#{account or '?'}: {exc}")
+                continue
+            self._quota.record(self.name, account)
+            self.last_used = f"{self.name}#{account or '?'}"
+            return out
+        raise TransientProviderError("; ".join(problems))
+
+
+def guard(provider: Any, quota: QuotaTracker, environ: Any = None) -> Any:
+    """Make a provider or provider chain quota-aware: load-balanced within a vendor, with no network
+    call once every account of a vendor is exhausted.
+
+    Walks FallbackProvider in place (it only holds a list of vendor-level providers, so replacing that
+    list is enough). A vendor's RotatingProvider is replaced by SmartRotatingProvider over the same
+    accounts, in the same preferred order, now chosen by remaining headroom rather than fixed rotation.
+    A bare leaf with no siblings is wrapped directly. A provider with no `name` naming a known vendor
+    (the not-connected Claude stub, a test double) passes through unchanged.
     """
     from engines.llm import FallbackProvider, RotatingProvider
 
@@ -163,8 +227,8 @@ def guard(provider: Any, quota: QuotaTracker, environ: Any = None) -> Any:
         provider._providers = [guard(p, quota, environ) for p in provider._providers]
         return provider
     if isinstance(provider, RotatingProvider):
-        provider._providers = [guard(p, quota, environ) for p in provider._providers]
-        return provider
+        vendor = provider._providers[0].name
+        return SmartRotatingProvider(provider._providers, quota, limits_for(vendor, environ))
     if getattr(provider, "name", None) in DEFAULT_LIMITS:
         return QuotaGuardedProvider(provider, quota, limits_for(provider.name, environ))
     return provider

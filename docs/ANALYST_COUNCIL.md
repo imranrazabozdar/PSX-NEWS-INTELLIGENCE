@@ -89,10 +89,24 @@ per vendor and per account, checked **before** a call is made.
 Override any default with `PSXNI_LLM_<VENDOR>_RPM` / `PSXNI_LLM_<VENDOR>_RPD` (`0` means explicitly
 unlimited). Confirm the real number in each vendor's own dashboard — these move.
 
-**How it is wired in.** `council.provider_for_role(role, environ, db=...)` wraps every leaf provider
-with `QuotaGuardedProvider` when a database is supplied. `scripts/council_run.py` always supplies the
-open psx-library connection, so a live council run is quota-aware by default. The wrapping reuses
-`RotatingProvider`'s and `FallbackProvider`'s existing skip-on-`TransientProviderError` logic — an
-exhausted account is just one more thing they already know how to skip past, with no new control flow.
+**How it is wired in.** `council.provider_for_role(role, environ, db=...)` makes every vendor
+quota-aware when a database is supplied. `scripts/council_run.py` always supplies the open psx-library
+connection, so a live council run is load-balanced by default.
+
+Three accounts means a fixed round robin is not enough: it would happily drive one account to its
+daily limit while a sibling sits almost untouched, since it has no notion of how much each has already
+been used. `SmartRotatingProvider` fixes that -- every call picks whichever account of a vendor has
+the **most headroom left**, checked fresh each time, rather than whichever is next in a rotation.
+
+When accounts are equally fresh (the common case early in the day), ties keep the order the caller
+gave, which is each lens's own preferred starting account: three lenses deliberating on one event
+still spread across three different accounts rather than all reaching for the same "best" one. Once
+usage diverges, headroom wins over preference, which is what keeps any single account from being
+driven to exhaustion while its siblings sit idle.
+
+"Shift to another model" still happens one level up, unchanged: once every account of a vendor is
+exhausted or failing, `FallbackProvider` moves to the next vendor in the chain (Groq → Gemini →
+OpenRouter). An exhausted account raises the same `TransientProviderError` the gateway already
+retries on, so no existing control flow needed to change.
 
 **Check it**: `python -m scripts.llm_quota_status`, or the "LLM quota status" workflow.

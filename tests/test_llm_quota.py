@@ -149,3 +149,85 @@ def test_an_unnumbered_leaf_defaults_to_account_zero_not_silently_to_one():
         "parts": [{"text": "{}"}]}}], "usageMetadata": {}})
     guarded = llm_quota.guard(leaf, tracker)
     guarded.complete(system="s", user="u", json_schema={}, max_output_tokens=10)  # account 0 is untouched
+
+
+# ---------- smart rotation: most headroom first, ties kept in the given (role-preferred) order
+
+def _leaves(n: int, post):
+    return [llm.GroqProvider(api_key=f"k{i}", post=post, account=i) for i in range(1, n + 1)]
+
+
+def test_the_account_with_the_most_remaining_headroom_is_tried_first():
+    calls: list[str] = []
+
+    def post(url, headers, body, timeout):
+        calls.append(headers["Authorization"])
+        return {"choices": [{"message": {"content": "{}"}}], "usage": {}}
+
+    tracker = _tracker()
+    for _ in range(40):
+        tracker.record("groq", 1)  # account #1 has used far more of its day than #2 or #3
+    smart = llm_quota.SmartRotatingProvider(_leaves(3, post), tracker, llm_quota.QuotaLimits(None, 1000))
+    smart.complete(system="s", user="u", json_schema={}, max_output_tokens=10)
+    assert calls == ["Bearer k2"]  # the given order was [1,2,3]; #2 is first among the least-used
+
+
+def test_equally_fresh_accounts_keep_the_order_they_were_given_in():
+    """Ties must not scramble the caller's preferred order, or three roles would herd onto one account."""
+    calls: list[str] = []
+
+    def post(url, headers, body, timeout):
+        calls.append(headers["Authorization"])
+        return {"choices": [{"message": {"content": "{}"}}], "usage": {}}
+
+    tracker = _tracker()
+    leaves = _leaves(3, post)
+    reordered = [leaves[2], leaves[0], leaves[1]]  # account #3 first, as a role's own preference
+    smart = llm_quota.SmartRotatingProvider(reordered, tracker, llm_quota.QuotaLimits(None, 1000))
+    smart.complete(system="s", user="u", json_schema={}, max_output_tokens=10)
+    assert calls == ["Bearer k3"]
+
+
+def test_usage_is_recorded_against_the_account_that_actually_answered():
+    tracker = _tracker()
+
+    def post(url, headers, body, timeout):
+        return {"choices": [{"message": {"content": "{}"}}], "usage": {}}
+
+    smart = llm_quota.SmartRotatingProvider(_leaves(2, post), tracker, llm_quota.QuotaLimits(None, 1000))
+    smart.complete(system="s", user="u", json_schema={}, max_output_tokens=10)
+    assert tracker.calls_since("groq", 1, llm_quota.DAY_SECONDS) == 1
+    assert tracker.calls_since("groq", 2, llm_quota.DAY_SECONDS) == 0
+
+
+def test_an_account_that_fails_live_is_skipped_in_favour_of_the_next_freshest():
+    def account_one_down(url, headers, body, timeout):
+        raise llm.TransientProviderError("HTTP 503")
+
+    def account_two_ok(url, headers, body, timeout):
+        return {"choices": [{"message": {"content": "{}"}}], "usage": {}}
+
+    leaves = [llm.GroqProvider(api_key="k1", post=account_one_down, account=1),
+              llm.GroqProvider(api_key="k2", post=account_two_ok, account=2)]
+    smart = llm_quota.SmartRotatingProvider(leaves, _tracker(), llm_quota.QuotaLimits(None, 1000))
+    smart.complete(system="s", user="u", json_schema={}, max_output_tokens=10)
+    assert smart.last_used == "groq#2"
+
+
+def test_every_account_exhausted_raises_with_every_reason_named():
+    tracker = _tracker()
+    for account in (1, 2):
+        for _ in range(3):
+            tracker.record("groq", account)
+    smart = llm_quota.SmartRotatingProvider(_leaves(2, lambda *a: {}), tracker,
+                                            llm_quota.QuotaLimits(None, 3))
+    with pytest.raises(llm.TransientProviderError, match="groq#1.*groq#2"):
+        smart.complete(system="s", user="u", json_schema={}, max_output_tokens=10)
+
+
+def test_guard_replaces_a_rotating_provider_with_the_smart_equivalent_over_the_same_accounts():
+    rotating = llm._vendor(llm.GroqProvider, {"PSXNI_GROQ_API_KEY_ONE": "a",
+                                              "PSXNI_GROQ_API_KEY_TWO": "b"}, llm.GROQ_MODEL_VAR)
+    smart = llm_quota.guard(rotating, _tracker())
+    assert isinstance(smart, llm_quota.SmartRotatingProvider)
+    assert [p.account for p in smart._providers] == [1, 2]
