@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>SYNTHETIC investor relations page (test fixture)</title></head><body>
+<!-- SYNTHETIC FIXTURE. Not captured from any real site and not data about any real company. It exists to test
+     edge cases of the classifier and the scope filter: relative and absolute links, a query string, off-host
+     links, non-PDF links, summaries, notices, duplicates, labels without a year, and nine-month reports. -->
+<ul>
+  <li><a href="/reports/AR2026.pdf">Annual Report 2026</a></li>
+  <li><a href="/reports/AR2026.pdf">Annual Report 2026</a></li>
+  <li><a href="/reports/AR2023.pdf">Annual Report 2023</a></li>
+  <li><a href="https://issuer.example/reports/hy26.pdf">Half Year Report 2026</a></li>
+  <li><a href="https://issuer.example/reports/fs25.pdf">Financial Statements 2025</a></li>
+  <li><a href="/reports/q1.pdf?v=2">First Quarter Report 2026</a></li>
+  <li><a href="/reports/9m26.pdf">Nine Months Report 2026</a></li>
+  <li><a href="/reports/ar26-summary.pdf">Annual Report 2026 - Summary</a></li>
+  <li><a href="/notices/agm-2026.pdf">Notice of Annual General Meeting 2026</a></li>
+  <li><a href="/reports/ar2026.html">Annual Report 2026 (web version)</a></li>
+  <li><a href="/reports/undated.pdf">Annual Report</a></li>
+  <li><a href="https://cdn.other.example/Annual-Report-2026.pdf">Annual Report 2026 (third-party host)</a></li>
+  <li><a href="/reports/ar-old.pdf">Annual Report 2019</a></li>
+</ul>
+<script type="application/json" id="report-data">
+["https://issuer.example/reports/AR2026.pdf", "https://issuer.example/reports/q1-2026.pdf"]
+</script>
+</body></html>

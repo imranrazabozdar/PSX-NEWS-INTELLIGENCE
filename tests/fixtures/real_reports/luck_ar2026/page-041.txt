@@ -1,0 +1,38 @@
+Unconsolidated Statement of
+Cash Flows
+For the year ended June 30, 2026
+		 Note                                                                         2026              2025
+			                                                                                 (PKR in ‘000’)
+CASH FLOWS FROM OPERATING ACTIVITIES
+Cash generated from operations                 36                              54,423,114          33,808,781
+  Taxes and levy paid		                                                       (26,213,830)         (4,520,421)
+  Staff gratuity paid                         23.1.2                            (300,000)           (300,000)
+  Finance costs paid		                                                          (938,463)          (1,527,888)
+  Increase / (decrease) in long–term deposits
+		 and other payable(liabilities) 		                                                11,330           (140,887)
+  Income from deposits with Islamic banks		                                      222,707              276,863
+  Increase in long–term loans and advances		                                        (10,114)           (23,881)
+Net cash generated from operating activities		                                 27,194,744          27,572,567
+CASH FLOWS FROM INVESTING ACTIVITIES
+ Addition to property, plant and equipment		                                   (15,224,331)        (7,086,469)
+ Long term investment made		                                                      (716,669)          (483,334)
+ Proceeds on disposal of property, plant and equipment 5.3                       1,049,975               127,174
+ Investments (made)/ redeemed during the year–net 		                            (4,431,104)               50,351
+ Dividends received from subsidiary companies		                                15,788,474           12,088,517
+ Dividends received from associate		                                                 61,137              611,365
+ Income received from short–term investments		                                   9,105,934          6,407,057
+Net cash generated from investing activities		                                   5,633,416            11,714,661
+CASH FLOWS FROM FINANCING ACTIVITIES
+  Long term financing repaid                                      21.4        (2,245,952)       (4,192,581)
+  Short term borrowings obtained 		                                           12,006,306      10,082,804
+  Short term borrowings repaid		                                               (8,881,306)    (9,082,804)
+  Dividend paid                                                                (5,851,658)    (4,388,403)
+Net cash used in financing activities		                                        (4,972,610)    (7,580,984)
+Net increase in cash and cash equivalents 		                                 27,855,550        31,706,244
+Cash and cash equivalents at the beginning of the year		                     64,088,375         32,382,131
+Cash and cash equivalents at the end of the year                  36.2        91,943,925      64,088,375
+The annexed notes from 1 to 46 form an integral part of these unconsolidated financial statements.
+Muhammad Sohail Tabba                          Muhammad Ali Tabba                              Atif Kaludi
+      Chairman / Director                        Chief Executive Officer                   Chief Financial Officer
+         Unmoved by Uncertainty.
+         Focused on Growth.                                                                                          237

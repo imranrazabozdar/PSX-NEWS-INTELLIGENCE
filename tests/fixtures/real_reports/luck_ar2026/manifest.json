@@ -1,0 +1,54 @@
+{
+  "report_key": "luck_ar2026",
+  "description": "Lucky Cement Limited, Annual Report 2026 (unconsolidated; 2025 comparatives)",
+  "source_sha256": "3eddc4ac2db37dda400113f0a2b02c7e9006d7bbc2980b377af68a805de57169",
+  "source_upload_name": "9acdac22-3.pdf",
+  "source_pdf_pages": 99,
+  "pdftotext_version": "24.02.0",
+  "extractor_version": "pdfplumber-0.11.10/pipeline-2026.11.1",
+  "period_end": "2026-06-30",
+  "columns": [
+    "2026-06-30",
+    "2025-06-30"
+  ],
+  "unit_scale": 1000,
+  "currency": "PKR",
+  "consolidation": "unconsolidated",
+  "framework": "corporate",
+  "page_files": [
+    "page-035.txt",
+    "page-038.txt",
+    "page-039.txt",
+    "page-040.txt",
+    "page-041.txt",
+    "page-042.txt"
+  ],
+  "word_files": [],
+  "statement_pages": {
+    "BS": [
+      38
+    ],
+    "IS": [
+      39
+    ],
+    "OCI": [
+      40
+    ],
+    "CF": [
+      41
+    ],
+    "EQ": [
+      42
+    ]
+  },
+  "statement_regions": {},
+  "auditor_pages": [
+    34,
+    35,
+    36,
+    37
+  ],
+  "kam_pages": [
+    35
+  ]
+}

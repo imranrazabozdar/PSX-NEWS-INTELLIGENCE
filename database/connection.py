@@ -14,12 +14,14 @@ from __future__ import annotations
 import base64
 import json
 import os
+import re
 import sqlite3
 import time
 import urllib.error
 import urllib.request
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 Row = dict[str, Any]
@@ -90,7 +92,8 @@ class SQLiteDatabase(Database):
     backend = "sqlite"
 
     def __init__(self, path: str = ":memory:") -> None:
-        self._conn = sqlite3.connect(path, isolation_level=None)
+        # check_same_thread=False: Streamlit reruns on other threads and the app caches this handle.
+        self._conn = sqlite3.connect(path, isolation_level=None, check_same_thread=False)
         self._conn.row_factory = sqlite3.Row
         self._conn.execute("PRAGMA foreign_keys = ON")
 
@@ -302,9 +305,26 @@ MAIN_URL_ENV = "PSXNI_TURSO_DATABASE_URL"
 MAIN_TOKEN_ENV = "PSXNI_TURSO_AUTH_TOKEN"  # noqa: S105 (variable name, not a secret)
 ARCHIVE_URL_ENV = "PSXNI_ARCHIVE_TURSO_URL"
 ARCHIVE_TOKEN_ENV = "PSXNI_ARCHIVE_TURSO_AUTH_TOKEN"  # noqa: S105 (variable name, not a secret)
-# Tables that identify each role. A database holding the other role's tables is refused (fail closed).
-OPERATIONAL_TABLES = ("source_items", "companies", "events", "market_bars")
-ARCHIVE_TABLES = ("archive_reports", "archive_financial_tuples")
+# Table sets, derived from the migration directories (not hand-maintained). A database holding another
+# role's tables is refused (fail closed). The archive set is every table the archive migrations create.
+_CREATE_TABLE = re.compile(
+    r"CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([A-Za-z_][A-Za-z0-9_]*)", re.IGNORECASE
+)
+_DATABASE_DIR = Path(__file__).resolve().parent
+
+
+def tables_created_by(directory: Path) -> frozenset[str]:
+    """Every table name created by the .sql files in `directory`. SQL comments are ignored."""
+    names: set[str] = set()
+    for path in sorted(directory.glob("*.sql")):
+        code = re.sub(r"--[^\n]*", "", path.read_text(encoding="utf-8"))
+        names |= {m.group(1).lower() for m in _CREATE_TABLE.finditer(code)}
+    return frozenset(names)
+
+
+OPERATIONAL_TABLES = tables_created_by(_DATABASE_DIR / "migrations")
+ARCHIVE_TABLES = tables_created_by(_DATABASE_DIR / "archive_migrations")
+PORTFOLIO_TABLES = tables_created_by(_DATABASE_DIR / "portfolio_migrations")
 
 
 def _norm_db_identity(url: str) -> str:
@@ -330,12 +350,20 @@ def _tables_present(db: Database) -> set[str]:
 def assert_role(db: Database, role: str) -> None:
     """Refuse a handle whose tables belong to the other role. Called by every connect_* function."""
     present = _tables_present(db)
-    if role == "main" and present & set(ARCHIVE_TABLES):
-        raise DatabaseConfigError(f"refusing: the main database holds archive tables "
-                                  f"{sorted(present & set(ARCHIVE_TABLES))}")
-    if role == "archive" and present & set(OPERATIONAL_TABLES):
-        raise DatabaseConfigError(f"refusing: the archive database holds operational tables "
-                                  f"{sorted(present & set(OPERATIONAL_TABLES))}; it must be separate")
+    if role == "main":
+        if present & ARCHIVE_TABLES:
+            raise DatabaseConfigError(f"refusing: the main database holds archive tables "
+                                      f"{sorted(present & ARCHIVE_TABLES)}")
+        if present & PORTFOLIO_TABLES:
+            raise DatabaseConfigError(f"refusing: the main database holds portfolio tables "
+                                      f"{sorted(present & PORTFOLIO_TABLES)}")
+    if role == "archive":
+        if present & OPERATIONAL_TABLES:
+            raise DatabaseConfigError(f"refusing: the archive database holds operational tables "
+                                      f"{sorted(present & OPERATIONAL_TABLES)}; it must be separate")
+        if present & PORTFOLIO_TABLES:
+            raise DatabaseConfigError(f"refusing: the archive database holds portfolio tables "
+                                      f"{sorted(present & PORTFOLIO_TABLES)}; it must be separate")
 
 
 def connect_main(url: str | None = None, auth_token: str | None = None) -> Database:

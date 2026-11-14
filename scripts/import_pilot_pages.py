@@ -14,10 +14,9 @@ import sqlite3
 import sys
 from pathlib import Path
 
-from engines.autonomous_tick import LibraryState
-
 from engines import library_db
 from engines import research_facts as rf
+from engines.autonomous_tick import LibraryState
 
 
 def pilot_pages(path: Path) -> list[dict]:

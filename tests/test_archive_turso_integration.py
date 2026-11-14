@@ -130,13 +130,13 @@ def test_ddl_runs_only_with_the_exact_approval_string(empty_archive):
     out = gate.apply(
         empty_archive, dry_run=False, purpose=gate.PURPOSE, env={gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE}
     )
-    assert out["mode"] == "applied" and len(out["log"]) == 5
+    assert out["mode"] == "applied" and len(out["log"]) == 8
     assert gate.probe(empty_archive)["fully_migrated"] is True
 
 
 def test_dry_run_changes_nothing_and_reports_checksums(empty_archive):
     out = gate.apply(empty_archive, dry_run=True)
-    assert out["mode"] == "dry_run" and len(out["pending"]) == 5
+    assert out["mode"] == "dry_run" and len(out["pending"]) == 8
     assert all(len(m["checksum"]) == 64 for m in out["pending"])
     assert empty_archive.execute("SELECT name FROM sqlite_master WHERE type='table'") == []
 
@@ -170,7 +170,7 @@ def test_probe_reads_schema_and_writes_nothing(empty_archive):
     after = gate.probe(empty_archive)
     assert before == after
     assert before["blob_columns"] == [] and before["structure_drift_for_ledger_state"] == {}
-    assert before["fully_migrated"] is True and len(before["ledger"]) == 5
+    assert before["fully_migrated"] is True and len(before["ledger"]) == 8
     assert set(before["row_counts"]) == {
         "archive_reports",
         "archive_financial_tuples",
@@ -185,7 +185,11 @@ def test_probe_reads_schema_and_writes_nothing(empty_archive):
         "archive_line_items_v2",
         "archive_reconciliation_v2",
         "archive_document_files",
-    } and all(v == 0 for v in before["row_counts"].values())
+        "archive_status_codes",
+        "archive_statement_status",
+        "archive_fact_status",
+        "archive_identity_checks",
+    } and {k: v for k, v in before["row_counts"].items() if v} == {"archive_status_codes": 7}
 
 
 # ----------------------------------------- Turso integration (disposable target only)
@@ -199,14 +203,30 @@ def turso_test_db(monkeypatch):
         pytest.skip(reason)
     if status == "fail":
         pytest.fail(reason)
+    # The token is proxy-injected in some environments, so the environment variable's presence is not evidence
+    # of access. Require the disposable name in the URL, then prove connectivity with a real round trip.
+    if "archival-test" not in env[TEST_URL_VAR].lower():
+        pytest.fail("refusing: the archive test URL must name the disposable archival-test database")
     db = connect(env[TEST_URL_VAR], env[TEST_TOKEN_VAR])
     db.role = "archive"
+    try:
+        probe_rows = db.execute("SELECT 1 AS ok")
+        if not probe_rows or probe_rows[0]["ok"] != 1:
+            pytest.fail("connectivity probe SELECT 1 did not return 1")
+    except Exception:
+        db.close()
+        raise
     yield db
     db.close()
 
 
 def _sha(seed: str) -> str:
     return hashlib.sha256(seed.encode()).hexdigest()
+
+
+def _migration_names() -> list[str]:
+    """Ledger names, read from the migration file names NNNN_<name>.sql (not hand-maintained)."""
+    return [p.stem.split("_", 1)[1] for p in sorted(gate.ARCHIVE_DIR.glob("[0-9][0-9][0-9][0-9]_*.sql"))]
 
 
 def test_turso_apply_gate_then_schema_and_ledger(turso_test_db):
@@ -221,13 +241,7 @@ def test_turso_apply_gate_then_schema_and_ledger(turso_test_db):
         and p["structure_drift_for_ledger_state"] == {}
         and p["blob_columns"] == []
     )
-    assert [r["name"] for r in p["ledger"]] == [
-        "financial_archive",
-        "disclosures",
-        "document_registry",
-        "extraction_evidence",
-        "extractor_versioning",
-    ]
+    assert [r["name"] for r in p["ledger"]] == _migration_names()
     # a second application is a no-op: migrations are not applied twice
     assert (
         gate.apply(
@@ -422,34 +436,21 @@ ARCHIVE_OBJECT_NAMES = None  # filled from the reference schema on first use
 
 
 def _expected_names() -> set[str]:
+    """Every object the archive migrations 0001-0008 create, derived from the migration files.
+
+    Tables, indexes, triggers and views all come from the reference fingerprint. schema_migrations is the only
+    addition, because the migration runner (not a migration file) creates it."""
     ref = gate.reference_fingerprint(len(gate._migrations()))
-    names = set(ref["tables"]) | set(ref["indexes"]) | set(ref["triggers"]) | {"schema_migrations"}
-    return names
-
-
-DROP_ORDER = [
-    "archive_line_reviews",
-    "archive_line_items_v2",
-    "archive_reconciliation_v2",
-    "archive_line_items",
-    "archive_notes",
-    "archive_reconciliation",
-    "archive_processing_events",
-    "archive_document_files",
-    "archive_extraction_runs",
-    "archive_document_registry",
-    "archive_financial_tuples",
-    "archive_reports",
-    "archive_disclosures",
-    "schema_migrations",
-]
+    names = set(ref["tables"]) | set(ref["indexes"]) | set(ref["triggers"]) | set(ref["views"])
+    return names | {"schema_migrations"}
 
 
 def reset_disposable(db) -> dict:
     """TEST-ONLY. Empties the disposable archive-test database.
 
     Drops the archive's own objects so the migration sequence can run from zero. Refuses unless the guard
-    passes and every object present is an archive object. Tables are dropped children first."""
+    passes and every object present is an archive object. Views and triggers go first; tables are retried
+    until none remain, so dependency order is not hand-maintained."""
     status, reason = target_status(dict(os.environ))
     if status != "ok":
         raise RuntimeError(f"reset refused: {reason}")
@@ -457,19 +458,26 @@ def reset_disposable(db) -> dict:
     unknown = sorted(r["name"] for r in present if r["name"] not in _expected_names())
     if unknown:
         raise RuntimeError(f"reset refused: unknown objects present {unknown}")
-    drops = [
-        (f"DROP TRIGGER IF EXISTS {r['name']}", ())  # noqa: S608 - names come from sqlite_master
-        for r in present
-        if r["type"] == "trigger"
-    ]
-    tables = [r["name"] for r in present if r["type"] == "table"]
-    for name in DROP_ORDER:  # children before parents: no reliance on foreign key switches inside a batch
-        if name in tables:
-            drops.append((f"DROP TABLE IF EXISTS {name}", ()))  # noqa: S608 - a literal name from DROP_ORDER
-    if drops:
-        db.batch(drops, transactional=True)
-    left = db.execute("SELECT name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'")
-    return {"dropped": len(present), "left": [r["name"] for r in left]}
+    for kind in ("view", "trigger"):
+        for r in present:
+            if r["type"] == kind:
+                db.execute(f"DROP {kind.upper()} IF EXISTS {r['name']}")  # noqa: S608 - from sqlite_master
+    pending = [r["name"] for r in present if r["type"] == "table"]
+    for _ in range(len(pending) + 1):
+        if not pending:
+            break
+        still = []
+        for name in pending:
+            try:
+                db.execute(f"DROP TABLE IF EXISTS {name}")  # noqa: S608 - names come from sqlite_master
+            except DatabaseError:
+                still.append(name)  # a parent dropped before its child: retried on the next pass
+        pending = still
+    left_rows = db.execute("SELECT name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'")
+    left = [r["name"] for r in left_rows]
+    if left:
+        raise RuntimeError(f"reset incomplete: objects remain {left}")
+    return {"dropped": len(present), "left": left}
 
 
 @pytest.fixture
@@ -517,17 +525,12 @@ def test_live_full_migration_sequence_from_zero(zero):
     out = gate.apply(
         zero, dry_run=False, purpose=gate.PURPOSE, env={gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE}
     )
-    assert out["mode"] == "applied" and len(out["log"]) == 5
+    expected = gate.reference_fingerprint(len(gate._migrations()))
+    assert out["mode"] == "applied" and len(out["log"]) == len(gate._migrations())
     p = gate.probe(zero)
     assert p["fully_migrated"] is True
-    assert [r["name"] for r in p["ledger"]] == [
-        "financial_archive",
-        "disclosures",
-        "document_registry",
-        "extraction_evidence",
-        "extractor_versioning",
-    ]
-    assert len(p["triggers"]) == 26 and len(p["tables"]) == 13
+    assert [r["name"] for r in p["ledger"]] == _migration_names()
+    assert len(p["triggers"]) == len(expected["triggers"]) and len(p["tables"]) == len(expected["tables"])
     assert p["structure_drift_for_ledger_state"] == {} and p["blob_columns"] == []
     again = gate.apply(
         zero, dry_run=False, purpose=gate.PURPOSE, env={gate.DDL_OPT_IN_VAR: gate.DDL_OPT_IN_VALUE}
@@ -1160,37 +1163,43 @@ def test_live_pipeline_store_is_idempotent_and_run_keys_are_enforced(live, tmp_p
     )
     assert again["registration"] == "duplicate" and again["run"] == "existing"
     assert again["lines"]["inserted"] == 0 and _count(live, "archive_line_items_v2") == rows_before
-    # a line may not claim an extractor version other than its run's: the composite foreign key refuses it
-    orphan_line = (
+    # a line may not claim an extractor version other than its run's: the composite foreign key refuses it.
+    # Migration 0006 added a SHA-256 trigger that refuses a line without report_sha256; it fires first.
+    orphan_sql = (
         "INSERT INTO archive_line_items_v2(run_id, extractor_version, document_id, symbol, period_end, "
         "statement_type, line_no, line_item_name, column_period_end, is_comparative, reported_amount, "
         "value_state, restated_flag, currency, unit_scale, consolidation, pdf_page_number, "
-        "extraction_method, "
-        "processed_at_utc) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-        (
-            first["run_id"],
-            "some-other-extractor",
-            sha,
-            "OGDC",
-            "2025-06-30",
-            "BS",
-            99,
-            "x",
-            "2025-06-30",
-            0,
-            1.0,
-            "reported",
-            0,
-            "PKR",
-            1000,
-            "unconsolidated",
-            1,
-            "pdf_text",
-            "t",
-        ),
+        "extraction_method, processed_at_utc, report_sha256) "
+        "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
     )
+    orphan_values = (
+        first["run_id"],
+        "some-other-extractor",
+        sha,
+        "OGDC",
+        "2025-06-30",
+        "BS",
+        99,
+        "x",
+        "2025-06-30",
+        0,
+        1.0,
+        "reported",
+        0,
+        "PKR",
+        1000,
+        "unconsolidated",
+        1,
+        "pdf_text",
+        "t",
+        sha,
+    )
+    # without the hash, the 0006 trigger refuses the row (either refusal is a rejection)
+    with pytest.raises(DatabaseError, match="FOREIGN KEY|SHA-256"):
+        live.batch([(orphan_sql, orphan_values[:-1] + (None,))], rollback=True)
+    # with a matching hash, the trigger passes and the composite foreign key is what refuses the row
     with pytest.raises(DatabaseError, match="FOREIGN KEY"):
-        live.batch([orphan_line], rollback=True)
+        live.batch([(orphan_sql, orphan_values)], rollback=True)
     # a second extractor version is a separate run; the first run's rows are untouched
     other = sp.store(
         live,

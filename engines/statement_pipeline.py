@@ -286,6 +286,7 @@ def extract(
     regions = statement_regions or {}
     pages = statement_pages or pe.locate_statements(doc)
     lines, unparsed, used = [], [], {}
+    raw_lines: dict[str, list[str]] = {}  # text of statements whose figures are read by a dedicated parser
     for st in ("BS", "IS", "OCI", "CF", "EQ"):
         if st in regions:
             if region_reader is None:
@@ -307,6 +308,8 @@ def extract(
                     ]
                 )
                 r = pe.to_statement_lines(rdoc, st, [page], columns=columns)
+                if st == "EQ":
+                    raw_lines.setdefault("EQ", []).extend(region_lines)
                 lines.extend({**ln, "statement": st} for ln in r["lines"])
                 unparsed.extend({**u, "statement": st} for u in r["unparsed"])
             continue
@@ -314,12 +317,15 @@ def extract(
             continue
         used[st] = pages[st]
         r = pe.to_statement_lines(doc, st, pages[st], columns=columns)
+        if st == "EQ":
+            raw_lines["EQ"] = [ln for pg in doc.pages if pg.number in pages[st] for ln in pg.lines]
         lines.extend({**ln, "statement": st} for ln in r["lines"])
         unparsed.extend({**u, "statement": st} for u in r["unparsed"])
     scanned = [p.number for p in doc.pages if not p.has_text]
     nx = ne.extract_notes(doc, columns=columns)
     return {
         "lines": lines,
+        "raw_lines": raw_lines,
         "unparsed": unparsed,
         "statement_pages": used,
         "scanned_pages": scanned,
@@ -458,6 +464,7 @@ def tag(extracted: dict, *, document: dict, extractor_version: str, mapping, fra
         )
     return {
         "lines": tagged,
+        "raw_lines": extracted.get("raw_lines", {}),
         "unparsed": extracted["unparsed"],
         "scanned_pages": extracted["scanned_pages"],
         "statement_pages": extracted["statement_pages"],
@@ -576,6 +583,13 @@ def reconcile(tagged: dict, *, period_end: str, prior: dict | None = None) -> di
         if printed_oci is None:  # bank layout: no printed total, so the components give the OCI
             v["other_comprehensive_income"] = comp_oci
     checks = [rec.balance_sheet(period_end, v), rec.cash_flow(period_end, v)]
+    eq_lines = tagged.get("raw_lines", {}).get("EQ")
+    if eq_lines:  # the statement of changes in equity closes at the balance sheet's total equity
+        from engines import equity_statement as eqs
+
+        closing = eqs.closing_total(eq_lines, period_end)
+        checks.append(rec.equity_statement(
+            period_end, closing["total"] if closing else None, v.get("total_equity")))
     if v.get("other_comprehensive_income") is not None:  # printed total or summed components
         checks.append(rec.comprehensive_income(period_end, v))
     if printed_oci is not None and comp_oci is not None:  # the printed total must equal its components
@@ -606,6 +620,7 @@ def _check_dict(c: rec.Check) -> dict:
         "allowance": c.allowance,
         "status": c.status,
         "missing": list(c.missing),
+        "basis": c.basis,
     }
 
 
@@ -645,6 +660,92 @@ def audit_payload(audit: dict) -> dict:
     }
 
 
+_CHECK_STATEMENT = {
+    "equity_statement": "EQ",
+    "balance_sheet": "BS",
+    "income_statement": "IS",
+    "comprehensive_income": "OCI",
+    "oci_components": "OCI",
+    "cash_flow": "CF",
+}
+
+
+_CHECK_IDENTITY = {
+    "balance_sheet": "assets_equal_liabilities_plus_equity",
+    "income_statement": "pbt_less_tax_equals_pat",
+    "comprehensive_income": "pat_plus_oci_equals_total_comprehensive_income",
+    "cash_flow": "opening_cash_plus_movement_equals_closing_cash",
+    "equity_statement": "equity_closing_equals_balance_sheet_equity",
+    "oci_components": "oci_components_equal_printed_total",
+}
+
+
+def identity_rows(reconciliation: dict, *, consolidation: str) -> list[dict]:
+    """One identity result per reconciliation check, with its delta. An identity whose inputs are not
+    extracted is insufficient_data with no delta: it is never shown as reconciled."""
+    from engines import status_vocabulary as sv
+
+    rows = []
+    for c in reconciliation["checks"]:
+        identity = _CHECK_IDENTITY.get(c["check"])
+        if identity is None:
+            continue
+        if c["status"] == "INSUFFICIENT_DATA":
+            status = "insufficient_data"
+            reason = "inputs not extracted: " + ", ".join(c.get("missing") or ["unknown"])
+            rows.append({"identity": identity, "consolidation": consolidation,
+                         "column_period_end": c["column_period_end"], "left_value": None,
+                         "right_value": None, "delta": None, "tolerance": c.get("allowance") or 0.0,
+                         "status": status, "reason": reason})
+            continue
+        status = sv.from_check_status(c["status"])
+        rows.append({"identity": identity, "consolidation": consolidation,
+                     "column_period_end": c["column_period_end"], "left_value": c["reported"],
+                     "right_value": c["expected"], "delta": c["discrepancy"],
+                     "tolerance": c["allowance"], "status": status,
+                     "reason": (f"reported {c['reported']} vs expected {c['expected']}"
+                                + (f"; {c['basis']}" if c.get("basis") else ""))})
+    return rows
+
+
+def statuses_for(tagged: dict, reconciliation: dict, *, ias7_status: str | None = None) -> tuple[list, list]:
+    """Statement and fact status rows for one run, from the identity checks, the mapping and the IAS 7
+    result. A fact takes its statement's status; an unmapped line is unmapped; cash equivalents are not
+    verifiable when IAS 7 says the maturity cannot be shown from the disclosure."""
+    from engines import status_vocabulary as sv
+
+    lines = tagged["lines"]
+    consolidation = lines[0]["consolidation"] if lines else "unconsolidated"
+    statements: list[dict] = []
+    stmt_status: dict[tuple[str, str], str] = {}
+    for stmt in ("BS", "IS", "OCI", "CF", "EQ"):
+        columns = sorted({c["column_period_end"] for c in reconciliation["checks"]
+                          if _CHECK_STATEMENT.get(c["check"]) == stmt} |
+                         {ln["column_period_end"] for ln in lines if ln["statement_type"] == stmt})
+        for col in columns:
+            checks = [c["status"] for c in reconciliation["checks"]
+                      if _CHECK_STATEMENT.get(c["check"]) == stmt and c["column_period_end"] == col]
+            unmapped = sum(1 for ln in lines if ln["statement_type"] == stmt
+                           and ln["column_period_end"] == col and not ln.get("canonical_code"))
+            # IAS 7 does not change a statement's arithmetic; its effect is on the cash-equivalent fact only.
+            status, reason = sv.statement_status(checks, unmapped=unmapped)
+            stmt_status[(stmt, col)] = status
+            statements.append({"statement_type": stmt, "consolidation": consolidation,
+                               "column_period_end": col, "status": status, "reason": reason})
+    facts: list[dict] = []
+    for ln in lines:
+        if ln["statement_type"] not in ("BS", "IS", "OCI", "CF", "EQ"):
+            continue
+        status, reason = sv.fact_status(ln.get("canonical_code"), ln["statement_type"], ias7=ias7_status)
+        if status == "reconciled":
+            status = stmt_status.get((ln["statement_type"], ln["column_period_end"]), "insufficient_data")
+            reason = f"statement {ln['statement_type']} is {status}"
+        facts.append({"statement_type": ln["statement_type"], "line_no": ln["line_no"],
+                      "column_period_end": ln["column_period_end"], "consolidation": ln["consolidation"],
+                      "status": status, "reason": reason})
+    return statements, facts
+
+
 def store(
     archive_db,
     *,
@@ -654,6 +755,7 @@ def store(
     reconciliation: dict,
     extractor_version: str,
     audit: dict | None = None,
+    ias7_status: str | None = None,
 ) -> dict:
     from database import financial_repo as repo
 
@@ -675,6 +777,13 @@ def store(
         reconciliation["checks"],
         consolidation=tagged["lines"][0]["consolidation"] if tagged["lines"] else "unconsolidated",
     )
+    statements, facts = statuses_for(tagged, reconciliation, ias7_status=ias7_status)
+    status_stored = repo.store_statement_statuses(archive_db, run["run_id"], statements)
+    fact_stored = repo.store_fact_statuses(archive_db, run["run_id"], facts)
+    consolidation = tagged["lines"][0]["consolidation"] if tagged["lines"] else "unconsolidated"
+    identity_stored = repo.store_identity_checks(
+        archive_db, run["run_id"], identity_rows(reconciliation, consolidation=consolidation)
+    )
     audit_stored = None
     if audit is not None:
         audit_stored = repo.archive_disclosure(
@@ -695,6 +804,9 @@ def store(
         "registration": reg["status"],
         "run": run["status"],
         "run_id": run["run_id"],
+        "statement_statuses": status_stored["recorded"],
+        "identity_checks": identity_stored["recorded"],
+        "fact_statuses": fact_stored["recorded"],
         "lines": lines,
         "reconciliation": rec_stored,
         "status": status,

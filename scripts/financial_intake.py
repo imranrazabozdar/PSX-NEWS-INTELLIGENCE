@@ -457,6 +457,7 @@ def analyse(
         "_tagged": tagged,
         "_recon": recon,
         "_audit": ex["audit"],
+        "_ias7": cash_std["ias7_maturity_status"],
         "_sha": sha,
         "_size": stored["size_bytes"],
     }
@@ -690,6 +691,7 @@ def store_in_archive(
             reconciliation=out["_recon"],
             extractor_version=EXTRACTOR_VERSION,
             audit=out["_audit"],
+            ias7_status=out.get("_ias7"),
         )
         return {
             "status": "stored",

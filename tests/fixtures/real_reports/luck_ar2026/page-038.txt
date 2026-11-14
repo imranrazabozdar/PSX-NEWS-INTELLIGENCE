@@ -1,0 +1,56 @@
+      Unconsolidated Statement of
+      Financial Position
+      as at June 30, 2026
+      		 Note                                                                        2026              2025
+      			                                                                                (PKR in ‘000’)
+      ASSETS
+      NON–CURRENT ASSETS
+       Property, plant and equipment          5                                    114,846,947             107,195,352
+       Intangible assets                      6                                          48,718                 46,229
+      				                                                                         114,895,665              107,241,581
+       Long–term investments                   7                                    59,272,376             58,555,707
+       Long–term loans, advances and deposits 8                                         199,261                 189,147
+      				                                                                         174,367,302            165,986,435
+      CURRENT ASSETS
+       Stores and spares                      9                                      11,612,060             19,895,130
+       Stock–in–trade                         10                                     5,340,155               4,774,577
+       Trade debts                             11                                   6,932,669                6,353,194
+       Loans and advances                     12                                     2,240,921                 1,732,814
+       Deposits and prepayments               13                                        120,357                  356,771
+       Other receivables                      14                                    3,882,575                3,021,922
+       Tax refunds due from the Government    15                                        538,812                 538,812
+       Short–term investments                 16                                  94,844,435                61,298,052
+       Cash and bank balances                 17                                     1,530,592               2,790,323
+      				                                                                        127,042,576              100,761,595
+      TOTAL ASSETS		                                                              301,409,878             266,748,030
+      EQUITY AND LIABILITIES
+      SHARE CAPITAL AND RESERVES
+        Share capital                           18                                  2,930,000                 2,930,000
+        Reserves                                19                                  213,711,607            172,980,400
+      				                                                                         216,641,607              175,910,400
+      NON–CURRENT LIABILITIES
+        Long–term deposits and other payable    20                                    1,288,810                  114,200
+        Long–term financing                     21                                   7,339,816                9,184,522
+        Deferred Government grant               22                                   1,025,295                1,382,651
+        Deferred liabilities
+        – Staff gratuity		                                                          5,454,449                4,693,888
+        – Deferred tax liability		                                                 16,554,680               16,820,986
+      			                                       23                                  22,009,129               21,514,874
+      				                                                                         31,663,050                32,196,247
+      CURRENT LIABILITIES
+        Trade and other payables                24                                 30,370,085               27,300,919
+        Current maturity of long–term financing 21                                     1,822,195             1,866,085
+        Short term borrowings                   25                                   9,610,000              6,485,000
+        Unclaimed dividend		                                                              74,087                65,745
+        Accrued markup		                                                                  191,827               185,616
+        Taxation – net		                                                             11,037,027             22,738,018
+      				                                                                          53,105,221             58,641,383
+      				                                                                          84,768,271             90,837,630
+      TOTAL EQUITY AND LIABILITIES		                                              301,409,878             266,748,030
+      CONTINGENCIES AND COMMITMENTS             26
+      The annexed notes from 1 to 46 form an integral part of these unconsolidated financial statements.
+       Muhammad Sohail Tabba                        Muhammad Ali Tabba                                  Atif Kaludi
+               Chairman / Director                     Chief Executive Officer                      Chief Financial Officer
+234
+      ANNUAL
+      REPORT   26

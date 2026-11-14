@@ -165,6 +165,30 @@ CHILD_TAX_LABEL = re.compile(
 )
 
 
+def _dedupe_label(label: str) -> str:
+    """A label printed twice on top of itself (a text-layer overprint, e.g. 'TOTAL ASSETSTOTAL ASSETS') is
+    read once. Only an exact doubling is collapsed; anything else is left as printed."""
+    h = len(label) // 2
+    first, second = label[:h].strip(), label[h:].strip()
+    return first if first and first == second else label
+
+
+def _without_percent_tokens(s: str, n: int) -> str:
+    """Defensive: a row that alternates value and percent (an analysis table) is read as its values only.
+    Percent tokens are dropped only when the remaining trailing figures are exactly the column count, so a
+    genuine statement row is never altered."""
+    if "%" not in s:
+        return s
+    kept = [x for x in s.split() if not x.endswith("%")]
+    count = 0
+    for x in reversed(kept):
+        if _NUM.match(x) or x.casefold() in _BLANK:
+            count += 1
+        else:
+            break
+    return " ".join(kept) if count == n else s
+
+
 def parse_statement_text(text: str, *, statement: str, columns: list[str], page: int | None = None) -> dict:
     """Parse lines of already-extracted statement text into line records.
 
@@ -182,6 +206,7 @@ def parse_statement_text(text: str, *, statement: str, columns: list[str], page:
         s = raw.strip()
         if not s:
             continue
+        s = _without_percent_tokens(s, len(columns))
         toks = s.split()
         vals: list[str] = []
         while toks and (_NUM.match(toks[-1]) or toks[-1].casefold() in _BLANK):
@@ -191,7 +216,7 @@ def parse_statement_text(text: str, *, statement: str, columns: list[str], page:
         elif len(vals) == n and toks and re.fullmatch(r"[0-9]{1,2}(\.[0-9]{1,2}){1,2}", toks[-1]):
             # a dotted note reference (e.g. 23.1.2) printed at the end of the label, before the figures
             toks.pop()
-        label = " ".join(toks)
+        label = _dedupe_label(" ".join(toks))
         if pending_label is not None:
             if not label and len(vals) == n:  # the figures for the wrapped label above
                 label = pending_label

@@ -1,0 +1,27 @@
+# Loads the distilled HUBC research facts into psx-library (research_fact). Dispatch only, from main.
+# Turso only: no Investify. The schema is created with CREATE TABLE IF NOT EXISTS only.
+name: HUBC research load (psx-library)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  load:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PSXNI_LIBRARY_TURSO_DATABASE_URL: ${{ secrets.PSXNI_LIBRARY_TURSO_DATABASE_URL }}
+      PSXNI_LIBRARY_TURSO_AUTH_TOKEN: ${{ secrets.PSXNI_LIBRARY_TURSO_AUTH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Load HUBC research facts
+        run: python -m scripts.load_research_facts --ticker HUBC --facts docs/research/hubc/facts.json

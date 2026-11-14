@@ -1,0 +1,225 @@
+{
+  "report_key": "luck_ar2026",
+  "values": [
+    {
+      "item": "profit_after_tax_2026",
+      "printed": "46,629,367",
+      "page": 40,
+      "status": "reconciled",
+      "label": "Profit after taxation"
+    },
+    {
+      "item": "profit_after_tax_2025",
+      "printed": "33,092,162",
+      "page": 40,
+      "status": "reconciled",
+      "label": "Profit after taxation (2025 comparative)"
+    },
+    {
+      "item": "oci_remeasurement_2026",
+      "printed": "(60,572)",
+      "page": 40,
+      "status": "reconciled",
+      "label": "Remeasurement loss of post retirement benefit obligation"
+    },
+    {
+      "item": "oci_deferred_tax_thereon_2026",
+      "printed": "22,412",
+      "page": 40,
+      "status": "reconciled",
+      "label": "Deferred tax thereon (under remeasurement)"
+    },
+    {
+      "item": "oci_total_2026",
+      "printed": "(38,160)",
+      "page": 40,
+      "status": "reconciled",
+      "label": "Other comprehensive loss for the year"
+    },
+    {
+      "item": "oci_remeasurement_2025",
+      "printed": "(938,127)",
+      "page": 40,
+      "status": "reconciled",
+      "label": "Remeasurement loss ... (2025 comparative)"
+    },
+    {
+      "item": "oci_deferred_tax_thereon_2025",
+      "printed": "365,870",
+      "page": 40,
+      "status": "reconciled",
+      "label": "Deferred tax thereon (under remeasurement, 2025)"
+    },
+    {
+      "item": "oci_subtotal_2025_after_remeasurement",
+      "printed": "(572,257)",
+      "page": 40,
+      "status": "printed_only",
+      "label": "subtotal after the remeasurement block (2025)"
+    },
+    {
+      "item": "oci_fvoci_2025",
+      "printed": "27,678",
+      "page": 40,
+      "status": "reconciled",
+      "label": "Gain on equity instrument at fair value through OCI (2025)"
+    },
+    {
+      "item": "oci_deferred_tax_thereon_fvoci_2025",
+      "printed": "(3,460)",
+      "page": 40,
+      "status": "reconciled",
+      "label": "Deferred tax thereon (under the FVOCI block, 2025)"
+    },
+    {
+      "item": "oci_total_2025",
+      "printed": "(548,039)",
+      "page": 40,
+      "status": "reconciled",
+      "label": "Other comprehensive loss for the year (2025)"
+    },
+    {
+      "item": "total_comprehensive_income_2026",
+      "printed": "46,591,207",
+      "page": 40,
+      "status": "reconciled",
+      "label": "Total comprehensive income for the year"
+    },
+    {
+      "item": "total_comprehensive_income_2025",
+      "printed": "32,544,123",
+      "page": 40,
+      "status": "reconciled",
+      "label": "Total comprehensive income for the year (2025 comparative)"
+    }
+  ],
+  "kams": {
+    "printed_count": 2,
+    "pages_checked": [
+      34,
+      35,
+      36,
+      37
+    ],
+    "items": [
+      {
+        "n": 1,
+        "title": "Revenue recognition",
+        "page": 35
+      },
+      {
+        "n": 2,
+        "title": "Stock in trade and Stores and spares",
+        "page": 35
+      }
+    ]
+  },
+  "pipeline_checks": {
+    "balance_sheet": "RECONCILED",
+    "income_statement": "RECONCILED",
+    "comprehensive_income": "RECONCILED",
+    "oci_components": "RECONCILED",
+    "cash_flow": "RECONCILED",
+    "equity_statement": "RECONCILED"
+  },
+  "pipeline_reported": {},
+  "statements": [
+    {
+      "statement": "BS",
+      "page": 38,
+      "side": "",
+      "check": "balance_sheet",
+      "status": "reconciled",
+      "column": "2026-06-30",
+      "closing_printed": "216,641,607",
+      "note": "total equity, printed on p.38"
+    },
+    {
+      "statement": "IS",
+      "page": 39,
+      "side": "",
+      "check": "income_statement",
+      "status": "reconciled",
+      "column": "2026-06-30",
+      "closing_printed": "46,629,367"
+    },
+    {
+      "statement": "OCI",
+      "page": 40,
+      "side": "",
+      "check": "oci_components",
+      "status": "reconciled",
+      "column": "2026-06-30",
+      "closing_printed": "(38,160)"
+    },
+    {
+      "statement": "CF",
+      "page": 41,
+      "side": "",
+      "check": "cash_flow",
+      "status": "reconciled",
+      "column": "2026-06-30",
+      "closing_printed": "91,943,925"
+    },
+    {
+      "statement": "EQ",
+      "page": 42,
+      "side": "",
+      "check": "equity_statement",
+      "status": "reconciled",
+      "column": "2026-06-30",
+      "closing_printed": "216,641,607",
+      "note": "closing 'Balance as at June 30, 2026' row"
+    },
+    {
+      "statement": "BS",
+      "page": 38,
+      "side": "",
+      "check": "balance_sheet",
+      "status": "reconciled",
+      "column": "2025-06-30",
+      "closing_printed": "175,910,400",
+      "note": "2025 comparative: equity"
+    },
+    {
+      "statement": "CF",
+      "page": 41,
+      "side": "",
+      "check": "cash_flow",
+      "status": "reconciled",
+      "column": "2025-06-30",
+      "closing_printed": "64,088,375",
+      "note": "2025 comparative"
+    },
+    {
+      "statement": "EQ",
+      "page": 42,
+      "side": "",
+      "check": "equity_statement",
+      "status": "reconciled",
+      "column": "2025-06-30",
+      "closing_printed": "175,910,400",
+      "note": "2025 comparative: 'Balance as at June 30, 2025'"
+    },
+    {
+      "statement": "OCI",
+      "page": 40,
+      "side": "",
+      "check": "oci_components",
+      "status": "reconciled",
+      "column": "2025-06-30",
+      "closing_printed": "(548,039)",
+      "note": "2025 comparative: OCI total"
+    },
+    {
+      "statement": "IS",
+      "page": 39,
+      "side": "",
+      "check": "income_statement",
+      "status": "reconciled",
+      "column": "2025-06-30",
+      "closing_printed": "33,092,162",
+      "note": "2025 comparative"
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+                                                                                                                          Rising
+                                                                                                                          Through
+                                                                                                                          Challenges
+Independent Auditor’s Report
+To the members of Oil and Gas Development Company Limited
+Report on the Audit of the Financial Statements
+Opinion
+We have audited the annexed financial statements of Oil and Gas Development Company Limited (the Company), which comprise
+the statement of financial position as at 30 June 2026, and the statement of profit or loss, the statement of comprehensive
+income, the statement of changes in equity, the statement of cash flows for the year then ended, and notes to the financial
+statements, including material accounting policy information and other explanatory information, and we state that we have
+obtained all the information and explanations which, to the best of our knowledge and belief, were necessary for the purposes
+of the audit.
+In our opinion and to the best of our information and according to the explanations given to us, the statement of financial
+position, statement of profit or loss, the statement of comprehensive income, the statement of changes in equity and the
+statement of cash flows together with the notes forming part thereof conform with the accounting and reporting standards as
+applicable in Pakistan and give the information required by the Companies Act, 2017 (XIX of 2017), in the manner so required
+and respectively give a true and fair view of the state of the Company’s affairs as at 30 June 2026 and of the profit and other
+comprehensive loss, the changes in equity and its cash flows for the year then ended.
+Basis for Opinion
+We conducted our audit in accordance with International Standards on Auditing (ISAs). Our responsibilities under those
+standards are further described in the Auditor’s Responsibilities for the Audit of the Financial Statements section of our report.
+We are independent of the Company in accordance with the International Ethics Standards Board for Accountants’ Code of
+Ethics for Professional Accountants as adopted by the Institute of Chartered Accountants of Pakistan (the Code) and we have
+fulfilled our other ethical responsibilities in accordance with the Code. We believe that the audit evidence we have obtained is
+sufficient and appropriate to provide a basis for our opinion.
+Key Audit Matters
+Key audit matters are those matters that, in our professional judgment, were of most significance in our audit of the financial
+statements of the current period. These matters were addressed in the context of our audit of the financial statements as a
+whole, and in forming our opinion thereon, and we do not provide a separate opinion on these matters.
+Following are the Key audit matters:
+S. No. Key audit matters                                             How the matter was addressed in our audit
+ 1.     Over due trade debts and lease receivables                    Our audit procedures in relation to the matter, amongst
+                                                                      others, included:
+        (Refer notes 2.4.10, 19.2 and 21.1 to the financial
+        statements)                                                   •   Obtained direct confirmations from customers and
+                                                                          power companies with whom the Company has
+        Trade debts and lease receivables includes overdue                lease arrangements, on a sample basis, and tested
+        amounts of Rs 508,170 million and Rs 7,208 million                reconciliations, where differences were identified;
+        respectively on account of inter-corporate circular debt. •       Checked, on a sample basis, trade debts and
+        These are receivable from oil refineries, gas and power           lease receivables ageing classification within the
+        companies out of which Rs 251,435 million and Rs                  appropriate ageing bracket with underlying invoices;
+        241,469 million are overdue from related parties, Sui
+        Northern Gas Pipeline Limited and Sui Southern Gas            •   Tested, on a sample basis, post year end cash
+        Company Limited, respectively. The Government of                  receipts from customers and power companies
+        Pakistan (GoP) is committed, hence continuously pursuing          with whom the Company has lease arrangements,
+        for satisfactory settlement of inter-corporate circular debt      relating to year end balances, with the underlying
+        issue. However, the progress is slower than expected              documentation;
+        resulting in accumulation of the Company’s debts.             •   Inspected correspondence with the customers,
+                                                                          power companies with whom the Company has lease
+        The Company considers these amounts to be fully                   arrangements and relevant government authorities
+        recoverable because GoP has been assuming the                     and held discussions with management and Audit
+        responsibility to settle the inter-corporate circular debt in     Committee of the Board to assess the recoverability
+        the energy sector.                                                of overdue trade debts and lease receivables;
+                                                                                                                               205

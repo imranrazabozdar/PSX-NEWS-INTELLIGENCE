@@ -67,5 +67,57 @@
  },
  "special_sessions": {},
  "closures": {},
- "holidays_note": "Only fixed-date holidays from the PSX 2026 list are recorded. Moon-dependent holidays on that list (Juma-tul-Wida, Eid-ul-Fitr, Eid-ul-Azha, Ashura, Eid Milad-un-Nabi) are 'subject to appearance of moon' and are added only from the PSX notice that confirms each date. The page shows no notice number; it states PSX may modify the dates."
+ "holidays_note": "Only fixed-date holidays from the PSX 2026 list are recorded. Moon-dependent holidays on that list (Juma-tul-Wida, Eid-ul-Fitr, Eid-ul-Azha, Ashura, Eid Milad-un-Nabi) are 'subject to appearance of moon' and are added only from the PSX notice that confirms each date. The page shows no notice number; it states PSX may modify the dates.",
+ "open_sessions": {
+  "_note": "Official OPEN trading sessions (PKT). The autonomous fetcher fetches only inside these. Friday has a Jumma break 12:00-14:32 (no trading) between its two sessions.",
+  "0": {
+   "sessions": [
+    [
+     "09:32",
+     "15:30"
+    ]
+   ],
+   "source": "PSX website, Trading Hours page, https://www.psx.com.pk/psx/exchange/general/trading-hours, retrieved 2026-11-08"
+  },
+  "1": {
+   "sessions": [
+    [
+     "09:32",
+     "15:30"
+    ]
+   ],
+   "source": "PSX website, Trading Hours page, https://www.psx.com.pk/psx/exchange/general/trading-hours, retrieved 2026-11-08"
+  },
+  "2": {
+   "sessions": [
+    [
+     "09:32",
+     "15:30"
+    ]
+   ],
+   "source": "PSX website, Trading Hours page, https://www.psx.com.pk/psx/exchange/general/trading-hours, retrieved 2026-11-08"
+  },
+  "3": {
+   "sessions": [
+    [
+     "09:32",
+     "15:30"
+    ]
+   ],
+   "source": "PSX website, Trading Hours page, https://www.psx.com.pk/psx/exchange/general/trading-hours, retrieved 2026-11-08"
+  },
+  "4": {
+   "sessions": [
+    [
+     "09:17",
+     "12:00"
+    ],
+    [
+     "14:32",
+     "16:30"
+    ]
+   ],
+   "source": "PSX website, Trading Hours page, https://www.psx.com.pk/psx/exchange/general/trading-hours, retrieved 2026-11-08"
+  }
+ }
 }

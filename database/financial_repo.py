@@ -627,8 +627,8 @@ LINE_V2_SQL = (
     "INSERT INTO archive_line_items_v2(run_id, extractor_version, document_id, symbol, period_end, "
     "statement_type, line_no, line_item_name, canonical_code, column_period_end, is_comparative, "
     "reported_amount, value_state, restated_flag, currency, unit_scale, consolidation, pdf_page_number, "
-    "note_ref, extraction_method, confidence, processed_at_utc) "
-    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) "
+    "note_ref, extraction_method, confidence, processed_at_utc, report_sha256) "
+    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) "
     "ON CONFLICT(run_id, statement_type, line_no, column_period_end, consolidation) DO NOTHING"
 )
 
@@ -683,6 +683,7 @@ def store_versioned_lines(
             ln["extraction_method"],
             ln.get("confidence"),
             ts,
+            document_id,  # the source SHA-256, stored explicitly on every fact (migration 0006)
         )
         stmts.append((LINE_V2_SQL, args))
     archive_db.batch(stmts, transactional=True)
@@ -694,7 +695,8 @@ def store_versioned_lines(
 
 RECON_V2_SQL = (
     "INSERT INTO archive_reconciliation_v2(run_id, check_name, column_period_end, consolidation, reported, "
-    "expected, discrepancy, tolerance, status, recorded_at_utc) VALUES (?,?,?,?,?,?,?,?,?,?) "
+    "expected, discrepancy, tolerance, status, recorded_at_utc, report_sha256) "
+    "VALUES (?,?,?,?,?,?,?,?,?,?,?) "
     "ON CONFLICT DO NOTHING"
 )
 RECON_STATUSES = ("RECONCILED", "RECONCILED_WITH_ROUNDING", "UNRECONCILED", "INSUFFICIENT_DATA")
@@ -709,6 +711,9 @@ def store_versioned_reconciliation(
     """
     require_role(archive_db, "archive")
     ts = now or _now()
+    sha = archive_db.execute("SELECT report_sha256 FROM archive_extraction_runs WHERE run_id = ?", (run_id,))
+    if not sha:
+        raise ValueError(f"run {run_id} does not exist")
     stmts = []
     for c in checks:
         if c["status"] not in RECON_STATUSES:
@@ -724,6 +729,7 @@ def store_versioned_reconciliation(
             c.get("allowance", 0.0),
             c["status"],
             ts,
+            sha[0]["report_sha256"],
         )
         stmts.append((RECON_V2_SQL, args))
     archive_db.batch(stmts, transactional=True)
@@ -750,3 +756,107 @@ def record_document_file(
         transactional=True,
     )
     return {"status": "recorded"}
+
+
+# ----------------------------------------------------------------- status vocabulary (migration 0007)
+
+STATEMENT_STATUS_SQL = (
+    "INSERT INTO archive_statement_status(run_id, report_sha256, statement_type, consolidation, "
+    "column_period_end, status, reason, evidence_page, recorded_at_utc) VALUES (?,?,?,?,?,?,?,?,?) "
+    "ON CONFLICT(run_id, statement_type, consolidation, column_period_end) DO NOTHING"
+)
+FACT_STATUS_SQL = (
+    "INSERT INTO archive_fact_status(line_id, report_sha256, status, reason, recorded_at_utc) "
+    "VALUES (?,?,?,?,?) ON CONFLICT(line_id) DO NOTHING"
+)
+
+
+def _vocabulary() -> tuple[str, ...]:
+    from engines.status_vocabulary import VOCABULARY
+
+    return VOCABULARY
+
+
+def store_statement_statuses(archive_db, run_id: int, rows: list[dict], *, now: str | None = None) -> dict:
+    """One status per statement and column. Each row: statement_type, consolidation, column_period_end,
+    status, reason and optional evidence_page. Statuses outside the vocabulary are refused."""
+    require_role(archive_db, "archive")
+    ts = now or _now()
+    sha = archive_db.execute("SELECT report_sha256 FROM archive_extraction_runs WHERE run_id = ?", (run_id,))
+    if not sha:
+        raise ValueError(f"run {run_id} does not exist")
+    stmts = []
+    for r in rows:
+        if r["status"] not in _vocabulary():
+            raise ValueError(f"status {r['status']!r} is not in the archive vocabulary")
+        stmts.append((STATEMENT_STATUS_SQL, (
+            run_id, sha[0]["report_sha256"], r["statement_type"], r["consolidation"],
+            r["column_period_end"], r["status"], r["reason"], r.get("evidence_page"), ts,
+        )))
+    archive_db.batch(stmts, transactional=True)
+    return {"recorded": len(stmts)}
+
+
+def store_fact_statuses(archive_db, run_id: int, rows: list[dict], *, now: str | None = None) -> dict:
+    """One status per stored fact, found by its natural key within the run."""
+    require_role(archive_db, "archive")
+    ts = now or _now()
+    stmts = []
+    for r in rows:
+        if r["status"] not in _vocabulary():
+            raise ValueError(f"status {r['status']!r} is not in the archive vocabulary")
+        found = archive_db.execute(
+            "SELECT line_id, report_sha256, document_id FROM archive_line_items_v2 WHERE run_id = ? AND "
+            "statement_type = ? AND line_no = ? AND column_period_end = ? AND consolidation = ?",
+            (run_id, r["statement_type"], int(r["line_no"]), r["column_period_end"], r["consolidation"]),
+        )
+        if not found:
+            raise ValueError(f"no stored fact for {r['statement_type']} line {r['line_no']}")
+        line = found[0]
+        stmts.append((FACT_STATUS_SQL, (
+            line["line_id"], line["report_sha256"] or line["document_id"], r["status"], r["reason"], ts,
+        )))
+    archive_db.batch(stmts, transactional=True)
+    return {"recorded": len(stmts)}
+
+
+# ----------------------------------------------------------------- identity results (migration 0008)
+
+IDENTITY_SQL = (
+    "INSERT INTO archive_identity_checks(run_id, report_sha256, identity, consolidation, column_period_end, "
+    "left_value, right_value, delta, tolerance, status, reason, recorded_at_utc) "
+    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?) "
+    "ON CONFLICT(run_id, identity, consolidation, column_period_end) DO NOTHING"
+)
+IDENTITIES = (
+    "assets_equal_liabilities_plus_equity",
+    "pbt_less_tax_equals_pat",
+    "pat_plus_oci_equals_total_comprehensive_income",
+    "opening_cash_plus_movement_equals_closing_cash",
+    "equity_closing_equals_balance_sheet_equity",
+    "oci_components_equal_printed_total",
+)
+
+
+def store_identity_checks(archive_db, run_id: int, rows: list[dict], *, now: str | None = None) -> dict:
+    """One result per identity and column, with its delta. Each row: identity, consolidation,
+    column_period_end, left_value, right_value, delta, tolerance, status (a vocabulary code) and reason.
+    An exception stays an exception: it is stored as unreconciled with its delta."""
+    require_role(archive_db, "archive")
+    ts = now or _now()
+    sha = archive_db.execute("SELECT report_sha256 FROM archive_extraction_runs WHERE run_id = ?", (run_id,))
+    if not sha:
+        raise ValueError(f"run {run_id} does not exist")
+    stmts = []
+    for r in rows:
+        if r["identity"] not in IDENTITIES:
+            raise ValueError(f"unknown identity {r['identity']!r}")
+        if r["status"] not in _vocabulary():
+            raise ValueError(f"status {r['status']!r} is not in the archive vocabulary")
+        stmts.append((IDENTITY_SQL, (
+            run_id, sha[0]["report_sha256"], r["identity"], r["consolidation"], r["column_period_end"],
+            r.get("left_value"), r.get("right_value"), r.get("delta"), float(r.get("tolerance") or 0.0),
+            r["status"], r["reason"], ts,
+        )))
+    archive_db.batch(stmts, transactional=True)
+    return {"recorded": len(stmts)}

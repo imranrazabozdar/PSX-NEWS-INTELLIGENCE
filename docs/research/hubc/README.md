@@ -31,3 +31,28 @@ are stored here under the names above. The contents are byte-identical to the up
 - Facts are stored in the database only as distilled, sourced, dated rows (see `docs/research/hubc` and the
   `research_fact` table proposal). No PDF or raw page text is stored anywhere.
 - Forward-looking or analyst-view items are labelled as analyst views, not as facts.
+
+## YouTube commentary (added 14 Nov 2026)
+
+`commentary_youtube.json` holds 87 distilled rows from three identified videos plus one unidentified compilation,
+loaded into psx-library under the `commentary.*` topics. **Every row is `analyst_view`, never `fact`**: this is
+third-party and management commentary relayed through video transcripts, not audited filings.
+
+| Source | Speaker | Link |
+|---|---|---|
+| "Will HUBCO be the next SAZGAR?" | Abdul Rehman Najam (analyst) | https://www.youtube.com/watch?v=LLv27CaL9Fg |
+| CFO interview, Pakistan & Counting | Muhammad Saqib, CFO | https://www.youtube.com/watch?v=dYhXldyQ-qY |
+| Aaj News EP#05 | Kamran Kamal, CEO | https://www.youtube.com/watch?v=AqejJQFxAzE |
+| Segment and EPS tables | not identified | owner to supply the link |
+
+Each row carries its timestamp, so any claim can be checked against the video.
+
+**Known limits.** The publication dates of the videos are not known, so `source_date` is the date this material
+entered the system (2026-11-14) and `as_of` is left empty. Supply the dates and they can be corrected.
+
+**Conflicts recorded, not resolved.** The sources disagree, and both sides are stored:
+- **SECMC stake:** the analyst says it rose from 8% to 17.5% via HBL; the CFO says that purchase did not
+  materialise and it stays at 8%. The research brief also says 8%.
+- **CPHGC stake:** the brief says 47.5%, the analyst says 46%, the segment table says 50%.
+- **Base plant in FY2027:** the EPS table assumes it is active again, while the analyst and CFO both describe
+  the PPA as terminated.

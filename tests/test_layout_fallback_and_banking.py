@@ -1,8 +1,9 @@
 """Layout-preserving extraction tier, per-page cross-check, owner-confirmed spread regions, SBP bank taxonomy,
 label-less total inference, cash-flow FX term, and going-concern boilerplate.
 
-Every statement here is a SYNTHETIC hand-built fixture (generated PDFs from tests/pdf_fixture_builder.py, and
-hand-set figures). They test the logic only. They are not evidence of extraction accuracy on a real report.
+Every statement here is a SYNTHETIC hand-built fixture (generated PDFs from tests/pdf_fixture_builder.py,
+and hand-set figures). They test the logic only. Extraction accuracy on REAL reports is pinned separately,
+with page references, in tests/test_real_report_regression.py.
 """
 
 from __future__ import annotations

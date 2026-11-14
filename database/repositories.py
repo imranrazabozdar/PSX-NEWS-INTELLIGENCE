@@ -8,6 +8,7 @@ from typing import Any
 
 from database.canonical import canonical_url, content_sha256, normalise_name, now_utc
 from database.connection import Database, DatabaseError
+from database.validation import CONSENT_RECORDS
 
 # ---------------------------------------------------------------- sources & source items
 REGISTRY_FIELDS = ("name", "source_type", "domain", "platform", "owner", "reliability_tier",
@@ -43,6 +44,10 @@ def upsert_source(db: Database, src: dict[str, Any]) -> None:
     rec.setdefault("verification_status", "unverified")
     rec.setdefault("lifecycle_status", "NOT REVIEWED")
     enabled = 1 if rec.get("lifecycle_status") == "ACTIVE" else 0
+    # A consent-governed source is enabled by its registry flag. It is never ACTIVE, so the generic engine
+    # still refuses it; only its consent-bound job collects it (see database/validation.CONSENT_RECORDS).
+    if rec["source_id"] in CONSENT_RECORDS and rec.get("enabled"):
+        enabled = 1
     cols = ["source_id", *REGISTRY_FIELDS, "enabled", "created_at_utc", "updated_at_utc"]
     vals = [rec["source_id"], *(rec.get(f) for f in REGISTRY_FIELDS), enabled, now, now]
     sets = ", ".join(f"{f} = excluded.{f}" for f in (*REGISTRY_FIELDS, "enabled", "updated_at_utc"))

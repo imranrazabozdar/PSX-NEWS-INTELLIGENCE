@@ -272,3 +272,17 @@ def page_words(path: Path | str, page: int) -> list[dict]:
             )
             if re.sub(r"\(cid:\d+\)", "", w["text"]).strip()  # unmapped glyph codes carry no text
         ]
+
+
+def page_chars(path: Path | str, page: int) -> list[dict]:
+    """Characters of one page with their coordinates (pdfplumber), for position-aware reading.
+    Raises ValueError for a page outside the document."""
+    if pdfplumber is None:
+        raise RuntimeError("pdfplumber is not installed (approved dependency, requirements.txt)")
+    with pdfplumber.open(Path(path)) as pdf:
+        if not 1 <= page <= len(pdf.pages):
+            raise ValueError(f"page {page} is outside the document (1-{len(pdf.pages)})")
+        return [
+            {"text": c["text"], "x0": float(c["x0"]), "x1": float(c["x1"]), "top": float(c["top"])}
+            for c in pdf.pages[page - 1].chars
+        ]

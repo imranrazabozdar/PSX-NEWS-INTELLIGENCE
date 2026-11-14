@@ -1,0 +1,57 @@
+Following are the Key audit matters:
+S. No.     Key audit matters                                              How the matter was addressed in our audit
+   (i)     Revenue recognition                                            Our audit procedures, amongst others, included the
+                                                                          following:
+           (refer notes 1.1, 4.15 and 27 to the annexed unconsolidated
+           financial statements)                                       •      Understood and evaluated the accounting policy.
+           The principal activity of the Company is manufacturing •           Tested revenue transactions on a sample
+           and marketing of cement. Revenue is recognised when                basis with underlying documentation including
+           performance obligation is satisfied by transferring                dispatch documents and sales invoices.
+           control of promised goods to a customer.               •           Tested on a ‘sample basis’, specific revenue
+           We considered revenue recognition as a key audit                   transactions recorded before and after the
+           matter as it is an area of significant audit risk as part of       reporting date with underlying documentation to
+           the audit process.                                                 assess whether revenue was recognised in the
+                                                                              correct period.
+   (ii)    Stock in trade and Stores and spares                           Our audit procedures to assess the existence of
+                                                                          inventory included the following:
+           (refer notes 3, 4.5, 4.6, 9 and 10 to the annexed
+           unconsolidated financial statements)              •                Obtained an understanding of the measurement
+                                                                              process and procedures with respect to the
+           As at June 30, 2026, the Company held certain items
+                                                                              specific items of the stock-in-trade and stores
+           of raw materials and consumables which included
+                                                                              and spares.
+           gypsum as raw material; clinker as part of work-in-
+           progress; and coal as stores and spares.            •              Attended physical inventory count performed by
+                                                                              the Company and assessed the reasonableness
+           The above inventory items were stored in purpose-
+                                                                              of the management’s process of measurement
+           built sheds, stockpiles and silos. As the weighing
+                                                                              of stockpiles and the determination of volume
+           of these inventory items was not practicable, the
+                                                                              using angle of repose and bulk density values.
+           management assessed the reasonableness of the
+           quantities on hand by obtaining measurements of •                  Obtained and reviewed the inventory count
+           these items and converting these measurements                      report of the management’s external surveyor.
+           into unit of volume by using angle of repose and
+           bulk density values. The Company also engaged an
+           external surveyor in the inventory count process.
+           As the determination of stock quantities in hand, by
+           measuring the volume and density of these items as
+           at the reporting date, involved significant estimates,
+           this has been considered as a key audit matter.
+Information Other than the Unconsolidated and Consolidated Financial Statements and Auditor’s
+Reports Thereon
+Management is responsible for the other information. The other information comprises the information
+included in the annual report but does not include the unconsolidated and consolidated financial statements
+and our auditor’s reports thereon.
+Our opinion on the unconsolidated financial statements does not cover the other information and we do not
+express any form of assurance conclusion thereon.
+In connection with our audit of the unconsolidated financial statements, our responsibility is to read the
+other information and, in doing so, consider whether the other information is materially inconsistent with
+the unconsolidated financial statements, or our knowledge obtained in the audit or otherwise appears to
+be materially misstated. If, based on the work we have performed, we conclude that there is a material
+misstatement of this other information, we are required to report that fact. We have nothing to report in this
+regard.
+          Unmoved by Uncertainty.
+          Focused on Growth.                                                                                                    231

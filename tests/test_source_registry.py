@@ -62,7 +62,7 @@ def test_credentials_are_refused_in_urls_and_values_are_refused_in_env_refs(tmp_
     with pytest.raises(sr.RegistryError, match="must not contain credentials"):
         sr.load(_write(tmp_path, [_entry(url_pattern="https://user:secret@host.example.invalid/x.pdf")]))
     with pytest.raises(sr.RegistryError, match="PSXNI_"):
-        sr.load(_write(tmp_path, [_entry(auth_env_var="sk-live-abc123")]))
+        sr.load(_write(tmp_path, [_entry(auth_env_var="dummy-not-a-real-token")]))
     ok = sr.load(_write(tmp_path, [_entry(auth_env_var="PSXNI_OWNER_SOURCE_TOKEN")]))
     assert ok[0].auth_env_var == "PSXNI_OWNER_SOURCE_TOKEN"  # a name only
 
