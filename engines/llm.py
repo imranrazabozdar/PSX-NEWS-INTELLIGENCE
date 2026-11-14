@@ -181,9 +181,15 @@ def _http_post(url: str, headers: dict[str, str], body: dict[str, Any], timeout:
         with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 - fixed https URL
             return json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
+        # The body says WHICH model or route was rejected. It carries no key, so it is safe to surface.
+        try:
+            detail = exc.read().decode("utf-8", "replace")[:300].replace("\n", " ")
+        except Exception:  # noqa: BLE001 - diagnosis must never mask the original failure
+            detail = ""
+        where = f"HTTP {exc.code}" + (f": {detail}" if detail else "")
         if exc.code in (408, 409, 429, 500, 502, 503, 504):
-            raise TransientProviderError(f"HTTP {exc.code}") from exc
-        raise LLMError(f"HTTP {exc.code}") from exc
+            raise TransientProviderError(where) from exc
+        raise LLMError(where) from exc
     except (urllib.error.URLError, TimeoutError) as exc:
         raise TransientProviderError(f"network error: {type(exc).__name__}") from exc
 
