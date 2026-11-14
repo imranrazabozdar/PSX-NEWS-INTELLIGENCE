@@ -118,7 +118,8 @@ def run(event: str, companies: list[str], *, store: bool, db: Any = None,
           file=sys.stderr)
     if gateway_for is None:
         def gateway_for(role: str) -> Any:
-            return llm.LLMGateway(provider=council.provider_for_role(role),
+            # db is passed so an account already at its free-tier limit is skipped before any call.
+            return llm.LLMGateway(provider=council.provider_for_role(role, db=db),
                                   pricing=llm.Pricing(0.0, 0.0), limits=llm.Limits.from_env())
     try:
         verdict = council.deliberate(pack, gateway_for)
