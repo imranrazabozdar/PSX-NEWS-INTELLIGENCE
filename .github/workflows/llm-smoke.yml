@@ -1,0 +1,26 @@
+# Manual check that the free-tier LLM keys (stored as GitHub Actions secrets) work. Prints no key.
+name: LLM key smoke test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PSXNI_GROQ_API_KEY: ${{ secrets.PSXNI_GROQ_API_KEY }}
+      PSXNI_GEMINI_API_KEY: ${{ secrets.PSXNI_GEMINI_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Check keys
+        run: python -m scripts.llm_smoke
