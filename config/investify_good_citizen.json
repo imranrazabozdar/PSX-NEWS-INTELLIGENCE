@@ -35,10 +35,5 @@
     "end": "14:32",
     "_note": "Official Jumma break (no trading), PKT. Must agree with the Friday gap in config/psx_calendar.json open_sessions (tested)."
   },
-  "one_day_exceptions": {
-    "2026-11-13": {
-      "ceiling": 12,
-      "note": "Owner's one-day exception (13 Nov 2026 only): lifts the first-day cap of 2 to the owner's normal daily ceiling of 12. Gap, trading windows and every other guard unchanged. Expires after this date."
-    }
-  }
+  "one_day_exceptions": {}
 }

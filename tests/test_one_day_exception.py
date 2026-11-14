@@ -12,7 +12,8 @@ from engines import market_calendar as mc
 ROOT = Path(__file__).resolve().parents[1]
 CAL = mc.load_calendar(ROOT / "config" / "psx_calendar.json")
 POLICY = json.loads((ROOT / "config" / "investify_good_citizen.json").read_text(encoding="utf-8"))
-EXC = POLICY["one_day_exceptions"]
+# Test data for the mechanism. The shipped policy has no live exception (13 Nov 2026 expired).
+EXC = {"2026-11-13": {"ceiling": 12, "note": "Owner's one-day exception (13 Nov 2026 only)."}}
 ROBOTS = "User-agent: *\nDisallow: /admin\n"
 
 
@@ -25,9 +26,8 @@ def _decide(pkt_text: str, count: int, day_pkt: str):
                      first_live_day="2026-11-13", env={}, exceptions=EXC)
 
 
-def test_the_exception_is_dated_to_today_only_and_says_so():
-    assert list(EXC) == ["2026-11-13"] and EXC["2026-11-13"]["ceiling"] == 12
-    assert "13 Nov 2026 only" in EXC["2026-11-13"]["note"]
+def test_the_shipped_policy_carries_no_live_one_day_exception():
+    assert POLICY["one_day_exceptions"] == {}
 
 
 def test_today_the_cap_is_lifted_so_a_third_request_is_allowed():
