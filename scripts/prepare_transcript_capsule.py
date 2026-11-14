@@ -46,6 +46,40 @@ def is_near_duplicate(a: frozenset[str], b: frozenset[str], threshold: float = 0
     return overlap >= threshold
 
 
+# A company must have ONE entity key or its profile splits in two. Auto-captions and free-text naming
+# produce variants ("HALEON" vs "Haleon Pakistan"), so a name is folded onto a ticker already in use
+# when it reduces to the same word. Only these suffixes are stripped: nothing is guessed from scratch.
+_COMPANY_SUFFIX = re.compile(
+    r"\b(pakistan|limited|ltd|plc|company|corporation|corp|industries|industry|group)\b", re.I)
+
+
+def entity_key(name: str) -> str:
+    """The comparison key for deciding two spellings are the same company."""
+    return re.sub(r"[^a-z0-9]", "", _COMPANY_SUFFIX.sub("", name.lower()))
+
+
+def build_alias_map(companies: list[str]) -> dict[str, str]:
+    """Fold each company name onto the shortest spelling that reduces to the same key.
+
+    The shortest form is preferred because a ticker ("HALEON") is shorter than the prose name it was
+    written out as ("Haleon Pakistan"), and a ticker is what every other part of this system queries by.
+    """
+    groups: dict[str, list[str]] = {}
+    for name in set(companies):
+        key = entity_key(name)
+        if key:
+            groups.setdefault(key, []).append(name)
+    alias: dict[str, str] = {}
+    for variants in groups.values():
+        if len(variants) < 2:
+            continue
+        canonical = sorted(variants, key=lambda n: (len(n), n))[0]
+        for name in variants:
+            if name != canonical:
+                alias[name] = canonical
+    return alias
+
+
 def convert(row: dict[str, Any]) -> dict[str, Any]:
     """One extracted row to one research_fact row. Raises ResearchFactError on anything malformed."""
     source = _ELLIPSIS.sub("…", str(row.get("source_name", "")).strip())
@@ -77,6 +111,13 @@ def build(in_dir: Path, out_path: Path) -> int:
     seen: dict[tuple[str, str], list[frozenset[str]]] = {}
     read = dropped_dup = dropped_bad = 0
     problems: Counter[str] = Counter()
+    raw_companies = [str(r.get("company", "")) for path in files
+                     for r in json.loads(Path(path).read_text(encoding="utf-8"))]
+    alias = build_alias_map([c for c in raw_companies if c])
+    if alias:
+        print(f"folded {len(alias)} company name variant(s) onto one spelling:")
+        for variant, canonical in sorted(alias.items())[:12]:
+            print(f"   {variant!r} -> {canonical!r}")
     for path in files:
         rows = json.loads(Path(path).read_text(encoding="utf-8"))
         for raw in rows:
@@ -87,6 +128,7 @@ def build(in_dir: Path, out_path: Path) -> int:
                 dropped_bad += 1
                 problems[str(exc)[:70]] += 1
                 continue
+            row["company"] = alias.get(row["company"], row["company"])
             key = (row["company"], row["topic"].split(".", 1)[0])
             words = normalise(row["fact_text"])
             if any(is_near_duplicate(words, prior) for prior in seen.get(key, [])):

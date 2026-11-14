@@ -85,3 +85,34 @@ def test_malformed_rows_are_dropped_and_counted_without_stopping_the_batch(tmp_p
     prep.build(tmp_path / "in", tmp_path / "out.json")
     assert len(json.loads((tmp_path / "out.json").read_text())) == 1
     assert "dropped as malformed : 2" in capsys.readouterr().out
+
+
+# ---------- one company, one entity key: a split profile is as bad as a duplicate row
+
+def test_a_prose_name_folds_onto_the_ticker_already_in_use():
+    alias = prep.build_alias_map(["HALEON", "Haleon Pakistan", "LUCK"])
+    assert alias == {"Haleon Pakistan": "HALEON"}
+
+
+def test_folding_ignores_corporate_suffixes_and_punctuation():
+    assert prep.entity_key("Haleon Pakistan Limited") == prep.entity_key("HALEON")
+    assert prep.entity_key("Ghani Dairies Ltd.") == prep.entity_key("Ghani Dairies")
+
+
+def test_two_genuinely_different_companies_are_never_folded_together():
+    assert prep.build_alias_map(["LUCK", "FCCL", "Lucky Cement"]) == {}
+
+
+def test_a_company_named_only_one_way_is_left_alone():
+    assert prep.build_alias_map(["Ghani Dairies"]) == {}
+
+
+def test_folded_rows_land_under_one_entity_in_the_capsule(tmp_path):
+    rows = [dict(GOOD, company="HALEON", fact_text="Panadol carries most of its volume."),
+            dict(GOOD, company="Haleon Pakistan", topic="commentary.risk",
+                 fact_text="Its imported raw material leaves it exposed to the rupee.")]
+    (tmp_path / "in").mkdir()
+    (tmp_path / "in" / "x.json").write_text(json.dumps(rows), encoding="utf-8")
+    prep.build(tmp_path / "in", tmp_path / "out.json")
+    out = json.loads((tmp_path / "out.json").read_text())
+    assert {r["company"] for r in out} == {"HALEON"} and len(out) == 2
