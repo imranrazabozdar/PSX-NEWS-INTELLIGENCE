@@ -205,14 +205,23 @@ def test_provider_for_role_without_db_is_unguarded_exactly_as_before():
     assert isinstance(council.provider_for_role("news", env), llm.GroqProvider)
 
 
-def test_provider_for_role_with_db_wraps_every_leaf_in_a_quota_guard():
+def test_provider_for_role_with_db_makes_several_accounts_a_smart_rotating_provider():
     from database.connection import SQLiteDatabase
     from engines import llm_quota
 
     db = SQLiteDatabase()
     env = {"PSXNI_GROQ_API_KEY_ONE": "g1", "PSXNI_GROQ_API_KEY_TWO": "g2"}
     chain = council.provider_for_role("news", env, db=db)
-    assert all(isinstance(p, llm_quota.QuotaGuardedProvider) for p in chain._providers)
+    assert isinstance(chain, llm_quota.SmartRotatingProvider) and len(chain._providers) == 2
+
+
+def test_provider_for_role_with_db_and_one_key_is_still_quota_guarded():
+    from database.connection import SQLiteDatabase
+    from engines import llm_quota
+
+    db = SQLiteDatabase()
+    chain = council.provider_for_role("news", {"PSXNI_GEMINI_API_KEY_ONE": "m1"}, db=db)
+    assert isinstance(chain, llm_quota.QuotaGuardedProvider)
 
 
 def test_a_role_whose_own_account_is_exhausted_still_gets_an_answer_via_another_account():
@@ -234,6 +243,34 @@ def test_a_role_whose_own_account_is_exhausted_still_gets_an_answer_via_another_
 
     chain = council.provider_for_role("news", env, db=db)
     for leaf in chain._providers:
-        leaf._provider._post = post
+        leaf._post = post
     chain.complete(system="s", user="u", json_schema={}, max_output_tokens=10)
     assert calls == ["Bearer g2"]  # account #1 was skipped with no network call at all
+
+
+def test_all_three_groq_accounts_exhausted_falls_all_the_way_through_to_openrouter():
+    """"shift to other LLM model to get going": every Groq account out, then Gemini out too."""
+    from database.connection import SQLiteDatabase
+    from engines import llm_quota
+
+    db = SQLiteDatabase()
+    env = {"PSXNI_GROQ_API_KEY_ONE": "g1", "PSXNI_GROQ_API_KEY_TWO": "g2",
+           "PSXNI_GROQ_API_KEY_THREE": "g3", "PSXNI_GEMINI_API_KEY_ONE": "m1",
+           "PSXNI_OPENROUTER_API_KEY_ONE": "o1"}
+    tracker = llm_quota.QuotaTracker(db)
+    for account in (1, 2, 3):
+        for _ in range(llm_quota.DEFAULT_LIMITS["groq"][1]):
+            tracker.record("groq", account)
+    for _ in range(llm_quota.DEFAULT_LIMITS["gemini"][1]):
+        tracker.record("gemini", 1)
+
+    def openrouter_ok(url, headers, body, timeout):
+        return {"choices": [{"message": {"content": '{"ok":true}'}}], "usage": {}}
+
+    chain = council.provider_for_role("news", env, db=db)
+    openrouter_leaf = chain._providers[-1]._provider
+    openrouter_leaf._post = openrouter_ok
+    import json as _json
+
+    out = chain.complete(system="s", user="u", json_schema={}, max_output_tokens=10)
+    assert _json.loads(out.text) == {"ok": True}
