@@ -226,9 +226,10 @@ CORE_FIRST = ("MEBL", "LUCK", "OGDC", "FFC", "APL", "HUBC")  # owner-approved co
 
 
 def resources_for(symbols: list[str]) -> list[tuple[str, str]]:
-    """Fundamentals first, then profile, then competitors; core names first within each."""
+    """Fundamentals first, then announcements (events and insider activity), then profile, then competitors;
+    core names first within each."""
     order = [s for s in CORE_FIRST if s in symbols] + sorted(s for s in symbols if s not in CORE_FIRST)
-    return [(s, ep) for ep in ("fundamentals", "profile", "competitors") for s in order]
+    return [(s, ep) for ep in ("fundamentals", "announcements", "profile", "competitors") for s in order]
 
 
 # ------------------------------------------------- the entrypoint (one tick, from the scheduler)
