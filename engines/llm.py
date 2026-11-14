@@ -137,6 +137,78 @@ class ClaudeProvider:
             "dependency need owner approval (see docs/adr/0006-intelligence-engine.md)")
 
 
+GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+GROQ_KEY_VAR = "PSXNI_GROQ_API_KEY"  # noqa: S105 - a variable name, not a secret
+GROQ_MODEL_VAR = "PSXNI_LLM_GROQ_MODEL"
+DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile"
+
+
+def _http_post(url: str, headers: dict[str, str], body: dict[str, Any], timeout: float) -> dict[str, Any]:
+    """Real transport. Maps overload and rate-limit answers to TransientProviderError."""
+    import urllib.error
+    import urllib.request
+
+    data = json.dumps(body).encode("utf-8")
+    req = urllib.request.Request(url, data=data, headers=headers, method="POST")  # noqa: S310 - fixed https URL
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 - fixed https URL
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        if exc.code in (408, 429, 500, 502, 503, 504):
+            raise TransientProviderError(f"groq HTTP {exc.code}") from exc
+        raise LLMError(f"groq HTTP {exc.code}") from exc
+    except (urllib.error.URLError, TimeoutError) as exc:
+        raise TransientProviderError(f"groq network error: {type(exc).__name__}") from exc
+
+
+class GroqProvider:
+    """Live provider for fast macro and news analysis. Not connected without PSXNI_GROQ_API_KEY.
+
+    The key is read from the environment only and is never logged or stored. The response is requested as
+    a JSON object; the gateway's caller validates it before anything is stored.
+    """
+
+    name = "groq"
+
+    def __init__(self, *, api_key: str | None = None, model: str | None = None,
+                 post: Any = None, timeout: float = 30.0):
+        self._key = api_key if api_key is not None else os.environ.get(GROQ_KEY_VAR, "").strip()
+        self.model = model or os.environ.get(GROQ_MODEL_VAR, "").strip() or DEFAULT_GROQ_MODEL
+        self._post = post or _http_post
+        self._timeout = timeout
+
+    def complete(self, *, system: str, user: str, json_schema: dict, max_output_tokens: int) -> Completion:
+        if not self._key:
+            raise ProviderNotConnected(
+                f"Groq provider is not connected: set {GROQ_KEY_VAR} through the secret flow")
+        body = {
+            "model": self.model,
+            "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
+            "response_format": {"type": "json_object"},
+            "temperature": 0,
+            "max_tokens": max_output_tokens,
+        }
+        headers = {"Authorization": f"Bearer {self._key}", "Content-Type": "application/json",
+                   "User-Agent": "PSX-NI/1.0 (private research)"}
+        data = self._post(GROQ_URL, headers, body, self._timeout)
+        try:
+            text = data["choices"][0]["message"]["content"]
+            usage = data.get("usage", {})
+        except (KeyError, IndexError, TypeError) as exc:
+            raise LLMError("groq response has an unexpected shape") from exc
+        return Completion(text, self.model, int(usage.get("prompt_tokens", 0)),
+                          int(usage.get("completion_tokens", 0)))
+
+
+def provider_from_env(environ: Any = None) -> Any:
+    """Groq when its key is present; otherwise the not-connected Claude stub. Nothing depends on Claude."""
+    env = os.environ if environ is None else environ
+    if str(env.get(GROQ_KEY_VAR, "")).strip():
+        return GroqProvider(api_key=str(env[GROQ_KEY_VAR]).strip(),
+                            model=str(env.get(GROQ_MODEL_VAR, "")).strip() or None)
+    return ClaudeProvider()
+
+
 @dataclass
 class Limits:
     daily_cost_usd: float = 1.0
