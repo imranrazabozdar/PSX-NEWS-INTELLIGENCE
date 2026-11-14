@@ -63,6 +63,21 @@ def rows_from_fields(*, company: str, endpoint: str, fields: dict[str, Any], url
             "unit": unit or None, "period": period or None, "source_name": SOURCE_NAME, "source_url": url,
             "source_date": day, "as_of": day, "confidence": "fact", "created_at": created}))
 
+    if endpoint == "announcements":
+        for item in fields.get("items") or []:
+            title = str(item.get("title") or "").strip()
+            when = str(item.get("announced_at_utc") or "")[:10]
+            if not title or not when:
+                continue
+            group = str(item.get("taxonomy") or "Other").strip() or "Other"
+            # facts only: date, title, taxonomy group and filing link; Investify's materiality and sentiment
+            # labels are their judgements and are not stored
+            rows.append(validate_fact({
+                "company": company, "topic": f"announcements.{group}", "fact_text": _clip(f"{when}: {title}"),
+                "value": None, "unit": None, "period": when, "source_name": SOURCE_NAME,
+                "source_url": item.get("pdf_url") or url, "source_date": day, "as_of": when,
+                "confidence": "fact", "created_at": created}))
+        return rows
     for key, val in fields.items():
         if key in ("symbol", "metric_count"):
             continue
