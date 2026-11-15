@@ -20,3 +20,12 @@ def test_defective_rows_are_dropped_and_good_rows_kept():
 def test_missed_figures_come_with_their_transcript_context():
     out = dict(rep.missed_figures([_row("KSE closed at 165000.")], SRC))
     assert set(out) == {"5.70", "80.5"} and "EPS was 5.70" in out["5.70"]
+
+
+def test_merge_adds_clean_new_rows_and_drops_repeats_and_defects():
+    kept = [_row("On 9 Oct 2026 KSE closed at 165000.")]
+    added = [_row("KSE closed at 165000 on 9 Oct 2026."), _row("EPS was 5.70 per share on 9 Oct 2026."),
+             _row("Today levy was 80.5.")]
+    rows, dropped = rep.merge(kept, added, SRC, SIB)
+    assert [r["fact_text"] for r in rows] == [kept[0]["fact_text"], "EPS was 5.70 per share on 9 Oct 2026."]
+    assert dropped == {"relative": 1, "repeat": 1}

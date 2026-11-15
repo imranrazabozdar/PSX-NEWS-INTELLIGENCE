@@ -64,6 +64,25 @@ def missed_figures(rows: list[dict], source: str) -> list[tuple[str, str]]:
     return out
 
 
+def merge(kept: list[dict], added: list[dict], own: str,
+          siblings: list[str]) -> tuple[list[dict], dict[str, int]]:
+    """First-pass rows plus the figures-pass rows, cleaned by the same rules; an added row that repeats a
+    first-pass sentence (same words and numbers) is dropped."""
+    from scripts.prepare_transcript_capsule import is_near_duplicate, normalise
+
+    fresh, dropped = clean(added, own, siblings)
+    seen = [normalise(str(r.get("fact_text", ""))) for r in kept]
+    out = list(kept)
+    for r in fresh:
+        words = normalise(str(r.get("fact_text", "")))
+        if any(is_near_duplicate(words, prior) for prior in seen):
+            dropped["repeat"] = dropped.get("repeat", 0) + 1
+            continue
+        seen.append(words)
+        out.append(r)
+    return out, dropped
+
+
 def _source_for(unit: str, chunk_dir: Path, manifest: dict[str, list[str]]) -> tuple[str, list[str]]:
     return gate._source_for(unit, chunk_dir, manifest)
 
@@ -74,7 +93,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--chunk-dir", type=Path, required=True)
     parser.add_argument("--clean-dir", type=Path, required=True)
     parser.add_argument("--hints-dir", type=Path, required=True)
+    parser.add_argument("--add-dir", type=Path, default=None,
+                        help="figures-pass rows; with --final-dir, merge")
+    parser.add_argument("--final-dir", type=Path, default=None)
     args = parser.parse_args(argv)
+    if args.add_dir and args.final_dir:
+        return _merge_dirs(args)
     manifest = json.loads((args.chunk_dir / "manifest.json").read_text(encoding="utf-8"))
     args.clean_dir.mkdir(parents=True, exist_ok=True)
     args.hints_dir.mkdir(parents=True, exist_ok=True)
@@ -101,6 +125,26 @@ def main(argv: list[str] | None = None) -> int:
                     + "\n\nMISSED FIGURES (each needs a row if the transcript supports it):\n"
                     + "\n".join(lines) + "\n", encoding="utf-8")
     print(f"rows dropped as defective: {totals}; videos needing a figures pass: {hinted}")
+    return 0
+
+
+def _merge_dirs(args: argparse.Namespace) -> int:
+    manifest = json.loads((args.chunk_dir / "manifest.json").read_text(encoding="utf-8"))
+    args.final_dir.mkdir(parents=True, exist_ok=True)
+    totals: dict[str, int] = {}
+    n_rows = 0
+    for path in sorted(args.clean_dir.glob("*.json")):
+        kept = json.loads(path.read_text(encoding="utf-8"))
+        add_path = args.add_dir / path.name
+        added = json.loads(add_path.read_text(encoding="utf-8")) if add_path.exists() else []
+        own, siblings = _source_for(path.stem, args.chunk_dir, manifest)
+        rows, dropped = merge(kept, added, own, siblings)
+        for k, v in dropped.items():
+            totals[k] = totals.get(k, 0) + v
+        n_rows += len(rows)
+        (args.final_dir / path.name).write_text(
+            json.dumps(rows, ensure_ascii=False, indent=1), encoding="utf-8")
+    print(f"merged {n_rows} row(s); added rows dropped: {totals}")
     return 0
 
 
