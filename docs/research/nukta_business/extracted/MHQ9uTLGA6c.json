@@ -1,0 +1,110 @@
+[
+ {
+  "company": "Scheme 33 Karachi",
+  "topic": "market.property_prices",
+  "fact_text": "Scheme 33 in Karachi, announced in 1971, spans 54 sectors and had 293 registered private housing societies as of 2025-05-04, with plots from 120 to 400 square yards.",
+  "value": 293,
+  "unit": "count",
+  "period": "2025-05-04",
+  "source_name": "Nukta Business, 'Karachi's Scheme 33 Property Prices: What Buyers Must Know! | Pakistan Property Playbook' (YouTube, 2025-05-04)",
+  "source_url": "https://www.youtube.com/watch?v=MHQ9uTLGA6c",
+  "video_id": "MHQ9uTLGA6c",
+  "confidence": "fact"
+ },
+ {
+  "company": "Scheme 33 Karachi",
+  "topic": "market.property_prices",
+  "fact_text": "Scheme 33 plot prices run from about PKR 15 lakh to about PKR 1 billion, with 120-square-yard plots in the mid-range; pricing depends on the society's location, amenities and construction quality.",
+  "value": 15,
+  "unit": "PKR_lakhs",
+  "period": "2025-05-04",
+  "source_name": "Nukta Business, 'Karachi's Scheme 33 Property Prices: What Buyers Must Know! | Pakistan Property Playbook' (YouTube, 2025-05-04)",
+  "source_url": "https://www.youtube.com/watch?v=MHQ9uTLGA6c",
+  "video_id": "MHQ9uTLGA6c",
+  "confidence": "fact"
+ },
+ {
+  "company": "Scheme 33 Karachi",
+  "topic": "market.property_prices",
+  "fact_text": "Per broker quotes on 2025-05-04, a 600-square-yard plot in Merchant Navy Society was about PKR 5.5 crore, and a new house there about PKR 5.5-6 crore.",
+  "value": 5.5,
+  "unit": "PKR_crore",
+  "period": "2025-05-04",
+  "source_name": "Nukta Business, 'Karachi's Scheme 33 Property Prices: What Buyers Must Know! | Pakistan Property Playbook' (YouTube, 2025-05-04)",
+  "source_url": "https://www.youtube.com/watch?v=MHQ9uTLGA6c",
+  "video_id": "MHQ9uTLGA6c",
+  "confidence": "fact"
+ },
+ {
+  "company": "Scheme 33 Karachi",
+  "topic": "market.property_prices",
+  "fact_text": "Per broker quotes on 2025-05-04, Madras Society plots were about PKR 2 crore for 120 square yards, 3 crore for 200 square yards and 4 crore for 400 square yards.",
+  "value": 2,
+  "unit": "PKR_crore",
+  "period": "2025-05-04",
+  "source_name": "Nukta Business, 'Karachi's Scheme 33 Property Prices: What Buyers Must Know! | Pakistan Property Playbook' (YouTube, 2025-05-04)",
+  "source_url": "https://www.youtube.com/watch?v=MHQ9uTLGA6c",
+  "video_id": "MHQ9uTLGA6c",
+  "confidence": "fact"
+ },
+ {
+  "company": "Scheme 33 Karachi",
+  "topic": "market.property_prices",
+  "fact_text": "Per broker quotes on 2025-05-04, 120-square-yard plots were about PKR 80-90 lakh in a newer development on the outer edge and about PKR 55-60 lakh in Atomic Energy Society.",
+  "value": 80,
+  "unit": "PKR_lakhs",
+  "period": "2025-05-04",
+  "source_name": "Nukta Business, 'Karachi's Scheme 33 Property Prices: What Buyers Must Know! | Pakistan Property Playbook' (YouTube, 2025-05-04)",
+  "source_url": "https://www.youtube.com/watch?v=MHQ9uTLGA6c",
+  "video_id": "MHQ9uTLGA6c",
+  "confidence": "fact"
+ },
+ {
+  "company": "Scheme 33 Karachi",
+  "topic": "market.apartment_prices",
+  "fact_text": "The reporter said Gulistan-e-Johar and Gulshan-e-Iqbal apartment prices had risen beyond the reach of many buyers, leaving Scheme 33 as the more affordable alternative as of 2025-05-04.",
+  "value": null,
+  "unit": null,
+  "period": "2025-05-04",
+  "source_name": "Nukta Business, 'Karachi's Scheme 33 Property Prices: What Buyers Must Know! | Pakistan Property Playbook' (YouTube, 2025-05-04)",
+  "source_url": "https://www.youtube.com/watch?v=MHQ9uTLGA6c",
+  "video_id": "MHQ9uTLGA6c",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "Scheme 33 Karachi",
+  "topic": "signal.price_gradient",
+  "fact_text": "Property prices in Scheme 33 fall as societies move further from the developed centre, which has water, power, gas and heavy public movement; newer, less developed societies are cheaper.",
+  "value": null,
+  "unit": null,
+  "period": "2025-05-04",
+  "source_name": "Nukta Business, 'Karachi's Scheme 33 Property Prices: What Buyers Must Know! | Pakistan Property Playbook' (YouTube, 2025-05-04)",
+  "source_url": "https://www.youtube.com/watch?v=MHQ9uTLGA6c",
+  "video_id": "MHQ9uTLGA6c",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.land_title_clearance",
+  "fact_text": "The chairman of the builders' association ABAD said buyers and corporate investors want clear land titles, and that the Sindh government should clear titles through land auctions and ease approval costs.",
+  "value": null,
+  "unit": null,
+  "period": "2025-05-04",
+  "source_name": "Nukta Business, 'Karachi's Scheme 33 Property Prices: What Buyers Must Know! | Pakistan Property Playbook' (YouTube, 2025-05-04)",
+  "source_url": "https://www.youtube.com/watch?v=MHQ9uTLGA6c",
+  "video_id": "MHQ9uTLGA6c",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.legal_checks_before_buying",
+  "fact_text": "Real-estate brokers advise buyers to check legal issues and the location before buying Scheme 33 property, since the area offers long-term investment potential.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Nukta Business, 'Karachi's Scheme 33 Property Prices: What Buyers Must Know! | Pakistan Property Playbook' (YouTube, 2025-05-04)",
+  "source_url": "https://www.youtube.com/watch?v=MHQ9uTLGA6c",
+  "video_id": "MHQ9uTLGA6c",
+  "confidence": "analyst_view"
+ }
+]

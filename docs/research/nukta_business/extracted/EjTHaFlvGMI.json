@@ -1,0 +1,110 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.sovereign_rating_upgrade",
+  "fact_text": "S&P upgraded Pakistan's sovereign credit rating one notch to B-, which the guest said should improve investor perception of the country.",
+  "value": null,
+  "unit": "rating",
+  "period": "2025-07-25",
+  "source_name": "Nukta Business, 'Pakistan Credit Upgrade Sparks Economic Optimism | Nukta Business' (YouTube, 2025-07-25)",
+  "source_url": "https://www.youtube.com/watch?v=EjTHaFlvGMI",
+  "video_id": "EjTHaFlvGMI",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.fitch_upgrade",
+  "fact_text": "Fitch had upgraded Pakistan's rating about three months before the S&P upgrade, around April 2025, according to the guest.",
+  "value": null,
+  "unit": "rating",
+  "period": "Apr 2025",
+  "source_name": "Nukta Business, 'Pakistan Credit Upgrade Sparks Economic Optimism | Nukta Business' (YouTube, 2025-07-25)",
+  "source_url": "https://www.youtube.com/watch?v=EjTHaFlvGMI",
+  "video_id": "EjTHaFlvGMI",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.reserve_target",
+  "fact_text": "The IMF set a June 2025 State Bank reserves target of 13.9 billion dollars, which the guest described as aggressive.",
+  "value": 13.9,
+  "unit": "USD_billions",
+  "period": "Jun 2025",
+  "source_name": "Nukta Business, 'Pakistan Credit Upgrade Sparks Economic Optimism | Nukta Business' (YouTube, 2025-07-25)",
+  "source_url": "https://www.youtube.com/watch?v=EjTHaFlvGMI",
+  "video_id": "EjTHaFlvGMI",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.reserve_achieved",
+  "fact_text": "The government reported reserves of 14.5 billion dollars against the June 2025 IMF target, with the State Bank managing the position despite currency pressure.",
+  "value": 14.5,
+  "unit": "USD_billions",
+  "period": "Jun 2025",
+  "source_name": "Nukta Business, 'Pakistan Credit Upgrade Sparks Economic Optimism | Nukta Business' (YouTube, 2025-07-25)",
+  "source_url": "https://www.youtube.com/watch?v=EjTHaFlvGMI",
+  "video_id": "EjTHaFlvGMI",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.imf_reserve_target_2026",
+  "fact_text": "The IMF reserves target for 2026 is about 17 billion dollars, according to the guest.",
+  "value": 17,
+  "unit": "USD_billions",
+  "period": "2026",
+  "source_name": "Nukta Business, 'Pakistan Credit Upgrade Sparks Economic Optimism | Nukta Business' (YouTube, 2025-07-25)",
+  "source_url": "https://www.youtube.com/watch?v=EjTHaFlvGMI",
+  "video_id": "EjTHaFlvGMI",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.eurobond_timing",
+  "fact_text": "The guest said Pakistan may need six to 12 months of better external conditions before it can return to the Eurobond market.",
+  "value": null,
+  "unit": "months",
+  "period": "2025-07-25",
+  "source_name": "Nukta Business, 'Pakistan Credit Upgrade Sparks Economic Optimism | Nukta Business' (YouTube, 2025-07-25)",
+  "source_url": "https://www.youtube.com/watch?v=EjTHaFlvGMI",
+  "video_id": "EjTHaFlvGMI",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.commercial_loans_reopen",
+  "fact_text": "The guest expected commercial loans from Middle Eastern and Chinese banks to ease, since lenders that saw Pakistan as risky at the lower rating may be willing to lend.",
+  "value": null,
+  "unit": null,
+  "period": "2025-07-25",
+  "source_name": "Nukta Business, 'Pakistan Credit Upgrade Sparks Economic Optimism | Nukta Business' (YouTube, 2025-07-25)",
+  "source_url": "https://www.youtube.com/watch?v=EjTHaFlvGMI",
+  "video_id": "EjTHaFlvGMI",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.foreign_flows",
+  "fact_text": "Foreign portfolio investors have been net sellers in frontier and emerging markets, including India, Bangladesh, Sri Lanka and Vietnam, amid US tariff and interest-rate uncertainty.",
+  "value": null,
+  "unit": null,
+  "period": "2025-07-25",
+  "source_name": "Nukta Business, 'Pakistan Credit Upgrade Sparks Economic Optimism | Nukta Business' (YouTube, 2025-07-25)",
+  "source_url": "https://www.youtube.com/watch?v=EjTHaFlvGMI",
+  "video_id": "EjTHaFlvGMI",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "signal.rupee_stability",
+  "fact_text": "Higher reserves and inflows are expected to cut dollar demand and bring some stability to the rupee after the upgrade, according to the guest.",
+  "value": null,
+  "unit": null,
+  "period": "2025-07-25",
+  "source_name": "Nukta Business, 'Pakistan Credit Upgrade Sparks Economic Optimism | Nukta Business' (YouTube, 2025-07-25)",
+  "source_url": "https://www.youtube.com/watch?v=EjTHaFlvGMI",
+  "video_id": "EjTHaFlvGMI",
+  "confidence": "analyst_view"
+ }
+]
