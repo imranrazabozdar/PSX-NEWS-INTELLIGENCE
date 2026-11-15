@@ -73,7 +73,8 @@ points. A dense analysis typically gives one row per 500-700 characters of Engli
 - Company you cannot confidently ticker: its common name in Title Case ("Ghani Dairies").
 - Sector: SECTOR:CEMENT, SECTOR:BANKS, SECTOR:AUTOS, SECTOR:OIL_GAS, SECTOR:FERTILIZER, SECTOR:POWER,
   SECTOR:TEXTILE, SECTOR:PHARMA, SECTOR:CHEMICALS, SECTOR:TECH, SECTOR:TELECOM, SECTOR:FOOD,
-  SECTOR:TOBACCO, SECTOR:REFINERY, SECTOR:AIRLINES, SECTOR:STEEL, SECTOR:INSURANCE
+  SECTOR:TOBACCO, SECTOR:REFINERY, SECTOR:AIRLINES, SECTOR:STEEL, SECTOR:INSURANCE,
+  SECTOR:REAL_ESTATE (property market, housing schemes, REITs as a class), SECTOR:AGRICULTURE, SECTOR:EXPORTS
 - Economy-wide: MACRO:PAKISTAN
 
 ## Topics (the prefix decides which analyst reads it later - choose deliberately)
