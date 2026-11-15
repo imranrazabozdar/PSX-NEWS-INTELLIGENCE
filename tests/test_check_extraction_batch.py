@@ -112,3 +112,15 @@ def test_dated_mode_accepts_a_dated_source_and_refuses_relative_words_in_the_sen
     bad = dict(ok, fact_text="Today the KSE-100 closed at 164000 points.")
     verdict = gate.judge([bad], src, dated=True)
     assert not verdict.ok and "relative time word" in "; ".join(verdict.reasons)
+
+
+def test_dated_mode_flags_a_skimmed_source_whose_figures_did_not_reach_rows():
+    figures = " ".join(f"{n}.5" for n in range(100, 112))
+    src = "words " * 400 + figures
+    row = {"company": "MACRO:PAKISTAN", "topic": "market.x", "value": None, "unit": None,
+           "fact_text": "On 9 Oct 2026 the index closed at 100.5 points.", "period": "2026-10-09",
+           "source_name": "S, 'T' (YouTube, 2026-10-09)", "source_url": "u", "video_id": "v",
+           "confidence": "fact"}
+    verdict = gate.judge([row], src, dated=True)
+    assert not verdict.ok and "figures reached a row" in "; ".join(verdict.reasons)
+    assert "figures reached a row" not in "; ".join(gate.judge([row], src).reasons)  # ARN mode unchanged

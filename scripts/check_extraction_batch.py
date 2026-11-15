@@ -51,6 +51,8 @@ _ADVICE = re.compile(
 MIN_GROUNDING = 0.70      # of numbers present in a row, at least this share must be in the source
 MIN_DENSITY = 0.12        # rows per 1,000 source chars; the benchmark ran 1.0-1.5
 MAX_ADVICE_SHARE = 0.10
+MIN_FIGURE_COVERAGE = 0.55  # dated mode: share of the source's distinctive figures that reach a row
+MIN_FIGURES_TO_CHECK = 8    # a source with fewer distinctive figures is too small for the ratio to mean much
 
 
 @dataclass
@@ -119,6 +121,15 @@ def judge(rows: list[dict[str, Any]], source: str, unit: str = "",
     if rel:
         reasons.append(f"{rel} row(s) carry a relative period")
     if dated:
+        wanted = _distinctive(source)
+        if len(wanted) >= MIN_FIGURES_TO_CHECK:
+            kept: set[str] = set()
+            for r in rows:
+                kept |= _distinctive(str(r.get("fact_text", "")))
+            share = len(wanted & kept) / len(wanted)
+            if share < MIN_FIGURE_COVERAGE:
+                reasons.append(
+                    f"only {len(wanted & kept)}/{len(wanted)} of the source's figures reached a row")
         rel_text = sum(1 for r in rows if _RELATIVE_TEXT.search(str(r.get("fact_text", ""))))
         if rel_text:
             reasons.append(f"{rel_text} row(s) use a relative time word in the sentence")
