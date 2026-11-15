@@ -27,7 +27,7 @@ def test_the_hubc_folder_holds_the_five_files_and_the_disclaimer():
 def test_only_the_recorded_research_folders_exist():
     """A closed list: a new research folder is a deliberate act and must be added here with its rows."""
     research = sorted(p.name for p in (ROOT / "docs" / "research").iterdir() if p.is_dir())
-    assert research == ["arn", "cement", "hubc", "nrl", "pso"]
+    assert research == ["arn", "cement", "hubc", "nrl", "pso", "standard_capital"]
 
 
 def test_the_schema_creates_only_research_fact_and_only_with_if_not_exists():
