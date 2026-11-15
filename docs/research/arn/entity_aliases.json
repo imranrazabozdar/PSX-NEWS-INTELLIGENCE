@@ -1,5 +1,5 @@
 {
-  "_source": "https://www.ksestocks.com/ListedCompanies/SortByName (owner-confirmed trusted, 2026-11-15); plus official PSX company pages dps.psx.com.pk/company/<SYMBOL> (2026-11-15)",
+  "_source": "https://www.ksestocks.com/ListedCompanies/SortByName (owner-confirmed trusted, 2026-11-15); plus official PSX company pages dps.psx.com.pk/company/<SYMBOL> (2026-11-15); plus owner-supplied tickers (2026-11-15)",
   "aliases": {
     "Aisha Steel Mills": "ASL",
     "Atlas Battery": "ATBA",
@@ -42,6 +42,47 @@
     "Meezan ETF": "MZNPETF",
     "Mahana Islamic Index ETF": "MIIETF",
     "Jorabad Sugar Mills": "JSML",
-    "City Pharma": "CPHL"
-  }
+    "City Pharma": "CPHL",
+    "Mizan Bank": "MEBL",
+    "Maple Leaf Group": "MLCF",
+    "LSC Capital": "LSEFSL",
+    "Tasdeeq Information Services": "TISL",
+    "Naya Nazimabad REIT": "NNAR",
+    "Ghani Dairies": "GDL",
+    "Synergy": "CNERGY",
+    "Service Long March Tyres": "SLM",
+    "PIA Holding Company": "PIAHCLA",
+    "Selmore Pharmaceuticals": "SEARL",
+    "Glass Industry": "SECTOR:GLASS"
+  },
+  "not_listed": [
+    "Central Depository Company",
+    "National Clearing Company of Pakistan Limited",
+    "Pakistan Steel Industry",
+    "Reko Diq",
+    "State Life Insurance Corporation of Pakistan",
+    "Khuzdar Barite Lead Zinc Project",
+    "Khushhali Microfinance Bank",
+    "U Microfinance Bank",
+    "FinK Micro Finance Bank",
+    "Digital Micro Finance Bank",
+    "Digital Lending Fintech",
+    "Ufone",
+    "Zong",
+    "Asia Fruits And Vegetables",
+    "SC Fruits",
+    "Fruits and Vegetables Exporter (Sargodha)",
+    "Apple",
+    "Berkshire Hathaway",
+    "Bharti Airtel",
+    "Gail",
+    "ARN Financials",
+    "Lahore Electric Supply Company",
+    "Multan Electric Power Company",
+    "Islamabad Electric Supply Company"
+  ],
+  "delisted": [
+    "PSMC"
+  ],
+  "_delisted_source": "PSX company page for PSMC shows a DELISTED tag (checked 2026-11-15)"
 }

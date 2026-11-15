@@ -196,3 +196,11 @@ def test_stored_links_reach_the_macro_lens_with_their_date():
                "VALUES ('policy rate', 'OGDC', 'up', 2, 'Rate cuts lift cyclicals', 'x')")
     pack = council_run.build_pack("SBP cut the policy rate.", ["OGDC"], db)
     assert "policy rate affects OGDC (up)" in pack.for_role("macro")
+
+
+def test_brief_flags_a_delisted_ticker():
+    db = _db()
+    db.execute(INSERT, ("PSMC", "profile.x", "Pak Suzuki assembled cars", None, None, "", "Test", None,
+                        "2026-09-12", "", "fact", "2026-11-14T00:00:00Z"))
+    pack = council_run.build_pack("Autos news.", ["PSMC"], db)
+    assert "DELISTED on PSX" in next(i.text for i in pack.items if "stored fact(s)" in i.text)

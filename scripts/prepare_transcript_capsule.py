@@ -157,6 +157,9 @@ def build(in_dir: Path | list[Path], out_path: Path, exclude: Path | None = None
     raw_companies = [str(r.get("company", "")) for path in files
                      for r in json.loads(Path(path).read_text(encoding="utf-8"))]
     alias = build_alias_map([c for c in raw_companies if c])
+    from scripts import apply_entity_aliases
+
+    official = apply_entity_aliases.load()
     if alias:
         print(f"folded {len(alias)} company name variant(s) onto one spelling:")
         for variant, canonical in sorted(alias.items())[:12]:
@@ -172,6 +175,7 @@ def build(in_dir: Path | list[Path], out_path: Path, exclude: Path | None = None
                 problems[str(exc)[:70]] += 1
                 continue
             row["company"] = alias.get(row["company"], row["company"])
+            row["company"] = official.get(row["company"], row["company"])  # name -> PSX ticker
             key = (row["company"], row["topic"].split(".", 1)[0])
             words = normalise(row["fact_text"])
             vid = str(raw.get("video_id", ""))

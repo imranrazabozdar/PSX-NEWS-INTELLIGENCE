@@ -192,3 +192,11 @@ def test_both_rows_survive_the_capsule_when_only_the_figure_changed(tmp_path):
     (tmp_path / "in" / "x.json").write_text(json.dumps(rows), encoding="utf-8")
     prep.build(tmp_path / "in", tmp_path / "out.json")
     assert len(json.loads((tmp_path / "out.json").read_text())) == 2
+
+
+def test_company_names_fold_to_psx_tickers_from_the_alias_file(tmp_path):
+    row = dict(GOOD, company="Interloop", fact_text="Interloop is a denim and hosiery exporter.")
+    (tmp_path / "in").mkdir()
+    (tmp_path / "in" / "x.json").write_text(json.dumps([row]), encoding="utf-8")
+    prep.build(tmp_path / "in", tmp_path / "out.json")
+    assert [r["company"] for r in json.loads((tmp_path / "out.json").read_text())] == ["ILP"]
