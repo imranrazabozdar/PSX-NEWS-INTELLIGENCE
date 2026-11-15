@@ -163,3 +163,32 @@ def test_a_ruled_out_row_is_left_out_but_a_same_text_row_from_another_video_is_k
     prep.build(tmp_path / "in", tmp_path / "out.json", ex)
     out = json.loads((tmp_path / "out.json").read_text())
     assert [r["company"] for r in out] == ["FCCL"]
+
+
+# ---------- a changed number is a changed fact, never a repeat
+
+def test_the_same_sentence_with_a_different_number_is_not_a_near_duplicate():
+    old = prep.normalise("The policy rate is 22 percent and cement demand is weak because of it.")
+    new = prep.normalise("The policy rate is 11 percent and cement demand is weak because of it.")
+    assert not prep.is_near_duplicate(old, new)
+
+
+def test_a_true_restatement_with_the_same_numbers_is_still_a_near_duplicate():
+    a = prep.normalise("Energy is roughly 70 percent of a cement maker's production cost.")
+    b = prep.normalise("Roughly 70 percent of cement production cost is energy.")
+    assert prep.is_near_duplicate(a, b)
+
+
+def test_thousands_separators_do_not_make_the_same_number_differ():
+    a = prep.normalise("Profit per tractor reached PKR 550,000 at Millat Tractors by 2024.")
+    b = prep.normalise("Millat Tractors profit per tractor reached PKR 550000 by 2024.")
+    assert prep.is_near_duplicate(a, b)
+
+
+def test_both_rows_survive_the_capsule_when_only_the_figure_changed(tmp_path):
+    rows = [dict(GOOD, fact_text="Millat Tractors earned about PKR 150,000 of profit per tractor in 2018."),
+            dict(GOOD, fact_text="Millat Tractors earned about PKR 550,000 of profit per tractor in 2024.")]
+    (tmp_path / "in").mkdir()
+    (tmp_path / "in" / "x.json").write_text(json.dumps(rows), encoding="utf-8")
+    prep.build(tmp_path / "in", tmp_path / "out.json")
+    assert len(json.loads((tmp_path / "out.json").read_text())) == 2

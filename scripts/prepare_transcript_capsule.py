@@ -33,17 +33,33 @@ _WORD = re.compile(r"[a-z0-9]+")
 _ELLIPSIS = re.compile(r"\.{3,}")
 
 
+_NUMBER = re.compile(r"\d[\d,]*\.?\d*")
+
+
 def normalise(text: str) -> frozenset[str]:
-    """A bag of significant words: the comparison key for near-duplicate detection."""
-    words = _WORD.findall(text.lower())
-    return frozenset(w for w in words if len(w) > 3)
+    """The comparison key for near-duplicate detection: significant words, plus every number as "#<n>".
+
+    Numbers are kept on purpose. A key that dropped them could not tell "the policy rate is 22%" from "the
+    policy rate is 11%", and a newer figure would be thrown away as a repeat of the older one.
+    """
+    words = {w for w in _WORD.findall(text.lower()) if len(w) > 3 and not w.isdigit()}
+    numbers = {"#" + n.replace(",", "").rstrip(".") for n in _NUMBER.findall(text)}
+    return frozenset(words | numbers)
 
 
 def is_near_duplicate(a: frozenset[str], b: frozenset[str], threshold: float = 0.75) -> bool:
+    """A restatement, not a change: the same numbers and mostly the same words.
+
+    Two rows that disagree on any number are different facts however alike they read, so both are kept.
+    """
     if not a or not b:
         return False
-    overlap = len(a & b) / min(len(a), len(b))
-    return overlap >= threshold
+    if {t for t in a if t.startswith("#")} != {t for t in b if t.startswith("#")}:
+        return False
+    wa, wb = {t for t in a if not t.startswith("#")}, {t for t in b if not t.startswith("#")}
+    if not wa or not wb:
+        return a == b
+    return len(wa & wb) / min(len(wa), len(wb)) >= threshold
 
 
 # A company must have ONE entity key or its profile splits in two. Auto-captions and free-text naming
