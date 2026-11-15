@@ -66,3 +66,11 @@ eight chunks first extracted on a sparser prompt, `extracted_sonnet/` the two vi
 - `MACRO:PAKISTAN` holds about a third of all rows. Macro knowledge is not yet indexed by sub-topic.
 - Companies without a known ticker are stored under their names; if one later gets a ticker, its rows need
   merging.
+
+## Adding another channel (or Investify data)
+The brain is built to take many sources. For each new source: keep its own folder `docs/research/<source>/`
+with an index (id, title, url, channel), get verified upload dates (yt-dlp `id YYYYMMDD` lines, see
+`scripts/build_video_dating.py`), extract with the same gated routine (Python first, Haiku default, Sonnet on
+gate failure), then absorb with `scripts/absorb_sector_capsule.py`. Facts from different sources about the same
+company merge under one entity; the company brief reports how many distinct sources back it, and warns when
+knowledge is single-source. Conflicts between sources are surfaced by the council, never averaged.
