@@ -91,6 +91,26 @@ def sectors_for(companies: list[str], db: Any, extra: list[str] | None = None) -
     return sorted(wanted)
 
 
+def _dated_rows(db: Any, company: str, limit: int) -> list[Any]:
+    """Newest first by the video's real upload date; the date is shown to the model as source_date.
+
+    Facts from archive videos carry their verified upload date, so a year-old view is labelled as such
+    instead of looking current. Rows with no dated source fall back to load order, after dated ones.
+    """
+    try:
+        rows = db.execute(
+            "SELECT f.topic, f.fact_text, f.source_name, COALESCE(d.date_to, f.source_date) AS source_date "
+            "FROM research_fact f LEFT JOIN video_source v ON v.url = f.source_url "
+            "LEFT JOIN video_dating d ON d.video_id = v.video_id "
+            "WHERE f.company = ? ORDER BY COALESCE(d.date_to, f.source_date) DESC, f.id DESC LIMIT ?",
+            (company, limit))
+        return list(rows)
+    except Exception:  # noqa: BLE001 - archive tables absent (older database): plain load order
+        return list(db.execute(
+            "SELECT topic, fact_text, source_name, source_date FROM research_fact "
+            "WHERE company = ? ORDER BY id DESC LIMIT ?", (company, limit)))
+
+
 def build_pack(event: str, companies: list[str], db: Any, *, limit_per_company: int = 40,
                news: list[str] | None = None, sectors: list[str] | None = None) -> council.EvidencePack:
     """The event, plus what the brain already knows about these companies and their sectors."""
@@ -101,11 +121,9 @@ def build_pack(event: str, companies: list[str], db: Any, *, limit_per_company: 
     if not items:
         items.append(council.Evidence("n1", "news", event[:500], "Owner-supplied event text", ""))
     seq = 0
-    for company in list(companies) + sectors_for(companies, db, sectors):
-        rows = db.execute(
-            "SELECT topic, fact_text, source_name, source_date FROM research_fact "
-            "WHERE company = ? ORDER BY id DESC LIMIT ?", (company, limit_per_company))
-        for row in rows:
+    # MACRO:PAKISTAN is always in the pack: the macro lens needs the country backdrop for any event.
+    for company in list(companies) + sectors_for(companies, db, sectors) + ["MACRO:PAKISTAN"]:
+        for row in _dated_rows(db, company, limit_per_company):
             kind = kind_for(str(row["topic"]))
             if kind is None:
                 continue

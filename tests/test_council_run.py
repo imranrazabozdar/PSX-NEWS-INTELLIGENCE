@@ -137,3 +137,23 @@ def test_sector_and_macro_families_still_route_to_the_macro_lens():
 
 def test_a_topic_family_nobody_routes_is_still_shown_to_nobody():
     assert council_run.kind_for("random.unmapped") is None
+
+
+def test_macro_backdrop_is_included_and_newest_dated_facts_come_first():
+    db = _db()
+    for name in ("0005_video_source.sql", "0006_video_dating.sql"):
+        for stmt in mig.statements((ROOT / "database" / "library" / name).read_text(encoding="utf-8")):
+            db.execute(stmt)
+    db.execute(INSERT, ("MACRO:PAKISTAN", "macro.policy_rate", "Policy rate backdrop", None, None, "", "ARN",
+                        "u-old", "2026-11-14", "", "analyst_view", "2026-11-14T00:00:00Z"))
+    db.execute(INSERT, ("MACRO:PAKISTAN", "macro.policy_rate", "Newer rate view", None, None, "", "ARN",
+                        "u-new", "2026-11-14", "", "analyst_view", "2026-11-14T00:00:00Z"))
+    for vid, url, day in (("old", "u-old", "2024-06-01"), ("new", "u-new", "2026-10-01")):
+        db.execute("INSERT INTO video_source (video_id, title, channel, archive_position, url, "
+                   "speaker_may_differ, status) VALUES (?,?,?,?,?,?,?)",
+                   (vid, "t", "c", 0, url, 0, "extracted"))
+        db.execute("INSERT INTO video_dating (video_id, date_from, date_to, basis, note) VALUES (?,?,?,?,?)",
+                   (vid, day, day, "verified", ""))
+    pack = council_run.build_pack("Rates move.", ["OGDC"], db)
+    macro = [i for i in pack.items if i.company == "MACRO:PAKISTAN"]
+    assert [i.source_date for i in macro] == ["2026-10-01", "2024-06-01"]
