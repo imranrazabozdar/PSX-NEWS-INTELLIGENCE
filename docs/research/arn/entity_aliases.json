@@ -80,5 +80,9 @@
     "Lahore Electric Supply Company",
     "Multan Electric Power Company",
     "Islamabad Electric Supply Company"
-  ]
+  ],
+  "delisted": [
+    "PSMC"
+  ],
+  "_delisted_source": "PSX company page for PSMC shows a DELISTED tag (checked 2026-11-15)"
 }

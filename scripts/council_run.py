@@ -148,6 +148,10 @@ def _brief(rows: list[dict], company: str) -> str:
              "not reported figures.")
     if len(channels) == 1:
         text += " Single-source knowledge: weigh with caution."
+    from scripts import apply_entity_aliases
+
+    if company in apply_entity_aliases.delisted():
+        text += " DELISTED on PSX: these facts are history, not a live stock."
     return text
 
 

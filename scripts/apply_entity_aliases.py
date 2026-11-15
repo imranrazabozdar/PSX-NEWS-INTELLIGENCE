@@ -24,6 +24,11 @@ def load(path: Path = ALIASES) -> dict[str, str]:
     return data
 
 
+def delisted(path: Path = ALIASES) -> set[str]:
+    """Tickers the exchange shows as delisted: their facts are history, not a live stock."""
+    return set(json.loads(path.read_text(encoding="utf-8")).get("delisted", []))
+
+
 def statements(aliases: dict[str, str]) -> list[tuple[str, tuple]]:
     """research_fact.company is stored as written; company_link.affected is upper-cased."""
     out = []
