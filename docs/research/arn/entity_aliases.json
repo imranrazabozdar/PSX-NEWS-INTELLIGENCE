@@ -47,6 +47,14 @@
     "Maple Leaf Group": "MLCF",
     "LSC Capital": "LSEFSL",
     "Tasdeeq Information Services": "TISL",
-    "Naya Nazimabad REIT": "NNAR"
-  }
+    "Naya Nazimabad REIT": "NNAR",
+    "Ghani Dairies": "GDL",
+    "Synergy": "CNERGY",
+    "Service Long March Tyres": "SLM",
+    "PIA Holding Company": "PIAHCLA"
+  },
+  "not_listed": [
+    "Central Depository Company",
+    "National Clearing Company of Pakistan Limited"
+  ]
 }
