@@ -185,3 +185,14 @@ def test_brief_warns_when_knowledge_comes_from_one_source():
     pack = council_run.build_pack("Oil spikes.", ["OGDC"], _db())
     brief = next(i.text for i in pack.items if "stored fact(s)" in i.text)
     assert "1 distinct source" in brief and "Single-source" in brief
+
+
+def test_stored_links_reach_the_macro_lens_with_their_date():
+    db = _db()
+    for name in ("0005_video_source.sql", "0006_video_dating.sql", "0007_company_link.sql"):
+        for stmt in mig.statements((ROOT / "database" / "library" / name).read_text(encoding="utf-8")):
+            db.execute(stmt)
+    db.execute("INSERT INTO company_link (driver, affected, direction, fact_id, quote, created_at) "
+               "VALUES ('policy rate', 'OGDC', 'up', 2, 'Rate cuts lift cyclicals', 'x')")
+    pack = council_run.build_pack("SBP cut the policy rate.", ["OGDC"], db)
+    assert "policy rate affects OGDC (up)" in pack.for_role("macro")
