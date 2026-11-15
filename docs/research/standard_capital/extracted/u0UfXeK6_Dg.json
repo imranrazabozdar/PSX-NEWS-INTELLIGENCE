@@ -1,0 +1,122 @@
+[
+ {
+  "company": "OGDC",
+  "topic": "news.stake_sale",
+  "fact_text": "Reports said OGDC shares could go to Gulf investors, but the first step reported was a share transfer to the petroleum division before any sovereign wealth fund step under SIFC.",
+  "value": null,
+  "unit": null,
+  "period": "2024-03-25",
+  "source_name": "Standard Capital Securities, 'The Significance of OGDC Stake Sale, PSX Market Update & Economic Impact' (YouTube, 2024-03-25)",
+  "source_url": "https://www.youtube.com/watch?v=u0UfXeK6_Dg",
+  "video_id": "u0UfXeK6_Dg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PPL",
+  "topic": "news.stake_sale",
+  "fact_text": "PPL could also be included in any stake sale to Gulf investors from Saudi Arabia, Qatar or the UAE, the analyst said.",
+  "value": null,
+  "unit": null,
+  "period": "2024-03-25",
+  "source_name": "Standard Capital Securities, 'The Significance of OGDC Stake Sale, PSX Market Update & Economic Impact' (YouTube, 2024-03-25)",
+  "source_url": "https://www.youtube.com/watch?v=u0UfXeK6_Dg",
+  "video_id": "u0UfXeK6_Dg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:OIL_GAS",
+  "topic": "strategy.ppp",
+  "fact_text": "Public-private partnership in large oil and gas companies, where output is falling, was needed to raise production and widen exploration across Pakistan, the analyst argued.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'The Significance of OGDC Stake Sale, PSX Market Update & Economic Impact' (YouTube, 2024-03-25)",
+  "source_url": "https://www.youtube.com/watch?v=u0UfXeK6_Dg",
+  "video_id": "u0UfXeK6_Dg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PSO",
+  "topic": "commentary.thesis",
+  "fact_text": "The analyst said Pakistan State Oil looked somewhat better on technical charts in the 25 Mar 2024 update.",
+  "value": null,
+  "unit": null,
+  "period": "2024-03-25",
+  "source_name": "Standard Capital Securities, 'The Significance of OGDC Stake Sale, PSX Market Update & Economic Impact' (YouTube, 2024-03-25)",
+  "source_url": "https://www.youtube.com/watch?v=u0UfXeK6_Dg",
+  "video_id": "u0UfXeK6_Dg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.stability",
+  "fact_text": "The analyst said macroeconomic stability had been achieved and that reforms were moving in a more positive direction.",
+  "value": null,
+  "unit": null,
+  "period": "2024-03-25",
+  "source_name": "Standard Capital Securities, 'The Significance of OGDC Stake Sale, PSX Market Update & Economic Impact' (YouTube, 2024-03-25)",
+  "source_url": "https://www.youtube.com/watch?v=u0UfXeK6_Dg",
+  "video_id": "u0UfXeK6_Dg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.fbr_reform",
+  "fact_text": "Reforms to tax the retail and wholesale sectors through the FBR would take considerable time, the analyst said.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'The Significance of OGDC Stake Sale, PSX Market Update & Economic Impact' (YouTube, 2024-03-25)",
+  "source_url": "https://www.youtube.com/watch?v=u0UfXeK6_Dg",
+  "video_id": "u0UfXeK6_Dg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.property_dc_rate",
+  "fact_text": "A gap between market rates and DC rates in property deals was flagged; if transactions happen at market rates, the analyst said tax collection could rise.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'The Significance of OGDC Stake Sale, PSX Market Update & Economic Impact' (YouTube, 2024-03-25)",
+  "source_url": "https://www.youtube.com/watch?v=u0UfXeK6_Dg",
+  "video_id": "u0UfXeK6_Dg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.rate_cut_timing",
+  "fact_text": "The analyst expected interest rate cuts to be difficult in the first half of 2024, with cuts possibly starting after July 2024.",
+  "value": null,
+  "unit": null,
+  "period": "Jul 2024",
+  "source_name": "Standard Capital Securities, 'The Significance of OGDC Stake Sale, PSX Market Update & Economic Impact' (YouTube, 2024-03-25)",
+  "source_url": "https://www.youtube.com/watch?v=u0UfXeK6_Dg",
+  "video_id": "u0UfXeK6_Dg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.energy_inflation",
+  "fact_text": "Higher petrol and gas prices, and the energy-driven CPI, were seen as holding back interest rate cuts, the analyst said.",
+  "value": null,
+  "unit": null,
+  "period": "2024-03-25",
+  "source_name": "Standard Capital Securities, 'The Significance of OGDC Stake Sale, PSX Market Update & Economic Impact' (YouTube, 2024-03-25)",
+  "source_url": "https://www.youtube.com/watch?v=u0UfXeK6_Dg",
+  "video_id": "u0UfXeK6_Dg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "cycle.industry_utilisation",
+  "fact_text": "Industry was running at low utilisation and capacity, and the analyst expected trade and industry to improve in fiscal 2025.",
+  "value": null,
+  "unit": null,
+  "period": "FY25",
+  "source_name": "Standard Capital Securities, 'The Significance of OGDC Stake Sale, PSX Market Update & Economic Impact' (YouTube, 2024-03-25)",
+  "source_url": "https://www.youtube.com/watch?v=u0UfXeK6_Dg",
+  "video_id": "u0UfXeK6_Dg",
+  "confidence": "analyst_view"
+ }
+]

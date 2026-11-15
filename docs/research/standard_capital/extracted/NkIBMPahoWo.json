@@ -1,0 +1,74 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.ema_settings",
+  "fact_text": "The analyst's EMA setup uses a 9-period and a 21-period exponential moving average on the same chart.",
+  "value": 9,
+  "unit": "periods",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Exponential Moving Average (EMA) Trading Strategy | Stock Analysis for PSX and Equity Markets' (YouTube, 2025-01-26)",
+  "source_url": "https://www.youtube.com/watch?v=NkIBMPahoWo",
+  "video_id": "NkIBMPahoWo",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.ema_crossover",
+  "fact_text": "When the 9-period EMA crosses above the 21-period EMA, the analyst treats it as an upside signal.",
+  "value": 21,
+  "unit": "periods",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Exponential Moving Average (EMA) Trading Strategy | Stock Analysis for PSX and Equity Markets' (YouTube, 2025-01-26)",
+  "source_url": "https://www.youtube.com/watch?v=NkIBMPahoWo",
+  "video_id": "NkIBMPahoWo",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.ema_crossover",
+  "fact_text": "When the 9-period EMA crosses below the 21-period EMA, the analyst treats it as a downside signal.",
+  "value": 21,
+  "unit": "periods",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Exponential Moving Average (EMA) Trading Strategy | Stock Analysis for PSX and Equity Markets' (YouTube, 2025-01-26)",
+  "source_url": "https://www.youtube.com/watch?v=NkIBMPahoWo",
+  "video_id": "NkIBMPahoWo",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.ema_risk_levels",
+  "fact_text": "In the analyst's method the stop-loss sits below the prior swing low, and targets are set at 1:1 and 1:2 reward-to-risk ratios.",
+  "value": 2,
+  "unit": "times",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Exponential Moving Average (EMA) Trading Strategy | Stock Analysis for PSX and Equity Markets' (YouTube, 2025-01-26)",
+  "source_url": "https://www.youtube.com/watch?v=NkIBMPahoWo",
+  "video_id": "NkIBMPahoWo",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.ema_timeframe",
+  "fact_text": "The analyst moved from the daily chart to the one-hour chart to apply the crossover method to shorter-term moves.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Exponential Moving Average (EMA) Trading Strategy | Stock Analysis for PSX and Equity Markets' (YouTube, 2025-01-26)",
+  "source_url": "https://www.youtube.com/watch?v=NkIBMPahoWo",
+  "video_id": "NkIBMPahoWo",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SNGP",
+  "topic": "method.ema_example",
+  "fact_text": "On Sui Northern Gas's one-hour chart, bullish and bearish crossovers were followed by upward and downward moves, according to the analyst.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Exponential Moving Average (EMA) Trading Strategy | Stock Analysis for PSX and Equity Markets' (YouTube, 2025-01-26)",
+  "source_url": "https://www.youtube.com/watch?v=NkIBMPahoWo",
+  "video_id": "NkIBMPahoWo",
+  "confidence": "analyst_view"
+ }
+]

@@ -1,0 +1,26 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.industrial_growth",
+  "fact_text": "The analyst pointed to industrial growth and gas production as indicators to track for the Pakistan market outlook.",
+  "value": null,
+  "unit": null,
+  "period": "Dec 2023",
+  "source_name": "Standard Capital Securities, 'PSX Insights Market Updates & Valuation Analysis | Pakistan Stock Market.' (YouTube, 2023-12-22)",
+  "source_url": "https://www.youtube.com/watch?v=c3ZgzlC2fRw",
+  "video_id": "c3ZgzlC2fRw",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.textile_exports",
+  "fact_text": "The analyst mentioned textile export performance and shipping as data points that feed into the economic outlook.",
+  "value": null,
+  "unit": null,
+  "period": "Dec 2023",
+  "source_name": "Standard Capital Securities, 'PSX Insights Market Updates & Valuation Analysis | Pakistan Stock Market.' (YouTube, 2023-12-22)",
+  "source_url": "https://www.youtube.com/watch?v=c3ZgzlC2fRw",
+  "video_id": "c3ZgzlC2fRw",
+  "confidence": "analyst_view"
+ }
+]

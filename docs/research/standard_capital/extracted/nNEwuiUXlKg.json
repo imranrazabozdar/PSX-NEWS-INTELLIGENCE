@@ -1,0 +1,110 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.rate_cut_transmission",
+  "fact_text": "The analyst calls the cut in interest rates a good signal for the market, and says the current account deficit is far smaller than in earlier years, a key trigger.",
+  "value": null,
+  "unit": null,
+  "period": "2024-06",
+  "source_name": "Standard Capital Securities, 'KSE 100 Index: Will It Reach 80,000 Points? | Investment Insights on PIAA, Engro Corp, KEL, & HUBCO' (YouTube, 2024-06-28)",
+  "source_url": "https://www.youtube.com/watch?v=nNEwuiUXlKg",
+  "video_id": "nNEwuiUXlKg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.imf_programme",
+  "fact_text": "The analyst expects a new IMF programme to be agreed soon, which he sees as positive, while the government will push to raise tax revenue, adding a burden on the public.",
+  "value": null,
+  "unit": null,
+  "period": "2024-06",
+  "source_name": "Standard Capital Securities, 'KSE 100 Index: Will It Reach 80,000 Points? | Investment Insights on PIAA, Engro Corp, KEL, & HUBCO' (YouTube, 2024-06-28)",
+  "source_url": "https://www.youtube.com/watch?v=nNEwuiUXlKg",
+  "video_id": "nNEwuiUXlKg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.mutual_fund_flows",
+  "fact_text": "The analyst expects mutual funds, which were absent from the earlier rally, to enter the market because the tax treatment of income funds has changed.",
+  "value": null,
+  "unit": null,
+  "period": "2024-06",
+  "source_name": "Standard Capital Securities, 'KSE 100 Index: Will It Reach 80,000 Points? | Investment Insights on PIAA, Engro Corp, KEL, & HUBCO' (YouTube, 2024-06-28)",
+  "source_url": "https://www.youtube.com/watch?v=nNEwuiUXlKg",
+  "video_id": "nNEwuiUXlKg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "ENGRO",
+  "topic": "news.egm",
+  "fact_text": "The analyst calls the Engro Corporation extraordinary general meeting very important, as the group may sell some holdings, including its stake in Sindh Engro Coal.",
+  "value": null,
+  "unit": null,
+  "period": "2024-06",
+  "source_name": "Standard Capital Securities, 'KSE 100 Index: Will It Reach 80,000 Points? | Investment Insights on PIAA, Engro Corp, KEL, & HUBCO' (YouTube, 2024-06-28)",
+  "source_url": "https://www.youtube.com/watch?v=nNEwuiUXlKg",
+  "video_id": "nNEwuiUXlKg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "Dawood Hercules",
+  "topic": "news.corporate_action",
+  "fact_text": "Dawood Hercules, in which Engro Corporation holds shares, is set to be renamed Engro Holding after a demerger, and a detailed notice is on the PSX.",
+  "value": null,
+  "unit": null,
+  "period": "2024-06",
+  "source_name": "Standard Capital Securities, 'KSE 100 Index: Will It Reach 80,000 Points? | Investment Insights on PIAA, Engro Corp, KEL, & HUBCO' (YouTube, 2024-06-28)",
+  "source_url": "https://www.youtube.com/watch?v=nNEwuiUXlKg",
+  "video_id": "nNEwuiUXlKg",
+  "confidence": "fact"
+ },
+ {
+  "company": "PIAHCLA",
+  "topic": "news.privatisation",
+  "fact_text": "PIA's PSX ticker changed to PIAHCLA during its bidding process, and the analyst expects strong interest from local investors in the privatisation.",
+  "value": null,
+  "unit": null,
+  "period": "2024-06",
+  "source_name": "Standard Capital Securities, 'KSE 100 Index: Will It Reach 80,000 Points? | Investment Insights on PIAA, Engro Corp, KEL, & HUBCO' (YouTube, 2024-06-28)",
+  "source_url": "https://www.youtube.com/watch?v=nNEwuiUXlKg",
+  "video_id": "nNEwuiUXlKg",
+  "confidence": "fact"
+ },
+ {
+  "company": "KEL",
+  "topic": "news.policy",
+  "fact_text": "The analyst says investors have long waited for K-Electric's multi-year tariff decision, which he sees as a pending catalyst.",
+  "value": null,
+  "unit": null,
+  "period": "2024-06",
+  "source_name": "Standard Capital Securities, 'KSE 100 Index: Will It Reach 80,000 Points? | Investment Insights on PIAA, Engro Corp, KEL, & HUBCO' (YouTube, 2024-06-28)",
+  "source_url": "https://www.youtube.com/watch?v=nNEwuiUXlKg",
+  "video_id": "nNEwuiUXlKg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "HUBC",
+  "topic": "news.ev_venture",
+  "fact_text": "The analyst says a BYD-related agreement involving Hub Power was concluded after months of talks, and a PSX notice followed, as he reported in an earlier video.",
+  "value": null,
+  "unit": null,
+  "period": "2024-06",
+  "source_name": "Standard Capital Securities, 'KSE 100 Index: Will It Reach 80,000 Points? | Investment Insights on PIAA, Engro Corp, KEL, & HUBCO' (YouTube, 2024-06-28)",
+  "source_url": "https://www.youtube.com/watch?v=nNEwuiUXlKg",
+  "video_id": "nNEwuiUXlKg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_move",
+  "fact_text": "The analyst says the KSE-100 is trading above 80,000 points and asks whether the index can keep going, with stock-level re-rating as the next test.",
+  "value": 80000,
+  "unit": "index_points",
+  "period": "2024-06",
+  "source_name": "Standard Capital Securities, 'KSE 100 Index: Will It Reach 80,000 Points? | Investment Insights on PIAA, Engro Corp, KEL, & HUBCO' (YouTube, 2024-06-28)",
+  "source_url": "https://www.youtube.com/watch?v=nNEwuiUXlKg",
+  "video_id": "nNEwuiUXlKg",
+  "confidence": "analyst_view"
+ }
+]

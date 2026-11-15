@@ -1,0 +1,122 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.political_uncertainty",
+  "fact_text": "In early Jan 2025 the analyst said political uncertainty in Islamabad stopped the KSE-100 from sustaining its early rise.",
+  "value": null,
+  "unit": null,
+  "period": "Jan 2025",
+  "source_name": "Standard Capital Securities, 'Weekly Market Update: KSE 100 Index Insights & Top Stocks to Buy | PSX Analysis' (YouTube, 2025-01-10)",
+  "source_url": "https://www.youtube.com/watch?v=ySdQ0K7dKiQ",
+  "video_id": "ySdQ0K7dKiQ",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_volatility",
+  "fact_text": "In early Jan 2025 the analyst described the market as volatile with pump-and-dump behaviour, and warned that heavy leverage in futures and margin financing made the swings dangerous.",
+  "value": null,
+  "unit": null,
+  "period": "Jan 2025",
+  "source_name": "Standard Capital Securities, 'Weekly Market Update: KSE 100 Index Insights & Top Stocks to Buy | PSX Analysis' (YouTube, 2025-01-10)",
+  "source_url": "https://www.youtube.com/watch?v=ySdQ0K7dKiQ",
+  "video_id": "ySdQ0K7dKiQ",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "AIRLINK",
+  "topic": "news.leverage_unwind",
+  "fact_text": "AIRLINK fell sharply in early Jan 2025, which the analyst linked to heavily leveraged positions in futures and margin financing being unwound.",
+  "value": null,
+  "unit": null,
+  "period": "Jan 2025",
+  "source_name": "Standard Capital Securities, 'Weekly Market Update: KSE 100 Index Insights & Top Stocks to Buy | PSX Analysis' (YouTube, 2025-01-10)",
+  "source_url": "https://www.youtube.com/watch?v=ySdQ0K7dKiQ",
+  "video_id": "ySdQ0K7dKiQ",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "Dolmen City REIT",
+  "topic": "commentary.valuation",
+  "fact_text": "In Jan 2025 the analyst said Dolmen City REIT traded at a steep discount to its net asset value, which he presented as the reason it looked attractive.",
+  "value": null,
+  "unit": null,
+  "period": "Jan 2025",
+  "source_name": "Standard Capital Securities, 'Weekly Market Update: KSE 100 Index Insights & Top Stocks to Buy | PSX Analysis' (YouTube, 2025-01-10)",
+  "source_url": "https://www.youtube.com/watch?v=ySdQ0K7dKiQ",
+  "video_id": "ySdQ0K7dKiQ",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:OIL_GAS",
+  "topic": "signal.captive_gas_tariff",
+  "fact_text": "Media reports in Jan 2025 said the IMF wanted higher gas rates for captive power plants, and the analyst said such an increase would benefit the two Sui gas distributors.",
+  "value": null,
+  "unit": null,
+  "period": "Jan 2025",
+  "source_name": "Standard Capital Securities, 'Weekly Market Update: KSE 100 Index Insights & Top Stocks to Buy | PSX Analysis' (YouTube, 2025-01-10)",
+  "source_url": "https://www.youtube.com/watch?v=ySdQ0K7dKiQ",
+  "video_id": "ySdQ0K7dKiQ",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:OIL_GAS",
+  "topic": "operations.sales_mix",
+  "fact_text": "Household consumers make up about 40 percent of the two Sui gas companies' total sales, and the processing industry about 20 percent, the analyst said.",
+  "value": 40,
+  "unit": "percent",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Weekly Market Update: KSE 100 Index Insights & Top Stocks to Buy | PSX Analysis' (YouTube, 2025-01-10)",
+  "source_url": "https://www.youtube.com/watch?v=ySdQ0K7dKiQ",
+  "video_id": "ySdQ0K7dKiQ",
+  "confidence": "fact"
+ },
+ {
+  "company": "SNGP",
+  "topic": "operations.line_losses",
+  "fact_text": "After management briefings, the analyst said Sui Northern's line losses fell sharply, to about 6 percent when the Balochistan factor is excluded.",
+  "value": 6,
+  "unit": "percent",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Weekly Market Update: KSE 100 Index Insights & Top Stocks to Buy | PSX Analysis' (YouTube, 2025-01-10)",
+  "source_url": "https://www.youtube.com/watch?v=ySdQ0K7dKiQ",
+  "video_id": "ySdQ0K7dKiQ",
+  "confidence": "fact"
+ },
+ {
+  "company": "SSGC",
+  "topic": "news.results",
+  "fact_text": "The most recent Sui Southern result the analyst cited covered Q1 2024, and further results were expected within about 5 to 8 months of 10 Jan 2025.",
+  "value": null,
+  "unit": null,
+  "period": "Q1 2024",
+  "source_name": "Standard Capital Securities, 'Weekly Market Update: KSE 100 Index Insights & Top Stocks to Buy | PSX Analysis' (YouTube, 2025-01-10)",
+  "source_url": "https://www.youtube.com/watch?v=ySdQ0K7dKiQ",
+  "video_id": "ySdQ0K7dKiQ",
+  "confidence": "fact"
+ },
+ {
+  "company": "SNGP",
+  "topic": "news.results",
+  "fact_text": "The most recent Sui Northern result the analyst cited covered the nine months of 2024, and further results were expected within about 5 to 8 months of 10 Jan 2025.",
+  "value": null,
+  "unit": null,
+  "period": "9M 2024",
+  "source_name": "Standard Capital Securities, 'Weekly Market Update: KSE 100 Index Insights & Top Stocks to Buy | PSX Analysis' (YouTube, 2025-01-10)",
+  "source_url": "https://www.youtube.com/watch?v=ySdQ0K7dKiQ",
+  "video_id": "ySdQ0K7dKiQ",
+  "confidence": "fact"
+ },
+ {
+  "company": "HCAR",
+  "topic": "commentary.outlook",
+  "fact_text": "The analyst expected Honda Atlas Cars' PAMA-reported sales to improve after weaker earlier quarters, because sales momentum was rising.",
+  "value": null,
+  "unit": null,
+  "period": "Jan 2025",
+  "source_name": "Standard Capital Securities, 'Weekly Market Update: KSE 100 Index Insights & Top Stocks to Buy | PSX Analysis' (YouTube, 2025-01-10)",
+  "source_url": "https://www.youtube.com/watch?v=ySdQ0K7dKiQ",
+  "video_id": "ySdQ0K7dKiQ",
+  "confidence": "analyst_view"
+ }
+]

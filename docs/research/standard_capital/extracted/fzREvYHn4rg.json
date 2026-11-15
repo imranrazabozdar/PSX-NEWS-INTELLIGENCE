@@ -1,0 +1,110 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.circular_debt_payment",
+  "fact_text": "On 22 Jan 2024 electronic media reported that about 1,250 billion rupees (1.2 trillion) would be paid toward circular debt, with 600 billion of it for GENCOs, and that the payment would come with IMF approval.",
+  "value": 1250,
+  "unit": "PKR_billions",
+  "period": "2024-01-22",
+  "source_name": "Standard Capital Securities, 'PSX Circular Debt Resolution News Stock Market Update' (YouTube, 2024-01-23)",
+  "source_url": "https://www.youtube.com/watch?v=fzREvYHn4rg",
+  "video_id": "fzREvYHn4rg",
+  "confidence": "fact"
+ },
+ {
+  "company": "SECTOR:OIL_GAS",
+  "topic": "market.oil_gas_shares",
+  "fact_text": "On 22 Jan 2024 OGDC and PPL shares came under pressure after the circular debt payment report, which the analyst says has not been confirmed in major newspapers.",
+  "value": null,
+  "unit": null,
+  "period": "2024-01-22",
+  "source_name": "Standard Capital Securities, 'PSX Circular Debt Resolution News Stock Market Update' (YouTube, 2024-01-23)",
+  "source_url": "https://www.youtube.com/watch?v=fzREvYHn4rg",
+  "video_id": "fzREvYHn4rg",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.circular_debt_resolution",
+  "fact_text": "The analyst says circular debt must be resolved before the sovereign wealth fund and SIFC plans with Middle Eastern investors can move forward.",
+  "value": null,
+  "unit": null,
+  "period": "2024-01-23",
+  "source_name": "Standard Capital Securities, 'PSX Circular Debt Resolution News Stock Market Update' (YouTube, 2024-01-23)",
+  "source_url": "https://www.youtube.com/watch?v=fzREvYHn4rg",
+  "video_id": "fzREvYHn4rg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.nfc_award",
+  "fact_text": "The NFC Award is on the policy agenda, which the analyst calls a very important development that few people discuss in relation to Pakistan's economic plans.",
+  "value": null,
+  "unit": null,
+  "period": "2024-01-23",
+  "source_name": "Standard Capital Securities, 'PSX Circular Debt Resolution News Stock Market Update' (YouTube, 2024-01-23)",
+  "source_url": "https://www.youtube.com/watch?v=fzREvYHn4rg",
+  "video_id": "fzREvYHn4rg",
+  "confidence": "fact"
+ },
+ {
+  "company": "SECTOR:OIL_GAS",
+  "topic": "operations.tight_gas",
+  "fact_text": "Tight gas is natural gas trapped in low-permeability rock; Pakistan has large reserves, but extracting it needs costly equipment that local companies may not have.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Circular Debt Resolution News Stock Market Update' (YouTube, 2024-01-23)",
+  "source_url": "https://www.youtube.com/watch?v=fzREvYHn4rg",
+  "video_id": "fzREvYHn4rg",
+  "confidence": "fact"
+ },
+ {
+  "company": "SECTOR:OIL_GAS",
+  "topic": "macro.tight_gas_policy",
+  "fact_text": "A tight gas policy is on the agenda, and the analyst expects OGDC and PPL to be involved in tight gas extraction, which he calls an important watch point.",
+  "value": null,
+  "unit": null,
+  "period": "2024-01-23",
+  "source_name": "Standard Capital Securities, 'PSX Circular Debt Resolution News Stock Market Update' (YouTube, 2024-01-23)",
+  "source_url": "https://www.youtube.com/watch?v=fzREvYHn4rg",
+  "video_id": "fzREvYHn4rg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.gas_shortage",
+  "fact_text": "The analyst says Pakistan's natural gas supply has fallen sharply, and industries face severe gas shortages, especially in winter.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Circular Debt Resolution News Stock Market Update' (YouTube, 2024-01-23)",
+  "source_url": "https://www.youtube.com/watch?v=fzREvYHn4rg",
+  "video_id": "fzREvYHn4rg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.election",
+  "fact_text": "A general election is scheduled for 8 Feb 2024, and Pakistan is run by a caretaker government until then.",
+  "value": null,
+  "unit": null,
+  "period": "2024-02-08",
+  "source_name": "Standard Capital Securities, 'PSX Circular Debt Resolution News Stock Market Update' (YouTube, 2024-01-23)",
+  "source_url": "https://www.youtube.com/watch?v=fzREvYHn4rg",
+  "video_id": "fzREvYHn4rg",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_sentiment",
+  "fact_text": "The analyst describes the market as dull on 23 Jan 2024, with investors waiting for the election outcome and the circular debt decision.",
+  "value": null,
+  "unit": null,
+  "period": "2024-01-23",
+  "source_name": "Standard Capital Securities, 'PSX Circular Debt Resolution News Stock Market Update' (YouTube, 2024-01-23)",
+  "source_url": "https://www.youtube.com/watch?v=fzREvYHn4rg",
+  "video_id": "fzREvYHn4rg",
+  "confidence": "analyst_view"
+ }
+]

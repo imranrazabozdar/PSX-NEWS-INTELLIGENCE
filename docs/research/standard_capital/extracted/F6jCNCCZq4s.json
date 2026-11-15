@@ -1,0 +1,98 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.enterprise_value",
+  "fact_text": "Enterprise value equals market capitalisation plus debt minus cash and cash equivalents, so it measures the cost of buying the whole business.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What If Enterprise Value Is Not What You Think | EVPS | Afaque Manzar| Pakistan Stock Market' (YouTube, 2025-03-28)",
+  "source_url": "https://www.youtube.com/watch?v=F6jCNCCZq4s",
+  "video_id": "F6jCNCCZq4s",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.cash_equivalents",
+  "fact_text": "Cash and cash equivalents are assets a company can turn into cash quickly, such as bank balances, gold or listed shares, and they are deducted when computing enterprise value.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What If Enterprise Value Is Not What You Think | EVPS | Afaque Manzar| Pakistan Stock Market' (YouTube, 2025-03-28)",
+  "source_url": "https://www.youtube.com/watch?v=F6jCNCCZq4s",
+  "video_id": "F6jCNCCZq4s",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.enterprise_value_cash_rich",
+  "fact_text": "A company holding more cash than debt can have an enterprise value below its market capitalisation, because the buyer effectively gets that surplus cash back.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What If Enterprise Value Is Not What You Think | EVPS | Afaque Manzar| Pakistan Stock Market' (YouTube, 2025-03-28)",
+  "source_url": "https://www.youtube.com/watch?v=F6jCNCCZq4s",
+  "video_id": "F6jCNCCZq4s",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.ev_per_share",
+  "fact_text": "Enterprise value per share is enterprise value divided by shares outstanding, and it can be compared with the share price to judge whether a stock looks cheap or expensive.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What If Enterprise Value Is Not What You Think | EVPS | Afaque Manzar| Pakistan Stock Market' (YouTube, 2025-03-28)",
+  "source_url": "https://www.youtube.com/watch?v=F6jCNCCZq4s",
+  "video_id": "F6jCNCCZq4s",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.debt_from_balance_sheet",
+  "fact_text": "Debt is not published ready-made for listed companies; it has to be calculated from the balance sheet in the annual report.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What If Enterprise Value Is Not What You Think | EVPS | Afaque Manzar| Pakistan Stock Market' (YouTube, 2025-03-28)",
+  "source_url": "https://www.youtube.com/watch?v=F6jCNCCZq4s",
+  "video_id": "F6jCNCCZq4s",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.acquisition_price_hypothetical",
+  "fact_text": "The analyst's worked examples are hypothetical, since a buyer cannot collect every share at the quoted price, because large buying pushes the price up through supply and demand.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What If Enterprise Value Is Not What You Think | EVPS | Afaque Manzar| Pakistan Stock Market' (YouTube, 2025-03-28)",
+  "source_url": "https://www.youtube.com/watch?v=F6jCNCCZq4s",
+  "video_id": "F6jCNCCZq4s",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.ev_not_standalone",
+  "fact_text": "The analyst says enterprise value per share should not be used alone, because a cash-rich company can look undervalued while other factors still need checking.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What If Enterprise Value Is Not What You Think | EVPS | Afaque Manzar| Pakistan Stock Market' (YouTube, 2025-03-28)",
+  "source_url": "https://www.youtube.com/watch?v=F6jCNCCZq4s",
+  "video_id": "F6jCNCCZq4s",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.ev_distressed_accumulation",
+  "fact_text": "The analyst recounts a prominent chartered accountant who estimated a falling insurance company's enterprise value from its annual reports, then built a stake until he became majority shareholder.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What If Enterprise Value Is Not What You Think | EVPS | Afaque Manzar| Pakistan Stock Market' (YouTube, 2025-03-28)",
+  "source_url": "https://www.youtube.com/watch?v=F6jCNCCZq4s",
+  "video_id": "F6jCNCCZq4s",
+  "confidence": "analyst_view"
+ }
+]

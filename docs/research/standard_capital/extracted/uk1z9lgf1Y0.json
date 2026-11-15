@@ -1,0 +1,86 @@
+[
+ {
+  "company": "BFBIO",
+  "topic": "commentary.thesis",
+  "fact_text": "The analyst saw a bullish RSI divergence on the daily chart, with price making lower lows while the RSI made higher lows.",
+  "value": null,
+  "unit": null,
+  "period": "2025-04-16",
+  "source_name": "Standard Capital Securities, 'BFBIO Technical Analysis | Pakistan Stock Market Insights | PSX Equity Market Analysis' (YouTube, 2025-04-16)",
+  "source_url": "https://www.youtube.com/watch?v=uk1z9lgf1Y0",
+  "video_id": "uk1z9lgf1Y0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "BFBIO",
+  "topic": "commentary.thesis",
+  "fact_text": "Resistance was seen in a zone of 163 to 164, and the analyst said a sustained break above it would open a move toward the upper channel level.",
+  "value": 163,
+  "unit": "PKR_per_share",
+  "period": "2025-04-16",
+  "source_name": "Standard Capital Securities, 'BFBIO Technical Analysis | Pakistan Stock Market Insights | PSX Equity Market Analysis' (YouTube, 2025-04-16)",
+  "source_url": "https://www.youtube.com/watch?v=uk1z9lgf1Y0",
+  "video_id": "uk1z9lgf1Y0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "BFBIO",
+  "topic": "commentary.thesis",
+  "fact_text": "The analyst placed the upper boundary of a descending channel near 180, which matched a prior support and resistance level on his chart.",
+  "value": 180,
+  "unit": "PKR_per_share",
+  "period": "2025-04-16",
+  "source_name": "Standard Capital Securities, 'BFBIO Technical Analysis | Pakistan Stock Market Insights | PSX Equity Market Analysis' (YouTube, 2025-04-16)",
+  "source_url": "https://www.youtube.com/watch?v=uk1z9lgf1Y0",
+  "video_id": "uk1z9lgf1Y0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "BFBIO",
+  "topic": "commentary.risk",
+  "fact_text": "The analyst set a reference support near 148 and said a daily close below it would invalidate the bullish setup in his framework.",
+  "value": 148,
+  "unit": "PKR_per_share",
+  "period": "2025-04-16",
+  "source_name": "Standard Capital Securities, 'BFBIO Technical Analysis | Pakistan Stock Market Insights | PSX Equity Market Analysis' (YouTube, 2025-04-16)",
+  "source_url": "https://www.youtube.com/watch?v=uk1z9lgf1Y0",
+  "video_id": "uk1z9lgf1Y0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "BFBIO",
+  "topic": "commentary.thesis",
+  "fact_text": "The stock was trading inside a descending channel, which the analyst treated as the main structure for judging the trend.",
+  "value": null,
+  "unit": null,
+  "period": "2025-04-16",
+  "source_name": "Standard Capital Securities, 'BFBIO Technical Analysis | Pakistan Stock Market Insights | PSX Equity Market Analysis' (YouTube, 2025-04-16)",
+  "source_url": "https://www.youtube.com/watch?v=uk1z9lgf1Y0",
+  "video_id": "uk1z9lgf1Y0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "BFBIO",
+  "topic": "method.rsi_divergence",
+  "fact_text": "A bullish RSI divergence is price making lower lows while the RSI makes higher lows, which the analyst reads as weakening downside momentum.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'BFBIO Technical Analysis | Pakistan Stock Market Insights | PSX Equity Market Analysis' (YouTube, 2025-04-16)",
+  "source_url": "https://www.youtube.com/watch?v=uk1z9lgf1Y0",
+  "video_id": "uk1z9lgf1Y0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "BFBIO",
+  "topic": "method.channel_lines",
+  "fact_text": "Channel lines are drawn from swing highs and swing lows, then adjusted so both lines fit the price action, and a support or resistance level at a channel line is coloured to match.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'BFBIO Technical Analysis | Pakistan Stock Market Insights | PSX Equity Market Analysis' (YouTube, 2025-04-16)",
+  "source_url": "https://www.youtube.com/watch?v=uk1z9lgf1Y0",
+  "video_id": "uk1z9lgf1Y0",
+  "confidence": "analyst_view"
+ }
+]

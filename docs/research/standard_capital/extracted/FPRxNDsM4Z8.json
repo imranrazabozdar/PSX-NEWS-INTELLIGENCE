@@ -1,0 +1,110 @@
+[
+ {
+  "company": "SECTOR:OIL_GAS",
+  "topic": "cycle.omc_margins",
+  "fact_text": "Oil marketing company margins have risen roughly 30 percent after earlier dealer margin increases, according to the analyst.",
+  "value": 30,
+  "unit": "percent",
+  "period": "2023-12-01",
+  "source_name": "Standard Capital Securities, 'PSX Soars with Improved PSO Outlook | Valuation Analysis' (YouTube, 2023-12-01)",
+  "source_url": "https://www.youtube.com/watch?v=FPRxNDsM4Z8",
+  "video_id": "FPRxNDsM4Z8",
+  "confidence": "fact"
+ },
+ {
+  "company": "SECTOR:OIL_GAS",
+  "topic": "cycle.omc_margins",
+  "fact_text": "The OMC margin on petrol is about 82 paisa per litre, according to the analyst.",
+  "value": 0.82,
+  "unit": "PKR_per_litre",
+  "period": "2023-12-01",
+  "source_name": "Standard Capital Securities, 'PSX Soars with Improved PSO Outlook | Valuation Analysis' (YouTube, 2023-12-01)",
+  "source_url": "https://www.youtube.com/watch?v=FPRxNDsM4Z8",
+  "video_id": "FPRxNDsM4Z8",
+  "confidence": "fact"
+ },
+ {
+  "company": "SECTOR:OIL_GAS",
+  "topic": "returns.omc_gross_margin",
+  "fact_text": "An OMC model built on PSO's sales of about 1 trillion rupees implies a gross margin of roughly 7 to 8 percent.",
+  "value": 1,
+  "unit": "PKR_trillions",
+  "period": "2023-12-01",
+  "source_name": "Standard Capital Securities, 'PSX Soars with Improved PSO Outlook | Valuation Analysis' (YouTube, 2023-12-01)",
+  "source_url": "https://www.youtube.com/watch?v=FPRxNDsM4Z8",
+  "video_id": "FPRxNDsM4Z8",
+  "confidence": "fact"
+ },
+ {
+  "company": "PSO",
+  "topic": "commentary.financials",
+  "fact_text": "PSO is owed about 700 to 800 billion rupees in circular debt, mainly by Sui Northern Gas Pipelines, according to the analyst.",
+  "value": 700,
+  "unit": "PKR_billions",
+  "period": "2023-12-01",
+  "source_name": "Standard Capital Securities, 'PSX Soars with Improved PSO Outlook | Valuation Analysis' (YouTube, 2023-12-01)",
+  "source_url": "https://www.youtube.com/watch?v=FPRxNDsM4Z8",
+  "video_id": "FPRxNDsM4Z8",
+  "confidence": "fact"
+ },
+ {
+  "company": "PSO",
+  "topic": "commentary.outlook",
+  "fact_text": "The analyst said SNGP may start paying, which would stop circular debt from building and improve PSO's cash position.",
+  "value": null,
+  "unit": null,
+  "period": "2023-12-01",
+  "source_name": "Standard Capital Securities, 'PSX Soars with Improved PSO Outlook | Valuation Analysis' (YouTube, 2023-12-01)",
+  "source_url": "https://www.youtube.com/watch?v=FPRxNDsM4Z8",
+  "video_id": "FPRxNDsM4Z8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "APL",
+  "topic": "profile.business",
+  "fact_text": "Attock Petroleum holds about 10 to 11 percent of the volume handled in oil marketing, according to the analyst.",
+  "value": 10,
+  "unit": "percent",
+  "period": "2023-12-01",
+  "source_name": "Standard Capital Securities, 'PSX Soars with Improved PSO Outlook | Valuation Analysis' (YouTube, 2023-12-01)",
+  "source_url": "https://www.youtube.com/watch?v=FPRxNDsM4Z8",
+  "video_id": "FPRxNDsM4Z8",
+  "confidence": "fact"
+ },
+ {
+  "company": "SHEL",
+  "topic": "commentary.financials",
+  "fact_text": "Shell Pakistan's books have improved since it had negative equity two to three years earlier, according to the analyst.",
+  "value": null,
+  "unit": null,
+  "period": "2023-12-01",
+  "source_name": "Standard Capital Securities, 'PSX Soars with Improved PSO Outlook | Valuation Analysis' (YouTube, 2023-12-01)",
+  "source_url": "https://www.youtube.com/watch?v=FPRxNDsM4Z8",
+  "video_id": "FPRxNDsM4Z8",
+  "confidence": "fact"
+ },
+ {
+  "company": "SHEL",
+  "topic": "news.ownership_change",
+  "fact_text": "Shell's Dutch-Anglo parent is selling its Pakistan business to Wafi Energy, a Saudi entity, according to the analyst.",
+  "value": null,
+  "unit": null,
+  "period": "2023-12-01",
+  "source_name": "Standard Capital Securities, 'PSX Soars with Improved PSO Outlook | Valuation Analysis' (YouTube, 2023-12-01)",
+  "source_url": "https://www.youtube.com/watch?v=FPRxNDsM4Z8",
+  "video_id": "FPRxNDsM4Z8",
+  "confidence": "fact"
+ },
+ {
+  "company": "SECTOR:OIL_GAS",
+  "topic": "cycle.omc_outlook",
+  "fact_text": "The analyst said oil marketing companies look better placed, with stronger margins and cash flows and less risk of circular debt building up.",
+  "value": null,
+  "unit": null,
+  "period": "2023-12-01",
+  "source_name": "Standard Capital Securities, 'PSX Soars with Improved PSO Outlook | Valuation Analysis' (YouTube, 2023-12-01)",
+  "source_url": "https://www.youtube.com/watch?v=FPRxNDsM4Z8",
+  "video_id": "FPRxNDsM4Z8",
+  "confidence": "analyst_view"
+ }
+]

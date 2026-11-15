@@ -1,0 +1,122 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "news.policy",
+  "fact_text": "The National Assembly passed the 26th constitutional amendment after the Senate had approved it, and the analyst sees this as a supportive factor for the stock market.",
+  "value": null,
+  "unit": null,
+  "period": "Oct 2024",
+  "source_name": "Standard Capital Securities, 'Why Attock Group Shares Are Rising? | Refinery & Oil Sector Analysis | OGDC, PPL, MARI, ATRL, POL' (YouTube, 2024-10-21)",
+  "source_url": "https://www.youtube.com/watch?v=KykQlwKi3V0",
+  "video_id": "KykQlwKi3V0",
+  "confidence": "fact"
+ },
+ {
+  "company": "OGDC",
+  "topic": "commentary.thesis",
+  "fact_text": "Northern Gas Pipelines paid part of its gas bills owed to OGDC and PPL, and better gas collections improved those companies' liquidity, according to the analyst's balance-sheet review.",
+  "value": null,
+  "unit": null,
+  "period": "2024",
+  "source_name": "Standard Capital Securities, 'Why Attock Group Shares Are Rising? | Refinery & Oil Sector Analysis | OGDC, PPL, MARI, ATRL, POL' (YouTube, 2024-10-21)",
+  "source_url": "https://www.youtube.com/watch?v=KykQlwKi3V0",
+  "video_id": "KykQlwKi3V0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MARI",
+  "topic": "profile.management",
+  "fact_text": "Mari Petroleum has shareholding through Fauji Foundation and a government-linked holding, which the analyst places within the state-owned enterprise group he was discussing.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Why Attock Group Shares Are Rising? | Refinery & Oil Sector Analysis | OGDC, PPL, MARI, ATRL, POL' (YouTube, 2024-10-21)",
+  "source_url": "https://www.youtube.com/watch?v=KykQlwKi3V0",
+  "video_id": "KykQlwKi3V0",
+  "confidence": "fact"
+ },
+ {
+  "company": "MARI",
+  "topic": "profile.business",
+  "fact_text": "Mari Petroleum is Pakistan's largest gas producer, and the analyst expects new gas fields to be priced at about $60 under tariff or wellhead terms, supporting growth.",
+  "value": 60,
+  "unit": "USD",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Why Attock Group Shares Are Rising? | Refinery & Oil Sector Analysis | OGDC, PPL, MARI, ATRL, POL' (YouTube, 2024-10-21)",
+  "source_url": "https://www.youtube.com/watch?v=KykQlwKi3V0",
+  "video_id": "KykQlwKi3V0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MARI",
+  "topic": "news.dividend",
+  "fact_text": "The analyst noted that Mari's large bonus issue and large dividend have already gone ex, so most of that distribution has been paid out.",
+  "value": null,
+  "unit": null,
+  "period": "Oct 2024",
+  "source_name": "Standard Capital Securities, 'Why Attock Group Shares Are Rising? | Refinery & Oil Sector Analysis | OGDC, PPL, MARI, ATRL, POL' (YouTube, 2024-10-21)",
+  "source_url": "https://www.youtube.com/watch?v=KykQlwKi3V0",
+  "video_id": "KykQlwKi3V0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MARI",
+  "topic": "commentary.valuation",
+  "fact_text": "Mari trades at about 5 to 6 times earnings, and the analyst suggested its target multiple could rise to about 8 times if interest rates fall.",
+  "value": 8,
+  "unit": "times",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Why Attock Group Shares Are Rising? | Refinery & Oil Sector Analysis | OGDC, PPL, MARI, ATRL, POL' (YouTube, 2024-10-21)",
+  "source_url": "https://www.youtube.com/watch?v=KykQlwKi3V0",
+  "video_id": "KykQlwKi3V0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MARI",
+  "topic": "commentary.outlook",
+  "fact_text": "The analyst projected Mari's earnings per share at 70 to 80 rupees for FY25, citing a growing gas and production profile.",
+  "value": 70,
+  "unit": "PKR",
+  "period": "FY25",
+  "source_name": "Standard Capital Securities, 'Why Attock Group Shares Are Rising? | Refinery & Oil Sector Analysis | OGDC, PPL, MARI, ATRL, POL' (YouTube, 2024-10-21)",
+  "source_url": "https://www.youtube.com/watch?v=KykQlwKi3V0",
+  "video_id": "KykQlwKi3V0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "APL",
+  "topic": "commentary.financials",
+  "fact_text": "Attock Petroleum's first-quarter earnings absorbed a PKR 7.7 billion dry-well charge, which the analyst said held earnings per share below what it could otherwise have been.",
+  "value": 7.7,
+  "unit": "PKR_billions",
+  "period": "Q1 FY25",
+  "source_name": "Standard Capital Securities, 'Why Attock Group Shares Are Rising? | Refinery & Oil Sector Analysis | OGDC, PPL, MARI, ATRL, POL' (YouTube, 2024-10-21)",
+  "source_url": "https://www.youtube.com/watch?v=KykQlwKi3V0",
+  "video_id": "KykQlwKi3V0",
+  "confidence": "fact"
+ },
+ {
+  "company": "ATRL",
+  "topic": "profile.business",
+  "fact_text": "Attock Refinery is a mid-country refinery that sources its crude oil from Pakistan Oil Fields, a fellow Attock group company.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Why Attock Group Shares Are Rising? | Refinery & Oil Sector Analysis | OGDC, PPL, MARI, ATRL, POL' (YouTube, 2024-10-21)",
+  "source_url": "https://www.youtube.com/watch?v=KykQlwKi3V0",
+  "video_id": "KykQlwKi3V0",
+  "confidence": "fact"
+ },
+ {
+  "company": "ATRL",
+  "topic": "commentary.risk",
+  "fact_text": "The analyst said Attock Refinery still runs on a very old processing setup, which he flagged as a point to watch in its outlook.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Why Attock Group Shares Are Rising? | Refinery & Oil Sector Analysis | OGDC, PPL, MARI, ATRL, POL' (YouTube, 2024-10-21)",
+  "source_url": "https://www.youtube.com/watch?v=KykQlwKi3V0",
+  "video_id": "KykQlwKi3V0",
+  "confidence": "analyst_view"
+ }
+]

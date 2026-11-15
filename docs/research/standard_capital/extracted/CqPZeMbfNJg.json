@@ -1,0 +1,38 @@
+[
+ {
+  "company": "SECTOR:BANKS",
+  "topic": "valuation.price_to_book",
+  "fact_text": "Analyst called a price-to-book of 0.57 attractive for one bank he discussed, as a value-investing signal.",
+  "value": 0.57,
+  "unit": "times",
+  "period": "2024-02-09",
+  "source_name": "Standard Capital Securities, 'PSX Market Updates Post-Elections' (YouTube, 2024-02-09)",
+  "source_url": "https://www.youtube.com/watch?v=CqPZeMbfNJg",
+  "video_id": "CqPZeMbfNJg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MLCF",
+  "topic": "commentary.valuation",
+  "fact_text": "Analyst included Maple Leaf Cement among value-investing picks, citing its price-to-earnings and price-to-book multiples as attractive.",
+  "value": null,
+  "unit": null,
+  "period": "2024-02-09",
+  "source_name": "Standard Capital Securities, 'PSX Market Updates Post-Elections' (YouTube, 2024-02-09)",
+  "source_url": "https://www.youtube.com/watch?v=CqPZeMbfNJg",
+  "video_id": "CqPZeMbfNJg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.value_screen",
+  "fact_text": "Analyst's value screen compares price-to-sales, price-to-earnings and price-to-book multiples, with past returns on equity and net margins.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Market Updates Post-Elections' (YouTube, 2024-02-09)",
+  "source_url": "https://www.youtube.com/watch?v=CqPZeMbfNJg",
+  "video_id": "CqPZeMbfNJg",
+  "confidence": "fact"
+ }
+]

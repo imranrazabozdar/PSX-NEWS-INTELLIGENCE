@@ -1,0 +1,50 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.pullback_structure",
+  "fact_text": "An uptrend is a sequence of higher highs and higher lows, and a downtrend is the reverse, with lower lows and lower highs.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'How to Identify a Pullback in Technical Analysis | PSX Stock Market Insights & Trading Strategies' (YouTube, 2025-02-02)",
+  "source_url": "https://www.youtube.com/watch?v=vPPE8UBJnYE",
+  "video_id": "vPPE8UBJnYE",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.pullback_validity",
+  "fact_text": "A pullback counts as valid only after price sweeps below the low of the previous candle or closes beneath it, and the structure completes when the high of that candle is broken.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'How to Identify a Pullback in Technical Analysis | PSX Stock Market Insights & Trading Strategies' (YouTube, 2025-02-02)",
+  "source_url": "https://www.youtube.com/watch?v=vPPE8UBJnYE",
+  "video_id": "vPPE8UBJnYE",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.inside_candle",
+  "fact_text": "An inside candle has its high and low both within the range of the preceding major candle, so its own range carries no structural weight and the major candle sets the level.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'How to Identify a Pullback in Technical Analysis | PSX Stock Market Insights & Trading Strategies' (YouTube, 2025-02-02)",
+  "source_url": "https://www.youtube.com/watch?v=vPPE8UBJnYE",
+  "video_id": "vPPE8UBJnYE",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.pullback_mistake",
+  "fact_text": "The analyst warned that marking a pullback structure straight onto the chart, without first checking whether the previous candle's low was swept, produces a false pullback.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'How to Identify a Pullback in Technical Analysis | PSX Stock Market Insights & Trading Strategies' (YouTube, 2025-02-02)",
+  "source_url": "https://www.youtube.com/watch?v=vPPE8UBJnYE",
+  "video_id": "vPPE8UBJnYE",
+  "confidence": "analyst_view"
+ }
+]

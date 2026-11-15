@@ -1,0 +1,110 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "news.circular_debt_release",
+  "fact_text": "The government released 200 billion PKR for the power sector's circular debt after an ECC meeting and the circular debt plan.",
+  "value": 200,
+  "unit": "PKR_billions",
+  "period": "2023-12-29",
+  "source_name": "Standard Capital Securities, 'Circular Debt Payment's Impact PSX Market Update' (YouTube, 2023-12-29)",
+  "source_url": "https://www.youtube.com/watch?v=1VBRj_8t-Ew",
+  "video_id": "1VBRj_8t-Ew",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.circular_debt_scale",
+  "fact_text": "The analyst called the 200 billion PKR release a good start but small against the scale of the circular debt problem.",
+  "value": null,
+  "unit": null,
+  "period": "Dec 2023",
+  "source_name": "Standard Capital Securities, 'Circular Debt Payment's Impact PSX Market Update' (YouTube, 2023-12-29)",
+  "source_url": "https://www.youtube.com/watch?v=1VBRj_8t-Ew",
+  "video_id": "1VBRj_8t-Ew",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.circular_debt_total",
+  "fact_text": "A figure of about 400 billion PKR for the circular debt was cited in the discussion, and the analyst said the government would need to set it off.",
+  "value": 400,
+  "unit": "PKR_billions",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Circular Debt Payment's Impact PSX Market Update' (YouTube, 2023-12-29)",
+  "source_url": "https://www.youtube.com/watch?v=1VBRj_8t-Ew",
+  "video_id": "1VBRj_8t-Ew",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PPL",
+  "topic": "commentary.financials",
+  "fact_text": "PPL's receivables from the circular debt payments flow through gas transmission and distribution companies such as SNGPL and SSGC.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Circular Debt Payment's Impact PSX Market Update' (YouTube, 2023-12-29)",
+  "source_url": "https://www.youtube.com/watch?v=1VBRj_8t-Ew",
+  "video_id": "1VBRj_8t-Ew",
+  "confidence": "fact"
+ },
+ {
+  "company": "PPL",
+  "topic": "commentary.risk",
+  "fact_text": "The analyst questioned why a gas producer with falling output would pay a one-time dividend.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Circular Debt Payment's Impact PSX Market Update' (YouTube, 2023-12-29)",
+  "source_url": "https://www.youtube.com/watch?v=1VBRj_8t-Ew",
+  "video_id": "1VBRj_8t-Ew",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MARI",
+  "topic": "market.gas_production",
+  "fact_text": "Mari's gas production was about 918 mmcfd daily, and the analyst said it has been larger than other fields' output for several years.",
+  "value": 918,
+  "unit": "mmcfd_daily",
+  "period": "2023-12-29",
+  "source_name": "Standard Capital Securities, 'Circular Debt Payment's Impact PSX Market Update' (YouTube, 2023-12-29)",
+  "source_url": "https://www.youtube.com/watch?v=1VBRj_8t-Ew",
+  "video_id": "1VBRj_8t-Ew",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.gas_production",
+  "fact_text": "Pakistan's national daily gas production was about 3,000 mmcfd, which the analyst said is well below domestic demand.",
+  "value": 3000,
+  "unit": "mmcfd_daily",
+  "period": "2023-12-29",
+  "source_name": "Standard Capital Securities, 'Circular Debt Payment's Impact PSX Market Update' (YouTube, 2023-12-29)",
+  "source_url": "https://www.youtube.com/watch?v=1VBRj_8t-Ew",
+  "video_id": "1VBRj_8t-Ew",
+  "confidence": "fact"
+ },
+ {
+  "company": "OGDC",
+  "topic": "commentary.risk",
+  "fact_text": "OGDC and PPL production has trended down for years because large older fields such as Sui, Qadirpur and Kandkot have declined, the analyst said.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Circular Debt Payment's Impact PSX Market Update' (YouTube, 2023-12-29)",
+  "source_url": "https://www.youtube.com/watch?v=1VBRj_8t-Ew",
+  "video_id": "1VBRj_8t-Ew",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.gas_supply_cost",
+  "fact_text": "Pakistan imports RLNG, and the expensive gas that results is supplied to industrial and commercial users, so the analyst wanted domestic gas output to rise.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Circular Debt Payment's Impact PSX Market Update' (YouTube, 2023-12-29)",
+  "source_url": "https://www.youtube.com/watch?v=1VBRj_8t-Ew",
+  "video_id": "1VBRj_8t-Ew",
+  "confidence": "analyst_view"
+ }
+]

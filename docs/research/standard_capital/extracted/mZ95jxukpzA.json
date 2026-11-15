@@ -1,0 +1,110 @@
+[
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "profile.business",
+  "fact_text": "Pakistan Mercantile Exchange (PMEX) is described as Pakistan's first futures exchange, giving local traders access to global financial markets.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What is PMEX? How to Trade & Invest in Pakistan Mercantile Exchange | Commodity Market Explained' (YouTube, 2024-12-06)",
+  "source_url": "https://www.youtube.com/watch?v=mZ95jxukpzA",
+  "video_id": "mZ95jxukpzA",
+  "confidence": "fact"
+ },
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "profile.business",
+  "fact_text": "PMEX lists metals including gold, silver, copper, platinum and aluminium, and energy contracts in natural gas and crude oil, with WTI as the US grade and Brent as the UK grade.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What is PMEX? How to Trade & Invest in Pakistan Mercantile Exchange | Commodity Market Explained' (YouTube, 2024-12-06)",
+  "source_url": "https://www.youtube.com/watch?v=mZ95jxukpzA",
+  "video_id": "mZ95jxukpzA",
+  "confidence": "fact"
+ },
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "profile.business",
+  "fact_text": "PMEX agricultural contracts cover wheat, cotton, corn, soybean and sugar, and its currency pairs include EUR/USD, AUD/USD and GBP/USD.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What is PMEX? How to Trade & Invest in Pakistan Mercantile Exchange | Commodity Market Explained' (YouTube, 2024-12-06)",
+  "source_url": "https://www.youtube.com/watch?v=mZ95jxukpzA",
+  "video_id": "mZ95jxukpzA",
+  "confidence": "fact"
+ },
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "profile.business",
+  "fact_text": "PMEX also offers global index contracts, including Japan's Nikkei 225, the S&P 500, the Nasdaq 100 and the Dow Jones Industrial Average.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What is PMEX? How to Trade & Invest in Pakistan Mercantile Exchange | Commodity Market Explained' (YouTube, 2024-12-06)",
+  "source_url": "https://www.youtube.com/watch?v=mZ95jxukpzA",
+  "video_id": "mZ95jxukpzA",
+  "confidence": "fact"
+ },
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "profile.business",
+  "fact_text": "The analyst presents PMEX as a route for retail investors who want global market exposure while the rupee is weak against the US dollar.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What is PMEX? How to Trade & Invest in Pakistan Mercantile Exchange | Commodity Market Explained' (YouTube, 2024-12-06)",
+  "source_url": "https://www.youtube.com/watch?v=mZ95jxukpzA",
+  "video_id": "mZ95jxukpzA",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "method.gold_contract_margin",
+  "fact_text": "PMEX requires an initial margin of 2.25% of the gold contract value, and the trader then holds the buy and sell rights and the profit and loss responsibility.",
+  "value": 2.25,
+  "unit": "percent",
+  "period": "2024-12-06",
+  "source_name": "Standard Capital Securities, 'What is PMEX? How to Trade & Invest in Pakistan Mercantile Exchange | Commodity Market Explained' (YouTube, 2024-12-06)",
+  "source_url": "https://www.youtube.com/watch?v=mZ95jxukpzA",
+  "video_id": "mZ95jxukpzA",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.usd_pkr",
+  "fact_text": "On 6 Dec 2024 the analyst used a USD to PKR rate of 276 in his worked PMEX gold example.",
+  "value": 276,
+  "unit": "PKR_per_USD",
+  "period": "2024-12-06",
+  "source_name": "Standard Capital Securities, 'What is PMEX? How to Trade & Invest in Pakistan Mercantile Exchange | Commodity Market Explained' (YouTube, 2024-12-06)",
+  "source_url": "https://www.youtube.com/watch?v=mZ95jxukpzA",
+  "video_id": "mZ95jxukpzA",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.gold_price",
+  "fact_text": "On 6 Dec 2024 the analyst took the international gold price as 2,650 USD per ounce in his worked PMEX example.",
+  "value": 2650,
+  "unit": "USD_per_ounce",
+  "period": "2024-12-06",
+  "source_name": "Standard Capital Securities, 'What is PMEX? How to Trade & Invest in Pakistan Mercantile Exchange | Commodity Market Explained' (YouTube, 2024-12-06)",
+  "source_url": "https://www.youtube.com/watch?v=mZ95jxukpzA",
+  "video_id": "mZ95jxukpzA",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "operations.pmex_gold_margin",
+  "fact_text": "PMEX asks retail investors for only 2.25 percent of the full contract value as the upfront amount to trade gold.",
+  "value": 2.25,
+  "unit": "percent",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What is PMEX? How to Trade & Invest in Pakistan Mercantile Exchange | Commodity Market Explained' (YouTube, 2024-12-06)",
+  "source_url": "https://www.youtube.com/watch?v=mZ95jxukpzA",
+  "video_id": "mZ95jxukpzA",
+  "confidence": "fact"
+ }
+]

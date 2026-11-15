@@ -1,0 +1,110 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_move",
+  "fact_text": "In the sessions before 19 Sep 2025 the KSE-100 index added roughly 500 to 1,000 points a day and built a bullish run of about 8 to 9 sessions.",
+  "value": null,
+  "unit": null,
+  "period": "2025-09",
+  "source_name": "Standard Capital Securities, 'KSE 100 Index Technical Analysis | Pakistan Stock Market (PSX) | Stock Analysis' (YouTube, 2025-09-19)",
+  "source_url": "https://www.youtube.com/watch?v=BXPi9BLJ5R0",
+  "video_id": "BXPi9BLJ5R0",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_move",
+  "fact_text": "The analyst notes that KSE-100 upside moves have been larger than its downside corrections, which he reads as underlying bullish strength.",
+  "value": null,
+  "unit": null,
+  "period": "2025-09",
+  "source_name": "Standard Capital Securities, 'KSE 100 Index Technical Analysis | Pakistan Stock Market (PSX) | Stock Analysis' (YouTube, 2025-09-19)",
+  "source_url": "https://www.youtube.com/watch?v=BXPi9BLJ5R0",
+  "video_id": "BXPi9BLJ5R0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_technical",
+  "fact_text": "A bearish pin bar candle appeared on the KSE-100 weekly chart, which the analyst reads as a possible reversal after the steady rise.",
+  "value": null,
+  "unit": null,
+  "period": "2025-09-19",
+  "source_name": "Standard Capital Securities, 'KSE 100 Index Technical Analysis | Pakistan Stock Market (PSX) | Stock Analysis' (YouTube, 2025-09-19)",
+  "source_url": "https://www.youtube.com/watch?v=BXPi9BLJ5R0",
+  "video_id": "BXPi9BLJ5R0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_support",
+  "fact_text": "The analyst names KSE-100 support near 146,000 and then 141,000, levels he expects the index could test if it breaks below its nearby support zone.",
+  "value": 146000,
+  "unit": "index_points",
+  "period": "2025-09-19",
+  "source_name": "Standard Capital Securities, 'KSE 100 Index Technical Analysis | Pakistan Stock Market (PSX) | Stock Analysis' (YouTube, 2025-09-19)",
+  "source_url": "https://www.youtube.com/watch?v=BXPi9BLJ5R0",
+  "video_id": "BXPi9BLJ5R0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.multi_timeframe_check",
+  "fact_text": "The analyst checks the weekly timeframe alongside the daily chart, because the weekly chart shows bigger reversal patterns that the daily view can miss.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'KSE 100 Index Technical Analysis | Pakistan Stock Market (PSX) | Stock Analysis' (YouTube, 2025-09-19)",
+  "source_url": "https://www.youtube.com/watch?v=BXPi9BLJ5R0",
+  "video_id": "BXPi9BLJ5R0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.gap_fill",
+  "fact_text": "Price gaps left behind during a steady rally can be filled during a correction, which the analyst cites as a reason the index may dip before resuming its rise.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'KSE 100 Index Technical Analysis | Pakistan Stock Market (PSX) | Stock Analysis' (YouTube, 2025-09-19)",
+  "source_url": "https://www.youtube.com/watch?v=BXPi9BLJ5R0",
+  "video_id": "BXPi9BLJ5R0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.risk_discipline",
+  "fact_text": "The analyst describes a cautious approach of holding cash, treating a fall as a possible entry point, and using stop losses on individual stock positions.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'KSE 100 Index Technical Analysis | Pakistan Stock Market (PSX) | Stock Analysis' (YouTube, 2025-09-19)",
+  "source_url": "https://www.youtube.com/watch?v=BXPi9BLJ5R0",
+  "video_id": "BXPi9BLJ5R0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_support",
+  "fact_text": "The analyst cited immediate KSE-100 technical support around 151,000 points.",
+  "value": 151000,
+  "unit": "index_points",
+  "period": "2025-09-19",
+  "source_name": "Standard Capital Securities, 'KSE 100 Index Technical Analysis | Pakistan Stock Market (PSX) | Stock Analysis' (YouTube, 2025-09-19)",
+  "source_url": "https://www.youtube.com/watch?v=BXPi9BLJ5R0",
+  "video_id": "BXPi9BLJ5R0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_downside",
+  "fact_text": "The analyst said a fall through that support could bring about 34,000 index points of downside.",
+  "value": 34000,
+  "unit": "index_points",
+  "period": "2025-09-19",
+  "source_name": "Standard Capital Securities, 'KSE 100 Index Technical Analysis | Pakistan Stock Market (PSX) | Stock Analysis' (YouTube, 2025-09-19)",
+  "source_url": "https://www.youtube.com/watch?v=BXPi9BLJ5R0",
+  "video_id": "BXPi9BLJ5R0",
+  "confidence": "analyst_view"
+ }
+]

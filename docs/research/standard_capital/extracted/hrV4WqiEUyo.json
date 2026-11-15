@@ -1,0 +1,38 @@
+[
+ {
+  "company": "SECTOR:CEMENT",
+  "topic": "capacity.cement_capacity",
+  "fact_text": "Maple Leaf Cement's production capacity was cited at about 10.6 million tonnes.",
+  "value": 10.6,
+  "unit": "million_tonnes",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Market Update & Valuation Analysis of Key Scrips | Pakistan Stock Market Insights' (YouTube, 2023-12-28)",
+  "source_url": "https://www.youtube.com/watch?v=hrV4WqiEUyo",
+  "video_id": "hrV4WqiEUyo",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.book_ev_comparison",
+  "fact_text": "The analyst suggested comparing the book value and enterprise value of key scrips on the firm's website before judging their valuation.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Market Update & Valuation Analysis of Key Scrips | Pakistan Stock Market Insights' (YouTube, 2023-12-28)",
+  "source_url": "https://www.youtube.com/watch?v=hrV4WqiEUyo",
+  "video_id": "hrV4WqiEUyo",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:FOOD",
+  "topic": "profile.business",
+  "fact_text": "The analyst highlighted organic meat exporters as export-led companies whose operations and exports the market should follow.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Market Update & Valuation Analysis of Key Scrips | Pakistan Stock Market Insights' (YouTube, 2023-12-28)",
+  "source_url": "https://www.youtube.com/watch?v=hrV4WqiEUyo",
+  "video_id": "hrV4WqiEUyo",
+  "confidence": "analyst_view"
+ }
+]

@@ -1,0 +1,86 @@
+[
+ {
+  "company": "DGKC",
+  "topic": "commentary.thesis",
+  "fact_text": "The analyst called D.G. Khan Cement the star performer in the cement sector, citing its strong performance.",
+  "value": null,
+  "unit": null,
+  "period": "2025-05-29",
+  "source_name": "Standard Capital Securities, 'Midday Market Flash | PSX Update 29 May 2025 | LUCK Low Debt & PE Ratio | K-Electric Tariff Impact' (YouTube, 2025-05-29)",
+  "source_url": "https://www.youtube.com/watch?v=R2OxAPRMJsU",
+  "video_id": "R2OxAPRMJsU",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "LUCK",
+  "topic": "commentary.valuation",
+  "fact_text": "On 29 May 2025 Lucky Cement traded at about 6 times forward P/E and about 7 times trailing P/E, which the analyst considered attractive.",
+  "value": 6,
+  "unit": "times",
+  "period": "2025-05-29",
+  "source_name": "Standard Capital Securities, 'Midday Market Flash | PSX Update 29 May 2025 | LUCK Low Debt & PE Ratio | K-Electric Tariff Impact' (YouTube, 2025-05-29)",
+  "source_url": "https://www.youtube.com/watch?v=R2OxAPRMJsU",
+  "video_id": "R2OxAPRMJsU",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "LUCK",
+  "topic": "news.results",
+  "fact_text": "Lucky Cement's adjusted EPS for the nine months to March 2025 was Rs 39 per share.",
+  "value": 39,
+  "unit": "PKR_per_share",
+  "period": "9M FY25",
+  "source_name": "Standard Capital Securities, 'Midday Market Flash | PSX Update 29 May 2025 | LUCK Low Debt & PE Ratio | K-Electric Tariff Impact' (YouTube, 2025-05-29)",
+  "source_url": "https://www.youtube.com/watch?v=R2OxAPRMJsU",
+  "video_id": "R2OxAPRMJsU",
+  "confidence": "fact"
+ },
+ {
+  "company": "LUCK",
+  "topic": "commentary.outlook",
+  "fact_text": "The analyst expected Lucky Cement's full-year FY25 EPS to fall between Rs 50 and Rs 55.",
+  "value": null,
+  "unit": "PKR_per_share",
+  "period": "FY25",
+  "source_name": "Standard Capital Securities, 'Midday Market Flash | PSX Update 29 May 2025 | LUCK Low Debt & PE Ratio | K-Electric Tariff Impact' (YouTube, 2025-05-29)",
+  "source_url": "https://www.youtube.com/watch?v=R2OxAPRMJsU",
+  "video_id": "R2OxAPRMJsU",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "KEL",
+  "topic": "news.policy",
+  "fact_text": "In May 2025 officials said they would review K-Electric's new multi-tariff, and the stock came under price pressure after it was announced.",
+  "value": null,
+  "unit": null,
+  "period": "May 2025",
+  "source_name": "Standard Capital Securities, 'Midday Market Flash | PSX Update 29 May 2025 | LUCK Low Debt & PE Ratio | K-Electric Tariff Impact' (YouTube, 2025-05-29)",
+  "source_url": "https://www.youtube.com/watch?v=R2OxAPRMJsU",
+  "video_id": "R2OxAPRMJsU",
+  "confidence": "fact"
+ },
+ {
+  "company": "KEL",
+  "topic": "commentary.thesis",
+  "fact_text": "The analyst said captive gas power plants are moving onto the national grid because grid power is cheaper than captive generation, which would raise K-Electric's sales volumes.",
+  "value": null,
+  "unit": null,
+  "period": "2025-05-29",
+  "source_name": "Standard Capital Securities, 'Midday Market Flash | PSX Update 29 May 2025 | LUCK Low Debt & PE Ratio | K-Electric Tariff Impact' (YouTube, 2025-05-29)",
+  "source_url": "https://www.youtube.com/watch?v=R2OxAPRMJsU",
+  "video_id": "R2OxAPRMJsU",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "KEL",
+  "topic": "commentary.thesis",
+  "fact_text": "The analyst listed lower line losses, better reported profit and rising industrial demand as medium-to-long-term positives for K-Electric, while short-term price pressure might persist.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Market Flash | PSX Update 29 May 2025 | LUCK Low Debt & PE Ratio | K-Electric Tariff Impact' (YouTube, 2025-05-29)",
+  "source_url": "https://www.youtube.com/watch?v=R2OxAPRMJsU",
+  "video_id": "R2OxAPRMJsU",
+  "confidence": "analyst_view"
+ }
+]

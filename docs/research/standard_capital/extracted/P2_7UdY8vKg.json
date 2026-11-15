@@ -1,0 +1,122 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "news.policy",
+  "fact_text": "The IMF board approved a $7 billion programme for Pakistan, with about $1 billion available soon, but the market did not respond strongly.",
+  "value": 7,
+  "unit": "USD_billions",
+  "period": "2024-09-28",
+  "source_name": "Standard Capital Securities, 'Why HUB Power Share Price is Declining... Hold or Sell? | PSX Market Analysis' (YouTube, 2024-09-28)",
+  "source_url": "https://www.youtube.com/watch?v=P2_7UdY8vKg",
+  "video_id": "P2_7UdY8vKg",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.foreign_flows",
+  "fact_text": "The analyst expected foreign fund selling to be absorbed first inside Pakistan by high-net-worth individuals, institutions and mutual funds.",
+  "value": null,
+  "unit": null,
+  "period": "2024-09-28",
+  "source_name": "Standard Capital Securities, 'Why HUB Power Share Price is Declining... Hold or Sell? | PSX Market Analysis' (YouTube, 2024-09-28)",
+  "source_url": "https://www.youtube.com/watch?v=P2_7UdY8vKg",
+  "video_id": "P2_7UdY8vKg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.political_sentiment",
+  "fact_text": "The analyst said a steadier political climate would be an important factor for a market recovery.",
+  "value": null,
+  "unit": null,
+  "period": "2024-09-28",
+  "source_name": "Standard Capital Securities, 'Why HUB Power Share Price is Declining... Hold or Sell? | PSX Market Analysis' (YouTube, 2024-09-28)",
+  "source_url": "https://www.youtube.com/watch?v=P2_7UdY8vKg",
+  "video_id": "P2_7UdY8vKg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "HUBC",
+  "topic": "market.share_price_move",
+  "fact_text": "HUB Power's share price kept falling after its dividend went ex-date and then moved sideways.",
+  "value": null,
+  "unit": null,
+  "period": "2024-09-28",
+  "source_name": "Standard Capital Securities, 'Why HUB Power Share Price is Declining... Hold or Sell? | PSX Market Analysis' (YouTube, 2024-09-28)",
+  "source_url": "https://www.youtube.com/watch?v=P2_7UdY8vKg",
+  "video_id": "P2_7UdY8vKg",
+  "confidence": "fact"
+ },
+ {
+  "company": "HUBC",
+  "topic": "commentary.risk",
+  "fact_text": "The analyst said the government may try to scrap old power purchase agreements to avoid circular-debt payments, which could push HUB toward UK arbitration.",
+  "value": null,
+  "unit": null,
+  "period": "2024-09-28",
+  "source_name": "Standard Capital Securities, 'Why HUB Power Share Price is Declining... Hold or Sell? | PSX Market Analysis' (YouTube, 2024-09-28)",
+  "source_url": "https://www.youtube.com/watch?v=P2_7UdY8vKg",
+  "video_id": "P2_7UdY8vKg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "HUBC",
+  "topic": "commentary.risk",
+  "fact_text": "A base-plant PPA expiring in 2027 is a risk because its payments depend on the government, the analyst said.",
+  "value": null,
+  "unit": null,
+  "period": "2027",
+  "source_name": "Standard Capital Securities, 'Why HUB Power Share Price is Declining... Hold or Sell? | PSX Market Analysis' (YouTube, 2024-09-28)",
+  "source_url": "https://www.youtube.com/watch?v=P2_7UdY8vKg",
+  "video_id": "P2_7UdY8vKg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "HUBC",
+  "topic": "commentary.financials",
+  "fact_text": "During the 2020-21 renegotiation the dollar rate was about 148 rupees, a reference point for the analyst's settlement view.",
+  "value": 148,
+  "unit": "PKR_per_USD",
+  "period": "2020-21",
+  "source_name": "Standard Capital Securities, 'Why HUB Power Share Price is Declining... Hold or Sell? | PSX Market Analysis' (YouTube, 2024-09-28)",
+  "source_url": "https://www.youtube.com/watch?v=P2_7UdY8vKg",
+  "video_id": "P2_7UdY8vKg",
+  "confidence": "fact"
+ },
+ {
+  "company": "HUBC",
+  "topic": "commentary.outlook",
+  "fact_text": "The analyst expects a compromise settlement in which the government may cut the tariff or remove the dollar denomination.",
+  "value": null,
+  "unit": null,
+  "period": "2024-09-28",
+  "source_name": "Standard Capital Securities, 'Why HUB Power Share Price is Declining... Hold or Sell? | PSX Market Analysis' (YouTube, 2024-09-28)",
+  "source_url": "https://www.youtube.com/watch?v=P2_7UdY8vKg",
+  "video_id": "P2_7UdY8vKg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "HUBC",
+  "topic": "profile.business",
+  "fact_text": "HUB Power is described as a bond-like value stock that reinvested circular-debt receipts, and its Thar coal plants were running well.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Why HUB Power Share Price is Declining... Hold or Sell? | PSX Market Analysis' (YouTube, 2024-09-28)",
+  "source_url": "https://www.youtube.com/watch?v=P2_7UdY8vKg",
+  "video_id": "P2_7UdY8vKg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "HUBC",
+  "topic": "commentary.thesis",
+  "fact_text": "The analyst said the price fall did not look fundamental, so investors need not panic, and cheaper levels could offer an opportunity.",
+  "value": null,
+  "unit": null,
+  "period": "2024-09-28",
+  "source_name": "Standard Capital Securities, 'Why HUB Power Share Price is Declining... Hold or Sell? | PSX Market Analysis' (YouTube, 2024-09-28)",
+  "source_url": "https://www.youtube.com/watch?v=P2_7UdY8vKg",
+  "video_id": "P2_7UdY8vKg",
+  "confidence": "analyst_view"
+ }
+]

@@ -1,0 +1,110 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_move",
+  "fact_text": "Global markets fell on US tariff news on Monday 7 Apr 2025, and the analyst says the KSE-100 was under pressure as a result.",
+  "value": null,
+  "unit": null,
+  "period": "2025-04-07",
+  "source_name": "Standard Capital Securities, 'PSX Investors Are FREAKING Out About New US Tax Tariff' (YouTube, 2025-04-07)",
+  "source_url": "https://www.youtube.com/watch?v=RikePAffMNk",
+  "video_id": "RikePAffMNk",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_support",
+  "fact_text": "The analyst's trendline puts KSE-100 support at about 114,300 to 114,500 points, a band roughly 200 points wide.",
+  "value": 114300,
+  "unit": "points",
+  "period": "2025-04-07",
+  "source_name": "Standard Capital Securities, 'PSX Investors Are FREAKING Out About New US Tax Tariff' (YouTube, 2025-04-07)",
+  "source_url": "https://www.youtube.com/watch?v=RikePAffMNk",
+  "video_id": "RikePAffMNk",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.moving_average_confluence",
+  "fact_text": "The 50-day moving average sits at the same level as the trendline support, which the analyst treats as a stronger support zone.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Investors Are FREAKING Out About New US Tax Tariff' (YouTube, 2025-04-07)",
+  "source_url": "https://www.youtube.com/watch?v=RikePAffMNk",
+  "video_id": "RikePAffMNk",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PRL",
+  "topic": "market.technical_levels",
+  "fact_text": "Pakistan Refinery rose from about 33 to about 39 rupees in an earlier move and then fell with the broader market.",
+  "value": 39,
+  "unit": "PKR_per_share",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Investors Are FREAKING Out About New US Tax Tariff' (YouTube, 2025-04-07)",
+  "source_url": "https://www.youtube.com/watch?v=RikePAffMNk",
+  "video_id": "RikePAffMNk",
+  "confidence": "fact"
+ },
+ {
+  "company": "PRL",
+  "topic": "market.technical_levels",
+  "fact_text": "Pakistan Refinery has been repeatedly rejected at its downtrend line and has not closed above it, according to the analyst.",
+  "value": null,
+  "unit": null,
+  "period": "2025-04-07",
+  "source_name": "Standard Capital Securities, 'PSX Investors Are FREAKING Out About New US Tax Tariff' (YouTube, 2025-04-07)",
+  "source_url": "https://www.youtube.com/watch?v=RikePAffMNk",
+  "video_id": "RikePAffMNk",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PRL",
+  "topic": "market.technical_levels",
+  "fact_text": "The analyst identifies a support zone for Pakistan Refinery at about 34.50 to 35 rupees, and says a constructive setup depends on a breakout above the trendline.",
+  "value": 34.5,
+  "unit": "PKR_per_share",
+  "period": "2025-04-07",
+  "source_name": "Standard Capital Securities, 'PSX Investors Are FREAKING Out About New US Tax Tariff' (YouTube, 2025-04-07)",
+  "source_url": "https://www.youtube.com/watch?v=RikePAffMNk",
+  "video_id": "RikePAffMNk",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PRL",
+  "topic": "market.technical_levels",
+  "fact_text": "Pakistan Refinery's RSI is above 40, which the analyst reads as room for upside.",
+  "value": 40,
+  "unit": "RSI",
+  "period": "2025-04-07",
+  "source_name": "Standard Capital Securities, 'PSX Investors Are FREAKING Out About New US Tax Tariff' (YouTube, 2025-04-07)",
+  "source_url": "https://www.youtube.com/watch?v=RikePAffMNk",
+  "video_id": "RikePAffMNk",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.technical_breakout_rule",
+  "fact_text": "The analyst's rule of thumb is that a stock should close convincingly above a downtrend line and hold the breakout before a fresh entry is considered.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Investors Are FREAKING Out About New US Tax Tariff' (YouTube, 2025-04-07)",
+  "source_url": "https://www.youtube.com/watch?v=RikePAffMNk",
+  "video_id": "RikePAffMNk",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_move",
+  "fact_text": "On 7 Apr 2025 the KSE-100 was trading about 2,500 to 3,000 points lower, which the analyst linked to global market weakness and trade-tariff concerns.",
+  "value": 2500,
+  "unit": "points",
+  "period": "2025-04-07",
+  "source_name": "Standard Capital Securities, 'PSX Investors Are FREAKING Out About New US Tax Tariff' (YouTube, 2025-04-07)",
+  "source_url": "https://www.youtube.com/watch?v=RikePAffMNk",
+  "video_id": "RikePAffMNk",
+  "confidence": "fact"
+ }
+]

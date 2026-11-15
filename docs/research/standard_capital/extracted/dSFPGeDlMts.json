@@ -1,0 +1,86 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.candlestick_structure",
+  "fact_text": "A daily candlestick records four prices for the session: the open, the high, the low and the close.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '2. Mastering Candlestick Charts: Understanding Bearish & Bullish Candles | PSX Stock Analysis Guide' (YouTube, 2024-08-16)",
+  "source_url": "https://www.youtube.com/watch?v=dSFPGeDlMts",
+  "video_id": "dSFPGeDlMts",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.bearish_candle",
+  "fact_text": "In a bearish (red) candle the price opens near the top of the session's range and closes lower, showing that sellers dominated the session.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '2. Mastering Candlestick Charts: Understanding Bearish & Bullish Candles | PSX Stock Analysis Guide' (YouTube, 2024-08-16)",
+  "source_url": "https://www.youtube.com/watch?v=dSFPGeDlMts",
+  "video_id": "dSFPGeDlMts",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.bullish_candle",
+  "fact_text": "In a bullish (green) candle the price opens at the bottom of the session's range and closes higher, showing that buyers dominated the session.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '2. Mastering Candlestick Charts: Understanding Bearish & Bullish Candles | PSX Stock Analysis Guide' (YouTube, 2024-08-16)",
+  "source_url": "https://www.youtube.com/watch?v=dSFPGeDlMts",
+  "video_id": "dSFPGeDlMts",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.candle_wicks",
+  "fact_text": "The thin lines above and below a candle's body, called wicks or shadows, show how far price traded beyond the open and close during the session.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '2. Mastering Candlestick Charts: Understanding Bearish & Bullish Candles | PSX Stock Analysis Guide' (YouTube, 2024-08-16)",
+  "source_url": "https://www.youtube.com/watch?v=dSFPGeDlMts",
+  "video_id": "dSFPGeDlMts",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.closing_basis",
+  "fact_text": "Signals written on a closing basis require the candle to close beyond the level, so a wick that touches the level intraday does not count as a breakout.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '2. Mastering Candlestick Charts: Understanding Bearish & Bullish Candles | PSX Stock Analysis Guide' (YouTube, 2024-08-16)",
+  "source_url": "https://www.youtube.com/watch?v=dSFPGeDlMts",
+  "video_id": "dSFPGeDlMts",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.level_confirmation",
+  "fact_text": "A close beyond a level is treated as confirmed only if the candle that follows it also closes beyond that level; otherwise the close is not confirmed.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '2. Mastering Candlestick Charts: Understanding Bearish & Bullish Candles | PSX Stock Analysis Guide' (YouTube, 2024-08-16)",
+  "source_url": "https://www.youtube.com/watch?v=dSFPGeDlMts",
+  "video_id": "dSFPGeDlMts",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.candle_sentiment",
+  "fact_text": "Candlesticks are read as a gauge of buyer and seller sentiment: mostly bearish candles suggest sellers dominate, while mostly bullish candles suggest buyers dominate.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '2. Mastering Candlestick Charts: Understanding Bearish & Bullish Candles | PSX Stock Analysis Guide' (YouTube, 2024-08-16)",
+  "source_url": "https://www.youtube.com/watch?v=dSFPGeDlMts",
+  "video_id": "dSFPGeDlMts",
+  "confidence": "analyst_view"
+ }
+]

@@ -1,0 +1,110 @@
+[
+ {
+  "company": "ENGROH",
+  "topic": "news.corporate_action",
+  "fact_text": "Dawood Hercules has been renamed Engro Holding, which trades on the PSX under the ticker ENGROH.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'ENGROH Technical Analysis | In-Depth Stock Analysis of ENGROH | PSX Market Trends & Insights' (YouTube, 2025-03-12)",
+  "source_url": "https://www.youtube.com/watch?v=kTLVxXIPwgc",
+  "video_id": "kTLVxXIPwgc",
+  "confidence": "fact"
+ },
+ {
+  "company": "ENGROH",
+  "topic": "market.price_trend",
+  "fact_text": "On 12 Mar 2025 the analyst described the Engro Holding chart as being in a downtrend.",
+  "value": null,
+  "unit": null,
+  "period": "2025-03-12",
+  "source_name": "Standard Capital Securities, 'ENGROH Technical Analysis | In-Depth Stock Analysis of ENGROH | PSX Market Trends & Insights' (YouTube, 2025-03-12)",
+  "source_url": "https://www.youtube.com/watch?v=kTLVxXIPwgc",
+  "video_id": "kTLVxXIPwgc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "ENGROH",
+  "topic": "market.support_level",
+  "fact_text": "The analyst marked a support area near 170-172 PKR, tied to a January 2020 high that had acted as strong support before.",
+  "value": 171,
+  "unit": "PKR_per_share",
+  "period": "2025-03-12",
+  "source_name": "Standard Capital Securities, 'ENGROH Technical Analysis | In-Depth Stock Analysis of ENGROH | PSX Market Trends & Insights' (YouTube, 2025-03-12)",
+  "source_url": "https://www.youtube.com/watch?v=kTLVxXIPwgc",
+  "video_id": "kTLVxXIPwgc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "ENGROH",
+  "topic": "market.resistance_level",
+  "fact_text": "Resistance was seen near 195-196 PKR; the analyst said a sustained break and hold above that zone would open further upside.",
+  "value": 196,
+  "unit": "PKR_per_share",
+  "period": "2025-03-12",
+  "source_name": "Standard Capital Securities, 'ENGROH Technical Analysis | In-Depth Stock Analysis of ENGROH | PSX Market Trends & Insights' (YouTube, 2025-03-12)",
+  "source_url": "https://www.youtube.com/watch?v=kTLVxXIPwgc",
+  "video_id": "kTLVxXIPwgc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "ENGROH",
+  "topic": "market.reversal_signal",
+  "fact_text": "A bullish engulfing candle formed near the 0.76 Fibonacci retracement level, which the analyst read as a possible reversal signal from the downtrend.",
+  "value": 0.76,
+  "unit": "ratio",
+  "period": "2025-03-12",
+  "source_name": "Standard Capital Securities, 'ENGROH Technical Analysis | In-Depth Stock Analysis of ENGROH | PSX Market Trends & Insights' (YouTube, 2025-03-12)",
+  "source_url": "https://www.youtube.com/watch?v=kTLVxXIPwgc",
+  "video_id": "kTLVxXIPwgc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "ENGROH",
+  "topic": "commentary.risk",
+  "fact_text": "According to the analyst's levels, a close below the 170-172 support area would weaken the bullish reading of the chart.",
+  "value": 171,
+  "unit": "PKR_per_share",
+  "period": "2025-03-12",
+  "source_name": "Standard Capital Securities, 'ENGROH Technical Analysis | In-Depth Stock Analysis of ENGROH | PSX Market Trends & Insights' (YouTube, 2025-03-12)",
+  "source_url": "https://www.youtube.com/watch?v=kTLVxXIPwgc",
+  "video_id": "kTLVxXIPwgc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "ENGROH",
+  "topic": "method.fibonacci_retracement",
+  "fact_text": "A Fibonacci retracement is drawn from the swing low up to the swing high, and the 0.76 level is used to judge whether a downtrend may be reversing.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'ENGROH Technical Analysis | In-Depth Stock Analysis of ENGROH | PSX Market Trends & Insights' (YouTube, 2025-03-12)",
+  "source_url": "https://www.youtube.com/watch?v=kTLVxXIPwgc",
+  "video_id": "kTLVxXIPwgc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "ENGROH",
+  "topic": "method.reversal_confirmation",
+  "fact_text": "The analyst said a bullish reversal candle needs confirmation, such as a close above nearby resistance, before it is treated as a change in trend.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'ENGROH Technical Analysis | In-Depth Stock Analysis of ENGROH | PSX Market Trends & Insights' (YouTube, 2025-03-12)",
+  "source_url": "https://www.youtube.com/watch?v=kTLVxXIPwgc",
+  "video_id": "kTLVxXIPwgc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "ENGROH",
+  "topic": "method.resistance_flip",
+  "fact_text": "A broken resistance zone often acts as support when price returns to it, which is the reason the analyst drew support at an earlier resistance area.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'ENGROH Technical Analysis | In-Depth Stock Analysis of ENGROH | PSX Market Trends & Insights' (YouTube, 2025-03-12)",
+  "source_url": "https://www.youtube.com/watch?v=kTLVxXIPwgc",
+  "video_id": "kTLVxXIPwgc",
+  "confidence": "analyst_view"
+ }
+]

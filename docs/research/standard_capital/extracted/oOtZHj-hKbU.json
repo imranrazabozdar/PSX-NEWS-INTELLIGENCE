@@ -1,0 +1,50 @@
+[
+ {
+  "company": "SECTOR:OIL_GAS",
+  "topic": "method.parabolic_sar_entry",
+  "fact_text": "The analyst's Parabolic SAR method opens a short after a candle closes beyond the SAR dots, places the stop beyond the last candle, and sets a reward-to-risk target of about 1:2 to 1:5.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Mastering Parabolic SAR for Stock Analysis | PSX Equity Market Insights | Pakistan Stock Market Tips' (YouTube, 2025-03-01)",
+  "source_url": "https://www.youtube.com/watch?v=oOtZHj-hKbU",
+  "video_id": "oOtZHj-hKbU",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:OIL_GAS",
+  "topic": "method.ema200_trend_filter",
+  "fact_text": "The analyst uses a 200-period exponential moving average as a trend filter, taking only long-side setups when price trades above it and only short-side setups when below.",
+  "value": 200,
+  "unit": "periods",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Mastering Parabolic SAR for Stock Analysis | PSX Equity Market Insights | Pakistan Stock Market Tips' (YouTube, 2025-03-01)",
+  "source_url": "https://www.youtube.com/watch?v=oOtZHj-hKbU",
+  "video_id": "oOtZHj-hKbU",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:OIL_GAS",
+  "topic": "method.parabolic_sar_regime",
+  "fact_text": "The analyst said Parabolic SAR works best in trending markets and tends to produce repeated stop-outs when the market moves sideways in consolidation.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Mastering Parabolic SAR for Stock Analysis | PSX Equity Market Insights | Pakistan Stock Market Tips' (YouTube, 2025-03-01)",
+  "source_url": "https://www.youtube.com/watch?v=oOtZHj-hKbU",
+  "video_id": "oOtZHj-hKbU",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:OIL_GAS",
+  "topic": "method.parabolic_sar_timeframe",
+  "fact_text": "The analyst described switching from the daily chart to a shorter timeframe to time day-trade entries with the Parabolic SAR indicator applied.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Mastering Parabolic SAR for Stock Analysis | PSX Equity Market Insights | Pakistan Stock Market Tips' (YouTube, 2025-03-01)",
+  "source_url": "https://www.youtube.com/watch?v=oOtZHj-hKbU",
+  "video_id": "oOtZHj-hKbU",
+  "confidence": "analyst_view"
+ }
+]

@@ -1,0 +1,74 @@
+[
+ {
+  "company": "FFC",
+  "topic": "commentary.outlook",
+  "fact_text": "The analyst said Fauji Fertilizer's outlook depends on farm conditions, which he described as stressed, and on water supply improving before the sowing season.",
+  "value": null,
+  "unit": null,
+  "period": "2025",
+  "source_name": "Standard Capital Securities, 'Midday Flash 30 May 2025 | FFC Sales Outlook 🔍 | SPEL EPS Analysis | PSX Stock Market Insights' (YouTube, 2025-05-30)",
+  "source_url": "https://www.youtube.com/watch?v=Yftd7GK6Xj0",
+  "video_id": "Yftd7GK6Xj0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "FFC",
+  "topic": "cost.gas_feedstock",
+  "fact_text": "Fauji Fertilizer receives dedicated gas from the Mari field at Rs 580 per MMBTU, which the analyst said gives it a price advantage in the gas price disparity.",
+  "value": 580,
+  "unit": "PKR_per_MMBTU",
+  "period": "2025-05-30",
+  "source_name": "Standard Capital Securities, 'Midday Flash 30 May 2025 | FFC Sales Outlook 🔍 | SPEL EPS Analysis | PSX Stock Market Insights' (YouTube, 2025-05-30)",
+  "source_url": "https://www.youtube.com/watch?v=Yftd7GK6Xj0",
+  "video_id": "Yftd7GK6Xj0",
+  "confidence": "fact"
+ },
+ {
+  "company": "FFC",
+  "topic": "commentary.thesis",
+  "fact_text": "The analyst said Fauji Fertilizer pays dividends in all four quarters and has a long dividend history, which he said deserves investor study.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash 30 May 2025 | FFC Sales Outlook 🔍 | SPEL EPS Analysis | PSX Stock Market Insights' (YouTube, 2025-05-30)",
+  "source_url": "https://www.youtube.com/watch?v=Yftd7GK6Xj0",
+  "video_id": "Yftd7GK6Xj0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:FERTILIZER",
+  "topic": "operations.crop_calendar",
+  "fact_text": "Fertilizer demand follows the crop calendar: rice is sown from July, and cotton and wheat are sown from roughly September to November.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash 30 May 2025 | FFC Sales Outlook 🔍 | SPEL EPS Analysis | PSX Stock Market Insights' (YouTube, 2025-05-30)",
+  "source_url": "https://www.youtube.com/watch?v=Yftd7GK6Xj0",
+  "video_id": "Yftd7GK6Xj0",
+  "confidence": "fact"
+ },
+ {
+  "company": "SPEL",
+  "topic": "news.results",
+  "fact_text": "Synthetic Products' 9-month EPS to March 2025 was Rs 4 per share, and the analyst said its face value is Rs 5.",
+  "value": 4,
+  "unit": "PKR_per_share",
+  "period": "9M FY25",
+  "source_name": "Standard Capital Securities, 'Midday Flash 30 May 2025 | FFC Sales Outlook 🔍 | SPEL EPS Analysis | PSX Stock Market Insights' (YouTube, 2025-05-30)",
+  "source_url": "https://www.youtube.com/watch?v=Yftd7GK6Xj0",
+  "video_id": "Yftd7GK6Xj0",
+  "confidence": "fact"
+ },
+ {
+  "company": "SPEL",
+  "topic": "commentary.valuation",
+  "fact_text": "The analyst said at about 7 to 8 times earnings SPEL looked reasonable, and he expected its EPS to rise further before June 2025.",
+  "value": null,
+  "unit": "times",
+  "period": "FY25",
+  "source_name": "Standard Capital Securities, 'Midday Flash 30 May 2025 | FFC Sales Outlook 🔍 | SPEL EPS Analysis | PSX Stock Market Insights' (YouTube, 2025-05-30)",
+  "source_url": "https://www.youtube.com/watch?v=Yftd7GK6Xj0",
+  "video_id": "Yftd7GK6Xj0",
+  "confidence": "analyst_view"
+ }
+]

@@ -1,0 +1,50 @@
+[
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "operations.gold_contract_codes",
+  "fact_text": "PMEX gold futures contracts carry a month code, such as OC26 for October 2026 and DE26 for December 2026, and the Gold One House contract is quoted in ounces.",
+  "value": null,
+  "unit": null,
+  "period": "Oct 2026",
+  "source_name": "Standard Capital Securities, 'Meta Trader 5 iOS Complete Tutorial - PMEX | Setup, Charts & Order Types' (YouTube, 2026-10-02)",
+  "source_url": "https://www.youtube.com/watch?v=M4ztaS4OGSk",
+  "video_id": "M4ztaS4OGSk",
+  "confidence": "fact"
+ },
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "operations.gold_contract_expiry",
+  "fact_text": "The October 2026 PMEX gold contract was shown expiring on 28 Sep 2026 at 4:00 pm, with profit and loss settled at day end.",
+  "value": null,
+  "unit": null,
+  "period": "Sep 2026",
+  "source_name": "Standard Capital Securities, 'Meta Trader 5 iOS Complete Tutorial - PMEX | Setup, Charts & Order Types' (YouTube, 2026-10-02)",
+  "source_url": "https://www.youtube.com/watch?v=M4ztaS4OGSk",
+  "video_id": "M4ztaS4OGSk",
+  "confidence": "fact"
+ },
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "operations.gold_initial_margin",
+  "fact_text": "The initial margin for one PMEX Gold One House contract was shown as Rs 3,600, which must be available in the account before trading.",
+  "value": 3600,
+  "unit": "PKR",
+  "period": "2026-10-02",
+  "source_name": "Standard Capital Securities, 'Meta Trader 5 iOS Complete Tutorial - PMEX | Setup, Charts & Order Types' (YouTube, 2026-10-02)",
+  "source_url": "https://www.youtube.com/watch?v=M4ztaS4OGSk",
+  "video_id": "M4ztaS4OGSk",
+  "confidence": "fact"
+ },
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "method.order_types",
+  "fact_text": "On MetaTrader 5, a buy limit sits below the market price, a buy stop above it, a sell limit above it, and a sell stop below it.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Meta Trader 5 iOS Complete Tutorial - PMEX | Setup, Charts & Order Types' (YouTube, 2026-10-02)",
+  "source_url": "https://www.youtube.com/watch?v=M4ztaS4OGSk",
+  "video_id": "M4ztaS4OGSk",
+  "confidence": "fact"
+ }
+]

@@ -1,0 +1,122 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.super_tax",
+  "fact_text": "Budget talk suggested the super tax on company income could be raised to 10 percent, which the analyst said would hit company earnings directly.",
+  "value": 10,
+  "unit": "percent",
+  "period": "FY26",
+  "source_name": "Standard Capital Securities, 'Midday Flash 23 May 2025-26 | Budget 2025 Expectations | Super Tax to 10%? Auto Sector Hit | PSX' (YouTube, 2025-05-23)",
+  "source_url": "https://www.youtube.com/watch?v=BcROjo0KBjg",
+  "video_id": "BcROjo0KBjg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:AUTOS",
+  "topic": "macro.auto_import_policy",
+  "fact_text": "Auto sector talk suggested replacing the 3-year import policy with a 5-year one, a change that assemblers would watch closely.",
+  "value": 5,
+  "unit": "years",
+  "period": "FY26",
+  "source_name": "Standard Capital Securities, 'Midday Flash 23 May 2025-26 | Budget 2025 Expectations | Super Tax to 10%? Auto Sector Hit | PSX' (YouTube, 2025-05-23)",
+  "source_url": "https://www.youtube.com/watch?v=BcROjo0KBjg",
+  "video_id": "BcROjo0KBjg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:AUTOS",
+  "topic": "macro.non_tariff_barriers",
+  "fact_text": "Talk linked to IMF discussions was that non-tariff barriers, which carried a large effective-tax impact on auto assemblers, could be reduced.",
+  "value": null,
+  "unit": null,
+  "period": "FY26",
+  "source_name": "Standard Capital Securities, 'Midday Flash 23 May 2025-26 | Budget 2025 Expectations | Super Tax to 10%? Auto Sector Hit | PSX' (YouTube, 2025-05-23)",
+  "source_url": "https://www.youtube.com/watch?v=BcROjo0KBjg",
+  "video_id": "BcROjo0KBjg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.tax_incentive_phaseout",
+  "fact_text": "The analyst said tax incentives for sectors such as IT and exporters, which had supported sales and exports, were being withdrawn gradually.",
+  "value": null,
+  "unit": null,
+  "period": "May 2025",
+  "source_name": "Standard Capital Securities, 'Midday Flash 23 May 2025-26 | Budget 2025 Expectations | Super Tax to 10%? Auto Sector Hit | PSX' (YouTube, 2025-05-23)",
+  "source_url": "https://www.youtube.com/watch?v=BcROjo0KBjg",
+  "video_id": "BcROjo0KBjg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.tax_shortfall",
+  "fact_text": "In May 2025 the government faced a tax collection shortfall and low FBR revenue, which the analyst said was pushing it to look for higher levies.",
+  "value": null,
+  "unit": null,
+  "period": "May 2025",
+  "source_name": "Standard Capital Securities, 'Midday Flash 23 May 2025-26 | Budget 2025 Expectations | Super Tax to 10%? Auto Sector Hit | PSX' (YouTube, 2025-05-23)",
+  "source_url": "https://www.youtube.com/watch?v=BcROjo0KBjg",
+  "video_id": "BcROjo0KBjg",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.budget_season_pattern",
+  "fact_text": "Budget-season worries about new taxes recur every year, and the analyst said they usually ease once the budget is passed.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash 23 May 2025-26 | Budget 2025 Expectations | Super Tax to 10%? Auto Sector Hit | PSX' (YouTube, 2025-05-23)",
+  "source_url": "https://www.youtube.com/watch?v=BcROjo0KBjg",
+  "video_id": "BcROjo0KBjg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.pe_multiple",
+  "fact_text": "In May 2025 the market's price-to-earnings multiples were still around 7 to 8 times, according to the analyst.",
+  "value": null,
+  "unit": "times",
+  "period": "2025-05-23",
+  "source_name": "Standard Capital Securities, 'Midday Flash 23 May 2025-26 | Budget 2025 Expectations | Super Tax to 10%? Auto Sector Hit | PSX' (YouTube, 2025-05-23)",
+  "source_url": "https://www.youtube.com/watch?v=BcROjo0KBjg",
+  "video_id": "BcROjo0KBjg",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.circular_debt_timing",
+  "fact_text": "The analyst said the circular debt term-sheet matters with banks involving OGDC, PPL and PSO might not close by 30 June 2025 and could run further.",
+  "value": null,
+  "unit": null,
+  "period": "FY25",
+  "source_name": "Standard Capital Securities, 'Midday Flash 23 May 2025-26 | Budget 2025 Expectations | Super Tax to 10%? Auto Sector Hit | PSX' (YouTube, 2025-05-23)",
+  "source_url": "https://www.youtube.com/watch?v=BcROjo0KBjg",
+  "video_id": "BcROjo0KBjg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.privatisation_delays",
+  "fact_text": "The analyst said government transactions often run late, citing the PIA privatisation, and expected planned OGDC and PPL stake sales to slip as well.",
+  "value": null,
+  "unit": null,
+  "period": "May 2025",
+  "source_name": "Standard Capital Securities, 'Midday Flash 23 May 2025-26 | Budget 2025 Expectations | Super Tax to 10%? Auto Sector Hit | PSX' (YouTube, 2025-05-23)",
+  "source_url": "https://www.youtube.com/watch?v=BcROjo0KBjg",
+  "video_id": "BcROjo0KBjg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.market_outlook",
+  "fact_text": "The analyst expected the market to perform better in FY26 and FY27 as political uncertainty eases, though farm and industry conditions were weak apart from a few companies.",
+  "value": null,
+  "unit": null,
+  "period": "FY26",
+  "source_name": "Standard Capital Securities, 'Midday Flash 23 May 2025-26 | Budget 2025 Expectations | Super Tax to 10%? Auto Sector Hit | PSX' (YouTube, 2025-05-23)",
+  "source_url": "https://www.youtube.com/watch?v=BcROjo0KBjg",
+  "video_id": "BcROjo0KBjg",
+  "confidence": "analyst_view"
+ }
+]

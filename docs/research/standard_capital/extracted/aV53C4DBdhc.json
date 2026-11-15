@@ -1,0 +1,122 @@
+[
+ {
+  "company": "GHNI",
+  "topic": "commentary.financials",
+  "fact_text": "Analysts estimate Ghandhara Industries' final-quarter EPS at about Rs 45 to Rs 47, given the strong sales of its commercial vehicles.",
+  "value": 45,
+  "unit": "PKR_per_share",
+  "period": "Q4 FY25",
+  "source_name": "Standard Capital Securities, 'Midday Flash 22 July 2025 | Auto Sales Update | GHNI HCAR GAL | NPL to Enter EV Cars | JSMFETF' (YouTube, 2025-07-22)",
+  "source_url": "https://www.youtube.com/watch?v=aV53C4DBdhc",
+  "video_id": "aV53C4DBdhc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "GHNI",
+  "topic": "commentary.valuation",
+  "fact_text": "The analyst said Ghandhara Industries trades at a lower price-to-earnings multiple than other auto makers, at about 6 to 7 times.",
+  "value": 6,
+  "unit": "times",
+  "period": "2025-07-22",
+  "source_name": "Standard Capital Securities, 'Midday Flash 22 July 2025 | Auto Sales Update | GHNI HCAR GAL | NPL to Enter EV Cars | JSMFETF' (YouTube, 2025-07-22)",
+  "source_url": "https://www.youtube.com/watch?v=aV53C4DBdhc",
+  "video_id": "aV53C4DBdhc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "HCAR",
+  "topic": "commentary.financials",
+  "fact_text": "Honda Atlas Cars sold about 16,000 vehicles in the last fiscal year, slightly below the prior year.",
+  "value": 16000,
+  "unit": "units",
+  "period": "FY25",
+  "source_name": "Standard Capital Securities, 'Midday Flash 22 July 2025 | Auto Sales Update | GHNI HCAR GAL | NPL to Enter EV Cars | JSMFETF' (YouTube, 2025-07-22)",
+  "source_url": "https://www.youtube.com/watch?v=aV53C4DBdhc",
+  "video_id": "aV53C4DBdhc",
+  "confidence": "fact"
+ },
+ {
+  "company": "HCAR",
+  "topic": "commentary.outlook",
+  "fact_text": "Analysts expected Honda Atlas Cars' Q1 FY26 EPS of about Rs 7 to Rs 8, on better April to June sales than in earlier years.",
+  "value": 7,
+  "unit": "PKR_per_share",
+  "period": "Q1 FY26",
+  "source_name": "Standard Capital Securities, 'Midday Flash 22 July 2025 | Auto Sales Update | GHNI HCAR GAL | NPL to Enter EV Cars | JSMFETF' (YouTube, 2025-07-22)",
+  "source_url": "https://www.youtube.com/watch?v=aV53C4DBdhc",
+  "video_id": "aV53C4DBdhc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "GAL",
+  "topic": "commentary.outlook",
+  "fact_text": "The analyst said Ghandhara Automobiles' Jac T9 Hunter sales were not reported as strongly as analysts expected, and the next quarterly sales will show whether demand held up.",
+  "value": null,
+  "unit": null,
+  "period": "Q1 FY26",
+  "source_name": "Standard Capital Securities, 'Midday Flash 22 July 2025 | Auto Sales Update | GHNI HCAR GAL | NPL to Enter EV Cars | JSMFETF' (YouTube, 2025-07-22)",
+  "source_url": "https://www.youtube.com/watch?v=aV53C4DBdhc",
+  "video_id": "aV53C4DBdhc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "NPL",
+  "topic": "news.policy",
+  "fact_text": "Nishat Power called an emergency shareholder meeting to approve entering the electric vehicle business, under an agreement with Chery Automobile signed in August 2024.",
+  "value": null,
+  "unit": null,
+  "period": "2024-08",
+  "source_name": "Standard Capital Securities, 'Midday Flash 22 July 2025 | Auto Sales Update | GHNI HCAR GAL | NPL to Enter EV Cars | JSMFETF' (YouTube, 2025-07-22)",
+  "source_url": "https://www.youtube.com/watch?v=aV53C4DBdhc",
+  "video_id": "aV53C4DBdhc",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.ev_policy",
+  "fact_text": "A new government EV policy is expected to bring new players into electric vehicles in Pakistan, and the analyst sees Nishat Power's move as part of that trend.",
+  "value": null,
+  "unit": null,
+  "period": "2025-07-22",
+  "source_name": "Standard Capital Securities, 'Midday Flash 22 July 2025 | Auto Sales Update | GHNI HCAR GAL | NPL to Enter EV Cars | JSMFETF' (YouTube, 2025-07-22)",
+  "source_url": "https://www.youtube.com/watch?v=aV53C4DBdhc",
+  "video_id": "aV53C4DBdhc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "JSMFETF",
+  "topic": "commentary.thesis",
+  "fact_text": "The JS Momentum Factor ETF has paid regular dividends and performed well in the last fiscal year, which the analyst said makes it relevant if the index and bank stocks rise.",
+  "value": null,
+  "unit": null,
+  "period": "2025-07-22",
+  "source_name": "Standard Capital Securities, 'Midday Flash 22 July 2025 | Auto Sales Update | GHNI HCAR GAL | NPL to Enter EV Cars | JSMFETF' (YouTube, 2025-07-22)",
+  "source_url": "https://www.youtube.com/watch?v=aV53C4DBdhc",
+  "video_id": "aV53C4DBdhc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PSO",
+  "topic": "commentary.financials",
+  "fact_text": "The government raised the oil marketing company margin, and better receivables and balance-sheet positions would benefit PSO, the analyst said.",
+  "value": null,
+  "unit": null,
+  "period": "2025-07-22",
+  "source_name": "Standard Capital Securities, 'Midday Flash 22 July 2025 | Auto Sales Update | GHNI HCAR GAL | NPL to Enter EV Cars | JSMFETF' (YouTube, 2025-07-22)",
+  "source_url": "https://www.youtube.com/watch?v=aV53C4DBdhc",
+  "video_id": "aV53C4DBdhc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PSO",
+  "topic": "commentary.thesis",
+  "fact_text": "The analyst sees PSO as a major beneficiary of a circular debt settlement, though the market is not yet linking the stock to it.",
+  "value": null,
+  "unit": null,
+  "period": "2025-07-22",
+  "source_name": "Standard Capital Securities, 'Midday Flash 22 July 2025 | Auto Sales Update | GHNI HCAR GAL | NPL to Enter EV Cars | JSMFETF' (YouTube, 2025-07-22)",
+  "source_url": "https://www.youtube.com/watch?v=aV53C4DBdhc",
+  "video_id": "aV53C4DBdhc",
+  "confidence": "analyst_view"
+ }
+]

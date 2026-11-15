@@ -89,16 +89,14 @@ def _existing(db: Any, companies: set[str]) -> tuple[set[tuple[str, str, str]],
     """What is already stored for these companies, read once: exact keys, and word bags per topic family."""
     exact: set[tuple[str, str, str]] = set()
     known: dict[tuple[str, str], list[frozenset[str]]] = {}
-    names = sorted(companies)
-    for i in range(0, len(names), 50):
-        chunk = names[i:i + 50]
-        marks = ", ".join("?" for _ in chunk)
-        # only "?" placeholders are interpolated; every value is bound separately
-        sql = f"SELECT company, topic, fact_text FROM research_fact WHERE company IN ({marks})"  # noqa: S608
-        for row in db.execute(sql, tuple(chunk)):
-            exact.add((row["company"], row["topic"], row["fact_text"]))
-            known.setdefault((row["company"], str(row["topic"]).split(".", 1)[0]), []).append(
-                normalise(str(row["fact_text"])))
+    # One scan, filtered here: the table has no index on company, so a query per batch of entities rescans
+    # all of it and, as the table grows, runs a loader out of its per-process row-read budget.
+    for row in db.execute("SELECT company, topic, fact_text FROM research_fact"):
+        if row["company"] not in companies:
+            continue
+        exact.add((row["company"], row["topic"], row["fact_text"]))
+        known.setdefault((row["company"], str(row["topic"]).split(".", 1)[0]), []).append(
+            normalise(str(row["fact_text"])))
     return exact, known
 
 

@@ -1,0 +1,86 @@
+[
+ {
+  "company": "FFC",
+  "topic": "news.results",
+  "fact_text": "Fatima Fertilizer showed half-year EPS of Rs 6.30.",
+  "value": 6.3,
+  "unit": "PKR_per_share",
+  "period": "Jun 2024",
+  "source_name": "Standard Capital Securities, 'Fatima Fertilizer vs Engro Fertilizer: Which is the Better Investment? | PSX Stock Analysis' (YouTube, 2024-08-29)",
+  "source_url": "https://www.youtube.com/watch?v=OE83LTUkJTY",
+  "video_id": "OE83LTUkJTY",
+  "confidence": "fact"
+ },
+ {
+  "company": "FFC",
+  "topic": "commentary.financials",
+  "fact_text": "Fatima's debt has fallen sharply, so its debt to equity ratio is far lower than before, and its deferred tax liability is shrinking gradually, the analyst said.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Fatima Fertilizer vs Engro Fertilizer: Which is the Better Investment? | PSX Stock Analysis' (YouTube, 2024-08-29)",
+  "source_url": "https://www.youtube.com/watch?v=OE83LTUkJTY",
+  "video_id": "OE83LTUkJTY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:FERTILIZER",
+  "topic": "valuation.dividend_benchmark",
+  "fact_text": "Fauji Fertilizer and Engro Fertilizer used to pay dividends of 12 to 14 percent of par value, which the analyst used as a benchmark for fertilizer dividends.",
+  "value": 12,
+  "unit": "percent",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Fatima Fertilizer vs Engro Fertilizer: Which is the Better Investment? | PSX Stock Analysis' (YouTube, 2024-08-29)",
+  "source_url": "https://www.youtube.com/watch?v=OE83LTUkJTY",
+  "video_id": "OE83LTUkJTY",
+  "confidence": "fact"
+ },
+ {
+  "company": "SECTOR:FERTILIZER",
+  "topic": "cycle.inventory",
+  "fact_text": "Urea and DAP inventories at fertilizer makers were high, the analyst said, which could limit near-term sales.",
+  "value": null,
+  "unit": null,
+  "period": "2024-08-29",
+  "source_name": "Standard Capital Securities, 'Fatima Fertilizer vs Engro Fertilizer: Which is the Better Investment? | PSX Stock Analysis' (YouTube, 2024-08-29)",
+  "source_url": "https://www.youtube.com/watch?v=OE83LTUkJTY",
+  "video_id": "OE83LTUkJTY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:FERTILIZER",
+  "topic": "cycle.sowing_demand",
+  "fact_text": "Fertilizer demand follows the sowing calendar, with the October-November wheat sowing a key period, the analyst said.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Fatima Fertilizer vs Engro Fertilizer: Which is the Better Investment? | PSX Stock Analysis' (YouTube, 2024-08-29)",
+  "source_url": "https://www.youtube.com/watch?v=OE83LTUkJTY",
+  "video_id": "OE83LTUkJTY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "FFBL",
+  "topic": "news.merger",
+  "fact_text": "The analyst said the Fauji Fertilizer Bin Qasim merger would be completed once the swap ratio is announced.",
+  "value": null,
+  "unit": null,
+  "period": "2024-08-29",
+  "source_name": "Standard Capital Securities, 'Fatima Fertilizer vs Engro Fertilizer: Which is the Better Investment? | PSX Stock Analysis' (YouTube, 2024-08-29)",
+  "source_url": "https://www.youtube.com/watch?v=OE83LTUkJTY",
+  "video_id": "OE83LTUkJTY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "FFC",
+  "topic": "commentary.thesis",
+  "fact_text": "The analyst said Fatima's value case looks strongest in tough conditions, because its basic commodity fertilizer keeps selling.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Fatima Fertilizer vs Engro Fertilizer: Which is the Better Investment? | PSX Stock Analysis' (YouTube, 2024-08-29)",
+  "source_url": "https://www.youtube.com/watch?v=OE83LTUkJTY",
+  "video_id": "OE83LTUkJTY",
+  "confidence": "analyst_view"
+ }
+]

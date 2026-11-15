@@ -1,0 +1,38 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.stability",
+  "fact_text": "The analyst said macro stability was improving, with trade deficit and current account figures discussed as key indicators in the 26 Mar 2024 update.",
+  "value": null,
+  "unit": null,
+  "period": "2024-03-26",
+  "source_name": "Standard Capital Securities, 'Role of 'CYCLICALS' in the Market & Improving Macros & Market Dynamics.' (YouTube, 2024-03-26)",
+  "source_url": "https://www.youtube.com/watch?v=bl9TvMx_fsQ",
+  "video_id": "bl9TvMx_fsQ",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.valuation_multiples",
+  "fact_text": "The analyst listed price to sales, price to earnings, return on equity and EV multiples as the measures used to compare stocks.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Role of 'CYCLICALS' in the Market & Improving Macros & Market Dynamics.' (YouTube, 2024-03-26)",
+  "source_url": "https://www.youtube.com/watch?v=bl9TvMx_fsQ",
+  "video_id": "bl9TvMx_fsQ",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:STEEL",
+  "topic": "cycle.long_steel",
+  "fact_text": "The analyst discussed long steel as a cyclical sector in the market, though the transcript gives little detail on its drivers.",
+  "value": null,
+  "unit": null,
+  "period": "2024-03-26",
+  "source_name": "Standard Capital Securities, 'Role of 'CYCLICALS' in the Market & Improving Macros & Market Dynamics.' (YouTube, 2024-03-26)",
+  "source_url": "https://www.youtube.com/watch?v=bl9TvMx_fsQ",
+  "video_id": "bl9TvMx_fsQ",
+  "confidence": "analyst_view"
+ }
+]

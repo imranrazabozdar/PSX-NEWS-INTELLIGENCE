@@ -1,0 +1,86 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.budget_dividend_estimates",
+  "fact_text": "Government budget documents include dividend estimates from state-owned companies, but the analyst notes that actual dividends have often come in below these budgeted figures.",
+  "value": null,
+  "unit": null,
+  "period": "FY26",
+  "source_name": "Standard Capital Securities, 'Midday Flash 4 June 2025 | OGDC & PPL Pre-Budget 2025-26 Outlook | PSX E&P Sector Analysis' (YouTube, 2025-06-04)",
+  "source_url": "https://www.youtube.com/watch?v=BjSLtzLvNok",
+  "video_id": "BjSLtzLvNok",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.revenue_shortfall",
+  "fact_text": "The analyst says the IMF is not satisfied with FBR tax collections, which are short of target, so the government may look to non-tax revenue such as dividends from state-owned energy firms in the FY26 budget.",
+  "value": null,
+  "unit": null,
+  "period": "FY26",
+  "source_name": "Standard Capital Securities, 'Midday Flash 4 June 2025 | OGDC & PPL Pre-Budget 2025-26 Outlook | PSX E&P Sector Analysis' (YouTube, 2025-06-04)",
+  "source_url": "https://www.youtube.com/watch?v=BjSLtzLvNok",
+  "video_id": "BjSLtzLvNok",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "OGDC",
+  "topic": "commentary.financials",
+  "fact_text": "OGDC held about Rs 173 billion in short-term financial assets and Rs 29-30 billion in cash and bank balances over the nine months to March 2025, a total of roughly Rs 200 billion that the government is watching.",
+  "value": 200,
+  "unit": "PKR_billions",
+  "period": "9M FY25",
+  "source_name": "Standard Capital Securities, 'Midday Flash 4 June 2025 | OGDC & PPL Pre-Budget 2025-26 Outlook | PSX E&P Sector Analysis' (YouTube, 2025-06-04)",
+  "source_url": "https://www.youtube.com/watch?v=BjSLtzLvNok",
+  "video_id": "BjSLtzLvNok",
+  "confidence": "fact"
+ },
+ {
+  "company": "OGDC",
+  "topic": "commentary.catalyst",
+  "fact_text": "The analyst says OGDC and PPL could pay dividends from their liquid balances before the 30 June 2025 fiscal year-end, which could support the government's non-tax revenue target in the budget.",
+  "value": null,
+  "unit": null,
+  "period": "FY26",
+  "source_name": "Standard Capital Securities, 'Midday Flash 4 June 2025 | OGDC & PPL Pre-Budget 2025-26 Outlook | PSX E&P Sector Analysis' (YouTube, 2025-06-04)",
+  "source_url": "https://www.youtube.com/watch?v=BjSLtzLvNok",
+  "video_id": "BjSLtzLvNok",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PPL",
+  "topic": "commentary.financials",
+  "fact_text": "PPL held about Rs 125 billion in short-term investments, largely in mutual funds, plus about Rs 7 billion of cash, roughly Rs 132 billion of liquid assets in the nine months to March 2025.",
+  "value": 132,
+  "unit": "PKR_billions",
+  "period": "9M FY25",
+  "source_name": "Standard Capital Securities, 'Midday Flash 4 June 2025 | OGDC & PPL Pre-Budget 2025-26 Outlook | PSX E&P Sector Analysis' (YouTube, 2025-06-04)",
+  "source_url": "https://www.youtube.com/watch?v=BjSLtzLvNok",
+  "video_id": "BjSLtzLvNok",
+  "confidence": "fact"
+ },
+ {
+  "company": "PPL",
+  "topic": "commentary.catalyst",
+  "fact_text": "The analyst sees PPL's large liquid balances as a possible source of dividends to the government before or after the budget, a view he frames as a professional opinion rather than a forecast.",
+  "value": null,
+  "unit": null,
+  "period": "FY26",
+  "source_name": "Standard Capital Securities, 'Midday Flash 4 June 2025 | OGDC & PPL Pre-Budget 2025-26 Outlook | PSX E&P Sector Analysis' (YouTube, 2025-06-04)",
+  "source_url": "https://www.youtube.com/watch?v=BjSLtzLvNok",
+  "video_id": "BjSLtzLvNok",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:OIL_GAS",
+  "topic": "commentary.risk",
+  "fact_text": "Long-term investments in Balochistan, including a government stake and an expected Barrick Gold investment, had not yet materialised for the upstream companies, which the analyst says limits the near-term catalysts.",
+  "value": null,
+  "unit": null,
+  "period": "2025-06-04",
+  "source_name": "Standard Capital Securities, 'Midday Flash 4 June 2025 | OGDC & PPL Pre-Budget 2025-26 Outlook | PSX E&P Sector Analysis' (YouTube, 2025-06-04)",
+  "source_url": "https://www.youtube.com/watch?v=BjSLtzLvNok",
+  "video_id": "BjSLtzLvNok",
+  "confidence": "analyst_view"
+ }
+]

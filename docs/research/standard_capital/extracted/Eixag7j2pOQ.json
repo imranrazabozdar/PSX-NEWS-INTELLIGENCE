@@ -1,0 +1,110 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.trade_cost_breakdown",
+  "fact_text": "Trading on PMEX carries four cost layers: the broker's commission, the exchange fee on trade value, a volume-based processing fee, and an optional capital gains tax on profits.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PMEX Fees & Charges Explained 🔍 | Complete Cost Breakdown | Pakistan Mercantile Exchange' (YouTube, 2025-05-14)",
+  "source_url": "https://www.youtube.com/watch?v=Eixag7j2pOQ",
+  "video_id": "Eixag7j2pOQ",
+  "confidence": "fact"
+ },
+ {
+  "company": "Standard Capital Securities",
+  "topic": "method.trade_cost_example",
+  "fact_text": "For a gold contract on PMEX, the broker's commission is PKR 25 plus 15% sales tax of PKR 3.75, for a total of PKR 28.75 per contract.",
+  "value": 28.75,
+  "unit": "PKR",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PMEX Fees & Charges Explained 🔍 | Complete Cost Breakdown | Pakistan Mercantile Exchange' (YouTube, 2025-05-14)",
+  "source_url": "https://www.youtube.com/watch?v=Eixag7j2pOQ",
+  "video_id": "Eixag7j2pOQ",
+  "confidence": "fact"
+ },
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "cost.processing_fee",
+  "fact_text": "The PMEX processing fee follows a volume slab; for trades from PKR 1,000 up to PKR 5 million the fee is PKR 250, as set out in a PMEX circular.",
+  "value": 250,
+  "unit": "PKR",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PMEX Fees & Charges Explained 🔍 | Complete Cost Breakdown | Pakistan Mercantile Exchange' (YouTube, 2025-05-14)",
+  "source_url": "https://www.youtube.com/watch?v=Eixag7j2pOQ",
+  "video_id": "Eixag7j2pOQ",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.trade_cost_breakdown",
+  "fact_text": "The analyst said investors should count every cost layer in their trading cost, because each is charged per trade and the exchange fee moves with the contract's price.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PMEX Fees & Charges Explained 🔍 | Complete Cost Breakdown | Pakistan Mercantile Exchange' (YouTube, 2025-05-14)",
+  "source_url": "https://www.youtube.com/watch?v=Eixag7j2pOQ",
+  "video_id": "Eixag7j2pOQ",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "cost.exchange_fee",
+  "fact_text": "Pakistan Mercantile Exchange charges a fee of 0.009% of total trade value, on top of the broker's commission.",
+  "value": 0.009,
+  "unit": "percent",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PMEX Fees & Charges Explained 🔍 | Complete Cost Breakdown | Pakistan Mercantile Exchange' (YouTube, 2025-05-14)",
+  "source_url": "https://www.youtube.com/watch?v=Eixag7j2pOQ",
+  "video_id": "Eixag7j2pOQ",
+  "confidence": "fact"
+ },
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "cost.exchange_fee",
+  "fact_text": "At 0.009% of trade value, the PMEX fee on a PKR 9.5 lakh trade works out to about PKR 85.50 in the analyst's example.",
+  "value": 85.5,
+  "unit": "PKR",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PMEX Fees & Charges Explained 🔍 | Complete Cost Breakdown | Pakistan Mercantile Exchange' (YouTube, 2025-05-14)",
+  "source_url": "https://www.youtube.com/watch?v=Eixag7j2pOQ",
+  "video_id": "Eixag7j2pOQ",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.gold_price",
+  "fact_text": "Gold's market price was quoted at USD 3,300 in the 14 May 2025 video.",
+  "value": 3300,
+  "unit": "USD",
+  "period": "2025-05-14",
+  "source_name": "Standard Capital Securities, 'PMEX Fees & Charges Explained 🔍 | Complete Cost Breakdown | Pakistan Mercantile Exchange' (YouTube, 2025-05-14)",
+  "source_url": "https://www.youtube.com/watch?v=Eixag7j2pOQ",
+  "video_id": "Eixag7j2pOQ",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.rupee_rate",
+  "fact_text": "The analyst converted dollar trade values into rupees at PKR 280 per USD on 14 May 2025.",
+  "value": 280,
+  "unit": "PKR_per_USD",
+  "period": "2025-05-14",
+  "source_name": "Standard Capital Securities, 'PMEX Fees & Charges Explained 🔍 | Complete Cost Breakdown | Pakistan Mercantile Exchange' (YouTube, 2025-05-14)",
+  "source_url": "https://www.youtube.com/watch?v=Eixag7j2pOQ",
+  "video_id": "Eixag7j2pOQ",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.capital_gains_tax",
+  "fact_text": "Capital gains tax on share trading profits is a fixed 5% for both filers and non-filers, so a PKR 1 lakh profit carries PKR 5,000 of tax.",
+  "value": 5,
+  "unit": "percent",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PMEX Fees & Charges Explained 🔍 | Complete Cost Breakdown | Pakistan Mercantile Exchange' (YouTube, 2025-05-14)",
+  "source_url": "https://www.youtube.com/watch?v=Eixag7j2pOQ",
+  "video_id": "Eixag7j2pOQ",
+  "confidence": "fact"
+ }
+]

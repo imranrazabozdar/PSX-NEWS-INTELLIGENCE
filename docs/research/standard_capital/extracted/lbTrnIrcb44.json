@@ -1,0 +1,98 @@
+[
+ {
+  "company": "SSGC",
+  "topic": "market.price_level",
+  "fact_text": "The analyst said SSGC broke out above a resistance level and then retested it near Rs 40, which he read as a bullish sign for further upside.",
+  "value": 40,
+  "unit": "PKR",
+  "period": "2025-06-28",
+  "source_name": "Standard Capital Securities, 'Sui Southern Gas Company Ltd. (SSGC) Technical Analysis | PSX Pakistan Stock Market Insights 2025' (YouTube, 2025-06-28)",
+  "source_url": "https://www.youtube.com/watch?v=lbTrnIrcb44",
+  "video_id": "lbTrnIrcb44",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SSGC",
+  "topic": "signal.rsi",
+  "fact_text": "The analyst read SSGC's RSI at 58, above the 40 level, as a bullish momentum signal.",
+  "value": 58,
+  "unit": "index",
+  "period": "2025-06-28",
+  "source_name": "Standard Capital Securities, 'Sui Southern Gas Company Ltd. (SSGC) Technical Analysis | PSX Pakistan Stock Market Insights 2025' (YouTube, 2025-06-28)",
+  "source_url": "https://www.youtube.com/watch?v=lbTrnIrcb44",
+  "video_id": "lbTrnIrcb44",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SSGC",
+  "topic": "signal.macd",
+  "fact_text": "The analyst said a MACD crossover on SSGC's chart showed strong momentum.",
+  "value": null,
+  "unit": null,
+  "period": "2025-06-28",
+  "source_name": "Standard Capital Securities, 'Sui Southern Gas Company Ltd. (SSGC) Technical Analysis | PSX Pakistan Stock Market Insights 2025' (YouTube, 2025-06-28)",
+  "source_url": "https://www.youtube.com/watch?v=lbTrnIrcb44",
+  "video_id": "lbTrnIrcb44",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SSGC",
+  "topic": "method.elliott_wave_count",
+  "fact_text": "Using Elliott wave counting, the analyst saw SSGC completing a fifth wave after waves one to four, with the fifth wave possibly continuing.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Sui Southern Gas Company Ltd. (SSGC) Technical Analysis | PSX Pakistan Stock Market Insights 2025' (YouTube, 2025-06-28)",
+  "source_url": "https://www.youtube.com/watch?v=lbTrnIrcb44",
+  "video_id": "lbTrnIrcb44",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SSGC",
+  "topic": "method.fibonacci_extension",
+  "fact_text": "Using a Fibonacci 1.6 extension of the move, the analyst placed upside reference levels near Rs 45, Rs 50 and Rs 57, with Rs 55 as the level if the structure breaks upward.",
+  "value": 57,
+  "unit": "PKR",
+  "period": "2025-06-28",
+  "source_name": "Standard Capital Securities, 'Sui Southern Gas Company Ltd. (SSGC) Technical Analysis | PSX Pakistan Stock Market Insights 2025' (YouTube, 2025-06-28)",
+  "source_url": "https://www.youtube.com/watch?v=lbTrnIrcb44",
+  "video_id": "lbTrnIrcb44",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SSGC",
+  "topic": "signal.invalidation_level",
+  "fact_text": "The analyst placed the technical invalidation level for the SSGC setup below Rs 40, the level where the breakout retest held.",
+  "value": 40,
+  "unit": "PKR",
+  "period": "2025-06-28",
+  "source_name": "Standard Capital Securities, 'Sui Southern Gas Company Ltd. (SSGC) Technical Analysis | PSX Pakistan Stock Market Insights 2025' (YouTube, 2025-06-28)",
+  "source_url": "https://www.youtube.com/watch?v=lbTrnIrcb44",
+  "video_id": "lbTrnIrcb44",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_move",
+  "fact_text": "The analyst said the KSE-100 faced resistance near 123,000 points, and a sustained break above that level could open room toward 125,000.",
+  "value": 123000,
+  "unit": "points",
+  "period": "2025-06-28",
+  "source_name": "Standard Capital Securities, 'Sui Southern Gas Company Ltd. (SSGC) Technical Analysis | PSX Pakistan Stock Market Insights 2025' (YouTube, 2025-06-28)",
+  "source_url": "https://www.youtube.com/watch?v=lbTrnIrcb44",
+  "video_id": "lbTrnIrcb44",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_move",
+  "fact_text": "The analyst said the KSE-100 had rallied more than 6,000 points in an earlier phase that was disrupted by political uncertainty before the later rebound.",
+  "value": 6000,
+  "unit": "points",
+  "period": "2025-06-28",
+  "source_name": "Standard Capital Securities, 'Sui Southern Gas Company Ltd. (SSGC) Technical Analysis | PSX Pakistan Stock Market Insights 2025' (YouTube, 2025-06-28)",
+  "source_url": "https://www.youtube.com/watch?v=lbTrnIrcb44",
+  "video_id": "lbTrnIrcb44",
+  "confidence": "analyst_view"
+ }
+]

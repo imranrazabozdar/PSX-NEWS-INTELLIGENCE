@@ -1,0 +1,122 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.rate_cut_transmission",
+  "fact_text": "The analyst expects interest rates to fall further and CPI inflation figures to read lower, both strong supports for the KSE-100 index.",
+  "value": null,
+  "unit": null,
+  "period": "2024-07",
+  "source_name": "Standard Capital Securities, 'Chemical Sector Analysis: EPCL, LOTCHEM, FFBL & DOL | PSX & Pakistan Stock Market Insights' (YouTube, 2024-07-11)",
+  "source_url": "https://www.youtube.com/watch?v=zBJFEfr4W78",
+  "video_id": "zBJFEfr4W78",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.imf_programme",
+  "fact_text": "Media reports say the IMF deal is close and may be settled late in the month, and the analyst says the market is already pricing it in.",
+  "value": null,
+  "unit": null,
+  "period": "2024-07",
+  "source_name": "Standard Capital Securities, 'Chemical Sector Analysis: EPCL, LOTCHEM, FFBL & DOL | PSX & Pakistan Stock Market Insights' (YouTube, 2024-07-11)",
+  "source_url": "https://www.youtube.com/watch?v=zBJFEfr4W78",
+  "video_id": "zBJFEfr4W78",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "OGDC",
+  "topic": "operations.production",
+  "fact_text": "OGDC reported that a well in Hyderabad, Sindh, has reached an output of 960 barrels of oil per day, and a PSX notice was issued.",
+  "value": 960,
+  "unit": "barrels_per_day",
+  "period": "2024-07",
+  "source_name": "Standard Capital Securities, 'Chemical Sector Analysis: EPCL, LOTCHEM, FFBL & DOL | PSX & Pakistan Stock Market Insights' (YouTube, 2024-07-11)",
+  "source_url": "https://www.youtube.com/watch?v=zBJFEfr4W78",
+  "video_id": "zBJFEfr4W78",
+  "confidence": "fact"
+ },
+ {
+  "company": "OGDC",
+  "topic": "macro.oil_production",
+  "fact_text": "The analyst says Pakistan's oil output is very low, so rising production from new discoveries would cut the oil import bill and ease pressure on the rupee.",
+  "value": null,
+  "unit": null,
+  "period": "2024-07",
+  "source_name": "Standard Capital Securities, 'Chemical Sector Analysis: EPCL, LOTCHEM, FFBL & DOL | PSX & Pakistan Stock Market Insights' (YouTube, 2024-07-11)",
+  "source_url": "https://www.youtube.com/watch?v=zBJFEfr4W78",
+  "video_id": "zBJFEfr4W78",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "EPCL",
+  "topic": "cost.ethylene_pvc_margin",
+  "fact_text": "Engro Polymer's margins rose as oil prices eased, lowering ethylene and PVC input costs, with the margin moving from about 300 to about 400 USD per ton.",
+  "value": 400,
+  "unit": "USD_per_ton",
+  "period": "2024-07",
+  "source_name": "Standard Capital Securities, 'Chemical Sector Analysis: EPCL, LOTCHEM, FFBL & DOL | PSX & Pakistan Stock Market Insights' (YouTube, 2024-07-11)",
+  "source_url": "https://www.youtube.com/watch?v=zBJFEfr4W78",
+  "video_id": "zBJFEfr4W78",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "EPCL",
+  "topic": "commentary.financials",
+  "fact_text": "Engro Polymer pays a dividend every quarter, and the analyst says its margin recovery can help sustain that payout.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Chemical Sector Analysis: EPCL, LOTCHEM, FFBL & DOL | PSX & Pakistan Stock Market Insights' (YouTube, 2024-07-11)",
+  "source_url": "https://www.youtube.com/watch?v=zBJFEfr4W78",
+  "video_id": "zBJFEfr4W78",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:CHEMICALS",
+  "topic": "cycle.hydrogen_peroxide",
+  "fact_text": "Hydrogen peroxide, a processing chemical used widely in textiles, is a bright spot, and the analyst expects the final quarter and FY25 to improve after a stressful nine months.",
+  "value": null,
+  "unit": null,
+  "period": "FY25",
+  "source_name": "Standard Capital Securities, 'Chemical Sector Analysis: EPCL, LOTCHEM, FFBL & DOL | PSX & Pakistan Stock Market Insights' (YouTube, 2024-07-11)",
+  "source_url": "https://www.youtube.com/watch?v=zBJFEfr4W78",
+  "video_id": "zBJFEfr4W78",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "FFBL",
+  "topic": "market.dap_price",
+  "fact_text": "DAP prices had been low, but the analyst expects them to firm as the rice paddy sowing season starts, which he sees as an important development for Fauji Fertilizer Bin Qasim.",
+  "value": null,
+  "unit": null,
+  "period": "2024-07",
+  "source_name": "Standard Capital Securities, 'Chemical Sector Analysis: EPCL, LOTCHEM, FFBL & DOL | PSX & Pakistan Stock Market Insights' (YouTube, 2024-07-11)",
+  "source_url": "https://www.youtube.com/watch?v=zBJFEfr4W78",
+  "video_id": "zBJFEfr4W78",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "LOTCHEM",
+  "topic": "commentary.thesis",
+  "fact_text": "Lotte Chemical's PTA margin is still weak, though the analyst notes it was around 70 USD per ton in past years; he says the plant is old but the company is efficient, so better EPS could allow a dividend.",
+  "value": 70,
+  "unit": "USD_per_ton",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Chemical Sector Analysis: EPCL, LOTCHEM, FFBL & DOL | PSX & Pakistan Stock Market Insights' (YouTube, 2024-07-11)",
+  "source_url": "https://www.youtube.com/watch?v=zBJFEfr4W78",
+  "video_id": "zBJFEfr4W78",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "OGDC",
+  "topic": "market.production",
+  "fact_text": "OGDC's production fell from much higher 2018 levels to about 36,000 barrels per day and then to about 32,000 barrels per day in 2023.",
+  "value": 32000,
+  "unit": "barrels_per_day",
+  "period": "2023",
+  "source_name": "Standard Capital Securities, 'Chemical Sector Analysis: EPCL, LOTCHEM, FFBL & DOL | PSX & Pakistan Stock Market Insights' (YouTube, 2024-07-11)",
+  "source_url": "https://www.youtube.com/watch?v=zBJFEfr4W78",
+  "video_id": "zBJFEfr4W78",
+  "confidence": "fact"
+ }
+]

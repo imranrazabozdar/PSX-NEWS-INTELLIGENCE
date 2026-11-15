@@ -1,0 +1,122 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.soe_privatization",
+  "fact_text": "The analyst said the IMF and the US government have both pressed for loss-making state-owned enterprises to be sold, and that the new government has to advance privatisation.",
+  "value": null,
+  "unit": null,
+  "period": "2024-03-08",
+  "source_name": "Standard Capital Securities, 'PSX Privatization Plan, Pakistan Stock Market Update' (YouTube, 2024-03-08)",
+  "source_url": "https://www.youtube.com/watch?v=yR8Q90W7nVY",
+  "video_id": "yR8Q90W7nVY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "news.policy",
+  "fact_text": "A proposal under study would hand the electricity distribution companies (DISCOs) to the provinces, according to the analyst's account of the 8 Mar 2024 video.",
+  "value": null,
+  "unit": null,
+  "period": "2024-03-08",
+  "source_name": "Standard Capital Securities, 'PSX Privatization Plan, Pakistan Stock Market Update' (YouTube, 2024-03-08)",
+  "source_url": "https://www.youtube.com/watch?v=yR8Q90W7nVY",
+  "video_id": "yR8Q90W7nVY",
+  "confidence": "fact"
+ },
+ {
+  "company": "Pakistan International Airlines",
+  "topic": "news.privatization",
+  "fact_text": "The analyst said the privatisation of Pakistan International Airlines was on the fast track and appeared close to completion.",
+  "value": null,
+  "unit": null,
+  "period": "2024-03-08",
+  "source_name": "Standard Capital Securities, 'PSX Privatization Plan, Pakistan Stock Market Update' (YouTube, 2024-03-08)",
+  "source_url": "https://www.youtube.com/watch?v=yR8Q90W7nVY",
+  "video_id": "yR8Q90W7nVY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.govt_borrowing",
+  "fact_text": "The analyst argued that the government cannot keep borrowing from commercial banks to cover losses at state entities, so privatisation has become urgent.",
+  "value": null,
+  "unit": null,
+  "period": "2024-03-08",
+  "source_name": "Standard Capital Securities, 'PSX Privatization Plan, Pakistan Stock Market Update' (YouTube, 2024-03-08)",
+  "source_url": "https://www.youtube.com/watch?v=yR8Q90W7nVY",
+  "video_id": "yR8Q90W7nVY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.sifc_role",
+  "fact_text": "The analyst said the Special Investment Facilitation Council (SIFC) and Finance Minister Aurangzeb may bring investment and transfer state enterprise stakes to investors.",
+  "value": null,
+  "unit": null,
+  "period": "2024-03-08",
+  "source_name": "Standard Capital Securities, 'PSX Privatization Plan, Pakistan Stock Market Update' (YouTube, 2024-03-08)",
+  "source_url": "https://www.youtube.com/watch?v=yR8Q90W7nVY",
+  "video_id": "yR8Q90W7nVY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.soe_turnaround_history",
+  "fact_text": "The analyst recalled that under Musharraf-era reforms Railways, the steel mill, PIA and the state banks improved, and bank equity turned from negative to positive.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Privatization Plan, Pakistan Stock Market Update' (YouTube, 2024-03-08)",
+  "source_url": "https://www.youtube.com/watch?v=yR8Q90W7nVY",
+  "video_id": "yR8Q90W7nVY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.rate_cut_expectation",
+  "fact_text": "A Habib Bank analyst briefing suggested an interest rate cut could come at the April 2024 monetary policy, according to the analyst.",
+  "value": null,
+  "unit": null,
+  "period": "Apr 2024",
+  "source_name": "Standard Capital Securities, 'PSX Privatization Plan, Pakistan Stock Market Update' (YouTube, 2024-03-08)",
+  "source_url": "https://www.youtube.com/watch?v=yR8Q90W7nVY",
+  "video_id": "yR8Q90W7nVY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.soe_watchlist",
+  "fact_text": "The analyst listed OGDC, PPL, PTC, PSO, SNGP and MARI as state-linked listed stocks to watch given their circular debt exposure.",
+  "value": null,
+  "unit": null,
+  "period": "2024-03-08",
+  "source_name": "Standard Capital Securities, 'PSX Privatization Plan, Pakistan Stock Market Update' (YouTube, 2024-03-08)",
+  "source_url": "https://www.youtube.com/watch?v=yR8Q90W7nVY",
+  "video_id": "yR8Q90W7nVY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PTC",
+  "topic": "news.payment_dispute",
+  "fact_text": "The analyst said the UAE has not yet paid about 800 million dollars owed in a matter linked to PTC.",
+  "value": 800,
+  "unit": "USD_millions",
+  "period": "2024-03-08",
+  "source_name": "Standard Capital Securities, 'PSX Privatization Plan, Pakistan Stock Market Update' (YouTube, 2024-03-08)",
+  "source_url": "https://www.youtube.com/watch?v=yR8Q90W7nVY",
+  "video_id": "yR8Q90W7nVY",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.gulf_investors",
+  "fact_text": "The analyst expected Saudi and Emirati investors may take interest in state-linked and some listed private companies as part of the privatisation drive.",
+  "value": null,
+  "unit": null,
+  "period": "2024-03-08",
+  "source_name": "Standard Capital Securities, 'PSX Privatization Plan, Pakistan Stock Market Update' (YouTube, 2024-03-08)",
+  "source_url": "https://www.youtube.com/watch?v=yR8Q90W7nVY",
+  "video_id": "yR8Q90W7nVY",
+  "confidence": "analyst_view"
+ }
+]

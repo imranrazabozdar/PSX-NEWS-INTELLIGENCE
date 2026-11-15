@@ -1,0 +1,122 @@
+[
+ {
+  "company": "CHCC",
+  "topic": "news.results",
+  "fact_text": "The analyst viewed Cherat Cement's FY24 results favourably even though revenue was roughly flat and sales volumes had fallen.",
+  "value": null,
+  "unit": null,
+  "period": "FY24",
+  "source_name": "Standard Capital Securities, 'Cheerat Cement & Citi Pharma Stock Review | PSX Investment Analysis' (YouTube, 2024-08-23)",
+  "source_url": "https://www.youtube.com/watch?v=X7sGgWrpfz8",
+  "video_id": "X7sGgWrpfz8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "CHCC",
+  "topic": "news.results",
+  "fact_text": "Cherat Cement's gross margin was about 30 to 31 percent in FY24.",
+  "value": 30,
+  "unit": "percent",
+  "period": "FY24",
+  "source_name": "Standard Capital Securities, 'Cheerat Cement & Citi Pharma Stock Review | PSX Investment Analysis' (YouTube, 2024-08-23)",
+  "source_url": "https://www.youtube.com/watch?v=X7sGgWrpfz8",
+  "video_id": "X7sGgWrpfz8",
+  "confidence": "fact"
+ },
+ {
+  "company": "CHCC",
+  "topic": "news.results",
+  "fact_text": "Cherat Cement reported EPS of about 8 rupees for FY24.",
+  "value": 8,
+  "unit": "PKR_per_share",
+  "period": "FY24",
+  "source_name": "Standard Capital Securities, 'Cheerat Cement & Citi Pharma Stock Review | PSX Investment Analysis' (YouTube, 2024-08-23)",
+  "source_url": "https://www.youtube.com/watch?v=X7sGgWrpfz8",
+  "video_id": "X7sGgWrpfz8",
+  "confidence": "fact"
+ },
+ {
+  "company": "CHCC",
+  "topic": "commentary.financials",
+  "fact_text": "The analyst said Cherat has absorbed much of the deferred tax impact, which supports its earnings.",
+  "value": null,
+  "unit": null,
+  "period": "FY24",
+  "source_name": "Standard Capital Securities, 'Cheerat Cement & Citi Pharma Stock Review | PSX Investment Analysis' (YouTube, 2024-08-23)",
+  "source_url": "https://www.youtube.com/watch?v=X7sGgWrpfz8",
+  "video_id": "X7sGgWrpfz8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "CHCC",
+  "topic": "commentary.financials",
+  "fact_text": "Cherat's cement dispatches were about 22 lakh bags domestically and about 4 lakh bags to Afghanistan, roughly 26 lakh bags in total.",
+  "value": 26,
+  "unit": "lakh_bags",
+  "period": "FY24",
+  "source_name": "Standard Capital Securities, 'Cheerat Cement & Citi Pharma Stock Review | PSX Investment Analysis' (YouTube, 2024-08-23)",
+  "source_url": "https://www.youtube.com/watch?v=X7sGgWrpfz8",
+  "video_id": "X7sGgWrpfz8",
+  "confidence": "fact"
+ },
+ {
+  "company": "CHCC",
+  "topic": "commentary.thesis",
+  "fact_text": "The analyst expects cement dispatches to rise once consumption improves, linking that recovery to the GDP growth outlook.",
+  "value": null,
+  "unit": null,
+  "period": "2024-08-23",
+  "source_name": "Standard Capital Securities, 'Cheerat Cement & Citi Pharma Stock Review | PSX Investment Analysis' (YouTube, 2024-08-23)",
+  "source_url": "https://www.youtube.com/watch?v=X7sGgWrpfz8",
+  "video_id": "X7sGgWrpfz8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.gdp_outlook",
+  "fact_text": "The analyst cited an expected GDP growth rate of 3.5 percent for FY25.",
+  "value": 3.5,
+  "unit": "percent",
+  "period": "FY25",
+  "source_name": "Standard Capital Securities, 'Cheerat Cement & Citi Pharma Stock Review | PSX Investment Analysis' (YouTube, 2024-08-23)",
+  "source_url": "https://www.youtube.com/watch?v=X7sGgWrpfz8",
+  "video_id": "X7sGgWrpfz8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "CPHL",
+  "topic": "profile.business",
+  "fact_text": "Citi Pharma makes active pharmaceutical ingredients under agreements with Indian API companies and also sells consumer products, so the analyst treats it as partly fast-moving consumer goods.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Cheerat Cement & Citi Pharma Stock Review | PSX Investment Analysis' (YouTube, 2024-08-23)",
+  "source_url": "https://www.youtube.com/watch?v=X7sGgWrpfz8",
+  "video_id": "X7sGgWrpfz8",
+  "confidence": "fact"
+ },
+ {
+  "company": "CPHL",
+  "topic": "news.demand",
+  "fact_text": "Dengue cases in Lahore had raised hospital demand for paracetamol, and the analyst said Citi Pharma's API for Panadol-type products was seeing heavy use.",
+  "value": null,
+  "unit": null,
+  "period": "2024-08",
+  "source_name": "Standard Capital Securities, 'Cheerat Cement & Citi Pharma Stock Review | PSX Investment Analysis' (YouTube, 2024-08-23)",
+  "source_url": "https://www.youtube.com/watch?v=X7sGgWrpfz8",
+  "video_id": "X7sGgWrpfz8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "CPHL",
+  "topic": "commentary.thesis",
+  "fact_text": "The analyst said Pakistan's growing population could help fast-moving consumer goods and pharma companies like Citi Pharma grow over time.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Cheerat Cement & Citi Pharma Stock Review | PSX Investment Analysis' (YouTube, 2024-08-23)",
+  "source_url": "https://www.youtube.com/watch?v=X7sGgWrpfz8",
+  "video_id": "X7sGgWrpfz8",
+  "confidence": "analyst_view"
+ }
+]

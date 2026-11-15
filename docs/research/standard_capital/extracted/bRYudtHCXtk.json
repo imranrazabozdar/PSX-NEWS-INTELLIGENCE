@@ -1,0 +1,50 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.value_investing",
+  "fact_text": "The analyst promoted value investing on the PSX, screening for companies with strong earning assets and dividend income rather than chasing market momentum.",
+  "value": null,
+  "unit": null,
+  "period": "2024-03-04",
+  "source_name": "Standard Capital Securities, 'PSX tipping point? Avail benefits of value investing.' (YouTube, 2024-03-04)",
+  "source_url": "https://www.youtube.com/watch?v=bRYudtHCXtk",
+  "video_id": "bRYudtHCXtk",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "EFERT",
+  "topic": "commentary.thesis",
+  "fact_text": "The analyst linked the gas price disparity to fertilizer players, citing Engro Fertilizer, as a theme for value investors.",
+  "value": null,
+  "unit": null,
+  "period": "2024-03-04",
+  "source_name": "Standard Capital Securities, 'PSX tipping point? Avail benefits of value investing.' (YouTube, 2024-03-04)",
+  "source_url": "https://www.youtube.com/watch?v=bRYudtHCXtk",
+  "video_id": "bRYudtHCXtk",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.imf_program",
+  "fact_text": "The analyst put the IMF extended facility programme and exchange market conditions among the challenges facing value investments on the PSX.",
+  "value": null,
+  "unit": null,
+  "period": "2024-03-04",
+  "source_name": "Standard Capital Securities, 'PSX tipping point? Avail benefits of value investing.' (YouTube, 2024-03-04)",
+  "source_url": "https://www.youtube.com/watch?v=bRYudtHCXtk",
+  "video_id": "bRYudtHCXtk",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.technical_levels",
+  "fact_text": "The analyst referred to support levels and the RSI indicator as technical tools to read the market alongside value analysis.",
+  "value": null,
+  "unit": null,
+  "period": "2024-03-04",
+  "source_name": "Standard Capital Securities, 'PSX tipping point? Avail benefits of value investing.' (YouTube, 2024-03-04)",
+  "source_url": "https://www.youtube.com/watch?v=bRYudtHCXtk",
+  "video_id": "bRYudtHCXtk",
+  "confidence": "analyst_view"
+ }
+]

@@ -1,0 +1,122 @@
+[
+ {
+  "company": "KEL",
+  "topic": "news.tariff_adjustment",
+  "fact_text": "K-Electric's tariff adjustment claims are cited at about PKR 125 billion.",
+  "value": 125,
+  "unit": "PKR_billions",
+  "period": "Sep 2025",
+  "source_name": "Standard Capital Securities, 'Midday Flash 25 Sep 2025 | K-Electric Tariff Adjustments | Fauji Foods (FFL) Turns Profitable' (YouTube, 2025-09-25)",
+  "source_url": "https://www.youtube.com/watch?v=OzCKxnecxmg",
+  "video_id": "OzCKxnecxmg",
+  "confidence": "fact"
+ },
+ {
+  "company": "KEL",
+  "topic": "commentary.outlook",
+  "fact_text": "The analyst expects the remaining FY25 quarterly results to beat FY24, and says a multi-year tariff could improve K-Electric's bottom line.",
+  "value": null,
+  "unit": null,
+  "period": "FY25",
+  "source_name": "Standard Capital Securities, 'Midday Flash 25 Sep 2025 | K-Electric Tariff Adjustments | Fauji Foods (FFL) Turns Profitable' (YouTube, 2025-09-25)",
+  "source_url": "https://www.youtube.com/watch?v=OzCKxnecxmg",
+  "video_id": "OzCKxnecxmg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "KEL",
+  "topic": "market.volume_leaders",
+  "fact_text": "K-Electric accounted for a large share of PSX trading volumes in late September 2025, drawing heavy investor interest.",
+  "value": null,
+  "unit": null,
+  "period": "Sep 2025",
+  "source_name": "Standard Capital Securities, 'Midday Flash 25 Sep 2025 | K-Electric Tariff Adjustments | Fauji Foods (FFL) Turns Profitable' (YouTube, 2025-09-25)",
+  "source_url": "https://www.youtube.com/watch?v=OzCKxnecxmg",
+  "video_id": "OzCKxnecxmg",
+  "confidence": "fact"
+ },
+ {
+  "company": "FFL",
+  "topic": "commentary.thesis",
+  "fact_text": "Fauji Foods has become fully part of Fauji Fertilizer, and the analyst expects its balance sheet to improve as quarterly profits build and accumulated losses shrink.",
+  "value": null,
+  "unit": null,
+  "period": "Sep 2025",
+  "source_name": "Standard Capital Securities, 'Midday Flash 25 Sep 2025 | K-Electric Tariff Adjustments | Fauji Foods (FFL) Turns Profitable' (YouTube, 2025-09-25)",
+  "source_url": "https://www.youtube.com/watch?v=OzCKxnecxmg",
+  "video_id": "OzCKxnecxmg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "FFL",
+  "topic": "profile.business",
+  "fact_text": "Fauji Foods' dairy business benefits from rising milk consumption, and its sales are growing across its product lines.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash 25 Sep 2025 | K-Electric Tariff Adjustments | Fauji Foods (FFL) Turns Profitable' (YouTube, 2025-09-25)",
+  "source_url": "https://www.youtube.com/watch?v=OzCKxnecxmg",
+  "video_id": "OzCKxnecxmg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "news.circular_debt",
+  "fact_text": "A power-sector circular debt settlement was signed on 24 Sep 2025 with banks participating, and installments are expected to run over about 24 months.",
+  "value": 24,
+  "unit": "months",
+  "period": "Sep 2025",
+  "source_name": "Standard Capital Securities, 'Midday Flash 25 Sep 2025 | K-Electric Tariff Adjustments | Fauji Foods (FFL) Turns Profitable' (YouTube, 2025-09-25)",
+  "source_url": "https://www.youtube.com/watch?v=OzCKxnecxmg",
+  "video_id": "OzCKxnecxmg",
+  "confidence": "fact"
+ },
+ {
+  "company": "OGDC",
+  "topic": "news.circular_debt",
+  "fact_text": "OGDC was already receiving about PKR 7.7 billion a month in circular debt payments before the settlement, according to the analyst.",
+  "value": 7.7,
+  "unit": "PKR_billions_per_month",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash 25 Sep 2025 | K-Electric Tariff Adjustments | Fauji Foods (FFL) Turns Profitable' (YouTube, 2025-09-25)",
+  "source_url": "https://www.youtube.com/watch?v=OzCKxnecxmg",
+  "video_id": "OzCKxnecxmg",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.circular_debt_transmission",
+  "fact_text": "The analyst expects receivables at OGDC, PPL, PSO and Hub Power to fall as the settlement flows through, and says the circular debt build-up may slow or stop.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash 25 Sep 2025 | K-Electric Tariff Adjustments | Fauji Foods (FFL) Turns Profitable' (YouTube, 2025-09-25)",
+  "source_url": "https://www.youtube.com/watch?v=OzCKxnecxmg",
+  "video_id": "OzCKxnecxmg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:FOOD",
+  "topic": "signal.sector_rotation",
+  "fact_text": "The analyst suggests investors may rotate out of the energy sector and into food stocks as population-driven consumption shows up in company results.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash 25 Sep 2025 | K-Electric Tariff Adjustments | Fauji Foods (FFL) Turns Profitable' (YouTube, 2025-09-25)",
+  "source_url": "https://www.youtube.com/watch?v=OzCKxnecxmg",
+  "video_id": "OzCKxnecxmg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:FOOD",
+  "topic": "method.price_to_sales",
+  "fact_text": "The analyst compares food-sector stocks on price-to-sales multiple and quarter-on-quarter sales growth, treating these as the main yardsticks for the sector.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash 25 Sep 2025 | K-Electric Tariff Adjustments | Fauji Foods (FFL) Turns Profitable' (YouTube, 2025-09-25)",
+  "source_url": "https://www.youtube.com/watch?v=OzCKxnecxmg",
+  "video_id": "OzCKxnecxmg",
+  "confidence": "analyst_view"
+ }
+]

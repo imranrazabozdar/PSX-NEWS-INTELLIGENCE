@@ -1,0 +1,86 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.trend_line_uptrend",
+  "fact_text": "In an uptrend the analyst draws the trend line by joining two successive higher lows, then extends it forward as the reference line for later price action.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '4. Master Trend Lines: How to Draw Trend Lines Accurately | Stock Analysis & Market Analysis Tips' (YouTube, 2024-09-01)",
+  "source_url": "https://www.youtube.com/watch?v=jEmbimUuvNo",
+  "video_id": "jEmbimUuvNo",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.trend_line_downtrend",
+  "fact_text": "In a downtrend the analyst joins the lower highs and lower lows that form, and the resulting line acts as resistance where price is rejected and falls back.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '4. Master Trend Lines: How to Draw Trend Lines Accurately | Stock Analysis & Market Analysis Tips' (YouTube, 2024-09-01)",
+  "source_url": "https://www.youtube.com/watch?v=jEmbimUuvNo",
+  "video_id": "jEmbimUuvNo",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.trend_line_wicks",
+  "fact_text": "When drawing a trend line on candlesticks the analyst counts the wicks (shadows), not the real bodies, so the line joins wick to wick and the body is not cut through.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '4. Master Trend Lines: How to Draw Trend Lines Accurately | Stock Analysis & Market Analysis Tips' (YouTube, 2024-09-01)",
+  "source_url": "https://www.youtube.com/watch?v=jEmbimUuvNo",
+  "video_id": "jEmbimUuvNo",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.trend_line_line_chart",
+  "fact_text": "An alternative method is to switch the chart to line mode, join the highest or lowest closing points there, then switch back to candlesticks, where the same line should still hold.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '4. Master Trend Lines: How to Draw Trend Lines Accurately | Stock Analysis & Market Analysis Tips' (YouTube, 2024-09-01)",
+  "source_url": "https://www.youtube.com/watch?v=jEmbimUuvNo",
+  "video_id": "jEmbimUuvNo",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.trend_line_parallel_channel",
+  "fact_text": "A parallel channel tool draws a band around the trend line; the analyst notes a false breakout when price leaves the band and then moves back inside the trend line.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '4. Master Trend Lines: How to Draw Trend Lines Accurately | Stock Analysis & Market Analysis Tips' (YouTube, 2024-09-01)",
+  "source_url": "https://www.youtube.com/watch?v=jEmbimUuvNo",
+  "video_id": "jEmbimUuvNo",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.trend_line_redraw",
+  "fact_text": "The analyst keeps the existing trend line until new higher highs and higher lows, or new lower highs and lower lows, appear, and only then redraws the line.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '4. Master Trend Lines: How to Draw Trend Lines Accurately | Stock Analysis & Market Analysis Tips' (YouTube, 2024-09-01)",
+  "source_url": "https://www.youtube.com/watch?v=jEmbimUuvNo",
+  "video_id": "jEmbimUuvNo",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.trend_line_confirmation",
+  "fact_text": "The analyst warns against acting the moment price touches a trend line; he waits for indicator or candle-pattern confirmation, because a direct entry can be stopped out if the line breaks.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '4. Master Trend Lines: How to Draw Trend Lines Accurately | Stock Analysis & Market Analysis Tips' (YouTube, 2024-09-01)",
+  "source_url": "https://www.youtube.com/watch?v=jEmbimUuvNo",
+  "video_id": "jEmbimUuvNo",
+  "confidence": "analyst_view"
+ }
+]

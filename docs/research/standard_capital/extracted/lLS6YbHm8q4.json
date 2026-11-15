@@ -1,0 +1,50 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.technical_vs_fundamental",
+  "fact_text": "Fundamental analysis covers a company's plans and production, while technical analysis uses price charts to judge the levels at which a stock can be bought or sold.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '1. Introduction to Technical Analysis: Kickoff to Our New Series | PSX & Equity Market Insights' (YouTube, 2024-08-06)",
+  "source_url": "https://www.youtube.com/watch?v=lLS6YbHm8q4",
+  "video_id": "lLS6YbHm8q4",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.support_resistance",
+  "fact_text": "Support and resistance levels, read from a price chart, are core technical inputs for timing purchases and sales.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '1. Introduction to Technical Analysis: Kickoff to Our New Series | PSX & Equity Market Insights' (YouTube, 2024-08-06)",
+  "source_url": "https://www.youtube.com/watch?v=lLS6YbHm8q4",
+  "video_id": "lLS6YbHm8q4",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.technical_entry_timing",
+  "fact_text": "Technical analysis can help an investor avoid buying a fundamentally sound stock at a high price and reduce panic when a correction pushes it into a loss.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '1. Introduction to Technical Analysis: Kickoff to Our New Series | PSX & Equity Market Insights' (YouTube, 2024-08-06)",
+  "source_url": "https://www.youtube.com/watch?v=lLS6YbHm8q4",
+  "video_id": "lLS6YbHm8q4",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.rsi",
+  "fact_text": "The Relative Strength Index is described as a strong indicator that professional traders use in their trading.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '1. Introduction to Technical Analysis: Kickoff to Our New Series | PSX & Equity Market Insights' (YouTube, 2024-08-06)",
+  "source_url": "https://www.youtube.com/watch?v=lLS6YbHm8q4",
+  "video_id": "lLS6YbHm8q4",
+  "confidence": "analyst_view"
+ }
+]

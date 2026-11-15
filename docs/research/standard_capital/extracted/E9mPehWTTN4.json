@@ -1,0 +1,86 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_level",
+  "fact_text": "The analyst said a KSE-100 close holding above 120,000 points would be a significant sign and could bring blue-chip stocks back into investor focus.",
+  "value": 120000,
+  "unit": "index_points",
+  "period": "2025-05-22",
+  "source_name": "Standard Capital Securities, 'Midday Flash 22 May 2025 | KSE-100 Index Levels, PSO, SAZEW, EFERT Analysis | PSX Market Insights' (YouTube, 2025-05-22)",
+  "source_url": "https://www.youtube.com/watch?v=E9mPehWTTN4",
+  "video_id": "E9mPehWTTN4",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "HUBC",
+  "topic": "commentary.thesis",
+  "fact_text": "Hub Power's main earnings come from its China-linked power generation associate, and investor attention is on new ventures with Mega Motor for BYD vehicles and a battery pack plant.",
+  "value": null,
+  "unit": null,
+  "period": "May 2025",
+  "source_name": "Standard Capital Securities, 'Midday Flash 22 May 2025 | KSE-100 Index Levels, PSO, SAZEW, EFERT Analysis | PSX Market Insights' (YouTube, 2025-05-22)",
+  "source_url": "https://www.youtube.com/watch?v=E9mPehWTTN4",
+  "video_id": "E9mPehWTTN4",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "HUBC",
+  "topic": "commentary.valuation",
+  "fact_text": "Hub Power's 9-month EPS of Rs 26 to March 2025 put its P/E near 4 times and its EV/EBITDA at roughly 3 to 4 times, which the analyst considered low.",
+  "value": 26,
+  "unit": "PKR_per_share",
+  "period": "9M FY25",
+  "source_name": "Standard Capital Securities, 'Midday Flash 22 May 2025 | KSE-100 Index Levels, PSO, SAZEW, EFERT Analysis | PSX Market Insights' (YouTube, 2025-05-22)",
+  "source_url": "https://www.youtube.com/watch?v=E9mPehWTTN4",
+  "video_id": "E9mPehWTTN4",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PSO",
+  "topic": "commentary.catalyst",
+  "fact_text": "The analyst said PSO would be the biggest beneficiary of a bank term-sheet resolution of circular debt because it holds large inter-corporate receivables.",
+  "value": null,
+  "unit": null,
+  "period": "May 2025",
+  "source_name": "Standard Capital Securities, 'Midday Flash 22 May 2025 | KSE-100 Index Levels, PSO, SAZEW, EFERT Analysis | PSX Market Insights' (YouTube, 2025-05-22)",
+  "source_url": "https://www.youtube.com/watch?v=E9mPehWTTN4",
+  "video_id": "E9mPehWTTN4",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.circular_debt_resolution",
+  "fact_text": "As of 22 May 2025 the circular debt resolution with banks and their consortium was still pending, and investors were watching when the government would conclude it.",
+  "value": null,
+  "unit": null,
+  "period": "2025-05-22",
+  "source_name": "Standard Capital Securities, 'Midday Flash 22 May 2025 | KSE-100 Index Levels, PSO, SAZEW, EFERT Analysis | PSX Market Insights' (YouTube, 2025-05-22)",
+  "source_url": "https://www.youtube.com/watch?v=E9mPehWTTN4",
+  "video_id": "E9mPehWTTN4",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.foreign_investment",
+  "fact_text": "The analyst said investment through SIFC had slowed somewhat, and that Chinese and other foreign investment into Pakistani sectors could increase.",
+  "value": null,
+  "unit": null,
+  "period": "May 2025",
+  "source_name": "Standard Capital Securities, 'Midday Flash 22 May 2025 | KSE-100 Index Levels, PSO, SAZEW, EFERT Analysis | PSX Market Insights' (YouTube, 2025-05-22)",
+  "source_url": "https://www.youtube.com/watch?v=E9mPehWTTN4",
+  "video_id": "E9mPehWTTN4",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "EFERT",
+  "topic": "news.dividend",
+  "fact_text": "Engro Fertilizer's dividend for the first quarter of 2025 was PKR 2.25 per share.",
+  "value": 2.25,
+  "unit": "PKR_per_share",
+  "period": "Q1 2025",
+  "source_name": "Standard Capital Securities, 'Midday Flash 22 May 2025 | KSE-100 Index Levels, PSO, SAZEW, EFERT Analysis | PSX Market Insights' (YouTube, 2025-05-22)",
+  "source_url": "https://www.youtube.com/watch?v=E9mPehWTTN4",
+  "video_id": "E9mPehWTTN4",
+  "confidence": "fact"
+ }
+]

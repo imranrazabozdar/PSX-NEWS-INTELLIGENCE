@@ -1,0 +1,110 @@
+[
+ {
+  "company": "MARI",
+  "topic": "commentary.catalyst",
+  "fact_text": "News of a large Shewa-2 structure in Waziristan had long been awaited, and the analyst said it could be a catalyst for Mari.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Market Analysis: MARI and Top Dividend Stocks to Consider in the PSX | Pakistan Stock Market' (YouTube, 2025-03-15)",
+  "source_url": "https://www.youtube.com/watch?v=ygvu4h7maUU",
+  "video_id": "ygvu4h7maUU",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.settlement_ratio",
+  "fact_text": "The analyst said settlement ratios for several stocks, including BOP and Maple Leaf Cement, had dropped below 50 after sharp rallies, which he read as a profit-taking signal.",
+  "value": 50,
+  "unit": "percent",
+  "period": "2025-03-15",
+  "source_name": "Standard Capital Securities, 'Market Analysis: MARI and Top Dividend Stocks to Consider in the PSX | Pakistan Stock Market' (YouTube, 2025-03-15)",
+  "source_url": "https://www.youtube.com/watch?v=ygvu4h7maUU",
+  "video_id": "ygvu4h7maUU",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "EFERT",
+  "topic": "news.dividend",
+  "fact_text": "Engro Fertilizer went ex-dividend around 15 Mar 2025, according to the analyst.",
+  "value": null,
+  "unit": null,
+  "period": "2025-03-15",
+  "source_name": "Standard Capital Securities, 'Market Analysis: MARI and Top Dividend Stocks to Consider in the PSX | Pakistan Stock Market' (YouTube, 2025-03-15)",
+  "source_url": "https://www.youtube.com/watch?v=ygvu4h7maUU",
+  "video_id": "ygvu4h7maUU",
+  "confidence": "fact"
+ },
+ {
+  "company": "NBP",
+  "topic": "news.dividend",
+  "fact_text": "National Bank went ex-dividend on or around 15 Mar 2025, per the analyst.",
+  "value": null,
+  "unit": null,
+  "period": "2025-03-15",
+  "source_name": "Standard Capital Securities, 'Market Analysis: MARI and Top Dividend Stocks to Consider in the PSX | Pakistan Stock Market' (YouTube, 2025-03-15)",
+  "source_url": "https://www.youtube.com/watch?v=ygvu4h7maUU",
+  "video_id": "ygvu4h7maUU",
+  "confidence": "fact"
+ },
+ {
+  "company": "NBP",
+  "topic": "commentary.valuation",
+  "fact_text": "The analyst said National Bank still looks inexpensive on its price-to-book multiple, which makes it a value candidate.",
+  "value": null,
+  "unit": null,
+  "period": "2025-03-15",
+  "source_name": "Standard Capital Securities, 'Market Analysis: MARI and Top Dividend Stocks to Consider in the PSX | Pakistan Stock Market' (YouTube, 2025-03-15)",
+  "source_url": "https://www.youtube.com/watch?v=ygvu4h7maUU",
+  "video_id": "ygvu4h7maUU",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "FFC",
+  "topic": "news.dividend",
+  "fact_text": "Fauji Fertilizer's dividend had yet to go ex as of 15 Mar 2025, and the analyst described the amount as substantial.",
+  "value": null,
+  "unit": null,
+  "period": "2025-03-15",
+  "source_name": "Standard Capital Securities, 'Market Analysis: MARI and Top Dividend Stocks to Consider in the PSX | Pakistan Stock Market' (YouTube, 2025-03-15)",
+  "source_url": "https://www.youtube.com/watch?v=ygvu4h7maUU",
+  "video_id": "ygvu4h7maUU",
+  "confidence": "fact"
+ },
+ {
+  "company": "ATLH",
+  "topic": "news.dividend",
+  "fact_text": "Atlas Insurance's annual dividend was going ex around 15 Mar 2025, and the analyst described it as a consistently generous annual payer.",
+  "value": null,
+  "unit": null,
+  "period": "2025-03-15",
+  "source_name": "Standard Capital Securities, 'Market Analysis: MARI and Top Dividend Stocks to Consider in the PSX | Pakistan Stock Market' (YouTube, 2025-03-15)",
+  "source_url": "https://www.youtube.com/watch?v=ygvu4h7maUU",
+  "video_id": "ygvu4h7maUU",
+  "confidence": "fact"
+ },
+ {
+  "company": "Adamjee Life",
+  "topic": "commentary.thesis",
+  "fact_text": "The analyst said Adamjee Life's dividend had already been paid and that its fundamentals were sound for dividend-focused investors.",
+  "value": null,
+  "unit": null,
+  "period": "2025-03-15",
+  "source_name": "Standard Capital Securities, 'Market Analysis: MARI and Top Dividend Stocks to Consider in the PSX | Pakistan Stock Market' (YouTube, 2025-03-15)",
+  "source_url": "https://www.youtube.com/watch?v=ygvu4h7maUU",
+  "video_id": "ygvu4h7maUU",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.dividend_timing",
+  "fact_text": "The analyst said dividend-paying stocks should be the focus for value investors, and that ex-dividend price lists help track which payouts are coming.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Market Analysis: MARI and Top Dividend Stocks to Consider in the PSX | Pakistan Stock Market' (YouTube, 2025-03-15)",
+  "source_url": "https://www.youtube.com/watch?v=ygvu4h7maUU",
+  "video_id": "ygvu4h7maUU",
+  "confidence": "analyst_view"
+ }
+]

@@ -1,0 +1,74 @@
+[
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "method.short_selling",
+  "fact_text": "Short selling means selling first and buying back later, so the profit comes from a price that falls; it is used mostly in falling markets.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Introduction to Short Selling in PMEX | Commodity Market Strategies | Pakistan Mercantile Exchange' (YouTube, 2025-05-08)",
+  "source_url": "https://www.youtube.com/watch?v=lE4kyaQsG7o",
+  "video_id": "lE4kyaQsG7o",
+  "confidence": "fact"
+ },
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "method.short_selling_pnl",
+  "fact_text": "Profit on a short sale equals the sell price minus the buy-back price; the analyst's example of selling gold at 2,100 and buying back at 1,900 gave 200 dollars.",
+  "value": 200,
+  "unit": "USD",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Introduction to Short Selling in PMEX | Commodity Market Strategies | Pakistan Mercantile Exchange' (YouTube, 2025-05-08)",
+  "source_url": "https://www.youtube.com/watch?v=lE4kyaQsG7o",
+  "video_id": "lE4kyaQsG7o",
+  "confidence": "fact"
+ },
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "news.short_selling_rule",
+  "fact_text": "PMEX allows short selling in every commodity it lists, with initial and maintenance margin requirements the same as in normal trading.",
+  "value": null,
+  "unit": null,
+  "period": "2025-05-08",
+  "source_name": "Standard Capital Securities, 'Introduction to Short Selling in PMEX | Commodity Market Strategies | Pakistan Mercantile Exchange' (YouTube, 2025-05-08)",
+  "source_url": "https://www.youtube.com/watch?v=lE4kyaQsG7o",
+  "video_id": "lE4kyaQsG7o",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.gold_trend",
+  "fact_text": "Gold was in an uptrend against the US dollar from 4 Oct 2023 on the analyst's daily chart, so buyers from that period were in profit.",
+  "value": null,
+  "unit": "USD",
+  "period": "2023-10-04",
+  "source_name": "Standard Capital Securities, 'Introduction to Short Selling in PMEX | Commodity Market Strategies | Pakistan Mercantile Exchange' (YouTube, 2025-05-08)",
+  "source_url": "https://www.youtube.com/watch?v=lE4kyaQsG7o",
+  "video_id": "lE4kyaQsG7o",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.gold_trend",
+  "fact_text": "Gold fell steadily from a Sep 2011 high to a Dec 2015 low, a downtrend of about four years in which buyers during that period were at a loss.",
+  "value": null,
+  "unit": "USD",
+  "period": "2011-09 to 2015-12",
+  "source_name": "Standard Capital Securities, 'Introduction to Short Selling in PMEX | Commodity Market Strategies | Pakistan Mercantile Exchange' (YouTube, 2025-05-08)",
+  "source_url": "https://www.youtube.com/watch?v=lE4kyaQsG7o",
+  "video_id": "lE4kyaQsG7o",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.downtrend_definition",
+  "fact_text": "A downtrend is when price makes lower highs and lower lows, and falls more than it rises over the period.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Introduction to Short Selling in PMEX | Commodity Market Strategies | Pakistan Mercantile Exchange' (YouTube, 2025-05-08)",
+  "source_url": "https://www.youtube.com/watch?v=lE4kyaQsG7o",
+  "video_id": "lE4kyaQsG7o",
+  "confidence": "fact"
+ }
+]

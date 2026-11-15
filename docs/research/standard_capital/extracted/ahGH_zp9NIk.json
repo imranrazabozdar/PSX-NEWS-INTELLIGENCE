@@ -1,0 +1,122 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.imf_measures",
+  "fact_text": "The analyst expected the new government to take tough fiscal steps, including gas and electricity tariff rises, to meet the conditions of the new IMF programme.",
+  "value": null,
+  "unit": null,
+  "period": "2024-03-11",
+  "source_name": "Standard Capital Securities, 'PSX Market Updates & Short-Term Outlook | SCStrade.' (YouTube, 2024-03-11)",
+  "source_url": "https://www.youtube.com/watch?v=ahGH_zp9NIk",
+  "video_id": "ahGH_zp9NIk",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:AUTOS",
+  "topic": "news.policy",
+  "fact_text": "A new tax measure applies to cars above 4 million rupees or above 1400cc, which the analyst said could hurt trade, industry and export units.",
+  "value": 4,
+  "unit": "PKR_millions",
+  "period": "2024-03-11",
+  "source_name": "Standard Capital Securities, 'PSX Market Updates & Short-Term Outlook | SCStrade.' (YouTube, 2024-03-11)",
+  "source_url": "https://www.youtube.com/watch?v=ahGH_zp9NIk",
+  "video_id": "ahGH_zp9NIk",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.policy_rate",
+  "fact_text": "The policy interest rate was around 22 percent, and textile and trade players were asking for a cut.",
+  "value": 22,
+  "unit": "percent",
+  "period": "2024-03-11",
+  "source_name": "Standard Capital Securities, 'PSX Market Updates & Short-Term Outlook | SCStrade.' (YouTube, 2024-03-11)",
+  "source_url": "https://www.youtube.com/watch?v=ahGH_zp9NIk",
+  "video_id": "ahGH_zp9NIk",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.cpi_outlook",
+  "fact_text": "Inflation was around 23 percent, and the analyst expected the figure to rise because week-on-week readings had increased.",
+  "value": 23,
+  "unit": "percent",
+  "period": "2024-03-11",
+  "source_name": "Standard Capital Securities, 'PSX Market Updates & Short-Term Outlook | SCStrade.' (YouTube, 2024-03-11)",
+  "source_url": "https://www.youtube.com/watch?v=ahGH_zp9NIk",
+  "video_id": "ahGH_zp9NIk",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.rate_cut_timing",
+  "fact_text": "The analyst expected a signal of an interest rate cut at the next monetary policy in April 2024, rather than at the March 2024 policy.",
+  "value": null,
+  "unit": null,
+  "period": "Apr 2024",
+  "source_name": "Standard Capital Securities, 'PSX Market Updates & Short-Term Outlook | SCStrade.' (YouTube, 2024-03-11)",
+  "source_url": "https://www.youtube.com/watch?v=ahGH_zp9NIk",
+  "video_id": "ahGH_zp9NIk",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.trendline",
+  "fact_text": "The analyst said trend lines were breached in several scrips, which he read as a constructive technical sign for the market.",
+  "value": null,
+  "unit": null,
+  "period": "2024-03-11",
+  "source_name": "Standard Capital Securities, 'PSX Market Updates & Short-Term Outlook | SCStrade.' (YouTube, 2024-03-11)",
+  "source_url": "https://www.youtube.com/watch?v=ahGH_zp9NIk",
+  "video_id": "ahGH_zp9NIk",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "HBL",
+  "topic": "commentary.thesis",
+  "fact_text": "The analyst expected Habib Bank's dividend to rise in 2024, after UBL raised its dividend in 2023.",
+  "value": null,
+  "unit": null,
+  "period": "2024",
+  "source_name": "Standard Capital Securities, 'PSX Market Updates & Short-Term Outlook | SCStrade.' (YouTube, 2024-03-11)",
+  "source_url": "https://www.youtube.com/watch?v=ahGH_zp9NIk",
+  "video_id": "ahGH_zp9NIk",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "HBL",
+  "topic": "commentary.financials",
+  "fact_text": "The analyst said Habib Bank's dividend could roughly double from these levels, because its net interest margin is large compared with other banks.",
+  "value": null,
+  "unit": null,
+  "period": "2024",
+  "source_name": "Standard Capital Securities, 'PSX Market Updates & Short-Term Outlook | SCStrade.' (YouTube, 2024-03-11)",
+  "source_url": "https://www.youtube.com/watch?v=ahGH_zp9NIk",
+  "video_id": "ahGH_zp9NIk",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PIBTL",
+  "topic": "operations.coal_imports",
+  "fact_text": "The analyst said monthly imported coal shipments through PIBTL could rise to 10 to 12 vessels, as efficient coal power projects need Richards Bay coal.",
+  "value": 10,
+  "unit": "vessels_per_month",
+  "period": "2024-03-11",
+  "source_name": "Standard Capital Securities, 'PSX Market Updates & Short-Term Outlook | SCStrade.' (YouTube, 2024-03-11)",
+  "source_url": "https://www.youtube.com/watch?v=ahGH_zp9NIk",
+  "video_id": "ahGH_zp9NIk",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.value_investing",
+  "fact_text": "The analyst's stated method is to screen for value-investing stocks with dividends, citing Engro Fertilizer as an example rather than chasing momentum.",
+  "value": null,
+  "unit": null,
+  "period": "2024-03-11",
+  "source_name": "Standard Capital Securities, 'PSX Market Updates & Short-Term Outlook | SCStrade.' (YouTube, 2024-03-11)",
+  "source_url": "https://www.youtube.com/watch?v=ahGH_zp9NIk",
+  "video_id": "ahGH_zp9NIk",
+  "confidence": "analyst_view"
+ }
+]

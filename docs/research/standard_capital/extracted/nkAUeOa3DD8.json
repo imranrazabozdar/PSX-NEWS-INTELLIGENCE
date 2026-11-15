@@ -1,0 +1,86 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.fakeout_definition",
+  "fact_text": "A fakeout is when price breaks above a level but cannot hold above it and trades back below the level, trapping buyers who entered on the breakout.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '16. What is a Fakeout? | Master Technical Analysis & Fakeouts in the Pakistan Stock Market (PSX)' (YouTube, 2024-11-08)",
+  "source_url": "https://www.youtube.com/watch?v=nkAUeOa3DD8",
+  "video_id": "nkAUeOa3DD8",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.fakeout_volume",
+  "fact_text": "A breakout without a heavy-volume candle is more likely to be a fakeout, which is usually confirmed when price falls back below the broken level within a day or an hour on heavy selling.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '16. What is a Fakeout? | Master Technical Analysis & Fakeouts in the Pakistan Stock Market (PSX)' (YouTube, 2024-11-08)",
+  "source_url": "https://www.youtube.com/watch?v=nkAUeOa3DD8",
+  "video_id": "nkAUeOa3DD8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.breakout_confirmation",
+  "fact_text": "A genuine breakout is confirmed when price closes above the broken level for a day or two and then moves higher; the analyst advises waiting for this before acting.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '16. What is a Fakeout? | Master Technical Analysis & Fakeouts in the Pakistan Stock Market (PSX)' (YouTube, 2024-11-08)",
+  "source_url": "https://www.youtube.com/watch?v=nkAUeOa3DD8",
+  "video_id": "nkAUeOa3DD8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.fakeout_avoidance",
+  "fact_text": "The analyst says trades should be taken only on a confirmed breakout, not on the first move above a level, to avoid being caught in a fakeout.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '16. What is a Fakeout? | Master Technical Analysis & Fakeouts in the Pakistan Stock Market (PSX)' (YouTube, 2024-11-08)",
+  "source_url": "https://www.youtube.com/watch?v=nkAUeOa3DD8",
+  "video_id": "nkAUeOa3DD8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "Flying Cement",
+  "topic": "market.technical_level",
+  "fact_text": "On 8 Nov 2024 the analyst said Flying Cement was retesting a strong resistance it had broken on the daily chart, with heavy selling visible at that level.",
+  "value": null,
+  "unit": null,
+  "period": "2024-11-08",
+  "source_name": "Standard Capital Securities, '16. What is a Fakeout? | Master Technical Analysis & Fakeouts in the Pakistan Stock Market (PSX)' (YouTube, 2024-11-08)",
+  "source_url": "https://www.youtube.com/watch?v=nkAUeOa3DD8",
+  "video_id": "nkAUeOa3DD8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "Flying Cement",
+  "topic": "market.technical_level",
+  "fact_text": "On the weekly chart, Flying Cement had been rejected several times at the same strong resistance, which the analyst treats as a long-standing barrier.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '16. What is a Fakeout? | Master Technical Analysis & Fakeouts in the Pakistan Stock Market (PSX)' (YouTube, 2024-11-08)",
+  "source_url": "https://www.youtube.com/watch?v=nkAUeOa3DD8",
+  "video_id": "nkAUeOa3DD8",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.timeframe_confirmation",
+  "fact_text": "The analyst reads the same level on weekly and daily charts, where a daily retest of a broken weekly resistance can serve as confirmation.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '16. What is a Fakeout? | Master Technical Analysis & Fakeouts in the Pakistan Stock Market (PSX)' (YouTube, 2024-11-08)",
+  "source_url": "https://www.youtube.com/watch?v=nkAUeOa3DD8",
+  "video_id": "nkAUeOa3DD8",
+  "confidence": "analyst_view"
+ }
+]

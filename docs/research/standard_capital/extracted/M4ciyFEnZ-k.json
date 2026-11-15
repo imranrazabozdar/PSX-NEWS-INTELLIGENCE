@@ -1,0 +1,74 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.trend_structure",
+  "fact_text": "An uptrend makes higher highs and higher lows, a downtrend makes lower highs and lower lows, and a sideways market breaks neither its high nor its low.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '11. PSX Trading Made Easy with Support and Resistance Strategies! KSE100 | Technical Analysis' (YouTube, 2024-10-18)",
+  "source_url": "https://www.youtube.com/watch?v=M4ciyFEnZ-k",
+  "video_id": "M4ciyFEnZ-k",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.support_resistance",
+  "fact_text": "A support level is a price zone where the price repeatedly bounces up, and a resistance level is a zone where the price repeatedly gets rejected.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '11. PSX Trading Made Easy with Support and Resistance Strategies! KSE100 | Technical Analysis' (YouTube, 2024-10-18)",
+  "source_url": "https://www.youtube.com/watch?v=M4ciyFEnZ-k",
+  "video_id": "M4ciyFEnZ-k",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.support_resistance",
+  "fact_text": "The analyst opens long trades near support and takes profit or opens short positions near resistance.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '11. PSX Trading Made Easy with Support and Resistance Strategies! KSE100 | Technical Analysis' (YouTube, 2024-10-18)",
+  "source_url": "https://www.youtube.com/watch?v=M4ciyFEnZ-k",
+  "video_id": "M4ciyFEnZ-k",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.breakout",
+  "fact_text": "The analyst says a break below support points to a move down, and a break above resistance points to a move up.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '11. PSX Trading Made Easy with Support and Resistance Strategies! KSE100 | Technical Analysis' (YouTube, 2024-10-18)",
+  "source_url": "https://www.youtube.com/watch?v=M4ciyFEnZ-k",
+  "video_id": "M4ciyFEnZ-k",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "FFBL",
+  "topic": "method.support_resistance",
+  "fact_text": "On the weekly chart, Fauji Fertilizer Bin Qasim repeatedly found support at a marked level, then rose sharply from it.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '11. PSX Trading Made Easy with Support and Resistance Strategies! KSE100 | Technical Analysis' (YouTube, 2024-10-18)",
+  "source_url": "https://www.youtube.com/watch?v=M4ciyFEnZ-k",
+  "video_id": "M4ciyFEnZ-k",
+  "confidence": "fact"
+ },
+ {
+  "company": "FFBL",
+  "topic": "method.support_resistance",
+  "fact_text": "On the weekly chart, Fauji Fertilizer Bin Qasim was rejected at a resistance level, fell sharply, and then the analyst said the price respected both levels.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '11. PSX Trading Made Easy with Support and Resistance Strategies! KSE100 | Technical Analysis' (YouTube, 2024-10-18)",
+  "source_url": "https://www.youtube.com/watch?v=M4ciyFEnZ-k",
+  "video_id": "M4ciyFEnZ-k",
+  "confidence": "fact"
+ }
+]

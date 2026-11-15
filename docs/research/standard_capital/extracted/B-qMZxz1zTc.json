@@ -1,0 +1,74 @@
+[
+ {
+  "company": "PAEL",
+  "topic": "method.technical_checklist",
+  "fact_text": "The analyst's technical routine is to draw a trend line, mark prior support and resistance, then confirm the picture with RSI and MACD before forming a view.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Class 18. Live Technical Analysis of PAEL Stock | PSX Market Insights | Pakistan Stock Market Guide' (YouTube, 2024-11-23)",
+  "source_url": "https://www.youtube.com/watch?v=B-qMZxz1zTc",
+  "video_id": "B-qMZxz1zTc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PAEL",
+  "topic": "method.rsi_threshold",
+  "fact_text": "The analyst treats an RSI reading above 60 as a bullish signal, and a bullish MACD reading as a supporting confirmation of that signal.",
+  "value": 60,
+  "unit": "RSI_points",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Class 18. Live Technical Analysis of PAEL Stock | PSX Market Insights | Pakistan Stock Market Guide' (YouTube, 2024-11-23)",
+  "source_url": "https://www.youtube.com/watch?v=B-qMZxz1zTc",
+  "video_id": "B-qMZxz1zTc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PAEL",
+  "topic": "market.rsi_reading",
+  "fact_text": "On 23 Nov 2024 the analyst read PAEL's RSI at 63, above his 60 bullish threshold, while MACD also gave a bullish reading.",
+  "value": 63,
+  "unit": "RSI_points",
+  "period": "2024-11-23",
+  "source_name": "Standard Capital Securities, 'Class 18. Live Technical Analysis of PAEL Stock | PSX Market Insights | Pakistan Stock Market Guide' (YouTube, 2024-11-23)",
+  "source_url": "https://www.youtube.com/watch?v=B-qMZxz1zTc",
+  "video_id": "B-qMZxz1zTc",
+  "confidence": "fact"
+ },
+ {
+  "company": "PAEL",
+  "topic": "market.price_structure",
+  "fact_text": "PAEL had repeatedly been rejected at a resistance area, then rose and found support at the same level, which the analyst read as a bullish structure on 23 Nov 2024.",
+  "value": null,
+  "unit": null,
+  "period": "2024-11-23",
+  "source_name": "Standard Capital Securities, 'Class 18. Live Technical Analysis of PAEL Stock | PSX Market Insights | Pakistan Stock Market Guide' (YouTube, 2024-11-23)",
+  "source_url": "https://www.youtube.com/watch?v=B-qMZxz1zTc",
+  "video_id": "B-qMZxz1zTc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PAEL",
+  "topic": "commentary.thesis",
+  "fact_text": "The analyst's chart levels for PAEL were a support zone around 25 to 26 PKR and resistance near 29 and 30 PKR, with a break above 30 opening a further upside level near 31 PKR.",
+  "value": 31,
+  "unit": "PKR",
+  "period": "2024-11-23",
+  "source_name": "Standard Capital Securities, 'Class 18. Live Technical Analysis of PAEL Stock | PSX Market Insights | Pakistan Stock Market Guide' (YouTube, 2024-11-23)",
+  "source_url": "https://www.youtube.com/watch?v=B-qMZxz1zTc",
+  "video_id": "B-qMZxz1zTc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PAEL",
+  "topic": "commentary.thesis",
+  "fact_text": "The analyst described PAEL as a suitable day-trading stock because it shows reasonable intraday movement, and called his analysis of it a simple one.",
+  "value": null,
+  "unit": null,
+  "period": "2024-11-23",
+  "source_name": "Standard Capital Securities, 'Class 18. Live Technical Analysis of PAEL Stock | PSX Market Insights | Pakistan Stock Market Guide' (YouTube, 2024-11-23)",
+  "source_url": "https://www.youtube.com/watch?v=B-qMZxz1zTc",
+  "video_id": "B-qMZxz1zTc",
+  "confidence": "analyst_view"
+ }
+]

@@ -1,0 +1,86 @@
+[
+ {
+  "company": "PSO",
+  "topic": "commentary.thesis",
+  "fact_text": "The analyst sees PSO's fundamentals as improving, with both refinery prices and PSO's selling prices rising and oil marketing company margins widening.",
+  "value": null,
+  "unit": null,
+  "period": "2025-07-25",
+  "source_name": "Standard Capital Securities, 'Midday Flash 25 July 2025 | PSO Value Unlocking | MCB UBL MEBL Expense Ratio Edge | Circular Debt' (YouTube, 2025-07-25)",
+  "source_url": "https://www.youtube.com/watch?v=i8Km_iQmjCA",
+  "video_id": "i8Km_iQmjCA",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.circular_debt",
+  "fact_text": "Because government accounts pay late, circular debt delays cash flowing to energy companies such as PSO, which depend on payments from Sui Northern and related entities.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash 25 July 2025 | PSO Value Unlocking | MCB UBL MEBL Expense Ratio Edge | Circular Debt' (YouTube, 2025-07-25)",
+  "source_url": "https://www.youtube.com/watch?v=i8Km_iQmjCA",
+  "video_id": "i8Km_iQmjCA",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.settlement_ratio",
+  "fact_text": "The analyst treats a stock settlement ratio of 30-40% as a warning sign, because it points to low delivery and leverage-driven trading, which is common in penny stocks.",
+  "value": 40,
+  "unit": "percent",
+  "period": "2025-07-25",
+  "source_name": "Standard Capital Securities, 'Midday Flash 25 July 2025 | PSO Value Unlocking | MCB UBL MEBL Expense Ratio Edge | Circular Debt' (YouTube, 2025-07-25)",
+  "source_url": "https://www.youtube.com/watch?v=i8Km_iQmjCA",
+  "video_id": "i8Km_iQmjCA",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.rate_cut_transmission",
+  "fact_text": "A policy rate cut of up to 50 basis points at the 30 July 2025 monetary policy meeting would lower financing costs and signal policy support for industry, the analyst said.",
+  "value": 50,
+  "unit": "basis_points",
+  "period": "2025-07-30",
+  "source_name": "Standard Capital Securities, 'Midday Flash 25 July 2025 | PSO Value Unlocking | MCB UBL MEBL Expense Ratio Edge | Circular Debt' (YouTube, 2025-07-25)",
+  "source_url": "https://www.youtube.com/watch?v=i8Km_iQmjCA",
+  "video_id": "i8Km_iQmjCA",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.rate_cut_transmission",
+  "fact_text": "Leveraged companies such as Nishat Mills, DG Khan Cement, Lucky Cement and PSO would benefit from lower financing charges if rates fall, the analyst said.",
+  "value": null,
+  "unit": null,
+  "period": "2025-07-30",
+  "source_name": "Standard Capital Securities, 'Midday Flash 25 July 2025 | PSO Value Unlocking | MCB UBL MEBL Expense Ratio Edge | Circular Debt' (YouTube, 2025-07-25)",
+  "source_url": "https://www.youtube.com/watch?v=i8Km_iQmjCA",
+  "video_id": "i8Km_iQmjCA",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:BANKS",
+  "topic": "method.expense_to_core_income",
+  "fact_text": "Banks with an expense-to-core-income ratio near 30%, such as Meezan Bank, UBL and Standard Chartered, outperformed; banks above 90% lagged even when their share prices rose.",
+  "value": 30,
+  "unit": "percent",
+  "period": "2025-07-25",
+  "source_name": "Standard Capital Securities, 'Midday Flash 25 July 2025 | PSO Value Unlocking | MCB UBL MEBL Expense Ratio Edge | Circular Debt' (YouTube, 2025-07-25)",
+  "source_url": "https://www.youtube.com/watch?v=i8Km_iQmjCA",
+  "video_id": "i8Km_iQmjCA",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.cash_balance_eps",
+  "fact_text": "The analyst favours companies with rising cash balances over penny stocks, because growing cash is expected to support higher earnings per share in coming periods.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash 25 July 2025 | PSO Value Unlocking | MCB UBL MEBL Expense Ratio Edge | Circular Debt' (YouTube, 2025-07-25)",
+  "source_url": "https://www.youtube.com/watch?v=i8Km_iQmjCA",
+  "video_id": "i8Km_iQmjCA",
+  "confidence": "analyst_view"
+ }
+]

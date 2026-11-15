@@ -1,0 +1,98 @@
+[
+ {
+  "company": "SECTOR:TEXTILE",
+  "topic": "news.textile_us_trade",
+  "fact_text": "Improving Pakistan-US trade relations and possible lower US duties could benefit Pakistani textile mill owners and exporters, the analyst said.",
+  "value": null,
+  "unit": null,
+  "period": "2025-07-28",
+  "source_name": "Standard Capital Securities, 'Midday Flash 28 July 2025 | Textile Exports to US Rise 📈 | DHPL in Focus | Banking Sector Offtake Up' (YouTube, 2025-07-28)",
+  "source_url": "https://www.youtube.com/watch?v=EgQogvIK4p8",
+  "video_id": "EgQogvIK4p8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.textile_trade_diversion",
+  "fact_text": "Higher US duties on Bangladesh could shift export orders to Pakistan through container switching, as happened in 2020, the analyst said.",
+  "value": null,
+  "unit": null,
+  "period": "2025-07-28",
+  "source_name": "Standard Capital Securities, 'Midday Flash 28 July 2025 | Textile Exports to US Rise 📈 | DHPL in Focus | Banking Sector Offtake Up' (YouTube, 2025-07-28)",
+  "source_url": "https://www.youtube.com/watch?v=EgQogvIK4p8",
+  "video_id": "EgQogvIK4p8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:BANKS",
+  "topic": "news.textile_credit",
+  "fact_text": "Habib Metropolitan Bank, Bank Al Habib and Meezan Bank led trade finance, and private sector credit to textile mills rose as banks lent ahead of expected export orders.",
+  "value": null,
+  "unit": null,
+  "period": "2025-07-28",
+  "source_name": "Standard Capital Securities, 'Midday Flash 28 July 2025 | Textile Exports to US Rise 📈 | DHPL in Focus | Banking Sector Offtake Up' (YouTube, 2025-07-28)",
+  "source_url": "https://www.youtube.com/watch?v=EgQogvIK4p8",
+  "video_id": "EgQogvIK4p8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "ILP",
+  "topic": "commentary.thesis",
+  "fact_text": "Interloop is described as the largest Pakistani exporter in sports wear and socks, but its denim segment is stuck because denim prices near USD 1 are far below the USD 4 that Egypt and Turkey get.",
+  "value": 4,
+  "unit": "USD",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash 28 July 2025 | Textile Exports to US Rise 📈 | DHPL in Focus | Banking Sector Offtake Up' (YouTube, 2025-07-28)",
+  "source_url": "https://www.youtube.com/watch?v=EgQogvIK4p8",
+  "video_id": "EgQogvIK4p8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "NML",
+  "topic": "commentary.financials",
+  "fact_text": "Nishat Mills' FY25 margins and earnings per share were not impressive, but the analyst expects gradual improvement in FY26 from its diversified holdings.",
+  "value": null,
+  "unit": null,
+  "period": "FY25",
+  "source_name": "Standard Capital Securities, 'Midday Flash 28 July 2025 | Textile Exports to US Rise 📈 | DHPL in Focus | Banking Sector Offtake Up' (YouTube, 2025-07-28)",
+  "source_url": "https://www.youtube.com/watch?v=EgQogvIK4p8",
+  "video_id": "EgQogvIK4p8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "Gul Ahmed Textile Mills",
+  "topic": "commentary.thesis",
+  "fact_text": "Gul Ahmed is a fine-count local lawn maker with exports to the European Union and the United States, which the analyst sees as a route to benefit from regional market shifts.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash 28 July 2025 | Textile Exports to US Rise 📈 | DHPL in Focus | Banking Sector Offtake Up' (YouTube, 2025-07-28)",
+  "source_url": "https://www.youtube.com/watch?v=EgQogvIK4p8",
+  "video_id": "EgQogvIK4p8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "DH Partners",
+  "topic": "news.corporate_action",
+  "fact_text": "According to DH Partners' director report, about PKR 17 billion of shares in listed companies such as UBL and Meezan Bank came in through the Dawood Hercules listing and delisting restructuring.",
+  "value": 17,
+  "unit": "PKR_billions",
+  "period": "2025-07-28",
+  "source_name": "Standard Capital Securities, 'Midday Flash 28 July 2025 | Textile Exports to US Rise 📈 | DHPL in Focus | Banking Sector Offtake Up' (YouTube, 2025-07-28)",
+  "source_url": "https://www.youtube.com/watch?v=EgQogvIK4p8",
+  "video_id": "EgQogvIK4p8",
+  "confidence": "fact"
+ },
+ {
+  "company": "DH Partners",
+  "topic": "commentary.thesis",
+  "fact_text": "DH Partners could pay dividends that suit income investors, similar to dividend-paying funds, which the analyst said makes its portfolio worth considering on a yield basis.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash 28 July 2025 | Textile Exports to US Rise 📈 | DHPL in Focus | Banking Sector Offtake Up' (YouTube, 2025-07-28)",
+  "source_url": "https://www.youtube.com/watch?v=EgQogvIK4p8",
+  "video_id": "EgQogvIK4p8",
+  "confidence": "analyst_view"
+ }
+]

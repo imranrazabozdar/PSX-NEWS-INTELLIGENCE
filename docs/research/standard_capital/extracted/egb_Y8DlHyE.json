@@ -1,0 +1,62 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.breakout_definition",
+  "fact_text": "A breakout happens when price pushes through a resistance level that has rejected it several times; in the example, the third approach broke through on a large bullish candle after two earlier rejections.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '15. Mastering Breakouts in Technical Analysis | How to Use Breakouts for Trend Analysis in PSX' (YouTube, 2024-11-03)",
+  "source_url": "https://www.youtube.com/watch?v=egb_Y8DlHyE",
+  "video_id": "egb_Y8DlHyE",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.breakout_volume_filter",
+  "fact_text": "A breakout is treated as valid only when a large bullish candle on heavy volume confirms it; a breakout made by small candles or mostly wicks is not trusted and needs further confirmation.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '15. Mastering Breakouts in Technical Analysis | How to Use Breakouts for Trend Analysis in PSX' (YouTube, 2024-11-03)",
+  "source_url": "https://www.youtube.com/watch?v=egb_Y8DlHyE",
+  "video_id": "egb_Y8DlHyE",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.breakout_entry",
+  "fact_text": "One approach enters on the breakout candle itself, with the stop-loss placed below it and trailed upward as price rises; the other waits for a retest of the broken level before entering.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '15. Mastering Breakouts in Technical Analysis | How to Use Breakouts for Trend Analysis in PSX' (YouTube, 2024-11-03)",
+  "source_url": "https://www.youtube.com/watch?v=egb_Y8DlHyE",
+  "video_id": "egb_Y8DlHyE",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.breakout_confirmation",
+  "fact_text": "After a retest, a breakout is confirmed when price holds the broken level for one or two candles, or for two to three sessions, instead of falling back below it.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '15. Mastering Breakouts in Technical Analysis | How to Use Breakouts for Trend Analysis in PSX' (YouTube, 2024-11-03)",
+  "source_url": "https://www.youtube.com/watch?v=egb_Y8DlHyE",
+  "video_id": "egb_Y8DlHyE",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.breakdown_support",
+  "fact_text": "A breakdown below a support area on heavy bearish volume suggests further downside, while a bounce from that support area suggests buying interest is returning.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '15. Mastering Breakouts in Technical Analysis | How to Use Breakouts for Trend Analysis in PSX' (YouTube, 2024-11-03)",
+  "source_url": "https://www.youtube.com/watch?v=egb_Y8DlHyE",
+  "video_id": "egb_Y8DlHyE",
+  "confidence": "analyst_view"
+ }
+]

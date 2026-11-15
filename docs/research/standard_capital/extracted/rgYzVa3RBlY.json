@@ -1,0 +1,110 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "valuation.kse100_pe",
+  "fact_text": "The analyst put the KSE-100 forward P/E at about 7 to 8 times on the publication date, below the 8 to 10 times that was typical in prior years.",
+  "value": null,
+  "unit": "times",
+  "period": "2025-05-21",
+  "source_name": "Standard Capital Securities, 'Midday Flash 21 May 2025 | KSE-100 Target, JSMFETF Analysis, Dividend Stocks | HUBCO, EFERT, DCR' (YouTube, 2025-05-21)",
+  "source_url": "https://www.youtube.com/watch?v=rgYzVa3RBlY",
+  "video_id": "rgYzVa3RBlY",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "valuation.kse100_pe",
+  "fact_text": "The analyst said the market once priced the KSE-100 at about 14 times forward earnings, and that a normal range of 8 to 10 times was typical five to eight years earlier.",
+  "value": 14,
+  "unit": "times",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash 21 May 2025 | KSE-100 Target, JSMFETF Analysis, Dividend Stocks | HUBCO, EFERT, DCR' (YouTube, 2025-05-21)",
+  "source_url": "https://www.youtube.com/watch?v=rgYzVa3RBlY",
+  "video_id": "rgYzVa3RBlY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.interest_rate_transmission",
+  "fact_text": "The analyst said benchmark interest rates have fallen, and expects the P/E multiple the market accepts to rise over time as rates stay lower.",
+  "value": null,
+  "unit": null,
+  "period": "2025-05-21",
+  "source_name": "Standard Capital Securities, 'Midday Flash 21 May 2025 | KSE-100 Target, JSMFETF Analysis, Dividend Stocks | HUBCO, EFERT, DCR' (YouTube, 2025-05-21)",
+  "source_url": "https://www.youtube.com/watch?v=rgYzVa3RBlY",
+  "video_id": "rgYzVa3RBlY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "EFERT",
+  "topic": "news.dividend",
+  "fact_text": "Engro Fertilizer has already paid a first-quarter 2025 dividend, and the analyst estimated its dividend yield at roughly 10% on full-year earnings.",
+  "value": 10,
+  "unit": "percent",
+  "period": "Q1 2025",
+  "source_name": "Standard Capital Securities, 'Midday Flash 21 May 2025 | KSE-100 Target, JSMFETF Analysis, Dividend Stocks | HUBCO, EFERT, DCR' (YouTube, 2025-05-21)",
+  "source_url": "https://www.youtube.com/watch?v=rgYzVa3RBlY",
+  "video_id": "rgYzVa3RBlY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "JS Momentum Fund ETF",
+  "topic": "news.dividend",
+  "fact_text": "JS Momentum Fund ETF paid a dividend of PKR 9.5 per unit in its fiscal year, against a unit price of about PKR 11, which the analyst said implies a yield of roughly 90-100%.",
+  "value": 9.5,
+  "unit": "PKR_per_unit",
+  "period": "FY25",
+  "source_name": "Standard Capital Securities, 'Midday Flash 21 May 2025 | KSE-100 Target, JSMFETF Analysis, Dividend Stocks | HUBCO, EFERT, DCR' (YouTube, 2025-05-21)",
+  "source_url": "https://www.youtube.com/watch?v=rgYzVa3RBlY",
+  "video_id": "rgYzVa3RBlY",
+  "confidence": "fact"
+ },
+ {
+  "company": "DCR",
+  "topic": "news.dividend",
+  "fact_text": "Dolmen City REIT pays dividends quarterly, and the analyst described its dividend yield as about 9% to 10%.",
+  "value": 9,
+  "unit": "percent",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash 21 May 2025 | KSE-100 Target, JSMFETF Analysis, Dividend Stocks | HUBCO, EFERT, DCR' (YouTube, 2025-05-21)",
+  "source_url": "https://www.youtube.com/watch?v=rgYzVa3RBlY",
+  "video_id": "rgYzVa3RBlY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "DCR",
+  "topic": "commentary.financials",
+  "fact_text": "Dolmen City REIT's net asset value per unit is about PKR 33, as shown in the company's own reports, according to the analyst.",
+  "value": 33,
+  "unit": "PKR_per_unit",
+  "period": "2025-05-21",
+  "source_name": "Standard Capital Securities, 'Midday Flash 21 May 2025 | KSE-100 Target, JSMFETF Analysis, Dividend Stocks | HUBCO, EFERT, DCR' (YouTube, 2025-05-21)",
+  "source_url": "https://www.youtube.com/watch?v=rgYzVa3RBlY",
+  "video_id": "rgYzVa3RBlY",
+  "confidence": "fact"
+ },
+ {
+  "company": "HUBC",
+  "topic": "commentary.valuation",
+  "fact_text": "The analyst expects Hub Power's dividend yield to fall from the 15% to 20% levels of the past toward about 7%, as its earnings base shifts to new assets.",
+  "value": 7,
+  "unit": "percent",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash 21 May 2025 | KSE-100 Target, JSMFETF Analysis, Dividend Stocks | HUBCO, EFERT, DCR' (YouTube, 2025-05-21)",
+  "source_url": "https://www.youtube.com/watch?v=rgYzVa3RBlY",
+  "video_id": "rgYzVa3RBlY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_pe",
+  "fact_text": "The analyst said the KSE-100's forward price-to-earnings multiple on expected earnings was about 7 to 8 times on 21 May 2025.",
+  "value": null,
+  "unit": "times",
+  "period": "2025-05-21",
+  "source_name": "Standard Capital Securities, 'Midday Flash 21 May 2025 | KSE-100 Target, JSMFETF Analysis, Dividend Stocks | HUBCO, EFERT, DCR' (YouTube, 2025-05-21)",
+  "source_url": "https://www.youtube.com/watch?v=rgYzVa3RBlY",
+  "video_id": "rgYzVa3RBlY",
+  "confidence": "fact"
+ }
+]

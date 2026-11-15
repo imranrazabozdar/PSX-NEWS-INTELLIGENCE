@@ -1,0 +1,110 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.cpi_inflation",
+  "fact_text": "CPI inflation fell to 9.6 percent in August 2024, the first single-digit reading in about three years, according to the analyst.",
+  "value": 9.6,
+  "unit": "percent",
+  "period": "Aug 2024",
+  "source_name": "Standard Capital Securities, 'CPI Drop to 9.6% | Is Inflation Finally Under Control ? |Insights on SIFC Companies | PSX Analysis' (YouTube, 2024-09-05)",
+  "source_url": "https://www.youtube.com/watch?v=3KQR4zU4bpA",
+  "video_id": "3KQR4zU4bpA",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.cpi_drivers",
+  "fact_text": "The analyst says rents, petroleum prices, perishables such as vegetables and meat have risen sharply, so the headline CPI may not match what households feel on the ground.",
+  "value": null,
+  "unit": null,
+  "period": "Aug 2024",
+  "source_name": "Standard Capital Securities, 'CPI Drop to 9.6% | Is Inflation Finally Under Control ? |Insights on SIFC Companies | PSX Analysis' (YouTube, 2024-09-05)",
+  "source_url": "https://www.youtube.com/watch?v=3KQR4zU4bpA",
+  "video_id": "3KQR4zU4bpA",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.rate_cut_history",
+  "fact_text": "In earlier monetary policy decisions the benchmark rate was cut in steps of about 100 basis points, and the analyst expects a larger cut at the upcoming meeting.",
+  "value": 100,
+  "unit": "basis_points",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'CPI Drop to 9.6% | Is Inflation Finally Under Control ? |Insights on SIFC Companies | PSX Analysis' (YouTube, 2024-09-05)",
+  "source_url": "https://www.youtube.com/watch?v=3KQR4zU4bpA",
+  "video_id": "3KQR4zU4bpA",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.rate_cut_transmission",
+  "fact_text": "A large rate cut could make KSE-100 blue chips attractive, since the analyst sees the market stalled while investors wait for the monetary policy statement.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'CPI Drop to 9.6% | Is Inflation Finally Under Control ? |Insights on SIFC Companies | PSX Analysis' (YouTube, 2024-09-05)",
+  "source_url": "https://www.youtube.com/watch?v=3KQR4zU4bpA",
+  "video_id": "3KQR4zU4bpA",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.imf_rollover",
+  "fact_text": "A 12 billion dollar rollover from friendly countries underpins an expected IMF facility, which the analyst says has not yet reached the IMF board, so investors are waiting.",
+  "value": 12,
+  "unit": "USD_billions",
+  "period": "Sep 2024",
+  "source_name": "Standard Capital Securities, 'CPI Drop to 9.6% | Is Inflation Finally Under Control ? |Insights on SIFC Companies | PSX Analysis' (YouTube, 2024-09-05)",
+  "source_url": "https://www.youtube.com/watch?v=3KQR4zU4bpA",
+  "video_id": "3KQR4zU4bpA",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:OIL_GAS",
+  "topic": "news.policy",
+  "fact_text": "Under the Special Investment Facilitation Council, OGDC, PPL, PSO and Pakistan Refinery are being offered to foreign investors, which the analyst says could revive the sector.",
+  "value": null,
+  "unit": null,
+  "period": "Sep 2024",
+  "source_name": "Standard Capital Securities, 'CPI Drop to 9.6% | Is Inflation Finally Under Control ? |Insights on SIFC Companies | PSX Analysis' (YouTube, 2024-09-05)",
+  "source_url": "https://www.youtube.com/watch?v=3KQR4zU4bpA",
+  "video_id": "3KQR4zU4bpA",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:OIL_GAS",
+  "topic": "operations.exploration_technology",
+  "fact_text": "Pakistan's untapped sedimentary basins need drilling with larger equipment and foreign technology, which the analyst has argued for about 20 years.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'CPI Drop to 9.6% | Is Inflation Finally Under Control ? |Insights on SIFC Companies | PSX Analysis' (YouTube, 2024-09-05)",
+  "source_url": "https://www.youtube.com/watch?v=3KQR4zU4bpA",
+  "video_id": "3KQR4zU4bpA",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PSO",
+  "topic": "news.circular_debt",
+  "fact_text": "The analyst cites PSO's circular debt of roughly 800 to 900 billion rupees as a stuck exposure that weighs on the stock whenever news about it arrives.",
+  "value": null,
+  "unit": "PKR_billions",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'CPI Drop to 9.6% | Is Inflation Finally Under Control ? |Insights on SIFC Companies | PSX Analysis' (YouTube, 2024-09-05)",
+  "source_url": "https://www.youtube.com/watch?v=3KQR4zU4bpA",
+  "video_id": "3KQR4zU4bpA",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.inflation",
+  "fact_text": "The Sensitive Price Indicator fell to about 108 in Aug 2024 from about 157 in Jul 2024.",
+  "value": 108,
+  "unit": "index_points",
+  "period": "Aug 2024",
+  "source_name": "Standard Capital Securities, 'CPI Drop to 9.6% | Is Inflation Finally Under Control ? |Insights on SIFC Companies | PSX Analysis' (YouTube, 2024-09-05)",
+  "source_url": "https://www.youtube.com/watch?v=3KQR4zU4bpA",
+  "video_id": "3KQR4zU4bpA",
+  "confidence": "fact"
+ }
+]

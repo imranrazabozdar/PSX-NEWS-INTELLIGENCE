@@ -1,0 +1,110 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.dividend_yield",
+  "fact_text": "Analyst said KSE-100 companies offer dividend yields of about 8 to 9 percent, according to Bloomberg data he cited.",
+  "value": 8,
+  "unit": "percent",
+  "period": "2024-02-16",
+  "source_name": "Standard Capital Securities, 'PSX Paradise for Dividend Lovers | Pakistan Stock Market Update' (YouTube, 2024-02-16)",
+  "source_url": "https://www.youtube.com/watch?v=9Z8EaTtWE6c",
+  "video_id": "9Z8EaTtWE6c",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "EFERT",
+  "topic": "news.results",
+  "fact_text": "Engro Fertilizers' calendar 2023 EPS was below its potential because of the super tax and higher selling and distribution costs.",
+  "value": null,
+  "unit": null,
+  "period": "2023",
+  "source_name": "Standard Capital Securities, 'PSX Paradise for Dividend Lovers | Pakistan Stock Market Update' (YouTube, 2024-02-16)",
+  "source_url": "https://www.youtube.com/watch?v=9Z8EaTtWE6c",
+  "video_id": "9Z8EaTtWE6c",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "EFERT",
+  "topic": "news.dividend",
+  "fact_text": "Engro Fertilizers' final dividend came in below the analyst's expectation, although the return on the stock is still strong.",
+  "value": null,
+  "unit": null,
+  "period": "2023",
+  "source_name": "Standard Capital Securities, 'PSX Paradise for Dividend Lovers | Pakistan Stock Market Update' (YouTube, 2024-02-16)",
+  "source_url": "https://www.youtube.com/watch?v=9Z8EaTtWE6c",
+  "video_id": "9Z8EaTtWE6c",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:FERTILIZER",
+  "topic": "cost.gas_feedstock",
+  "fact_text": "Urea makers pay low gas prices because they use low-calorific feedstock gas, while general industry and captive power plants pay higher gas prices.",
+  "value": null,
+  "unit": null,
+  "period": "2023",
+  "source_name": "Standard Capital Securities, 'PSX Paradise for Dividend Lovers | Pakistan Stock Market Update' (YouTube, 2024-02-16)",
+  "source_url": "https://www.youtube.com/watch?v=9Z8EaTtWE6c",
+  "video_id": "9Z8EaTtWE6c",
+  "confidence": "fact"
+ },
+ {
+  "company": "EPCL",
+  "topic": "cost.gas_price_impact",
+  "fact_text": "Analyst said the gas price rise cut Engro Polymer's EPS by about Rs 1 per share, a hit he described as material.",
+  "value": 1,
+  "unit": "PKR_per_share",
+  "period": "2023",
+  "source_name": "Standard Capital Securities, 'PSX Paradise for Dividend Lovers | Pakistan Stock Market Update' (YouTube, 2024-02-16)",
+  "source_url": "https://www.youtube.com/watch?v=9Z8EaTtWE6c",
+  "video_id": "9Z8EaTtWE6c",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "LOTCHEM",
+  "topic": "commentary.risk",
+  "fact_text": "Analyst believes Lotte Chemical's exports were hit hard by the higher gas price, a risk to its earnings.",
+  "value": null,
+  "unit": null,
+  "period": "2023",
+  "source_name": "Standard Capital Securities, 'PSX Paradise for Dividend Lovers | Pakistan Stock Market Update' (YouTube, 2024-02-16)",
+  "source_url": "https://www.youtube.com/watch?v=9Z8EaTtWE6c",
+  "video_id": "9Z8EaTtWE6c",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.yield_on_earning_assets",
+  "fact_text": "Yield on earning assets is the return a bank earns on its advances and investments, and the analyst's Islamic bank reports use it to compare banks.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Paradise for Dividend Lovers | Pakistan Stock Market Update' (YouTube, 2024-02-16)",
+  "source_url": "https://www.youtube.com/watch?v=9Z8EaTtWE6c",
+  "video_id": "9Z8EaTtWE6c",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.value_investing_principle",
+  "fact_text": "Analyst's rule is to focus on companies with good management and good operations, and to avoid weak operations, whatever the political situation.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Paradise for Dividend Lovers | Pakistan Stock Market Update' (YouTube, 2024-02-16)",
+  "source_url": "https://www.youtube.com/watch?v=9Z8EaTtWE6c",
+  "video_id": "9Z8EaTtWE6c",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.price_multiples",
+  "fact_text": "Analyst compares price-to-sales and price-to-earnings multiples with return on equity and dividend per share, using the broker's stock comparison tool, to judge value stocks.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Paradise for Dividend Lovers | Pakistan Stock Market Update' (YouTube, 2024-02-16)",
+  "source_url": "https://www.youtube.com/watch?v=9Z8EaTtWE6c",
+  "video_id": "9Z8EaTtWE6c",
+  "confidence": "fact"
+ }
+]

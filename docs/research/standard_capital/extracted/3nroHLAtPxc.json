@@ -1,0 +1,86 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.trend_vs_range",
+  "fact_text": "A trending market makes higher highs and higher lows, while a sideways market stays inside a range without breaking its highs or lows.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What 99% of Traders Don't Know About PSX Trading in Sideways Markets' (YouTube, 2025-05-05)",
+  "source_url": "https://www.youtube.com/watch?v=3nroHLAtPxc",
+  "video_id": "3nroHLAtPxc",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.range_frequency",
+  "fact_text": "The analyst said markets are about 30% trending and about 70% sideways most of the time.",
+  "value": 70,
+  "unit": "percent",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What 99% of Traders Don't Know About PSX Trading in Sideways Markets' (YouTube, 2025-05-05)",
+  "source_url": "https://www.youtube.com/watch?v=3nroHLAtPxc",
+  "video_id": "3nroHLAtPxc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_regime",
+  "fact_text": "On 5 May 2025 the KSE-100 was trading sideways inside a range after making a high, with no clear trend in place.",
+  "value": null,
+  "unit": null,
+  "period": "2025-05-05",
+  "source_name": "Standard Capital Securities, 'What 99% of Traders Don't Know About PSX Trading in Sideways Markets' (YouTube, 2025-05-05)",
+  "source_url": "https://www.youtube.com/watch?v=3nroHLAtPxc",
+  "video_id": "3nroHLAtPxc",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.range_trading",
+  "fact_text": "Inside a range the analyst's approach is to sell near the range ceiling and buy near the range floor, and to wait when price sits in the middle with no clear edge.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What 99% of Traders Don't Know About PSX Trading in Sideways Markets' (YouTube, 2025-05-05)",
+  "source_url": "https://www.youtube.com/watch?v=3nroHLAtPxc",
+  "video_id": "3nroHLAtPxc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.breakout_confirmation",
+  "fact_text": "A range breakout counts as valid only with heavy volume and a strong candle; the analyst said the move should be confirmed before following it.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What 99% of Traders Don't Know About PSX Trading in Sideways Markets' (YouTube, 2025-05-05)",
+  "source_url": "https://www.youtube.com/watch?v=3nroHLAtPxc",
+  "video_id": "3nroHLAtPxc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.volume_fade",
+  "fact_text": "Falling volume inside a range was read as fading investor interest, so the range is more likely to persist until volume returns.",
+  "value": null,
+  "unit": null,
+  "period": "2025-05-05",
+  "source_name": "Standard Capital Securities, 'What 99% of Traders Don't Know About PSX Trading in Sideways Markets' (YouTube, 2025-05-05)",
+  "source_url": "https://www.youtube.com/watch?v=3nroHLAtPxc",
+  "video_id": "3nroHLAtPxc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.range_definition",
+  "fact_text": "A trading range is defined by marking the high where price was rejected and the lower level where buying appeared, then watching both boundaries.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What 99% of Traders Don't Know About PSX Trading in Sideways Markets' (YouTube, 2025-05-05)",
+  "source_url": "https://www.youtube.com/watch?v=3nroHLAtPxc",
+  "video_id": "3nroHLAtPxc",
+  "confidence": "fact"
+ }
+]

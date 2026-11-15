@@ -1,0 +1,98 @@
+[
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "method.pip",
+  "fact_text": "A pip is the smallest standard price move in a currency pair; for EUR/USD it is the fourth decimal place.",
+  "value": 4,
+  "unit": "decimal_place",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Understanding PMEX: Pips, Spread, Initial & Maintenance Margin | Pakistan Mercantile Exchange' (YouTube, 2025-01-18)",
+  "source_url": "https://www.youtube.com/watch?v=ufGHwNOWt4I",
+  "video_id": "ufGHwNOWt4I",
+  "confidence": "fact"
+ },
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "method.bid_ask_spread",
+  "fact_text": "The ask is the price sellers offer at and the bid is the price buyers pay; buying at the ask and closing at the bid starts a position in loss by the spread.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Understanding PMEX: Pips, Spread, Initial & Maintenance Margin | Pakistan Mercantile Exchange' (YouTube, 2025-01-18)",
+  "source_url": "https://www.youtube.com/watch?v=ufGHwNOWt4I",
+  "video_id": "ufGHwNOWt4I",
+  "confidence": "fact"
+ },
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "method.pip_spread_example",
+  "fact_text": "The analyst illustrated a 4-pip spread on the EUR/USD contract, with the bid and ask four pips apart.",
+  "value": 4,
+  "unit": "pips",
+  "period": "2025-01-18",
+  "source_name": "Standard Capital Securities, 'Understanding PMEX: Pips, Spread, Initial & Maintenance Margin | Pakistan Mercantile Exchange' (YouTube, 2025-01-18)",
+  "source_url": "https://www.youtube.com/watch?v=ufGHwNOWt4I",
+  "video_id": "ufGHwNOWt4I",
+  "confidence": "fact"
+ },
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "method.pip_value",
+  "fact_text": "Each pip on a EUR/USD contract is worth one US dollar of profit or loss per contract, according to the analyst.",
+  "value": 1,
+  "unit": "USD_per_pip",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Understanding PMEX: Pips, Spread, Initial & Maintenance Margin | Pakistan Mercantile Exchange' (YouTube, 2025-01-18)",
+  "source_url": "https://www.youtube.com/watch?v=ufGHwNOWt4I",
+  "video_id": "ufGHwNOWt4I",
+  "confidence": "fact"
+ },
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "operations.contract_labels",
+  "fact_text": "Contract names such as Gold EUR/USD are misleading: the EUR/USD contract is priced only on the euro and the dollar, not on gold.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Understanding PMEX: Pips, Spread, Initial & Maintenance Margin | Pakistan Mercantile Exchange' (YouTube, 2025-01-18)",
+  "source_url": "https://www.youtube.com/watch?v=ufGHwNOWt4I",
+  "video_id": "ufGHwNOWt4I",
+  "confidence": "fact"
+ },
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "operations.spread_gold",
+  "fact_text": "On the gold contract the bid-ask spread was 30 cents, and the analyst said the same 30-cent spread appears on the 1, 10 and 100 ounce contracts.",
+  "value": 30,
+  "unit": "USD_cents",
+  "period": "2025-01-18",
+  "source_name": "Standard Capital Securities, 'Understanding PMEX: Pips, Spread, Initial & Maintenance Margin | Pakistan Mercantile Exchange' (YouTube, 2025-01-18)",
+  "source_url": "https://www.youtube.com/watch?v=ufGHwNOWt4I",
+  "video_id": "ufGHwNOWt4I",
+  "confidence": "fact"
+ },
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "operations.margin",
+  "fact_text": "Initial margin is the amount a client must deposit to open a contract, and maintenance margin is the reserve that must stay in the account to hold it.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Understanding PMEX: Pips, Spread, Initial & Maintenance Margin | Pakistan Mercantile Exchange' (YouTube, 2025-01-18)",
+  "source_url": "https://www.youtube.com/watch?v=ufGHwNOWt4I",
+  "video_id": "ufGHwNOWt4I",
+  "confidence": "fact"
+ },
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "operations.margin_call",
+  "fact_text": "According to the analyst, PMEX automatically closes a position once its loss reaches 50%, which protects the rest of the client's funds.",
+  "value": 50,
+  "unit": "percent",
+  "period": "2025-01-18",
+  "source_name": "Standard Capital Securities, 'Understanding PMEX: Pips, Spread, Initial & Maintenance Margin | Pakistan Mercantile Exchange' (YouTube, 2025-01-18)",
+  "source_url": "https://www.youtube.com/watch?v=ufGHwNOWt4I",
+  "video_id": "ufGHwNOWt4I",
+  "confidence": "fact"
+ }
+]

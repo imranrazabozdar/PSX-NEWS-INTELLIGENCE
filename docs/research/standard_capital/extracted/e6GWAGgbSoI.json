@@ -1,0 +1,50 @@
+[
+ {
+  "company": "UBL",
+  "topic": "market.ubl_resistance",
+  "fact_text": "On 21 Jun 2025 the analyst marks a chart resistance for UBL near Rs 530, with the stock trading around Rs 521 to 522, and treats a break above it as the trigger point.",
+  "value": 530,
+  "unit": "PKR",
+  "period": "2025-06-21",
+  "source_name": "Standard Capital Securities, 'How to Place a Buy Stop Order in TradeCast | PSX Trading Guide & Technical Analysis' (YouTube, 2025-06-21)",
+  "source_url": "https://www.youtube.com/watch?v=e6GWAGgbSoI",
+  "video_id": "e6GWAGgbSoI",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.buy_stop_order",
+  "fact_text": "A buy stop order sits above the market price and executes only once the price trades up to the trigger level, so it acts on a breakout rather than the current price.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'How to Place a Buy Stop Order in TradeCast | PSX Trading Guide & Technical Analysis' (YouTube, 2025-06-21)",
+  "source_url": "https://www.youtube.com/watch?v=e6GWAGgbSoI",
+  "video_id": "e6GWAGgbSoI",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.stop_order_limit_band",
+  "fact_text": "A buy stop order can pair a trigger price with a limit price band, for example Rs 530 to 531, so the order fills only while the price is inside that band.",
+  "value": 531,
+  "unit": "PKR",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'How to Place a Buy Stop Order in TradeCast | PSX Trading Guide & Technical Analysis' (YouTube, 2025-06-21)",
+  "source_url": "https://www.youtube.com/watch?v=e6GWAGgbSoI",
+  "video_id": "e6GWAGgbSoI",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.breakout_volume",
+  "fact_text": "The analyst observes that a breakout through resistance is often accompanied by a sudden rise in volume, which can push the price up sharply.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'How to Place a Buy Stop Order in TradeCast | PSX Trading Guide & Technical Analysis' (YouTube, 2025-06-21)",
+  "source_url": "https://www.youtube.com/watch?v=e6GWAGgbSoI",
+  "video_id": "e6GWAGgbSoI",
+  "confidence": "analyst_view"
+ }
+]

@@ -1,0 +1,110 @@
+[
+ {
+  "company": "OGDC",
+  "topic": "news.dividend",
+  "fact_text": "OGDC and PPL have a dividend plan to clear receivables owed to them, and because the government holds stakes in both, much of the dividend flows back to the government.",
+  "value": null,
+  "unit": null,
+  "period": "2024-02-06",
+  "source_name": "Standard Capital Securities, 'MCB POL Results - Outstanding Blue Chip Results PSX Market Update' (YouTube, 2024-02-06)",
+  "source_url": "https://www.youtube.com/watch?v=DATi0glAGi4",
+  "video_id": "DATi0glAGi4",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.pia_privatisation",
+  "fact_text": "Analyst heard that the IMF has accepted PIA's privatisation, though he said this still had to be confirmed.",
+  "value": null,
+  "unit": null,
+  "period": "2024-02-06",
+  "source_name": "Standard Capital Securities, 'MCB POL Results - Outstanding Blue Chip Results PSX Market Update' (YouTube, 2024-02-06)",
+  "source_url": "https://www.youtube.com/watch?v=DATi0glAGi4",
+  "video_id": "DATi0glAGi4",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MEBL",
+  "topic": "returns.islamic_bank_spread",
+  "fact_text": "Meezan Bank's spread was just under 7 percent, which the analyst cited as an example of high spreads at Islamic banks.",
+  "value": 7,
+  "unit": "percent",
+  "period": "2024-02-06",
+  "source_name": "Standard Capital Securities, 'MCB POL Results - Outstanding Blue Chip Results PSX Market Update' (YouTube, 2024-02-06)",
+  "source_url": "https://www.youtube.com/watch?v=DATi0glAGi4",
+  "video_id": "DATi0glAGi4",
+  "confidence": "fact"
+ },
+ {
+  "company": "SECTOR:BANKS",
+  "topic": "returns.spread_mix",
+  "fact_text": "Analyst said large banks' spreads are falling as the mix of earning assets shifts between advances and investments.",
+  "value": null,
+  "unit": null,
+  "period": "2024-02-06",
+  "source_name": "Standard Capital Securities, 'MCB POL Results - Outstanding Blue Chip Results PSX Market Update' (YouTube, 2024-02-06)",
+  "source_url": "https://www.youtube.com/watch?v=DATi0glAGi4",
+  "video_id": "DATi0glAGi4",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MCB",
+  "topic": "news.dividend",
+  "fact_text": "MCB's dividend in the quarter reported in early 2024 was a surprise, larger than the already large dividend paid in the quarter before.",
+  "value": null,
+  "unit": null,
+  "period": "2024-02-06",
+  "source_name": "Standard Capital Securities, 'MCB POL Results - Outstanding Blue Chip Results PSX Market Update' (YouTube, 2024-02-06)",
+  "source_url": "https://www.youtube.com/watch?v=DATi0glAGi4",
+  "video_id": "DATi0glAGi4",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "UBL",
+  "topic": "news.dividend",
+  "fact_text": "Analyst said a fourth-quarter dividend from United Bank may be announced, since UBL paid a dividend in every quarter of the period he reviewed.",
+  "value": null,
+  "unit": null,
+  "period": "2023",
+  "source_name": "Standard Capital Securities, 'MCB POL Results - Outstanding Blue Chip Results PSX Market Update' (YouTube, 2024-02-06)",
+  "source_url": "https://www.youtube.com/watch?v=DATi0glAGi4",
+  "video_id": "DATi0glAGi4",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "POL",
+  "topic": "commentary.thesis",
+  "fact_text": "Pakistan Oilfields' half-year results were small in scope but acceptable, because its fields are old and depleted yet reserve life keeps them relevant, and annual dividends can be good.",
+  "value": null,
+  "unit": null,
+  "period": "2024-02-06",
+  "source_name": "Standard Capital Securities, 'MCB POL Results - Outstanding Blue Chip Results PSX Market Update' (YouTube, 2024-02-06)",
+  "source_url": "https://www.youtube.com/watch?v=DATi0glAGi4",
+  "video_id": "DATi0glAGi4",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PPL",
+  "topic": "news.mining_lease",
+  "fact_text": "A PPL notice on PSX reported a mining lease linked to zinc and lead mining, which the analyst noted for its share-price interest.",
+  "value": null,
+  "unit": null,
+  "period": "2024-02-06",
+  "source_name": "Standard Capital Securities, 'MCB POL Results - Outstanding Blue Chip Results PSX Market Update' (YouTube, 2024-02-06)",
+  "source_url": "https://www.youtube.com/watch?v=DATi0glAGi4",
+  "video_id": "DATi0glAGi4",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.elections_imf",
+  "fact_text": "Analyst said the election outcome and the IMF process will strongly affect the market, with several dividend and privatisation decisions waiting on the IMF.",
+  "value": null,
+  "unit": null,
+  "period": "2024-02-06",
+  "source_name": "Standard Capital Securities, 'MCB POL Results - Outstanding Blue Chip Results PSX Market Update' (YouTube, 2024-02-06)",
+  "source_url": "https://www.youtube.com/watch?v=DATi0glAGi4",
+  "video_id": "DATi0glAGi4",
+  "confidence": "analyst_view"
+ }
+]

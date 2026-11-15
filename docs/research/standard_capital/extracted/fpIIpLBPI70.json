@@ -1,0 +1,26 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.sovereign_wealth_fund_index",
+  "fact_text": "The analyst linked the index's heavyweight stocks to the Pakistan Sovereign Wealth Fund, whose holdings include National Bank and energy stocks.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Market Dynamics: Impact of Heavy Weights' (YouTube, 2023-12-06)",
+  "source_url": "https://www.youtube.com/watch?v=fpIIpLBPI70",
+  "video_id": "fpIIpLBPI70",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.heavyweight_valuation",
+  "fact_text": "When judging heavyweight index stocks, the analyst suggested checking price-to-book and enterprise-value multiples rather than the index level alone.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Market Dynamics: Impact of Heavy Weights' (YouTube, 2023-12-06)",
+  "source_url": "https://www.youtube.com/watch?v=fpIIpLBPI70",
+  "video_id": "fpIIpLBPI70",
+  "confidence": "analyst_view"
+ }
+]
