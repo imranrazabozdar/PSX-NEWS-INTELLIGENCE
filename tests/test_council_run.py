@@ -156,4 +156,26 @@ def test_macro_backdrop_is_included_and_newest_dated_facts_come_first():
                    (vid, day, day, "verified", ""))
     pack = council_run.build_pack("Rates move.", ["OGDC"], db)
     macro = [i for i in pack.items if i.company == "MACRO:PAKISTAN"]
-    assert [i.source_date for i in macro] == ["2026-10-01", "2024-06-01"]
+    assert [i.source_date for i in macro] == ["2026-10-01 [current]", "2024-06-01 [old]"]
+
+
+def test_freshness_bands_and_factor_tags():
+    from datetime import date
+
+    from engines import freshness
+
+    today = date(2026, 11, 15)
+    assert freshness.label("2026-10-01", today) == "current"
+    assert freshness.label("2026-01-01", today) == "recent"
+    assert freshness.label("2025-03-01", today) == "dated"
+    assert freshness.label("2024-06-01", today) == "old"
+    assert freshness.label("", today) == "undated"
+    tags = freshness.factors_in("SBP cuts the policy rate; rupee steady")
+    assert tags == {"interest_rate", "exchange_rate"}
+
+
+def test_event_factor_ranks_matching_facts_first_and_a_brief_is_added():
+    pack = council_run.build_pack("SBP cut the policy rate.", ["OGDC"], _db(), limit_per_company=2)
+    texts = [i.text for i in pack.items if i.company == "OGDC"]
+    assert any("Rate cuts" in t for t in texts)
+    assert any("stored fact(s)" in t for t in texts)

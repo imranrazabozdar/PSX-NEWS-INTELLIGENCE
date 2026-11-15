@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from engines import analyst_council as council
-from engines import library_db, llm
+from engines import freshness, library_db, llm
 
 SCHEMA = Path(__file__).resolve().parents[1] / "database" / "library" / "0003_council_verdict.sql"
 INSERT = ("INSERT INTO council_verdict (event, created_at, lenses_answered, conflict_count, "
@@ -111,6 +111,20 @@ def _dated_rows(db: Any, company: str, limit: int) -> list[Any]:
             "WHERE company = ? ORDER BY id DESC LIMIT ?", (company, limit)))
 
 
+def _brief(db: Any, company: str) -> str:
+    """What the brain holds on this company: size, span and strongest topics. Counts only, no claims."""
+    try:
+        rows = list(db.execute("SELECT topic, COUNT(*) AS n FROM research_fact WHERE company = ? "
+                               "GROUP BY topic ORDER BY n DESC", (company,)))
+    except Exception:  # noqa: BLE001
+        return ""
+    if not rows:
+        return f"The brain holds no stored knowledge on {company}; treat any view of it as unsupported."
+    total = sum(int(r["n"]) for r in rows)
+    top = ", ".join(f"{r['topic']} ({r['n']})" for r in rows[:6])
+    return f"{company}: {total} stored fact(s) across {len(rows)} topic(s); most covered: {top}."
+
+
 def build_pack(event: str, companies: list[str], db: Any, *, limit_per_company: int = 40,
                news: list[str] | None = None, sectors: list[str] | None = None) -> council.EvidencePack:
     """The event, plus what the brain already knows about these companies and their sectors."""
@@ -121,16 +135,25 @@ def build_pack(event: str, companies: list[str], db: Any, *, limit_per_company: 
     if not items:
         items.append(council.Evidence("n1", "news", event[:500], "Owner-supplied event text", ""))
     seq = 0
+    for company in companies:
+        brief = _brief(db, company)
+        if brief:
+            items.append(council.Evidence(f"b{company}", "note", brief, "Brain summary (computed)", "",
+                                          company=company))
+    wanted = freshness.factors_in(event + " " + " ".join(news or []))
     # MACRO:PAKISTAN is always in the pack: the macro lens needs the country backdrop for any event.
     for company in list(companies) + sectors_for(companies, db, sectors) + ["MACRO:PAKISTAN"]:
-        for row in _dated_rows(db, company, limit_per_company):
+        rows = _dated_rows(db, company, limit_per_company * 4)
+        # Facts about the factors this event touches first, then the rest, each newest-first.
+        rows.sort(key=lambda r: not (wanted & freshness.factors_in(f"{r['topic']} {r['fact_text']}")))
+        for row in rows[:limit_per_company]:
             kind = kind_for(str(row["topic"]))
             if kind is None:
                 continue
             seq += 1
             items.append(council.Evidence(
                 f"e{seq}", kind, str(row["fact_text"]), str(row["source_name"]),
-                str(row["source_date"]), company=company))
+                freshness.age_text(str(row["source_date"])), company=company))
     return council.EvidencePack(event=event, items=items)
 
 
