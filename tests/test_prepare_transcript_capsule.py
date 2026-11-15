@@ -200,3 +200,21 @@ def test_company_names_fold_to_psx_tickers_from_the_alias_file(tmp_path):
     (tmp_path / "in" / "x.json").write_text(json.dumps([row]), encoding="utf-8")
     prep.build(tmp_path / "in", tmp_path / "out.json")
     assert [r["company"] for r in json.loads((tmp_path / "out.json").read_text())] == ["ILP"]
+
+
+DATED = {"channel": "Standard Capital Securities",
+         "videos": {"abc": ("Midday Flash 9 Oct 2026", "2026-10-09")}}
+
+
+def test_a_dated_channel_row_takes_the_verified_video_date():
+    row = prep.convert(dict(GOOD, source_name="x", video_id="abc"), DATED)
+    assert row["source_date"] == "2026-10-09"
+    expected = "Standard Capital Securities, 'Midday Flash 9 Oct 2026' (YouTube, 2026-10-09)"
+    assert row["source_name"] == expected
+    assert row["source_url"].endswith("watch?v=abc")
+    assert "undated" not in row["source_name"]
+
+
+def test_a_dated_channel_refuses_a_row_whose_video_has_no_verified_date():
+    with pytest.raises(rf.ResearchFactError, match="no verified date"):
+        prep.convert(dict(GOOD, video_id="zzz"), DATED)
