@@ -51,10 +51,15 @@
     "Ghani Dairies": "GDL",
     "Synergy": "CNERGY",
     "Service Long March Tyres": "SLM",
-    "PIA Holding Company": "PIAHCLA"
+    "PIA Holding Company": "PIAHCLA",
+    "Selmore Pharmaceuticals": "SEARL"
   },
   "not_listed": [
     "Central Depository Company",
-    "National Clearing Company of Pakistan Limited"
+    "National Clearing Company of Pakistan Limited",
+    "Pakistan Steel Industry",
+    "Reko Diq",
+    "State Life Insurance Corporation of Pakistan",
+    "Khuzdar Barite Lead Zinc Project"
   ]
 }
