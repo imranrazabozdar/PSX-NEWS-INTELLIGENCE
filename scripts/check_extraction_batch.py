@@ -76,21 +76,37 @@ def _distinctive(text: str) -> set[str]:
     return {n for n in _numbers(text) if len(n.replace(".", "")) >= 3 or "." in n}
 
 
-def bled_rows(rows: list[dict[str, Any]], own: str, siblings: list[str]) -> list[dict[str, Any]]:
+def bled_rows(rows: list[dict[str, Any]], own: str, siblings: list[str],
+              dated: bool = False) -> list[dict[str, Any]]:
     """Rows carrying a distinctive number that is absent from the own source but present in a sibling's."""
-    own_nums = _numbers(own)
+    own_nums = _numbers(own) | (_date_parts(own) if dated else set())
     sibling_nums: set[str] = set()
     for text in siblings:
         sibling_nums |= _numbers(text)
     out = []
     for r in rows:
-        stray = [n for n in _distinctive(str(r.get("fact_text", ""))) if n not in own_nums]
+        found = _distinctive(str(r.get("fact_text", "")))
+        stray = [n for n in (_checked(found) if dated else found) if n not in own_nums]
         if stray and all(n in sibling_nums for n in stray):
             out.append(r)
     return out
 
 
 MAX_BLEED_ROWS = 1
+_YEAR = re.compile(r"^20\d\d$")
+_HEADER_DATE = re.compile(r"PUBLICATION_DATE:\s*(\d{4})-(\d{2})-(\d{2})")
+
+
+def _date_parts(source: str) -> set[str]:
+    """Year, month and day of the video's own verified date, as the numbers a row may legitimately carry."""
+    m = _HEADER_DATE.search(source)
+    return {m.group(1), str(int(m.group(2))), str(int(m.group(3)))} if m else set()
+
+
+def _checked(nums: set[str]) -> set[str]:
+    """Dated mode: years are not figures, and a bare number under 100 is usually a spoken word ('three')
+    or a day of the month. Prices, decimals and large amounts stay under strict check."""
+    return {n for n in nums if not _YEAR.match(n) and ("." in n or len(n) >= 3)}
 
 
 def judge(rows: list[dict[str, Any]], source: str, unit: str = "",
@@ -109,23 +125,24 @@ def judge(rows: list[dict[str, Any]], source: str, unit: str = "",
                   or (not dated and "undated" not in str(r.get("source_name", "")).lower())]
     if bad_schema:
         reasons.append(f"{len(bad_schema)} row(s) break the schema")
-    src_nums = _numbers(source)
-    total = sum(len(_numbers(r["fact_text"])) for r in rows if "fact_text" in r)
-    found = sum(1 for r in rows if "fact_text" in r for n in _numbers(r["fact_text"]) if n in src_nums)
+    src_nums = _numbers(source) | (_date_parts(source) if dated else set())
+    pick = _checked if dated else (lambda nums: nums)
+    total = sum(len(pick(_numbers(r["fact_text"]))) for r in rows if "fact_text" in r)
+    found = sum(1 for r in rows if "fact_text" in r for n in pick(_numbers(r["fact_text"])) if n in src_nums)
     if total >= 6 and found / total < MIN_GROUNDING:
         reasons.append(f"only {found}/{total} numbers appear in the source: possible invention")
-    bled = bled_rows(rows, source, siblings or [])
+    bled = bled_rows(rows, source, siblings or [], dated)
     if len(bled) > MAX_BLEED_ROWS:
         reasons.append(f"{len(bled)} row(s) carry numbers found only in another video of the same chunk")
     rel = sum(1 for r in rows if _RELATIVE.search(str(r.get("period") or "")))
     if rel:
         reasons.append(f"{rel} row(s) carry a relative period")
     if dated:
-        wanted = _distinctive(source)
+        wanted = _checked(_distinctive(source))
         if len(wanted) >= MIN_FIGURES_TO_CHECK:
             kept: set[str] = set()
             for r in rows:
-                kept |= _distinctive(str(r.get("fact_text", "")))
+                kept |= _checked(_distinctive(str(r.get("fact_text", ""))))
             share = len(wanted & kept) / len(wanted)
             if share < MIN_FIGURE_COVERAGE:
                 reasons.append(

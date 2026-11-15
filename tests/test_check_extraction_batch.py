@@ -124,3 +124,15 @@ def test_dated_mode_flags_a_skimmed_source_whose_figures_did_not_reach_rows():
     verdict = gate.judge([row], src, dated=True)
     assert not verdict.ok and "figures reached a row" in "; ".join(verdict.reasons)
     assert "figures reached a row" not in "; ".join(gate.judge([row], src).reasons)  # ARN mode unchanged
+
+
+def test_dated_mode_does_not_flag_years_dates_or_small_spoken_numbers():
+    src = ("PUBLICATION_DATE: 2024-01-22\n" + "words " * 300 + "OGDC fell 2.5 percent")
+    row = {"company": "OGDC", "topic": "news.x", "value": None, "unit": None,
+           "fact_text": "On 22 Jan 2024 OGDC fell 2.5 percent; 3 of 4 analysts saw a rebound by Feb 2025.",
+           "period": "2024-01-22", "source_name": "S, 'T' (YouTube, 2024-01-22)", "source_url": "u",
+           "video_id": "v", "confidence": "fact"}
+    assert gate.judge([row], src, dated=True).ok
+    invented = dict(row, fact_text="On 22 Jan 2024 OGDC fell 7.9 percent.")
+    verdicts = gate.judge([invented] * 6, src, dated=True)
+    assert not verdicts.ok and "possible invention" in "; ".join(verdicts.reasons)
