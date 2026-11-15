@@ -18,7 +18,8 @@ ALIASES = Path(__file__).resolve().parents[1] / "docs" / "research" / "arn" / "e
 def load(path: Path = ALIASES) -> dict[str, str]:
     data = json.loads(path.read_text(encoding="utf-8"))["aliases"]
     for name, ticker in data.items():
-        if not ticker.isalnum() or ticker != ticker.upper():
+        code = ticker.removeprefix("SECTOR:")  # a name may also fold into a sector entity
+        if not code.replace("_", "").isalnum() or ticker != ticker.upper():
             raise ValueError(f"not a ticker: {name!r} -> {ticker!r}")
     return data
 

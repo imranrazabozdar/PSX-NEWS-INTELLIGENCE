@@ -52,7 +52,8 @@
     "Synergy": "CNERGY",
     "Service Long March Tyres": "SLM",
     "PIA Holding Company": "PIAHCLA",
-    "Selmore Pharmaceuticals": "SEARL"
+    "Selmore Pharmaceuticals": "SEARL",
+    "Glass Industry": "SECTOR:GLASS"
   },
   "not_listed": [
     "Central Depository Company",
@@ -75,6 +76,9 @@
     "Berkshire Hathaway",
     "Bharti Airtel",
     "Gail",
-    "ARN Financials"
+    "ARN Financials",
+    "Lahore Electric Supply Company",
+    "Multan Electric Power Company",
+    "Islamabad Electric Supply Company"
   ]
 }
