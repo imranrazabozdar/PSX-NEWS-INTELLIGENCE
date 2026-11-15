@@ -139,3 +139,27 @@ def test_attribution_is_idempotent_so_a_second_pass_does_not_stack_notes():
     once = prep.convert(dict(GOOD, source_name="ARN, 'Shafy Weekly' (YouTube transcript, undated)"))
     twice = prep.convert(dict(once))
     assert once["source_name"] == twice["source_name"]
+
+
+# ---------- reproducible without Claude: several folders, and a list of ruled-out rows
+
+def test_several_input_folders_combine_into_one_capsule(tmp_path):
+    for name, text in (("a", "Energy is roughly seventy percent of production cost."),
+                       ("b", "Limestone from owned leases keeps raw material near five percent.")):
+        (tmp_path / name).mkdir()
+        (tmp_path / name / "x.json").write_text(json.dumps([dict(GOOD, fact_text=text)]), encoding="utf-8")
+    prep.build([tmp_path / "a", tmp_path / "b"], tmp_path / "out.json")
+    assert len(json.loads((tmp_path / "out.json").read_text())) == 2
+
+
+def test_a_ruled_out_row_is_left_out_but_a_same_text_row_from_another_video_is_kept(tmp_path):
+    text = "Energy is roughly seventy percent of production cost."
+    (tmp_path / "in").mkdir()
+    (tmp_path / "in" / "x.json").write_text(json.dumps([
+        dict(GOOD, fact_text=text, video_id="bad"),
+        dict(GOOD, fact_text=text, video_id="good", company="FCCL")]), encoding="utf-8")
+    ex = tmp_path / "ex.json"
+    ex.write_text(json.dumps([{"video_id": "bad", "fact_text": text}]), encoding="utf-8")
+    prep.build(tmp_path / "in", tmp_path / "out.json", ex)
+    out = json.loads((tmp_path / "out.json").read_text())
+    assert [r["company"] for r in out] == ["FCCL"]

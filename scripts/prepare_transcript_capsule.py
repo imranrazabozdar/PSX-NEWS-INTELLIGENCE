@@ -118,11 +118,22 @@ def convert(row: dict[str, Any]) -> dict[str, Any]:
     return rf.validate_fact(out)
 
 
-def build(in_dir: Path, out_path: Path) -> int:
-    files = sorted(glob.glob(str(in_dir / "*.json")))
+def _exclusions(path: Path | None) -> set[tuple[str, frozenset[str]]]:
+    """Rows a person has ruled out, as (video_id, word bag). Matching on words, not exact text, survives
+    the whitespace normalisation the rows go through."""
+    if path is None:
+        return set()
+    return {(str(e["video_id"]), normalise(str(e["fact_text"]))) for e in json.loads(path.read_text("utf-8"))}
+
+
+def build(in_dir: Path | list[Path], out_path: Path, exclude: Path | None = None) -> int:
+    dirs = [in_dir] if isinstance(in_dir, Path) else list(in_dir)
+    files = sorted(f for d in dirs for f in glob.glob(str(d / "*.json")))
     if not files:
-        print(f"no extracted rows found in {in_dir}")
+        print(f"no extracted rows found in {', '.join(str(d) for d in dirs)}")
         return 1
+    excluded = _exclusions(exclude)
+    dropped_excluded = 0
     kept: list[dict[str, Any]] = []
     seen: dict[tuple[str, str], list[frozenset[str]]] = {}
     read = dropped_dup = dropped_bad = 0
@@ -147,6 +158,10 @@ def build(in_dir: Path, out_path: Path) -> int:
             row["company"] = alias.get(row["company"], row["company"])
             key = (row["company"], row["topic"].split(".", 1)[0])
             words = normalise(row["fact_text"])
+            vid = str(raw.get("video_id", ""))
+            if any(v == vid and w == words for v, w in excluded):
+                dropped_excluded += 1
+                continue
             if any(is_near_duplicate(words, prior) for prior in seen.get(key, [])):
                 dropped_dup += 1
                 continue
@@ -159,6 +174,7 @@ def build(in_dir: Path, out_path: Path) -> int:
     for reason, n in problems.most_common(5):
         print(f"      {n:4d} x {reason}")
     print(f"  dropped as near-dupe : {dropped_dup}")
+    print(f"  dropped as excluded  : {dropped_excluded}")
     print(f"  kept                 : {len(kept)}  ->  {out_path}")
     print("\ntop entities:")
     for company, n in Counter(r["company"] for r in kept).most_common(25):
@@ -171,10 +187,13 @@ def build(in_dir: Path, out_path: Path) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--in-dir", required=True, type=Path)
+    parser.add_argument("--in-dir", required=True, type=Path, action="append",
+                        help="folder of extracted rows; repeat to combine several")
     parser.add_argument("--out", required=True, type=Path)
+    parser.add_argument("--exclude", type=Path, default=None,
+                        help="JSON list of {video_id, fact_text} rows to leave out")
     args = parser.parse_args(argv)
-    return build(args.in_dir, args.out)
+    return build(args.in_dir, args.out, args.exclude)
 
 
 if __name__ == "__main__":

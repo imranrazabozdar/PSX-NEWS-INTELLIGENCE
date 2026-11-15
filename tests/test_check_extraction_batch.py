@@ -69,3 +69,33 @@ def test_a_directive_to_the_reader_still_counts_as_advice():
 def test_a_reviewed_empty_file_is_trusted_but_an_unreviewed_one_is_still_flagged():
     assert not gate.judge([], SOURCE).ok
     assert gate.judge([], SOURCE, reviewed_empty=True).ok
+
+
+# ---------- bleed: a fact filed under the wrong video of the same chunk
+
+OWN = ("financial statements balance sheet profit margin " * 300) + " 2500 4100"
+SIBLING = ("petroleum policy royalty gas price " * 300) + " 1994 1997 2001 2012 12.5"
+
+
+def test_numbers_found_only_in_a_sibling_video_are_flagged_as_bleed():
+    rows = [row("Policies from 1994, 1997, 2001 and 2012 set the producer price.") for _ in range(3)]
+    v = gate.judge(rows * 12, OWN, siblings=[SIBLING])
+    assert any("another video of the same chunk" in r for r in v.reasons)
+
+
+def test_a_row_grounded_in_its_own_video_is_not_bleed():
+    rows = [row("Profit before tax was 2500 in the period.") for _ in range(40)]
+    assert not any("another video" in r for r in gate.judge(rows, OWN, siblings=[SIBLING]).reasons)
+
+
+def test_a_number_in_neither_video_is_invention_not_bleed():
+    rows = [row("Margins reached 9123 and 8841 and 7712 and 6655 and 5544 and 4433.") for _ in range(40)]
+    reasons = gate.judge(rows, OWN, siblings=[SIBLING]).reasons
+    assert any("possible invention" in r for r in reasons)
+    assert not any("another video" in r for r in reasons)
+
+
+def test_a_single_stray_row_is_tolerated_but_a_pattern_is_not():
+    clean = [row("Profit before tax was 2500 in the period.") for _ in range(40)]
+    one = clean + [row("Royalty was 12.5 percent of the gas price.")]
+    assert not any("another video" in r for r in gate.judge(one, OWN, siblings=[SIBLING]).reasons)

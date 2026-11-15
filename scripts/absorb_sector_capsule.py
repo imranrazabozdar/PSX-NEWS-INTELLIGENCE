@@ -52,29 +52,24 @@ def absorb(path: Path, *, apply: bool, db: Any = None) -> int:
     for stmt in _schema_statements():
         db.execute(stmt)
     written = skipped = near = 0
-    known: dict[tuple[str, str], list[frozenset[str]]] = {}
-
-    def known_for(company: str, family: str) -> list[frozenset[str]]:
-        key = (company, family)
-        if key not in known:
-            found = db.execute("SELECT fact_text FROM research_fact WHERE company = ? AND topic LIKE ?",
-                               (company, family + ".%"))
-            known[key] = [normalise(str(r["fact_text"])) for r in found]
-        return known[key]
-
+    exact, known = _existing(db, {r["company"] for r in rows})
+    pending: list[tuple[Any, ...]] = []
     for r in rows:
-        dup = db.execute(_DUP, (r["company"], r["topic"], r["fact_text"]))[0]["n"]
-        if dup:
+        if (r["company"], r["topic"], r["fact_text"]) in exact:
             skipped += 1
             continue
         words = normalise(r["fact_text"])
         family = r["topic"].split(".", 1)[0]
-        if any(is_near_duplicate(words, prior) for prior in known_for(r["company"], family)):
+        bucket = known.setdefault((r["company"], family), [])
+        if any(is_near_duplicate(words, prior) for prior in bucket):
             near += 1
             continue
-        db.execute(_INSERT, tuple(r[c] for c in rf.COLUMNS))
-        known_for(r["company"], family).append(words)  # later rows in this capsule compare against it too
+        exact.add((r["company"], r["topic"], r["fact_text"]))
+        bucket.append(words)  # later rows in this capsule compare against it too
+        pending.append(tuple(r[c] for c in rf.COLUMNS))
         written += 1
+    for i in range(0, len(pending), BATCH):
+        db.batch([(_INSERT, params) for params in pending[i:i + BATCH]], transactional=True)
     print(f"written: {written}, exact repeats skipped: {skipped}, near-duplicates skipped: {near}")
     return 0
 
@@ -86,7 +81,27 @@ def _schema_statements() -> list[str]:
     return list(mig.statements(schema.read_text(encoding="utf-8")))
 
 
-_DUP = "SELECT COUNT(*) AS n FROM research_fact WHERE company = ? AND topic = ? AND fact_text = ?"
+BATCH = 200  # statements per transactional batch: a few dozen round trips instead of thousands
+
+
+def _existing(db: Any, companies: set[str]) -> tuple[set[tuple[str, str, str]],
+                                                      dict[tuple[str, str], list[frozenset[str]]]]:
+    """What is already stored for these companies, read once: exact keys, and word bags per topic family."""
+    exact: set[tuple[str, str, str]] = set()
+    known: dict[tuple[str, str], list[frozenset[str]]] = {}
+    names = sorted(companies)
+    for i in range(0, len(names), 50):
+        chunk = names[i:i + 50]
+        marks = ", ".join("?" for _ in chunk)
+        # only "?" placeholders are interpolated; every value is bound separately
+        sql = f"SELECT company, topic, fact_text FROM research_fact WHERE company IN ({marks})"  # noqa: S608
+        for row in db.execute(sql, tuple(chunk)):
+            exact.add((row["company"], row["topic"], row["fact_text"]))
+            known.setdefault((row["company"], str(row["topic"]).split(".", 1)[0]), []).append(
+                normalise(str(row["fact_text"])))
+    return exact, known
+
+
 _INSERT = ("INSERT INTO research_fact (company, topic, fact_text, value, unit, period, source_name, "
            "source_url, source_date, as_of, confidence, created_at) "
            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")

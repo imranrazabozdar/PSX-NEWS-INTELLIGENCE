@@ -10,6 +10,10 @@ per-video output file it measures, against that video's OWN source text:
 * advice   : buy/sell/target-price wording, which this system never emits
 * density  : rows per 1,000 source characters. Too sparse means the model skimmed
 
+* bleed    : a model reading several videos in one chunk can file a fact under the wrong video. A row whose
+             numbers are missing from its own video but present in a SIBLING video of the same chunk is
+             flagged. That fact has the wrong source, the wrong recency rank and the wrong speaker note.
+
 A file that fails is not deleted: it is reported with the reason, so the caller can send that one video to
 a stronger model instead of repeating the whole batch.
 """
@@ -54,8 +58,34 @@ def _numbers(text: str) -> set[str]:
     return {n.replace(",", "").rstrip(".") for n in _NUM.findall(text)}
 
 
+def _distinctive(text: str) -> set[str]:
+    """Numbers specific enough to identify a video: three or more digits (years, large figures) or a decimal.
+
+    Two-digit numbers such as 45 or 70 turn up in most transcripts by coincidence, so they cannot say which
+    video a fact came from; counting them would flag honest rows.
+    """
+    return {n for n in _numbers(text) if len(n.replace(".", "")) >= 3 or "." in n}
+
+
+def bled_rows(rows: list[dict[str, Any]], own: str, siblings: list[str]) -> list[dict[str, Any]]:
+    """Rows carrying a distinctive number that is absent from the own source but present in a sibling's."""
+    own_nums = _numbers(own)
+    sibling_nums: set[str] = set()
+    for text in siblings:
+        sibling_nums |= _numbers(text)
+    out = []
+    for r in rows:
+        stray = [n for n in _distinctive(str(r.get("fact_text", ""))) if n not in own_nums]
+        if stray and all(n in sibling_nums for n in stray):
+            out.append(r)
+    return out
+
+
+MAX_BLEED_ROWS = 1
+
+
 def judge(rows: list[dict[str, Any]], source: str, unit: str = "",
-          reviewed_empty: bool = False) -> FileVerdict:
+          reviewed_empty: bool = False, siblings: list[str] | None = None) -> FileVerdict:
     reasons: list[str] = []
     chars = max(1, len(source))
     if not rows:
@@ -74,6 +104,9 @@ def judge(rows: list[dict[str, Any]], source: str, unit: str = "",
     found = sum(1 for r in rows if "fact_text" in r for n in _numbers(r["fact_text"]) if n in src_nums)
     if total >= 6 and found / total < MIN_GROUNDING:
         reasons.append(f"only {found}/{total} numbers appear in the source: possible invention")
+    bled = bled_rows(rows, source, siblings or [])
+    if len(bled) > MAX_BLEED_ROWS:
+        reasons.append(f"{len(bled)} row(s) carry numbers found only in another video of the same chunk")
     rel = sum(1 for r in rows if _RELATIVE.search(str(r.get("period") or "")))
     if rel:
         reasons.append(f"{rel} row(s) carry a relative period")
@@ -85,19 +118,27 @@ def judge(rows: list[dict[str, Any]], source: str, unit: str = "",
     return FileVerdict(unit, len(rows), not reasons, reasons)
 
 
-def _source_for(unit: str, chunk_dir: Path, manifest: dict[str, list[str]]) -> str:
-    """The source text of one unit: its block inside whichever chunk file holds it."""
+def _blocks(unit_chunk: str, chunk_dir: Path) -> list[str]:
+    return (chunk_dir / f"{unit_chunk}.md").read_text(encoding="utf-8").split("===== VIDEO =====")[1:]
+
+
+def _matches(block: str, unit: str) -> bool:
+    vid, _, part = unit.partition("__p")
+    return f"VIDEO_ID: {vid}" in block and (not part or f"(PART {part} of" in block)
+
+
+def _source_for(unit: str, chunk_dir: Path, manifest: dict[str, list[str]]) -> tuple[str, list[str]]:
+    """The source text of one unit, and the text of the OTHER units in the same chunk."""
     for name, units in manifest.items():
         if unit in units:
-            text = (chunk_dir / f"{name}.md").read_text(encoding="utf-8")
-            vid, _, part = unit.partition("__p")
-            for block in text.split("===== VIDEO =====")[1:]:
-                if f"VIDEO_ID: {vid}" not in block:
-                    continue
-                if part and f"(PART {part} of" not in block:
-                    continue
-                return block
-    return ""
+            own, others = "", []
+            for block in _blocks(name, chunk_dir):
+                if _matches(block, unit):
+                    own = block
+                else:
+                    others.append(block)
+            return own, others
+    return "", []
 
 
 def check(out_dir: Path, chunk_dir: Path, reviewed_empty: frozenset[str] = frozenset()) -> list[FileVerdict]:
@@ -110,7 +151,8 @@ def check(out_dir: Path, chunk_dir: Path, reviewed_empty: frozenset[str] = froze
         except json.JSONDecodeError:
             verdicts.append(FileVerdict(unit, 0, False, ["unreadable JSON"]))
             continue
-        verdicts.append(judge(rows, _source_for(unit, chunk_dir, manifest), unit, unit in reviewed_empty))
+        own, siblings = _source_for(unit, chunk_dir, manifest)
+        verdicts.append(judge(rows, own, unit, unit in reviewed_empty, siblings))
     return verdicts
 
 

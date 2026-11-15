@@ -45,6 +45,7 @@ TOPIC_KIND = (
     ("signal.", "sector_rule"),
     ("returns.", "sector_rule"),
     ("macro.", "macro"),
+    ("tax.", "macro"),
     ("policy_rate", "macro"),
     ("profile.", "note"),
     ("competitors.", "note"),

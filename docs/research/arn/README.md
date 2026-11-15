@@ -28,3 +28,41 @@ they are checkable structural facts.
 
 Workflow: extract -> `scripts/prepare_transcript_capsule.py` (validate, fold entity names, collapse
 near-duplicates across ALL batches at once) -> `scripts/absorb_sector_capsule.py` (dry run, then `--apply`).
+
+## Status: loaded into psx-library
+
+All 215 videos are accounted for: **174 extracted** (60 by Opus, 112 by Haiku, 2 by Sonnet), **41 skipped as
+personal finance**. 3,897 rows are in `research_fact`, and `video_source` holds all 215 videos with their
+recency rank. Nothing here depends on Claude being available.
+
+**Ask the brain with plain SQL** (newest video first):
+
+```sql
+SELECT v.archive_position, v.title, f.topic, f.fact_text
+FROM research_fact f JOIN video_source v ON f.source_url = v.url
+WHERE f.company = 'HUBC' ORDER BY v.archive_position;
+```
+
+**Rebuild and reload from this folder alone** (idempotent: a second run writes nothing):
+
+```
+python -m scripts.prepare_transcript_capsule --in-dir docs/research/arn/extracted \
+  --in-dir docs/research/arn/extracted_haiku --in-dir docs/research/arn/extracted_dense \
+  --in-dir docs/research/arn/extracted_sonnet --exclude docs/research/arn/excluded_rows.json --out capsule.json
+python -m scripts.absorb_sector_capsule capsule.json          # dry run
+python -m scripts.absorb_sector_capsule capsule.json --apply
+python -m scripts.load_video_sources --apply
+```
+
+**Folders**: `extracted/` Opus, `extracted_haiku/` first Haiku pass, `extracted_dense/` Haiku re-run of the
+eight chunks first extracted on a sparser prompt, `extracted_sonnet/` the two videos Haiku failed the gate on.
+`quarantine/` holds those two failed Haiku files for audit; they are never loaded. `excluded_rows.json` lists
+11 Opus rows ruled out because their numbers belong to another video of the same chunk.
+
+**Known limits**
+- Models reading several videos in one chunk can file a fact under the wrong video. The gate catches this
+  only when a row carries a distinctive number (a year, a decimal, three or more digits); a bled row with no
+  number would pass. Chunks of one video cannot bleed.
+- `MACRO:PAKISTAN` holds about a third of all rows. Macro knowledge is not yet indexed by sub-topic.
+- Companies without a known ticker are stored under their names; if one later gets a ticker, its rows need
+  merging.
