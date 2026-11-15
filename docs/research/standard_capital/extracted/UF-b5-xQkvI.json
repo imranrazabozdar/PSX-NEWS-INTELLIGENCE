@@ -1,0 +1,26 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.limit_order",
+  "fact_text": "A limit order sets the price at which a buy or sell should execute, and it waits in the queue until the market reaches that level.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '14. Understanding Types of Orders in Technical Analysis | Market Order Limit Order & Stop-Loss Order' (YouTube, 2024-11-01)",
+  "source_url": "https://www.youtube.com/watch?v=UF-b5-xQkvI",
+  "video_id": "UF-b5-xQkvI",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.stop_loss_order",
+  "fact_text": "A stop-loss order activates only when price crosses a set trigger level, used either to exit a holding on a fall or to buy once price breaks above a resistance level.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '14. Understanding Types of Orders in Technical Analysis | Market Order Limit Order & Stop-Loss Order' (YouTube, 2024-11-01)",
+  "source_url": "https://www.youtube.com/watch?v=UF-b5-xQkvI",
+  "video_id": "UF-b5-xQkvI",
+  "confidence": "fact"
+ }
+]

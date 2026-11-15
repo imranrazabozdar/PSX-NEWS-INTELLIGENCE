@@ -1,0 +1,86 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.rsi_definition",
+  "fact_text": "The Relative Strength Index (RSI) is a momentum indicator whose reading moves only between 0 and 100 and is applied to the price chart of the KSE-100 index.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '9. How to Use RSI (Relative Strength Index) in Technical Analysis | Live KSE 100 Index Analysis' (YouTube, 2024-10-13)",
+  "source_url": "https://www.youtube.com/watch?v=tMr-SoJoleU",
+  "video_id": "tMr-SoJoleU",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.rsi_settings",
+  "fact_text": "The default RSI input length and smoothing length are both 14 periods, and the analyst advises leaving them unchanged.",
+  "value": 14,
+  "unit": "periods",
+  "period": null,
+  "source_name": "Standard Capital Securities, '9. How to Use RSI (Relative Strength Index) in Technical Analysis | Live KSE 100 Index Analysis' (YouTube, 2024-10-13)",
+  "source_url": "https://www.youtube.com/watch?v=tMr-SoJoleU",
+  "video_id": "tMr-SoJoleU",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.rsi_overbought_oversold",
+  "fact_text": "An RSI reading above 70 is the overbought zone, meaning buying in the stock has been heavy.",
+  "value": 70,
+  "unit": "RSI_points",
+  "period": null,
+  "source_name": "Standard Capital Securities, '9. How to Use RSI (Relative Strength Index) in Technical Analysis | Live KSE 100 Index Analysis' (YouTube, 2024-10-13)",
+  "source_url": "https://www.youtube.com/watch?v=tMr-SoJoleU",
+  "video_id": "tMr-SoJoleU",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.rsi_overbought_oversold",
+  "fact_text": "An RSI reading below 30 is the oversold zone, meaning selling has been heavy.",
+  "value": 30,
+  "unit": "RSI_points",
+  "period": null,
+  "source_name": "Standard Capital Securities, '9. How to Use RSI (Relative Strength Index) in Technical Analysis | Live KSE 100 Index Analysis' (YouTube, 2024-10-13)",
+  "source_url": "https://www.youtube.com/watch?v=tMr-SoJoleU",
+  "video_id": "tMr-SoJoleU",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.rsi_overbought_oversold",
+  "fact_text": "The analyst expects a correction after RSI rises above 70, and a possible reversal once RSI falls below 30.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '9. How to Use RSI (Relative Strength Index) in Technical Analysis | Live KSE 100 Index Analysis' (YouTube, 2024-10-13)",
+  "source_url": "https://www.youtube.com/watch?v=tMr-SoJoleU",
+  "video_id": "tMr-SoJoleU",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.rsi_momentum",
+  "fact_text": "The analyst treats RSI as a momentum indicator: a rising RSI suggests the trend can extend upward, while an RSI below 30 signals bearish momentum.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '9. How to Use RSI (Relative Strength Index) in Technical Analysis | Live KSE 100 Index Analysis' (YouTube, 2024-10-13)",
+  "source_url": "https://www.youtube.com/watch?v=tMr-SoJoleU",
+  "video_id": "tMr-SoJoleU",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.rsi_momentum",
+  "fact_text": "The analyst views an RSI below 30 as bearish momentum, so he does not treat it as a buying signal at that point.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '9. How to Use RSI (Relative Strength Index) in Technical Analysis | Live KSE 100 Index Analysis' (YouTube, 2024-10-13)",
+  "source_url": "https://www.youtube.com/watch?v=tMr-SoJoleU",
+  "video_id": "tMr-SoJoleU",
+  "confidence": "analyst_view"
+ }
+]

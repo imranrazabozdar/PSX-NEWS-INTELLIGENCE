@@ -1,0 +1,26 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.current_account_fx",
+  "fact_text": "The analyst linked Pakistan's current account deficit to pressure on the overall exchange rate.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Potential: Market Trends, MERV Exchange Impact' (YouTube, 2023-12-12)",
+  "source_url": "https://www.youtube.com/watch?v=sgDz3uoU2ck",
+  "video_id": "sgDz3uoU2ck",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.foreign_investor_flows",
+  "fact_text": "The analyst said foreign portfolio investors drive much of the market's activity, including through frontier-market index rebalancing.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Potential: Market Trends, MERV Exchange Impact' (YouTube, 2023-12-12)",
+  "source_url": "https://www.youtube.com/watch?v=sgDz3uoU2ck",
+  "video_id": "sgDz3uoU2ck",
+  "confidence": "analyst_view"
+ }
+]

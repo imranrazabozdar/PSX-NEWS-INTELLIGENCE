@@ -1,0 +1,50 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.candlestick_colour",
+  "fact_text": "A green candle shows buying pressure and a red candle shows selling pressure, and the wicks show the price range that was rejected within the period.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Candlestick Patterns Explained | PSX Trading Strategy | Technical Analysis for Beginners' (YouTube, 2025-07-07)",
+  "source_url": "https://www.youtube.com/watch?v=zIy7T1S-9fs",
+  "video_id": "zIy7T1S-9fs",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.candlestick_bearish_engulfing",
+  "fact_text": "A bearish engulfing is a red candle whose real body covers the prior candle, with small wicks; the analyst said price tended to fall after one formed at a resistance zone.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Candlestick Patterns Explained | PSX Trading Strategy | Technical Analysis for Beginners' (YouTube, 2025-07-07)",
+  "source_url": "https://www.youtube.com/watch?v=zIy7T1S-9fs",
+  "video_id": "zIy7T1S-9fs",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.candlestick_bullish_engulfing",
+  "fact_text": "A bullish engulfing is the green mirror image of the bearish pattern; the analyst treated one forming at a support zone as a potential buying opportunity, with price moving up afterwards.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Candlestick Patterns Explained | PSX Trading Strategy | Technical Analysis for Beginners' (YouTube, 2025-07-07)",
+  "source_url": "https://www.youtube.com/watch?v=zIy7T1S-9fs",
+  "video_id": "zIy7T1S-9fs",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.candlestick_context",
+  "fact_text": "The analyst said candlestick patterns matter most when they form at a support or resistance level, so the level should be identified before the pattern is read.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Candlestick Patterns Explained | PSX Trading Strategy | Technical Analysis for Beginners' (YouTube, 2025-07-07)",
+  "source_url": "https://www.youtube.com/watch?v=zIy7T1S-9fs",
+  "video_id": "zIy7T1S-9fs",
+  "confidence": "analyst_view"
+ }
+]

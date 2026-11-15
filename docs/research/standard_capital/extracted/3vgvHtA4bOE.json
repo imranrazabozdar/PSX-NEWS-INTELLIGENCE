@@ -1,0 +1,74 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.macd_components",
+  "fact_text": "The MACD indicator has two lines: the MACD line, usually blue, and the signal line, usually orange, plus histogram bars.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '10. What is MACD Indicator? | How to Use MACD in Technical Analysis for PSX Trends' (YouTube, 2024-10-16)",
+  "source_url": "https://www.youtube.com/watch?v=3vgvHtA4bOE",
+  "video_id": "3vgvHtA4bOE",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.macd_crossover",
+  "fact_text": "The analyst reads a MACD line crossing down through the signal line as a sign the market may move lower from that point.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '10. What is MACD Indicator? | How to Use MACD in Technical Analysis for PSX Trends' (YouTube, 2024-10-16)",
+  "source_url": "https://www.youtube.com/watch?v=3vgvHtA4bOE",
+  "video_id": "3vgvHtA4bOE",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.macd_histogram",
+  "fact_text": "MACD histogram bars are green when positive and red when negative, and the darker shade shows stronger momentum than the lighter shade.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '10. What is MACD Indicator? | How to Use MACD in Technical Analysis for PSX Trends' (YouTube, 2024-10-16)",
+  "source_url": "https://www.youtube.com/watch?v=3vgvHtA4bOE",
+  "video_id": "3vgvHtA4bOE",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.macd_histogram",
+  "fact_text": "The analyst sees dark green histogram bars as an extremely bullish position that can carry the market higher, and light green bars as a sign of a possible correction.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '10. What is MACD Indicator? | How to Use MACD in Technical Analysis for PSX Trends' (YouTube, 2024-10-16)",
+  "source_url": "https://www.youtube.com/watch?v=3vgvHtA4bOE",
+  "video_id": "3vgvHtA4bOE",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.macd_histogram",
+  "fact_text": "The analyst sees dark red histogram bars as a sharp fall, and a shift to light red as a possible reversal point.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '10. What is MACD Indicator? | How to Use MACD in Technical Analysis for PSX Trends' (YouTube, 2024-10-16)",
+  "source_url": "https://www.youtube.com/watch?v=3vgvHtA4bOE",
+  "video_id": "3vgvHtA4bOE",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.macd_rule",
+  "fact_text": "The analyst becomes cautious when a bearish signal-line crossover comes together with bearish histogram bars.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '10. What is MACD Indicator? | How to Use MACD in Technical Analysis for PSX Trends' (YouTube, 2024-10-16)",
+  "source_url": "https://www.youtube.com/watch?v=3vgvHtA4bOE",
+  "video_id": "3vgvHtA4bOE",
+  "confidence": "analyst_view"
+ }
+]

@@ -1,0 +1,122 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_target",
+  "fact_text": "The analyst says the KSE-100 had already crossed the 66,500 level in a bullish technical crossover and expects the index to move toward 70,000 after Eid.",
+  "value": 70000,
+  "unit": "points",
+  "period": "2024-03-28",
+  "source_name": "Standard Capital Securities, 'Technical Crossover & Positive Sentiments,What’s market target?' (YouTube, 2024-03-28)",
+  "source_url": "https://www.youtube.com/watch?v=7XuXPh1xI78",
+  "video_id": "7XuXPh1xI78",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.current_account",
+  "fact_text": "The current account deficit was only about 1 billion USD, which the analyst reads as a sign that the rupee is stable and that macro pressures have eased.",
+  "value": 1,
+  "unit": "USD_billions",
+  "period": "2024-03-28",
+  "source_name": "Standard Capital Securities, 'Technical Crossover & Positive Sentiments,What’s market target?' (YouTube, 2024-03-28)",
+  "source_url": "https://www.youtube.com/watch?v=7XuXPh1xI78",
+  "video_id": "7XuXPh1xI78",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.trade_deficit",
+  "fact_text": "The trade deficit for the eight months to March 2024 was far smaller than a year earlier, which the analyst cites as a reason for rupee stability.",
+  "value": null,
+  "unit": null,
+  "period": "2024-03",
+  "source_name": "Standard Capital Securities, 'Technical Crossover & Positive Sentiments,What’s market target?' (YouTube, 2024-03-28)",
+  "source_url": "https://www.youtube.com/watch?v=7XuXPh1xI78",
+  "video_id": "7XuXPh1xI78",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.inflation",
+  "fact_text": "Inflation remains a major problem for ordinary households, and the analyst says it is the main drag on the economy even as the currency and external accounts improve.",
+  "value": null,
+  "unit": null,
+  "period": "2024-03-28",
+  "source_name": "Standard Capital Securities, 'Technical Crossover & Positive Sentiments,What’s market target?' (YouTube, 2024-03-28)",
+  "source_url": "https://www.youtube.com/watch?v=7XuXPh1xI78",
+  "video_id": "7XuXPh1xI78",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.political_risk",
+  "fact_text": "Political uncertainty is present, but the analyst believes the KSE-100 can take a better view and that market sentiment can improve despite it.",
+  "value": null,
+  "unit": null,
+  "period": "2024-03-28",
+  "source_name": "Standard Capital Securities, 'Technical Crossover & Positive Sentiments,What’s market target?' (YouTube, 2024-03-28)",
+  "source_url": "https://www.youtube.com/watch?v=7XuXPh1xI78",
+  "video_id": "7XuXPh1xI78",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_pe",
+  "fact_text": "The forward P/E of the KSE-100, as shown on the broker's website, is below 5 and around 4 times, which the analyst calls attractive.",
+  "value": 4,
+  "unit": "times",
+  "period": "2024-03-28",
+  "source_name": "Standard Capital Securities, 'Technical Crossover & Positive Sentiments,What’s market target?' (YouTube, 2024-03-28)",
+  "source_url": "https://www.youtube.com/watch?v=7XuXPh1xI78",
+  "video_id": "7XuXPh1xI78",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PAEL",
+  "topic": "market.seasonal_demand",
+  "fact_text": "Pak Elektron's appliance sales are seasonal, and the analyst expects severe summer heat in Punjab and Khyber Pakhtunkhwa to lift demand in that season.",
+  "value": null,
+  "unit": null,
+  "period": "2024-03-28",
+  "source_name": "Standard Capital Securities, 'Technical Crossover & Positive Sentiments,What’s market target?' (YouTube, 2024-03-28)",
+  "source_url": "https://www.youtube.com/watch?v=7XuXPh1xI78",
+  "video_id": "7XuXPh1xI78",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "INIL",
+  "topic": "profile.segments",
+  "fact_text": "International Industries holds about 56 percent of International Steels, and its standalone accounts are driven by plastic pipes used in construction.",
+  "value": 56,
+  "unit": "percent",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Technical Crossover & Positive Sentiments,What’s market target?' (YouTube, 2024-03-28)",
+  "source_url": "https://www.youtube.com/watch?v=7XuXPh1xI78",
+  "video_id": "7XuXPh1xI78",
+  "confidence": "fact"
+ },
+ {
+  "company": "INIL",
+  "topic": "commentary.outlook",
+  "fact_text": "The analyst expects construction activity to be slightly weaker in FY2024 and somewhat better in FY2025, which is the outlook for International Industries' pipe business.",
+  "value": null,
+  "unit": null,
+  "period": "FY25",
+  "source_name": "Standard Capital Securities, 'Technical Crossover & Positive Sentiments,What’s market target?' (YouTube, 2024-03-28)",
+  "source_url": "https://www.youtube.com/watch?v=7XuXPh1xI78",
+  "video_id": "7XuXPh1xI78",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:STEEL",
+  "topic": "signal.construction_link",
+  "fact_text": "Flat steel and pipe makers are tied to construction activity in the same way cement is, so the analyst treats them as part of one construction-driven group.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Technical Crossover & Positive Sentiments,What’s market target?' (YouTube, 2024-03-28)",
+  "source_url": "https://www.youtube.com/watch?v=7XuXPh1xI78",
+  "video_id": "7XuXPh1xI78",
+  "confidence": "analyst_view"
+ }
+]

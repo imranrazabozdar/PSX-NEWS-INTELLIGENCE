@@ -204,3 +204,11 @@ def test_brief_flags_a_delisted_ticker():
                         "2026-09-12", "", "fact", "2026-11-14T00:00:00Z"))
     pack = council_run.build_pack("Autos news.", ["PSMC"], db)
     assert "DELISTED on PSX" in next(i.text for i in pack.items if "stored fact(s)" in i.text)
+
+
+def test_dated_channel_topics_reach_the_right_lens():
+    assert council_run.kind_for("market.kse100_move") == "macro"
+    assert council_run.kind_for("news.results") == "figure"
+    assert council_run.kind_for("news.dividend") == "figure"
+    assert council_run.kind_for("news.ipo") == "announcement"
+    assert council_run.kind_for("news.buyback") == "announcement"

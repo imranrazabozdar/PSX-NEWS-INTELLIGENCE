@@ -1,0 +1,98 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.current_account",
+  "fact_text": "The analyst expects Pakistan, which is running a current account surplus as of 2 Jan 2024, not to face a deficit-driven crisis.",
+  "value": null,
+  "unit": null,
+  "period": "2024-01-02",
+  "source_name": "Standard Capital Securities, 'Sector Switching Strategies| Pakistan Stock Market Update' (YouTube, 2024-01-02)",
+  "source_url": "https://www.youtube.com/watch?v=ZH2Zci_kOZw",
+  "video_id": "ZH2Zci_kOZw",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.oil_shock_risk",
+  "fact_text": "The analyst saw a risk that Red Sea tensions could turn into an oil shock, but expected that not to happen; Arabian Light crude trades at a premium.",
+  "value": null,
+  "unit": null,
+  "period": "2024-01-02",
+  "source_name": "Standard Capital Securities, 'Sector Switching Strategies| Pakistan Stock Market Update' (YouTube, 2024-01-02)",
+  "source_url": "https://www.youtube.com/watch?v=ZH2Zci_kOZw",
+  "video_id": "ZH2Zci_kOZw",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:POWER",
+  "topic": "macro.circular_debt_clearance",
+  "fact_text": "If about 400 billion rupees reaches GENCOs and transmission and distribution companies, part of the circular debt owed to OGDC and PPL could be cleared, and no fresh circular debt should build up.",
+  "value": 400,
+  "unit": "PKR_billions",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Sector Switching Strategies| Pakistan Stock Market Update' (YouTube, 2024-01-02)",
+  "source_url": "https://www.youtube.com/watch?v=ZH2Zci_kOZw",
+  "video_id": "ZH2Zci_kOZw",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:CEMENT",
+  "topic": "strategy.sector_switch",
+  "fact_text": "The analyst argued that investors should switch from oil and gas into cement stocks.",
+  "value": null,
+  "unit": null,
+  "period": "2024-01-02",
+  "source_name": "Standard Capital Securities, 'Sector Switching Strategies| Pakistan Stock Market Update' (YouTube, 2024-01-02)",
+  "source_url": "https://www.youtube.com/watch?v=ZH2Zci_kOZw",
+  "video_id": "ZH2Zci_kOZw",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:CEMENT",
+  "topic": "valuation.pe_multiple",
+  "fact_text": "The analyst cited Fauji Cement and Maple Leaf Cement at price-to-earnings multiples of about 3x and 4x in the cement comparison.",
+  "value": null,
+  "unit": "times",
+  "period": "2024-01-02",
+  "source_name": "Standard Capital Securities, 'Sector Switching Strategies| Pakistan Stock Market Update' (YouTube, 2024-01-02)",
+  "source_url": "https://www.youtube.com/watch?v=ZH2Zci_kOZw",
+  "video_id": "ZH2Zci_kOZw",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:BANKS",
+  "topic": "valuation.size_discount",
+  "fact_text": "The analyst saw large banks as better placed, while medium-sized banks such as Bank Alfalah, Bank Al Habib, Habib Metropolitan, Bank Islami and Faysal Bank usually trade at a discount.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Sector Switching Strategies| Pakistan Stock Market Update' (YouTube, 2024-01-02)",
+  "source_url": "https://www.youtube.com/watch?v=ZH2Zci_kOZw",
+  "video_id": "ZH2Zci_kOZw",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MEBL",
+  "topic": "commentary.valuation",
+  "fact_text": "Meezan Bank trades at a premium, according to the analyst, because its net interest margin is higher than that of other banks.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Sector Switching Strategies| Pakistan Stock Market Update' (YouTube, 2024-01-02)",
+  "source_url": "https://www.youtube.com/watch?v=ZH2Zci_kOZw",
+  "video_id": "ZH2Zci_kOZw",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:BANKS",
+  "topic": "valuation.pb_multiple",
+  "fact_text": "As of 2 Jan 2024 a price-to-book multiple of about 1x is hard for banks to reach, whereas about 3x was common in earlier years.",
+  "value": 1,
+  "unit": "times",
+  "period": "2024-01-02",
+  "source_name": "Standard Capital Securities, 'Sector Switching Strategies| Pakistan Stock Market Update' (YouTube, 2024-01-02)",
+  "source_url": "https://www.youtube.com/watch?v=ZH2Zci_kOZw",
+  "video_id": "ZH2Zci_kOZw",
+  "confidence": "analyst_view"
+ }
+]

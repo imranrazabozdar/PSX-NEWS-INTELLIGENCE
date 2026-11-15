@@ -1,0 +1,110 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.market_halt_rule",
+  "fact_text": "The KSE-30 index halt mechanism has two rules: rule one is a 5% rise or fall in the index, and rule two is a five-minute timer that starts once the index crosses that 5% level.",
+  "value": 5,
+  "unit": "percent",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Market Halt Explained  KSE 30 Index Mechanism & Rules  Equity Market Analysis by Afaque Manzar' (YouTube, 2025-05-13)",
+  "source_url": "https://www.youtube.com/watch?v=3F2Tu-9Vq1g",
+  "video_id": "3F2Tu-9Vq1g",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.market_halt_rule",
+  "fact_text": "A market halt needs the index to stay beyond 5% for the full five-minute timer; if it falls back inside 5% before the timer ends, no halt occurs.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Market Halt Explained  KSE 30 Index Mechanism & Rules  Equity Market Analysis by Afaque Manzar' (YouTube, 2025-05-13)",
+  "source_url": "https://www.youtube.com/watch?v=3F2Tu-9Vq1g",
+  "video_id": "3F2Tu-9Vq1g",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.stock_price_limit",
+  "fact_text": "Individual stocks have a 10% upward or downward price limit, after which a cap applies, which differs from the index halt rule that uses a 5% threshold and a timer.",
+  "value": 10,
+  "unit": "percent",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Market Halt Explained  KSE 30 Index Mechanism & Rules  Equity Market Analysis by Afaque Manzar' (YouTube, 2025-05-13)",
+  "source_url": "https://www.youtube.com/watch?v=3F2Tu-9Vq1g",
+  "video_id": "3F2Tu-9Vq1g",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse30_move",
+  "fact_text": "At 9:30 am on 12 May 2025 the KSE-30 index stood at about 32,648 points as the market opened.",
+  "value": 32648,
+  "unit": "points",
+  "period": "2025-05-12",
+  "source_name": "Standard Capital Securities, 'PSX Market Halt Explained  KSE 30 Index Mechanism & Rules  Equity Market Analysis by Afaque Manzar' (YouTube, 2025-05-13)",
+  "source_url": "https://www.youtube.com/watch?v=3F2Tu-9Vq1g",
+  "video_id": "3F2Tu-9Vq1g",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse30_move",
+  "fact_text": "At 9:31 am on 12 May 2025 the KSE-30 index reached about 34,000 points, a rise of roughly 4%, which was still below the 5% threshold so no halt rule applied.",
+  "value": 34000,
+  "unit": "points",
+  "period": "2025-05-12",
+  "source_name": "Standard Capital Securities, 'PSX Market Halt Explained  KSE 30 Index Mechanism & Rules  Equity Market Analysis by Afaque Manzar' (YouTube, 2025-05-13)",
+  "source_url": "https://www.youtube.com/watch?v=3F2Tu-9Vq1g",
+  "video_id": "3F2Tu-9Vq1g",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse30_move",
+  "fact_text": "At 9:32 am on 12 May 2025 the KSE-30 index reached 34,300 points, crossing the 5% threshold and starting the five-minute timer.",
+  "value": 34300,
+  "unit": "points",
+  "period": "2025-05-12",
+  "source_name": "Standard Capital Securities, 'PSX Market Halt Explained  KSE 30 Index Mechanism & Rules  Equity Market Analysis by Afaque Manzar' (YouTube, 2025-05-13)",
+  "source_url": "https://www.youtube.com/watch?v=3F2Tu-9Vq1g",
+  "video_id": "3F2Tu-9Vq1g",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse30_move",
+  "fact_text": "Between 9:33 and 9:36 am on 12 May 2025 the KSE-30 index traded up to about 35,000 points, staying above the 5% threshold while the timer ran.",
+  "value": 35000,
+  "unit": "points",
+  "period": "2025-05-12",
+  "source_name": "Standard Capital Securities, 'PSX Market Halt Explained  KSE 30 Index Mechanism & Rules  Equity Market Analysis by Afaque Manzar' (YouTube, 2025-05-13)",
+  "source_url": "https://www.youtube.com/watch?v=3F2Tu-9Vq1g",
+  "video_id": "3F2Tu-9Vq1g",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse30_halt",
+  "fact_text": "At 9:37 am on 12 May 2025, with the KSE-30 at 35,699 points and above 5% for the full five-minute timer, the market was halted.",
+  "value": 35699,
+  "unit": "points",
+  "period": "2025-05-12",
+  "source_name": "Standard Capital Securities, 'PSX Market Halt Explained  KSE 30 Index Mechanism & Rules  Equity Market Analysis by Afaque Manzar' (YouTube, 2025-05-13)",
+  "source_url": "https://www.youtube.com/watch?v=3F2Tu-9Vq1g",
+  "video_id": "3F2Tu-9Vq1g",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.market_halt_rule",
+  "fact_text": "The analyst said many investors were confused by the halt because most know only the 5% rule, while the five-minute timer rule is little known.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Market Halt Explained  KSE 30 Index Mechanism & Rules  Equity Market Analysis by Afaque Manzar' (YouTube, 2025-05-13)",
+  "source_url": "https://www.youtube.com/watch?v=3F2Tu-9Vq1g",
+  "video_id": "3F2Tu-9Vq1g",
+  "confidence": "analyst_view"
+ }
+]

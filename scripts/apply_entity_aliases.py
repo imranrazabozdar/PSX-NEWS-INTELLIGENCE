@@ -18,8 +18,10 @@ ALIASES = Path(__file__).resolve().parents[1] / "docs" / "research" / "arn" / "e
 def load(path: Path = ALIASES) -> dict[str, str]:
     data = json.loads(path.read_text(encoding="utf-8"))["aliases"]
     for name, ticker in data.items():
-        code = ticker.removeprefix("SECTOR:")  # a name may also fold into a sector entity
-        if not code.replace("_", "").isalnum() or ticker != ticker.upper():
+        if ticker != ticker.upper():
+            continue  # a name-to-name fold (two spellings of one unlisted company): allowed as written
+        code = ticker.removeprefix("SECTOR:").removeprefix("MACRO:")  # may fold into a sector/macro entity
+        if not code.replace("_", "").isalnum():
             raise ValueError(f"not a ticker: {name!r} -> {ticker!r}")
     return data
 

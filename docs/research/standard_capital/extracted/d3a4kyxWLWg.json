@@ -1,0 +1,62 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.candle_anatomy",
+  "fact_text": "A candlestick is read through its body, its upper and lower wicks, and the session's high and low, which together show how buyers and sellers behaved.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Technical EXPERTS Reveal Top Chart Patterns for Profitable Trades' (YouTube, 2024-12-26)",
+  "source_url": "https://www.youtube.com/watch?v=d3a4kyxWLWg",
+  "video_id": "d3a4kyxWLWg",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.engulfing_candle",
+  "fact_text": "A large red candle whose body engulfs the candle before it signals aggressive sellers who took control of the session.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Technical EXPERTS Reveal Top Chart Patterns for Profitable Trades' (YouTube, 2024-12-26)",
+  "source_url": "https://www.youtube.com/watch?v=d3a4kyxWLWg",
+  "video_id": "d3a4kyxWLWg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.indecision_candle",
+  "fact_text": "A candle that makes both a high and a low but closes near where it opened shows indecision, with buyers and sellers unable to agree on direction.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Technical EXPERTS Reveal Top Chart Patterns for Profitable Trades' (YouTube, 2024-12-26)",
+  "source_url": "https://www.youtube.com/watch?v=d3a4kyxWLWg",
+  "video_id": "d3a4kyxWLWg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.support_confirmation",
+  "fact_text": "A green candle appearing within about two sessions of a support area suggests the index may try to rise again, while a break below that support points to a further fall.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Technical EXPERTS Reveal Top Chart Patterns for Profitable Trades' (YouTube, 2024-12-26)",
+  "source_url": "https://www.youtube.com/watch?v=d3a4kyxWLWg",
+  "video_id": "d3a4kyxWLWg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.candle_context",
+  "fact_text": "A candlestick pattern carries more weight when it forms at a support or resistance area, where it can give a trade entry, than when it forms in open space.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Technical EXPERTS Reveal Top Chart Patterns for Profitable Trades' (YouTube, 2024-12-26)",
+  "source_url": "https://www.youtube.com/watch?v=d3a4kyxWLWg",
+  "video_id": "d3a4kyxWLWg",
+  "confidence": "analyst_view"
+ }
+]

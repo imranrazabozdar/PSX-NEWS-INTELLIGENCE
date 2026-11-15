@@ -1,0 +1,86 @@
+[
+ {
+  "company": "SECTOR:BANKS",
+  "topic": "market.index_weight",
+  "fact_text": "Banks were said to make up about 30% of PSX market capitalisation, so the banking rally lifted both market cap and the index.",
+  "value": 30,
+  "unit": "percent",
+  "period": "Jul 2025",
+  "source_name": "Standard Capital Securities, '📈 Midday Flash 10 July 2025 | PSX Bull Run? | UBL Dividend | Thatta Cement Stock Split |Stock Market' (YouTube, 2025-07-10)",
+  "source_url": "https://www.youtube.com/watch?v=eEE6YMKzLrk",
+  "video_id": "eEE6YMKzLrk",
+  "confidence": "fact"
+ },
+ {
+  "company": "UBL",
+  "topic": "news.dividend",
+  "fact_text": "UBL paid a dividend of PKR 11 per share in several past quarters, according to the analyst, and the post-split dividend level was still to be seen.",
+  "value": 11,
+  "unit": "PKR_per_share",
+  "period": null,
+  "source_name": "Standard Capital Securities, '📈 Midday Flash 10 July 2025 | PSX Bull Run? | UBL Dividend | Thatta Cement Stock Split |Stock Market' (YouTube, 2025-07-10)",
+  "source_url": "https://www.youtube.com/watch?v=eEE6YMKzLrk",
+  "video_id": "eEE6YMKzLrk",
+  "confidence": "fact"
+ },
+ {
+  "company": "UBL",
+  "topic": "news.corporate_action",
+  "fact_text": "UBL had completed a stock split by July 2025, according to the analyst.",
+  "value": null,
+  "unit": null,
+  "period": "Jul 2025",
+  "source_name": "Standard Capital Securities, '📈 Midday Flash 10 July 2025 | PSX Bull Run? | UBL Dividend | Thatta Cement Stock Split |Stock Market' (YouTube, 2025-07-10)",
+  "source_url": "https://www.youtube.com/watch?v=eEE6YMKzLrk",
+  "video_id": "eEE6YMKzLrk",
+  "confidence": "fact"
+ },
+ {
+  "company": "UBL",
+  "topic": "news.results",
+  "fact_text": "The analyst expected a bumper EPS from UBL in Q2 2025, even after the split, and said a strong UBL result could set the tone for other banks.",
+  "value": null,
+  "unit": null,
+  "period": "Q2 2025",
+  "source_name": "Standard Capital Securities, '📈 Midday Flash 10 July 2025 | PSX Bull Run? | UBL Dividend | Thatta Cement Stock Split |Stock Market' (YouTube, 2025-07-10)",
+  "source_url": "https://www.youtube.com/watch?v=eEE6YMKzLrk",
+  "video_id": "eEE6YMKzLrk",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.results_season",
+  "fact_text": "Results season began in July 2025, with dividend ex-dates expected in August, which the analyst said gives investors with cash a window to decide on dividend stocks.",
+  "value": null,
+  "unit": null,
+  "period": "Aug 2025",
+  "source_name": "Standard Capital Securities, '📈 Midday Flash 10 July 2025 | PSX Bull Run? | UBL Dividend | Thatta Cement Stock Split |Stock Market' (YouTube, 2025-07-10)",
+  "source_url": "https://www.youtube.com/watch?v=eEE6YMKzLrk",
+  "video_id": "eEE6YMKzLrk",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "THCCL",
+  "topic": "news.corporate_action",
+  "fact_text": "Thatta Cement split its shares five-for-one in July 2025, cutting face value from PKR 10 to PKR 2.",
+  "value": 5,
+  "unit": "times",
+  "period": "Jul 2025",
+  "source_name": "Standard Capital Securities, '📈 Midday Flash 10 July 2025 | PSX Bull Run? | UBL Dividend | Thatta Cement Stock Split |Stock Market' (YouTube, 2025-07-10)",
+  "source_url": "https://www.youtube.com/watch?v=eEE6YMKzLrk",
+  "video_id": "eEE6YMKzLrk",
+  "confidence": "fact"
+ },
+ {
+  "company": "THCCL",
+  "topic": "method.split_price_effect",
+  "fact_text": "The analyst said a stock split mechanically lowers the share price once it takes effect, so the post-split price is not directly comparable to the pre-split price.",
+  "value": null,
+  "unit": null,
+  "period": "Jul 2025",
+  "source_name": "Standard Capital Securities, '📈 Midday Flash 10 July 2025 | PSX Bull Run? | UBL Dividend | Thatta Cement Stock Split |Stock Market' (YouTube, 2025-07-10)",
+  "source_url": "https://www.youtube.com/watch?v=eEE6YMKzLrk",
+  "video_id": "eEE6YMKzLrk",
+  "confidence": "analyst_view"
+ }
+]

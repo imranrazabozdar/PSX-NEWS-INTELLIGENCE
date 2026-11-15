@@ -35,6 +35,13 @@ KEYS = {"company", "topic", "fact_text", "value", "unit", "period", "source_name
 _NUM = re.compile(r"\d[\d,]*\.?\d*")
 _RELATIVE = re.compile(r"\b(last year|recently|currently|these days|nowadays|this year|next year|today|"
                        r"at the moment|before the video)\b", re.I)
+# A DATED channel (verified upload dates) may state time-bound facts, but only with absolute dates: a relative
+# word inside the sentence ("today", "last week") is a defect because the sentence outlives the video.
+_RELATIVE_TEXT = re.compile(
+    r"\b(today|yesterday|tomorrow|tonight|this (?:week|month|year|session|quarter)|last (?:week|month|year|"
+    r"session|quarter)|next (?:week|month|year|session|quarter)|recently|currently|right now|these days|"
+    r"nowadays|so far|the other day|at the moment|at present)\b|\blast (?:two|three|four|few|several|\d+) ",
+    re.I)
 # Advice is a recommendation addressed to a reader, not the word "sell": a power plant may "sell" electricity
 # and a company may "buy back" shares. Only directive wording and price targets count.
 _ADVICE = re.compile(
@@ -44,6 +51,8 @@ _ADVICE = re.compile(
 MIN_GROUNDING = 0.70      # of numbers present in a row, at least this share must be in the source
 MIN_DENSITY = 0.12        # rows per 1,000 source chars; the benchmark ran 1.0-1.5
 MAX_ADVICE_SHARE = 0.10
+MIN_FIGURE_COVERAGE = 0.55  # dated mode: share of the source's distinctive figures that reach a row
+MIN_FIGURES_TO_CHECK = 8    # a source with fewer distinctive figures is too small for the ratio to mean much
 
 
 @dataclass
@@ -67,25 +76,42 @@ def _distinctive(text: str) -> set[str]:
     return {n for n in _numbers(text) if len(n.replace(".", "")) >= 3 or "." in n}
 
 
-def bled_rows(rows: list[dict[str, Any]], own: str, siblings: list[str]) -> list[dict[str, Any]]:
+def bled_rows(rows: list[dict[str, Any]], own: str, siblings: list[str],
+              dated: bool = False) -> list[dict[str, Any]]:
     """Rows carrying a distinctive number that is absent from the own source but present in a sibling's."""
-    own_nums = _numbers(own)
+    own_nums = _numbers(own) | (_date_parts(own) if dated else set())
     sibling_nums: set[str] = set()
     for text in siblings:
         sibling_nums |= _numbers(text)
     out = []
     for r in rows:
-        stray = [n for n in _distinctive(str(r.get("fact_text", ""))) if n not in own_nums]
+        found = _distinctive(str(r.get("fact_text", "")))
+        stray = [n for n in (_checked(found) if dated else found) if n not in own_nums]
         if stray and all(n in sibling_nums for n in stray):
             out.append(r)
     return out
 
 
 MAX_BLEED_ROWS = 1
+_YEAR = re.compile(r"^20\d\d$")
+_HEADER_DATE = re.compile(r"PUBLICATION_DATE:\s*(\d{4})-(\d{2})-(\d{2})")
+
+
+def _date_parts(source: str) -> set[str]:
+    """Year, month and day of the video's own verified date, as the numbers a row may legitimately carry."""
+    m = _HEADER_DATE.search(source)
+    return {m.group(1), str(int(m.group(2))), str(int(m.group(3)))} if m else set()
+
+
+def _checked(nums: set[str]) -> set[str]:
+    """Dated mode: years are not figures, and a bare number under 100 is usually a spoken word ('three')
+    or a day of the month. Prices, decimals and large amounts stay under strict check."""
+    return {n for n in nums if not _YEAR.match(n) and ("." in n or len(n) >= 3)}
 
 
 def judge(rows: list[dict[str, Any]], source: str, unit: str = "",
-          reviewed_empty: bool = False, siblings: list[str] | None = None) -> FileVerdict:
+          reviewed_empty: bool = False, siblings: list[str] | None = None,
+          dated: bool = False) -> FileVerdict:
     reasons: list[str] = []
     chars = max(1, len(source))
     if not rows:
@@ -96,20 +122,34 @@ def judge(rows: list[dict[str, Any]], source: str, unit: str = "",
         return FileVerdict(unit, 0, not reasons, reasons)
     bad_schema = [r for r in rows if set(r) != KEYS or len(str(r.get("fact_text", ""))) > 300
                   or r.get("confidence") not in ("fact", "analyst_view")
-                  or "undated" not in str(r.get("source_name", "")).lower()]
+                  or (not dated and "undated" not in str(r.get("source_name", "")).lower())]
     if bad_schema:
         reasons.append(f"{len(bad_schema)} row(s) break the schema")
-    src_nums = _numbers(source)
-    total = sum(len(_numbers(r["fact_text"])) for r in rows if "fact_text" in r)
-    found = sum(1 for r in rows if "fact_text" in r for n in _numbers(r["fact_text"]) if n in src_nums)
+    src_nums = _numbers(source) | (_date_parts(source) if dated else set())
+    pick = _checked if dated else (lambda nums: nums)
+    total = sum(len(pick(_numbers(r["fact_text"]))) for r in rows if "fact_text" in r)
+    found = sum(1 for r in rows if "fact_text" in r for n in pick(_numbers(r["fact_text"])) if n in src_nums)
     if total >= 6 and found / total < MIN_GROUNDING:
         reasons.append(f"only {found}/{total} numbers appear in the source: possible invention")
-    bled = bled_rows(rows, source, siblings or [])
+    bled = bled_rows(rows, source, siblings or [], dated)
     if len(bled) > MAX_BLEED_ROWS:
         reasons.append(f"{len(bled)} row(s) carry numbers found only in another video of the same chunk")
     rel = sum(1 for r in rows if _RELATIVE.search(str(r.get("period") or "")))
     if rel:
         reasons.append(f"{rel} row(s) carry a relative period")
+    if dated:
+        wanted = _checked(_distinctive(source))
+        if len(wanted) >= MIN_FIGURES_TO_CHECK:
+            kept: set[str] = set()
+            for r in rows:
+                kept |= _checked(_distinctive(str(r.get("fact_text", ""))))
+            share = len(wanted & kept) / len(wanted)
+            if share < MIN_FIGURE_COVERAGE:
+                reasons.append(
+                    f"only {len(wanted & kept)}/{len(wanted)} of the source's figures reached a row")
+        rel_text = sum(1 for r in rows if _RELATIVE_TEXT.search(str(r.get("fact_text", ""))))
+        if rel_text:
+            reasons.append(f"{rel_text} row(s) use a relative time word in the sentence")
     advice = sum(1 for r in rows if _ADVICE.search(str(r.get("fact_text", ""))))
     if advice / len(rows) > MAX_ADVICE_SHARE:
         reasons.append(f"{advice} row(s) read as advice")
@@ -141,7 +181,8 @@ def _source_for(unit: str, chunk_dir: Path, manifest: dict[str, list[str]]) -> t
     return "", []
 
 
-def check(out_dir: Path, chunk_dir: Path, reviewed_empty: frozenset[str] = frozenset()) -> list[FileVerdict]:
+def check(out_dir: Path, chunk_dir: Path, reviewed_empty: frozenset[str] = frozenset(),
+          dated: bool = False) -> list[FileVerdict]:
     manifest = json.loads((chunk_dir / "manifest.json").read_text(encoding="utf-8"))
     verdicts = []
     for path in sorted(glob.glob(str(out_dir / "*.json"))):
@@ -152,7 +193,7 @@ def check(out_dir: Path, chunk_dir: Path, reviewed_empty: frozenset[str] = froze
             verdicts.append(FileVerdict(unit, 0, False, ["unreadable JSON"]))
             continue
         own, siblings = _source_for(unit, chunk_dir, manifest)
-        verdicts.append(judge(rows, own, unit, unit in reviewed_empty, siblings))
+        verdicts.append(judge(rows, own, unit, unit in reviewed_empty, siblings, dated))
     return verdicts
 
 
@@ -162,10 +203,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--chunk-dir", required=True, type=Path)
     parser.add_argument("--reviewed-empty", type=Path, default=None,
                         help="JSON list of unit ids whose empty output a person has confirmed is correct")
+    parser.add_argument("--dated", action="store_true",
+                        help="verified upload dates: no 'undated' source, no relative time words")
     args = parser.parse_args(argv)
     reviewed = frozenset(json.loads(args.reviewed_empty.read_text(encoding="utf-8"))) \
         if args.reviewed_empty else frozenset()
-    verdicts = check(args.out_dir, args.chunk_dir, reviewed)
+    verdicts = check(args.out_dir, args.chunk_dir, reviewed, args.dated)
     failed = [v for v in verdicts if not v.ok]
     print(f"{len(verdicts)} file(s): {len(verdicts) - len(failed)} pass, {len(failed)} to escalate; "
           f"{sum(v.rows for v in verdicts)} rows")

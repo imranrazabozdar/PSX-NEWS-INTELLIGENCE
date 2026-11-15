@@ -1,0 +1,98 @@
+[
+ {
+  "company": "FCCL",
+  "topic": "news.capacity_expansion",
+  "fact_text": "Fauji Cement says its new Dera Ghazi Khan plant takes total capacity to 10.6 million tons a year.",
+  "value": 10.6,
+  "unit": "million_tons",
+  "period": "2023-12-05",
+  "source_name": "Standard Capital Securities, 'Fauji Cement strikes whilst expansion update at PSX: Market Update.' (YouTube, 2023-12-05)",
+  "source_url": "https://www.youtube.com/watch?v=GNQb8ViRNM8",
+  "video_id": "GNQb8ViRNM8",
+  "confidence": "fact"
+ },
+ {
+  "company": "FCCL",
+  "topic": "news.commercial_operation",
+  "fact_text": "The new Dera Ghazi Khan plant came online commercially, with a notice to the PSX that the analysts had been waiting for over a year.",
+  "value": null,
+  "unit": null,
+  "period": "2023-12-05",
+  "source_name": "Standard Capital Securities, 'Fauji Cement strikes whilst expansion update at PSX: Market Update.' (YouTube, 2023-12-05)",
+  "source_url": "https://www.youtube.com/watch?v=GNQb8ViRNM8",
+  "video_id": "GNQb8ViRNM8",
+  "confidence": "fact"
+ },
+ {
+  "company": "FCCL",
+  "topic": "commentary.risk",
+  "fact_text": "In 2016 a silo fell onto the new expansion plant, and the company recovered only partly from that setback.",
+  "value": null,
+  "unit": null,
+  "period": "2016",
+  "source_name": "Standard Capital Securities, 'Fauji Cement strikes whilst expansion update at PSX: Market Update.' (YouTube, 2023-12-05)",
+  "source_url": "https://www.youtube.com/watch?v=GNQb8ViRNM8",
+  "video_id": "GNQb8ViRNM8",
+  "confidence": "fact"
+ },
+ {
+  "company": "FCCL",
+  "topic": "commentary.financials",
+  "fact_text": "Fauji Cement's retention price is above Rs 800 per bag, which the analyst said supports the second-quarter and half-year results.",
+  "value": 800,
+  "unit": "PKR_per_bag",
+  "period": "2023-12-05",
+  "source_name": "Standard Capital Securities, 'Fauji Cement strikes whilst expansion update at PSX: Market Update.' (YouTube, 2023-12-05)",
+  "source_url": "https://www.youtube.com/watch?v=GNQb8ViRNM8",
+  "video_id": "GNQb8ViRNM8",
+  "confidence": "fact"
+ },
+ {
+  "company": "FCCL",
+  "topic": "commentary.catalyst",
+  "fact_text": "Fauji Cement may announce a token dividend when the half year closes on 31 December 2023, since it used to pay dividends twice a year.",
+  "value": null,
+  "unit": null,
+  "period": "2023-12-31",
+  "source_name": "Standard Capital Securities, 'Fauji Cement strikes whilst expansion update at PSX: Market Update.' (YouTube, 2023-12-05)",
+  "source_url": "https://www.youtube.com/watch?v=GNQb8ViRNM8",
+  "video_id": "GNQb8ViRNM8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "FCCL",
+  "topic": "commentary.catalyst",
+  "fact_text": "The analyst expects the new plant's benefit to show in FY25, which starts in July 2024.",
+  "value": null,
+  "unit": null,
+  "period": "FY25",
+  "source_name": "Standard Capital Securities, 'Fauji Cement strikes whilst expansion update at PSX: Market Update.' (YouTube, 2023-12-05)",
+  "source_url": "https://www.youtube.com/watch?v=GNQb8ViRNM8",
+  "video_id": "GNQb8ViRNM8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "FCCL",
+  "topic": "profile.business",
+  "fact_text": "The Dera Ghazi Khan site sits on motorways near Fateh Jang, Taxila and the growing Islamabad area, and hydropower projects in Khyber Pakhtunkhwa add demand.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Fauji Cement strikes whilst expansion update at PSX: Market Update.' (YouTube, 2023-12-05)",
+  "source_url": "https://www.youtube.com/watch?v=GNQb8ViRNM8",
+  "video_id": "GNQb8ViRNM8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "FCCL",
+  "topic": "commentary.outlook",
+  "fact_text": "The analyst said the capacity additions could bring Fauji Cement back to the 2009 to 2012 period, when it was investors' favourite.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Fauji Cement strikes whilst expansion update at PSX: Market Update.' (YouTube, 2023-12-05)",
+  "source_url": "https://www.youtube.com/watch?v=GNQb8ViRNM8",
+  "video_id": "GNQb8ViRNM8",
+  "confidence": "analyst_view"
+ }
+]

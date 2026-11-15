@@ -1,0 +1,86 @@
+[
+ {
+  "company": "HUBC",
+  "topic": "news.ev_venture",
+  "fact_text": "Hub Power's holding company is linked to a reported plan to bring BYD, the Chinese EV maker, into Pakistan through Mega Motor, and a PSX notice followed.",
+  "value": null,
+  "unit": null,
+  "period": "2024-06",
+  "source_name": "Standard Capital Securities, 'PSX Market Update: Hubco's EV Venture, KSE 100 Analysis & Mobile Assemblers Investment Guide' (YouTube, 2024-06-25)",
+  "source_url": "https://www.youtube.com/watch?v=iv31tojlS-I",
+  "video_id": "iv31tojlS-I",
+  "confidence": "fact"
+ },
+ {
+  "company": "HUBC",
+  "topic": "commentary.thesis",
+  "fact_text": "Hub Power has been putting circular-debt receipts from the government into projects, and the analyst says that cash allocation is the key point to watch.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Market Update: Hubco's EV Venture, KSE 100 Analysis & Mobile Assemblers Investment Guide' (YouTube, 2024-06-25)",
+  "source_url": "https://www.youtube.com/watch?v=iv31tojlS-I",
+  "video_id": "iv31tojlS-I",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:TECH",
+  "topic": "operations.mobile_assembly",
+  "fact_text": "Six to eight Chinese mobile phone brands are assembled in Pakistan, mostly for local sale, and Airlink is a big player that also has its own distribution.",
+  "value": null,
+  "unit": null,
+  "period": "2024-06",
+  "source_name": "Standard Capital Securities, 'PSX Market Update: Hubco's EV Venture, KSE 100 Analysis & Mobile Assemblers Investment Guide' (YouTube, 2024-06-25)",
+  "source_url": "https://www.youtube.com/watch?v=iv31tojlS-I",
+  "video_id": "iv31tojlS-I",
+  "confidence": "fact"
+ },
+ {
+  "company": "SECTOR:TECH",
+  "topic": "operations.mobile_assembly",
+  "fact_text": "Assembled mobile phones were exported around 2020-21, and the analyst hopes export volumes can recover to that level.",
+  "value": null,
+  "unit": null,
+  "period": "2020-21",
+  "source_name": "Standard Capital Securities, 'PSX Market Update: Hubco's EV Venture, KSE 100 Analysis & Mobile Assemblers Investment Guide' (YouTube, 2024-06-25)",
+  "source_url": "https://www.youtube.com/watch?v=iv31tojlS-I",
+  "video_id": "iv31tojlS-I",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_move",
+  "fact_text": "After the KSE-100 touched 80,000 on 25 Jun 2024, profit-taking and selling pressure appeared, partly from the rollover week and June-end closing.",
+  "value": 80000,
+  "unit": "index_points",
+  "period": "2024-06",
+  "source_name": "Standard Capital Securities, 'PSX Market Update: Hubco's EV Venture, KSE 100 Analysis & Mobile Assemblers Investment Guide' (YouTube, 2024-06-25)",
+  "source_url": "https://www.youtube.com/watch?v=iv31tojlS-I",
+  "video_id": "iv31tojlS-I",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.budget_impact",
+  "fact_text": "The analyst says the budget is very tight for salaried people, yet the stock market has not reacted much to its burden on households.",
+  "value": null,
+  "unit": null,
+  "period": "2024-06",
+  "source_name": "Standard Capital Securities, 'PSX Market Update: Hubco's EV Venture, KSE 100 Analysis & Mobile Assemblers Investment Guide' (YouTube, 2024-06-25)",
+  "source_url": "https://www.youtube.com/watch?v=iv31tojlS-I",
+  "video_id": "iv31tojlS-I",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_move",
+  "fact_text": "The analyst expects investors to reposition around fiscal year 2025, which starts on 1 July 2024, after the index's rise to 80,000.",
+  "value": null,
+  "unit": null,
+  "period": "FY25",
+  "source_name": "Standard Capital Securities, 'PSX Market Update: Hubco's EV Venture, KSE 100 Analysis & Mobile Assemblers Investment Guide' (YouTube, 2024-06-25)",
+  "source_url": "https://www.youtube.com/watch?v=iv31tojlS-I",
+  "video_id": "iv31tojlS-I",
+  "confidence": "analyst_view"
+ }
+]

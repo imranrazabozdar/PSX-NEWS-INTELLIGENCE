@@ -1,0 +1,26 @@
+[
+ {
+  "company": "SECTOR:FERTILIZER",
+  "topic": "method.fertilizer_valuation",
+  "fact_text": "The analyst said fertilizer stocks should be compared on price-to-sales, price-to-earnings and price-to-book multiples.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Navigating the PSX Storm: Market Updates | Pakistan Stock Market' (YouTube, 2023-12-13)",
+  "source_url": "https://www.youtube.com/watch?v=-dQ63Ly-7v8",
+  "video_id": "-dQ63Ly-7v8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:FERTILIZER",
+  "topic": "cost.gas_feedstock",
+  "fact_text": "Some fertilizer plants run on low calorific value gas, which the analyst raised as a feedstock point for the sector.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Navigating the PSX Storm: Market Updates | Pakistan Stock Market' (YouTube, 2023-12-13)",
+  "source_url": "https://www.youtube.com/watch?v=-dQ63Ly-7v8",
+  "video_id": "-dQ63Ly-7v8",
+  "confidence": "analyst_view"
+ }
+]

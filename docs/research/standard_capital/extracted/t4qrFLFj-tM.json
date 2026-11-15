@@ -1,0 +1,98 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_move",
+  "fact_text": "On 26 Nov 2024 the KSE-100 fell by about 3,500 points by the close, and at one point during the session it was down about 4,000 points.",
+  "value": 3500,
+  "unit": "index_points",
+  "period": "2024-11-26",
+  "source_name": "Standard Capital Securities, 'KSE100 Index Drops 3500 Points | PSX Market Analysis + KAPCO Stock Analysis | Pakistan Stock Market' (YouTube, 2024-11-26)",
+  "source_url": "https://www.youtube.com/watch?v=t4qrFLFj-tM",
+  "video_id": "t4qrFLFj-tM",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.political_shock_market",
+  "fact_text": "The analyst linked the sharp fall to the political situation in Islamabad, which he said was the main source of the market's uncertainty.",
+  "value": null,
+  "unit": null,
+  "period": "2024-11-26",
+  "source_name": "Standard Capital Securities, 'KSE100 Index Drops 3500 Points | PSX Market Analysis + KAPCO Stock Analysis | Pakistan Stock Market' (YouTube, 2024-11-26)",
+  "source_url": "https://www.youtube.com/watch?v=t4qrFLFj-tM",
+  "video_id": "t4qrFLFj-tM",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.var_risk_signal",
+  "fact_text": "The analyst reads high Value-at-Risk readings as a sign of high-risk activity, and said this made profit-taking likely after the fertilizer sector and then the banking sector drove the index higher.",
+  "value": null,
+  "unit": null,
+  "period": "2024-11-26",
+  "source_name": "Standard Capital Securities, 'KSE100 Index Drops 3500 Points | PSX Market Analysis + KAPCO Stock Analysis | Pakistan Stock Market' (YouTube, 2024-11-26)",
+  "source_url": "https://www.youtube.com/watch?v=t4qrFLFj-tM",
+  "video_id": "t4qrFLFj-tM",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_outlook",
+  "fact_text": "The analyst expected a further correction of about 2,000 to 3,000 index points and said lower dips could offer opportunities only if investors have a clear theme or story.",
+  "value": 2000,
+  "unit": "index_points",
+  "period": "2024-11-26",
+  "source_name": "Standard Capital Securities, 'KSE100 Index Drops 3500 Points | PSX Market Analysis + KAPCO Stock Analysis | Pakistan Stock Market' (YouTube, 2024-11-26)",
+  "source_url": "https://www.youtube.com/watch?v=t4qrFLFj-tM",
+  "video_id": "t4qrFLFj-tM",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "KAPCO",
+  "topic": "news.power_contract_award",
+  "fact_text": "KAPCO (Kot Addu Power) reported winning a 120 MW solar project for K-Electric on a lowest-bid basis, as notified to the PSX around 26 Nov 2024.",
+  "value": 120,
+  "unit": "MW",
+  "period": "2024-11-26",
+  "source_name": "Standard Capital Securities, 'KSE100 Index Drops 3500 Points | PSX Market Analysis + KAPCO Stock Analysis | Pakistan Stock Market' (YouTube, 2024-11-26)",
+  "source_url": "https://www.youtube.com/watch?v=t4qrFLFj-tM",
+  "video_id": "t4qrFLFj-tM",
+  "confidence": "fact"
+ },
+ {
+  "company": "KAPCO",
+  "topic": "news.power_tariff",
+  "fact_text": "The KAPCO solar bid for the K-Electric project was stated at about 9.8 PKR per kWh in its PSX notice.",
+  "value": 9.8,
+  "unit": "PKR_per_kWh",
+  "period": "2024-11-26",
+  "source_name": "Standard Capital Securities, 'KSE100 Index Drops 3500 Points | PSX Market Analysis + KAPCO Stock Analysis | Pakistan Stock Market' (YouTube, 2024-11-26)",
+  "source_url": "https://www.youtube.com/watch?v=t4qrFLFj-tM",
+  "video_id": "t4qrFLFj-tM",
+  "confidence": "fact"
+ },
+ {
+  "company": "KAPCO",
+  "topic": "commentary.thesis",
+  "fact_text": "The analyst said the legitimately due capacity payments for the terminated plant remain owed and will still be received, so the termination does not wipe them out.",
+  "value": null,
+  "unit": null,
+  "period": "2024-11-26",
+  "source_name": "Standard Capital Securities, 'KSE100 Index Drops 3500 Points | PSX Market Analysis + KAPCO Stock Analysis | Pakistan Stock Market' (YouTube, 2024-11-26)",
+  "source_url": "https://www.youtube.com/watch?v=t4qrFLFj-tM",
+  "video_id": "t4qrFLFj-tM",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "KAPCO",
+  "topic": "commentary.outlook",
+  "fact_text": "The analyst said KAPCO could consider new investments after the termination and that investors often ask what the scrap value of such plants would be.",
+  "value": null,
+  "unit": null,
+  "period": "2024-11-26",
+  "source_name": "Standard Capital Securities, 'KSE100 Index Drops 3500 Points | PSX Market Analysis + KAPCO Stock Analysis | Pakistan Stock Market' (YouTube, 2024-11-26)",
+  "source_url": "https://www.youtube.com/watch?v=t4qrFLFj-tM",
+  "video_id": "t4qrFLFj-tM",
+  "confidence": "analyst_view"
+ }
+]

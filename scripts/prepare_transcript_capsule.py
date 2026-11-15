@@ -111,8 +111,15 @@ def attribution(source_name: str) -> str:
     return f"Abdul Rehman Najam channel, '{title}' (YouTube transcript, undated{note})"
 
 
-def convert(row: dict[str, Any]) -> dict[str, Any]:
-    """One extracted row to one research_fact row. Raises ResearchFactError on anything malformed."""
+def convert(row: dict[str, Any], dated: dict[str, Any] | None = None) -> dict[str, Any]:
+    """One extracted row to one research_fact row. Raises ResearchFactError on anything malformed.
+
+    `dated` switches to a channel whose videos carry VERIFIED upload dates: {"channel": name, "videos":
+    {video_id: (title, "YYYY-MM-DD")}}. The row then takes the real video date as `source_date` and the
+    source says so, instead of the "undated" archive handling below.
+    """
+    if dated is not None:
+        return _convert_dated(row, dated)
     source = _ELLIPSIS.sub("…", str(row.get("source_name", "")).strip())
     out = {
         "company": str(row.get("company", "")).strip(),
@@ -134,6 +141,28 @@ def convert(row: dict[str, Any]) -> dict[str, Any]:
     return rf.validate_fact(out)
 
 
+def _convert_dated(row: dict[str, Any], dated: dict[str, Any]) -> dict[str, Any]:
+    vid = str(row.get("video_id", "")).strip()
+    if vid not in dated["videos"]:
+        raise rf.ResearchFactError(f"video {vid!r} has no verified date: row refused")
+    title, day = dated["videos"][vid]
+    title = _ELLIPSIS.sub("…", title)
+    return rf.validate_fact({
+        "company": str(row.get("company", "")).strip(),
+        "topic": str(row.get("topic", "")).strip(),
+        "fact_text": " ".join(str(row.get("fact_text", "")).split()),
+        "value": row.get("value") if isinstance(row.get("value"), (int, float)) else None,
+        "unit": (str(row["unit"]).strip() or None) if row.get("unit") else None,
+        "period": (str(row["period"]).strip() or None) if row.get("period") else None,
+        "source_name": f"{dated['channel']}, '{title}' (YouTube, {day})",
+        "source_url": f"https://www.youtube.com/watch?v={vid}",
+        "source_date": day,
+        "as_of": None,
+        "confidence": str(row.get("confidence", "analyst_view")).strip(),
+        "created_at": f"{day}T00:00:00Z",
+    })
+
+
 def _exclusions(path: Path | None) -> set[tuple[str, frozenset[str]]]:
     """Rows a person has ruled out, as (video_id, word bag). Matching on words, not exact text, survives
     the whitespace normalisation the rows go through."""
@@ -142,7 +171,8 @@ def _exclusions(path: Path | None) -> set[tuple[str, frozenset[str]]]:
     return {(str(e["video_id"]), normalise(str(e["fact_text"]))) for e in json.loads(path.read_text("utf-8"))}
 
 
-def build(in_dir: Path | list[Path], out_path: Path, exclude: Path | None = None) -> int:
+def build(in_dir: Path | list[Path], out_path: Path, exclude: Path | None = None,
+          dated: dict[str, Any] | None = None) -> int:
     dirs = [in_dir] if isinstance(in_dir, Path) else list(in_dir)
     files = sorted(f for d in dirs for f in glob.glob(str(d / "*.json")))
     if not files:
@@ -169,7 +199,7 @@ def build(in_dir: Path | list[Path], out_path: Path, exclude: Path | None = None
         for raw in rows:
             read += 1
             try:
-                row = convert(raw)
+                row = convert(raw, dated)
             except rf.ResearchFactError as exc:
                 dropped_bad += 1
                 problems[str(exc)[:70]] += 1
@@ -212,8 +242,20 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", required=True, type=Path)
     parser.add_argument("--exclude", type=Path, default=None,
                         help="JSON list of {video_id, fact_text} rows to leave out")
+    parser.add_argument("--channel", default=None, help="channel name, for a dated channel")
+    parser.add_argument("--dates", type=Path, default=None, help="'<id> <YYYYMMDD>' lines (dated channel)")
+    parser.add_argument("--titles", type=Path, default=None, help="JSON {id: {title}} (dated channel)")
     args = parser.parse_args(argv)
-    return build(args.in_dir, args.out, args.exclude)
+    dated = None
+    if args.channel or args.dates or args.titles:
+        if not (args.channel and args.dates and args.titles):
+            parser.error("--channel, --dates and --titles go together")
+        titles = json.loads(args.titles.read_text(encoding="utf-8"))
+        dated = {"channel": args.channel, "videos": {
+            v: (titles[v]["title"], f"{d[:4]}-{d[4:6]}-{d[6:]}")
+            for v, d in (line.split() for line in args.dates.read_text().splitlines() if line.strip())
+            if v in titles and "title" in titles[v]}}
+    return build(args.in_dir, args.out, args.exclude, dated)
 
 
 if __name__ == "__main__":

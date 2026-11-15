@@ -1,0 +1,86 @@
+[
+ {
+  "company": "CPHL",
+  "topic": "commentary.thesis",
+  "fact_text": "The technical analyst identified a support area around 83 to 84 that the stock had bounced from several times, which he marked green on the chart.",
+  "value": null,
+  "unit": null,
+  "period": "2025-04-14",
+  "source_name": "Standard Capital Securities, 'What's REALLY Going On With Citi Pharma Stock | Technical Analysis | CPHL Future Targets | PSX' (YouTube, 2025-04-14)",
+  "source_url": "https://www.youtube.com/watch?v=cHr-Z7ixdDg",
+  "video_id": "cHr-Z7ixdDg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "CPHL",
+  "topic": "commentary.thesis",
+  "fact_text": "A trendline breakout near 92 was flagged as the key level, and the analyst expected the stock to come back and retest that breakout.",
+  "value": 92,
+  "unit": "PKR_per_share",
+  "period": "2025-04-14",
+  "source_name": "Standard Capital Securities, 'What's REALLY Going On With Citi Pharma Stock | Technical Analysis | CPHL Future Targets | PSX' (YouTube, 2025-04-14)",
+  "source_url": "https://www.youtube.com/watch?v=cHr-Z7ixdDg",
+  "video_id": "cHr-Z7ixdDg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "CPHL",
+  "topic": "commentary.thesis",
+  "fact_text": "After a breakout, the analyst expected a retest of the 93 to 94 area, where the broken level should act as support rather than resistance.",
+  "value": 93,
+  "unit": "PKR_per_share",
+  "period": "2025-04-14",
+  "source_name": "Standard Capital Securities, 'What's REALLY Going On With Citi Pharma Stock | Technical Analysis | CPHL Future Targets | PSX' (YouTube, 2025-04-14)",
+  "source_url": "https://www.youtube.com/watch?v=cHr-Z7ixdDg",
+  "video_id": "cHr-Z7ixdDg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "CPHL",
+  "topic": "method.breakout_retest",
+  "fact_text": "Under the analyst's method, a broken resistance level becomes support on a retest, and he marks support green and resistance red on his charts.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What's REALLY Going On With Citi Pharma Stock | Technical Analysis | CPHL Future Targets | PSX' (YouTube, 2025-04-14)",
+  "source_url": "https://www.youtube.com/watch?v=cHr-Z7ixdDg",
+  "video_id": "cHr-Z7ixdDg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "CPHL",
+  "topic": "method.fibonacci_projection",
+  "fact_text": "The analyst projected three levels with a Fibonacci extension drawn from a swing low near 61 up to the prior correction, a method he uses to set projection levels.",
+  "value": 61,
+  "unit": "PKR_per_share",
+  "period": "2025-04-14",
+  "source_name": "Standard Capital Securities, 'What's REALLY Going On With Citi Pharma Stock | Technical Analysis | CPHL Future Targets | PSX' (YouTube, 2025-04-14)",
+  "source_url": "https://www.youtube.com/watch?v=cHr-Z7ixdDg",
+  "video_id": "cHr-Z7ixdDg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "CPHL",
+  "topic": "commentary.risk",
+  "fact_text": "The analyst said the projected levels could take time to reach, so he treated them as a swing horizon since many investors trade short term.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What's REALLY Going On With Citi Pharma Stock | Technical Analysis | CPHL Future Targets | PSX' (YouTube, 2025-04-14)",
+  "source_url": "https://www.youtube.com/watch?v=cHr-Z7ixdDg",
+  "video_id": "cHr-Z7ixdDg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "CPHL",
+  "topic": "method.risk_reward",
+  "fact_text": "The analyst said chart analysis is his opinion for learning, not a buy or sell call, and that investors should weigh their own risk and reward before acting.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What's REALLY Going On With Citi Pharma Stock | Technical Analysis | CPHL Future Targets | PSX' (YouTube, 2025-04-14)",
+  "source_url": "https://www.youtube.com/watch?v=cHr-Z7ixdDg",
+  "video_id": "cHr-Z7ixdDg",
+  "confidence": "analyst_view"
+ }
+]

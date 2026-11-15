@@ -1,0 +1,98 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.atr_timeframe",
+  "fact_text": "ATR is calculated on the time frame of the chart, so the same stock has a different ATR on a 15-minute chart than on a daily chart.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Technical Analysis Series for PSX Investors: Average True Range (ATR) Explained' (YouTube, 2024-06-06)",
+  "source_url": "https://www.youtube.com/watch?v=9uRnEgGP2f8",
+  "video_id": "9uRnEgGP2f8",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.stop_loss_volatility",
+  "fact_text": "Many traders find long trades stopped out just before the price moves up; because each stock has its own volatility, ATR helps find a proper stop-loss level rather than a fixed one.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Technical Analysis Series for PSX Investors: Average True Range (ATR) Explained' (YouTube, 2024-06-06)",
+  "source_url": "https://www.youtube.com/watch?v=9uRnEgGP2f8",
+  "video_id": "9uRnEgGP2f8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.indicator_definition",
+  "fact_text": "Trading indicators are formulas applied to current and historic price, drawn as lines or histograms on the chart, and many exist, so each trader should test those that fit their strategy.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Technical Analysis Series for PSX Investors: Average True Range (ATR) Explained' (YouTube, 2024-06-06)",
+  "source_url": "https://www.youtube.com/watch?v=9uRnEgGP2f8",
+  "video_id": "9uRnEgGP2f8",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.indicator_combination",
+  "fact_text": "The analyst said indicators give clearer direction for entry, stop loss and target levels when combined with price action and support and resistance, and a consistent method builds trading discipline.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Technical Analysis Series for PSX Investors: Average True Range (ATR) Explained' (YouTube, 2024-06-06)",
+  "source_url": "https://www.youtube.com/watch?v=9uRnEgGP2f8",
+  "video_id": "9uRnEgGP2f8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "DGKC",
+  "topic": "commentary.outlook",
+  "fact_text": "On the DG Khan Cement daily chart as of 6 June 2024 the stock was in an uptrend, and a previous high that had broken as resistance was holding as support on a pullback.",
+  "value": null,
+  "unit": null,
+  "period": "2024-06-06",
+  "source_name": "Standard Capital Securities, 'Technical Analysis Series for PSX Investors: Average True Range (ATR) Explained' (YouTube, 2024-06-06)",
+  "source_url": "https://www.youtube.com/watch?v=9uRnEgGP2f8",
+  "video_id": "9uRnEgGP2f8",
+  "confidence": "fact"
+ },
+ {
+  "company": "DGKC",
+  "topic": "commentary.outlook",
+  "fact_text": "The analyst illustrated a pullback setup on DG Khan Cement, where traders who prefer pullbacks over breakouts would look at the former resistance acting as support.",
+  "value": null,
+  "unit": null,
+  "period": "2024-06-06",
+  "source_name": "Standard Capital Securities, 'Technical Analysis Series for PSX Investors: Average True Range (ATR) Explained' (YouTube, 2024-06-06)",
+  "source_url": "https://www.youtube.com/watch?v=9uRnEgGP2f8",
+  "video_id": "9uRnEgGP2f8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.stop_placement_atr",
+  "fact_text": "For a pullback entry the stop loss goes below the lowest level of the entry candle, and the ATR value is subtracted from that low to set the exact stop.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Technical Analysis Series for PSX Investors: Average True Range (ATR) Explained' (YouTube, 2024-06-06)",
+  "source_url": "https://www.youtube.com/watch?v=9uRnEgGP2f8",
+  "video_id": "9uRnEgGP2f8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.breakout_vs_pullback",
+  "fact_text": "Some traders prefer to trade breakouts while others prefer to enter on pullbacks after a breakout, and a broken resistance that becomes support is the usual pullback entry point.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Technical Analysis Series for PSX Investors: Average True Range (ATR) Explained' (YouTube, 2024-06-06)",
+  "source_url": "https://www.youtube.com/watch?v=9uRnEgGP2f8",
+  "video_id": "9uRnEgGP2f8",
+  "confidence": "analyst_view"
+ }
+]

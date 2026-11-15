@@ -1,0 +1,122 @@
+[
+ {
+  "company": "LUCK",
+  "topic": "commentary.valuation",
+  "fact_text": "At a standalone EPS of about Rs50, the analyst said Lucky Cement's price-to-earnings multiple justifies it as a portfolio candidate.",
+  "value": 50,
+  "unit": "PKR_per_share",
+  "period": "FY25",
+  "source_name": "Standard Capital Securities, 'Midday Flash 17 June 2025 | PSX Portfolio Picks 🔍 LUCK | MARI | OGDC Analysis' (YouTube, 2025-06-17)",
+  "source_url": "https://www.youtube.com/watch?v=ydxqE46VHSc",
+  "video_id": "ydxqE46VHSc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MARI",
+  "topic": "commentary.thesis",
+  "fact_text": "Mari Energies has been the analyst's focus for over a year, and its Spinam and Shewa discoveries in Waziristan, reported in notices, are expected to turn into production that lifts EPS.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash 17 June 2025 | PSX Portfolio Picks 🔍 LUCK | MARI | OGDC Analysis' (YouTube, 2025-06-17)",
+  "source_url": "https://www.youtube.com/watch?v=ydxqE46VHSc",
+  "video_id": "ydxqE46VHSc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MARI",
+  "topic": "commentary.catalyst",
+  "fact_text": "Mari Energies' production from Spinam and Shewa is expected in FY27; the analyst also pointed to further block commissioning and PSX notices as drivers.",
+  "value": null,
+  "unit": null,
+  "period": "FY27",
+  "source_name": "Standard Capital Securities, 'Midday Flash 17 June 2025 | PSX Portfolio Picks 🔍 LUCK | MARI | OGDC Analysis' (YouTube, 2025-06-17)",
+  "source_url": "https://www.youtube.com/watch?v=ydxqE46VHSc",
+  "video_id": "ydxqE46VHSc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MARI",
+  "topic": "commentary.outlook",
+  "fact_text": "The analyst expects Mari Energies' results for the year ending 30 June 2025 to be positive, and said he would look at the stock once those results are out.",
+  "value": null,
+  "unit": null,
+  "period": "FY25",
+  "source_name": "Standard Capital Securities, 'Midday Flash 17 June 2025 | PSX Portfolio Picks 🔍 LUCK | MARI | OGDC Analysis' (YouTube, 2025-06-17)",
+  "source_url": "https://www.youtube.com/watch?v=ydxqE46VHSc",
+  "video_id": "ydxqE46VHSc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "OGDC",
+  "topic": "news.stake_holding",
+  "fact_text": "Mari Energies holds 55% and OGDC holds 35% in the Waziristan Shewa discovery area, which the analyst sees as strengthening OGDC's outlook.",
+  "value": 35,
+  "unit": "percent",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash 17 June 2025 | PSX Portfolio Picks 🔍 LUCK | MARI | OGDC Analysis' (YouTube, 2025-06-17)",
+  "source_url": "https://www.youtube.com/watch?v=ydxqE46VHSc",
+  "video_id": "ydxqE46VHSc",
+  "confidence": "fact"
+ },
+ {
+  "company": "OGDC",
+  "topic": "news.dividend",
+  "fact_text": "OGDC and PPL have large cash and short-term investments, and the analyst sees government demand for dividends from state-owned companies as a possible source of OGDC payouts.",
+  "value": null,
+  "unit": null,
+  "period": "FY26",
+  "source_name": "Standard Capital Securities, 'Midday Flash 17 June 2025 | PSX Portfolio Picks 🔍 LUCK | MARI | OGDC Analysis' (YouTube, 2025-06-17)",
+  "source_url": "https://www.youtube.com/watch?v=ydxqE46VHSc",
+  "video_id": "ydxqE46VHSc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "OGDC",
+  "topic": "commentary.financials",
+  "fact_text": "OGDC held roughly Rs180 to Rs200 billion in cash, cash equivalents and short-term investments in its nine-month accounts to 31 Mar 2025.",
+  "value": 180,
+  "unit": "PKR_billions",
+  "period": "2025-03-31",
+  "source_name": "Standard Capital Securities, 'Midday Flash 17 June 2025 | PSX Portfolio Picks 🔍 LUCK | MARI | OGDC Analysis' (YouTube, 2025-06-17)",
+  "source_url": "https://www.youtube.com/watch?v=ydxqE46VHSc",
+  "video_id": "ydxqE46VHSc",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.circular_debt",
+  "fact_text": "Government receivables that are being cleared through bank loans could benefit OGDC, PPL and PSO, with PSO benefiting most, while flows reach PSO through the Sui Northern route.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash 17 June 2025 | PSX Portfolio Picks 🔍 LUCK | MARI | OGDC Analysis' (YouTube, 2025-06-17)",
+  "source_url": "https://www.youtube.com/watch?v=ydxqE46VHSc",
+  "video_id": "ydxqE46VHSc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.sector_rotation",
+  "fact_text": "The analyst said trading was concentrated in third and fourth tier stocks, which he read as the late stage of a rally, and advised investors to square positions and book profits.",
+  "value": null,
+  "unit": null,
+  "period": "2025-06-17",
+  "source_name": "Standard Capital Securities, 'Midday Flash 17 June 2025 | PSX Portfolio Picks 🔍 LUCK | MARI | OGDC Analysis' (YouTube, 2025-06-17)",
+  "source_url": "https://www.youtube.com/watch?v=ydxqE46VHSc",
+  "video_id": "ydxqE46VHSc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.portfolio_construction",
+  "fact_text": "The analyst built his portfolio view around Lucky Cement, Mari Energies and OGDC, favouring names with both capital growth and dividends.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash 17 June 2025 | PSX Portfolio Picks 🔍 LUCK | MARI | OGDC Analysis' (YouTube, 2025-06-17)",
+  "source_url": "https://www.youtube.com/watch?v=ydxqE46VHSc",
+  "video_id": "ydxqE46VHSc",
+  "confidence": "analyst_view"
+ }
+]

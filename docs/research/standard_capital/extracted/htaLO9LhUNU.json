@@ -1,0 +1,26 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_volatility",
+  "fact_text": "The KSE-100 was described as volatile, with swings of around 800 points during December 2023.",
+  "value": 800,
+  "unit": "index_points",
+  "period": "Dec 2023",
+  "source_name": "Standard Capital Securities, 'PSX Volatility: Bearish Signals Pakistan Stock Market Update.' (YouTube, 2023-12-14)",
+  "source_url": "https://www.youtube.com/watch?v=htaLO9LhUNU",
+  "video_id": "htaLO9LhUNU",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.policy_rate_market",
+  "fact_text": "The analyst named the State Bank of Pakistan's benchmark discount rate as a key factor behind the market's volatility.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Volatility: Bearish Signals Pakistan Stock Market Update.' (YouTube, 2023-12-14)",
+  "source_url": "https://www.youtube.com/watch?v=htaLO9LhUNU",
+  "video_id": "htaLO9LhUNU",
+  "confidence": "analyst_view"
+ }
+]

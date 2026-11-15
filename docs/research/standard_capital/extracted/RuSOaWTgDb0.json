@@ -1,0 +1,50 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_level",
+  "fact_text": "The market was referred to at around 67,000 points when this volatility and dividend update was recorded.",
+  "value": 67000,
+  "unit": "index_points",
+  "period": "2023-12-18",
+  "source_name": "Standard Capital Securities, 'PSX Volatility & Dividend options Market Updates' (YouTube, 2023-12-18)",
+  "source_url": "https://www.youtube.com/watch?v=RuSOaWTgDb0",
+  "video_id": "RuSOaWTgDb0",
+  "confidence": "fact"
+ },
+ {
+  "company": "EFERT",
+  "topic": "commentary.catalyst",
+  "fact_text": "The analyst discussed Engro Fertilizer's final dividend as part of the case for fertilizer stocks as defensive dividend payers.",
+  "value": null,
+  "unit": null,
+  "period": "2023-12-18",
+  "source_name": "Standard Capital Securities, 'PSX Volatility & Dividend options Market Updates' (YouTube, 2023-12-18)",
+  "source_url": "https://www.youtube.com/watch?v=RuSOaWTgDb0",
+  "video_id": "RuSOaWTgDb0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:FERTILIZER",
+  "topic": "signal.defensive_dividend",
+  "fact_text": "The analyst described fertilizer companies as defensive stocks, linked to their capacity and dividend payouts.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Volatility & Dividend options Market Updates' (YouTube, 2023-12-18)",
+  "source_url": "https://www.youtube.com/watch?v=RuSOaWTgDb0",
+  "video_id": "RuSOaWTgDb0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:BANKS",
+  "topic": "signal.defensive_dividend",
+  "fact_text": "The analyst grouped the top five big banks with defensive stocks that pay dividends.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Volatility & Dividend options Market Updates' (YouTube, 2023-12-18)",
+  "source_url": "https://www.youtube.com/watch?v=RuSOaWTgDb0",
+  "video_id": "RuSOaWTgDb0",
+  "confidence": "analyst_view"
+ }
+]

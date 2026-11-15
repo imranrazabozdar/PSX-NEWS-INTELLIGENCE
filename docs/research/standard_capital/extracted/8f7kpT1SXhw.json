@@ -1,0 +1,122 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.oil_trade_deficit",
+  "fact_text": "The analyst said rising oil prices would hurt Pakistan through the trade deficit, while the Middle East tensions had little direct effect on the market.",
+  "value": null,
+  "unit": null,
+  "period": "2024-10-03",
+  "source_name": "Standard Capital Securities, 'Fauji Cement Stock Analysis | Dividend Comeback? | HUBC to FCCL Shift | PSX Market Insights' (YouTube, 2024-10-03)",
+  "source_url": "https://www.youtube.com/watch?v=8f7kpT1SXhw",
+  "video_id": "8f7kpT1SXhw",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.inflation",
+  "fact_text": "September 2024 CPI inflation was 6.9 percent, which the analyst linked to a rally in the cement sector.",
+  "value": 6.9,
+  "unit": "percent",
+  "period": "2024-09",
+  "source_name": "Standard Capital Securities, 'Fauji Cement Stock Analysis | Dividend Comeback? | HUBC to FCCL Shift | PSX Market Insights' (YouTube, 2024-10-03)",
+  "source_url": "https://www.youtube.com/watch?v=8f7kpT1SXhw",
+  "video_id": "8f7kpT1SXhw",
+  "confidence": "fact"
+ },
+ {
+  "company": "SECTOR:CEMENT",
+  "topic": "market.sector_move",
+  "fact_text": "The cement sector rallied on the good inflation print, and Fauji Cement performed well.",
+  "value": null,
+  "unit": null,
+  "period": "2024-10-03",
+  "source_name": "Standard Capital Securities, 'Fauji Cement Stock Analysis | Dividend Comeback? | HUBC to FCCL Shift | PSX Market Insights' (YouTube, 2024-10-03)",
+  "source_url": "https://www.youtube.com/watch?v=8f7kpT1SXhw",
+  "video_id": "8f7kpT1SXhw",
+  "confidence": "fact"
+ },
+ {
+  "company": "FCCL",
+  "topic": "news.dividend",
+  "fact_text": "Fauji Cement's dividend went ex on 4 October 2024, after the company resumed paying dividends.",
+  "value": null,
+  "unit": null,
+  "period": "2024-10-04",
+  "source_name": "Standard Capital Securities, 'Fauji Cement Stock Analysis | Dividend Comeback? | HUBC to FCCL Shift | PSX Market Insights' (YouTube, 2024-10-03)",
+  "source_url": "https://www.youtube.com/watch?v=8f7kpT1SXhw",
+  "video_id": "8f7kpT1SXhw",
+  "confidence": "fact"
+ },
+ {
+  "company": "FCCL",
+  "topic": "commentary.financials",
+  "fact_text": "Fauji Cement paid dividends twice a year until 2016-17, and the payments resumed after the DG Khan plant began commercial operations.",
+  "value": null,
+  "unit": null,
+  "period": "2016-17",
+  "source_name": "Standard Capital Securities, 'Fauji Cement Stock Analysis | Dividend Comeback? | HUBC to FCCL Shift | PSX Market Insights' (YouTube, 2024-10-03)",
+  "source_url": "https://www.youtube.com/watch?v=8f7kpT1SXhw",
+  "video_id": "8f7kpT1SXhw",
+  "confidence": "fact"
+ },
+ {
+  "company": "FCCL",
+  "topic": "commentary.outlook",
+  "fact_text": "The analyst expects Fauji Cement's performance to improve as the DG Khan plant raises capacity utilisation.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Fauji Cement Stock Analysis | Dividend Comeback? | HUBC to FCCL Shift | PSX Market Insights' (YouTube, 2024-10-03)",
+  "source_url": "https://www.youtube.com/watch?v=8f7kpT1SXhw",
+  "video_id": "8f7kpT1SXhw",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "HUBC",
+  "topic": "commentary.catalyst",
+  "fact_text": "The analyst expects HUB Power's IPP dispute to end in a settlement, and even partial recovery of about 4 to 5 billion rupees would be a good result.",
+  "value": 4.5,
+  "unit": "PKR_billions",
+  "period": "2024-10-03",
+  "source_name": "Standard Capital Securities, 'Fauji Cement Stock Analysis | Dividend Comeback? | HUBC to FCCL Shift | PSX Market Insights' (YouTube, 2024-10-03)",
+  "source_url": "https://www.youtube.com/watch?v=8f7kpT1SXhw",
+  "video_id": "8f7kpT1SXhw",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "HUBC",
+  "topic": "profile.business",
+  "fact_text": "HUB Power is a bond-like value stock; it reinvested circular-debt cash, and its Thar coal plants are running strongly.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Fauji Cement Stock Analysis | Dividend Comeback? | HUBC to FCCL Shift | PSX Market Insights' (YouTube, 2024-10-03)",
+  "source_url": "https://www.youtube.com/watch?v=8f7kpT1SXhw",
+  "video_id": "8f7kpT1SXhw",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "HUBC",
+  "topic": "commentary.financials",
+  "fact_text": "HUB Power holds 47.5 percent of China Power Generation, from which it has already received dividends.",
+  "value": 47.5,
+  "unit": "percent",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Fauji Cement Stock Analysis | Dividend Comeback? | HUBC to FCCL Shift | PSX Market Insights' (YouTube, 2024-10-03)",
+  "source_url": "https://www.youtube.com/watch?v=8f7kpT1SXhw",
+  "video_id": "8f7kpT1SXhw",
+  "confidence": "fact"
+ },
+ {
+  "company": "CPHL",
+  "topic": "news.results",
+  "fact_text": "Citi Pharma's full-year before-tax profit and its dividend of 25 paisa per share were strong for a small pharmaceutical company.",
+  "value": 0.25,
+  "unit": "PKR_per_share",
+  "period": "2024-10-03",
+  "source_name": "Standard Capital Securities, 'Fauji Cement Stock Analysis | Dividend Comeback? | HUBC to FCCL Shift | PSX Market Insights' (YouTube, 2024-10-03)",
+  "source_url": "https://www.youtube.com/watch?v=8f7kpT1SXhw",
+  "video_id": "8f7kpT1SXhw",
+  "confidence": "fact"
+ }
+]

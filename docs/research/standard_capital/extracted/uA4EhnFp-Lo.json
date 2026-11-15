@@ -1,0 +1,26 @@
+[
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "method.pmex_interday_contracts",
+  "fact_text": "PMEX interday contracts are opened and automatically closed within the same trading day, and they differ from normal contracts mainly in their lower initial margin.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'MetaTrader 5 Tutorial: PMEX, Commodity Market & Pakistan Mercantile Exchange Analysis' (YouTube, 2025-01-01)",
+  "source_url": "https://www.youtube.com/watch?v=uA4EhnFp-Lo",
+  "video_id": "uA4EhnFp-Lo",
+  "confidence": "fact"
+ },
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "method.pmex_product_universe",
+  "fact_text": "PMEX futures shown in MetaTrader 5 fall into five groups: metals (gold, silver, platinum, aluminium), energy (crude, natural gas, Brent), indices (Dow, DAX, S&P 500, a Japanese equity index), currency pairs and agriculture (cotton, soybean).",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'MetaTrader 5 Tutorial: PMEX, Commodity Market & Pakistan Mercantile Exchange Analysis' (YouTube, 2025-01-01)",
+  "source_url": "https://www.youtube.com/watch?v=uA4EhnFp-Lo",
+  "video_id": "uA4EhnFp-Lo",
+  "confidence": "fact"
+ }
+]

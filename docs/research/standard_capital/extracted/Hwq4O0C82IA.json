@@ -1,0 +1,86 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.price_to_book",
+  "fact_text": "Price to book (P/B) divides a stock's market price by its book value per share, showing how many rupees of market price investors pay for each rupee of book value.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'STOP Overpaying for Stocks in PSX with This One Ratio! Book Value And P/B Ratio | Afaque Manzar |' (YouTube, 2024-11-13)",
+  "source_url": "https://www.youtube.com/watch?v=Hwq4O0C82IA",
+  "video_id": "Hwq4O0C82IA",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.book_value",
+  "fact_text": "Book value is what remains after a company's liabilities are deducted from its assets, which is the owners' equity shown on the balance sheet.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'STOP Overpaying for Stocks in PSX with This One Ratio! Book Value And P/B Ratio | Afaque Manzar |' (YouTube, 2024-11-13)",
+  "source_url": "https://www.youtube.com/watch?v=Hwq4O0C82IA",
+  "video_id": "Hwq4O0C82IA",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.book_value_per_share",
+  "fact_text": "Book value per share is total book value divided by the number of shares outstanding, and both inputs are found in the company's balance sheet and share data.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'STOP Overpaying for Stocks in PSX with This One Ratio! Book Value And P/B Ratio | Afaque Manzar |' (YouTube, 2024-11-13)",
+  "source_url": "https://www.youtube.com/watch?v=Hwq4O0C82IA",
+  "video_id": "Hwq4O0C82IA",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.pb_interpretation",
+  "fact_text": "A P/B ratio of 1 means the market price equals book value, a ratio below 1 means the stock trades under book value, and a ratio above 1 means a premium to book.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'STOP Overpaying for Stocks in PSX with This One Ratio! Book Value And P/B Ratio | Afaque Manzar |' (YouTube, 2024-11-13)",
+  "source_url": "https://www.youtube.com/watch?v=Hwq4O0C82IA",
+  "video_id": "Hwq4O0C82IA",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.retained_earnings",
+  "fact_text": "Equity grows over time through retained earnings, the share of profit a company keeps in the business for growth rather than paying out as dividends.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'STOP Overpaying for Stocks in PSX with This One Ratio! Book Value And P/B Ratio | Afaque Manzar |' (YouTube, 2024-11-13)",
+  "source_url": "https://www.youtube.com/watch?v=Hwq4O0C82IA",
+  "video_id": "Hwq4O0C82IA",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.book_value_fit",
+  "fact_text": "Book value matters most for capital-intensive companies whose operations rest on plant, property and equipment, and it is less useful for service and technology firms.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'STOP Overpaying for Stocks in PSX with This One Ratio! Book Value And P/B Ratio | Afaque Manzar |' (YouTube, 2024-11-13)",
+  "source_url": "https://www.youtube.com/watch?v=Hwq4O0C82IA",
+  "video_id": "Hwq4O0C82IA",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.pb_limits",
+  "fact_text": "The analyst warns that P/B is only one parameter, so it should be combined with other ratios before an investment decision is taken.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'STOP Overpaying for Stocks in PSX with This One Ratio! Book Value And P/B Ratio | Afaque Manzar |' (YouTube, 2024-11-13)",
+  "source_url": "https://www.youtube.com/watch?v=Hwq4O0C82IA",
+  "video_id": "Hwq4O0C82IA",
+  "confidence": "analyst_view"
+ }
+]

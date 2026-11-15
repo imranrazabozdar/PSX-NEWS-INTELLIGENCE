@@ -1,0 +1,74 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.tbill_rates",
+  "fact_text": "Treasury bill yields eased slightly on 23 Jul 2025 compared with the day before, which the analyst read as a hint of a possible policy rate cut.",
+  "value": null,
+  "unit": null,
+  "period": "2025-07-23",
+  "source_name": "Standard Capital Securities, 'Midday Flash 24 July 2025 | PSX Market Update | HCAR Results | T-Bills Rate Down | DGKC | LCI | PSO' (YouTube, 2025-07-24)",
+  "source_url": "https://www.youtube.com/watch?v=tR1zj3lODco",
+  "video_id": "tR1zj3lODco",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.gdp_forecast",
+  "fact_text": "The Asian Development Bank's latest GDP growth forecast for Pakistan is about 2.7%, which the analyst thinks is low for a populous developing economy.",
+  "value": 2.7,
+  "unit": "percent",
+  "period": "2025-07-24",
+  "source_name": "Standard Capital Securities, 'Midday Flash 24 July 2025 | PSX Market Update | HCAR Results | T-Bills Rate Down | DGKC | LCI | PSO' (YouTube, 2025-07-24)",
+  "source_url": "https://www.youtube.com/watch?v=tR1zj3lODco",
+  "video_id": "tR1zj3lODco",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.rate_cut_transmission",
+  "fact_text": "The analyst believes a rate cut would support industrial activity, because lower borrowing costs let companies expand and invest.",
+  "value": null,
+  "unit": null,
+  "period": "2025-07-24",
+  "source_name": "Standard Capital Securities, 'Midday Flash 24 July 2025 | PSX Market Update | HCAR Results | T-Bills Rate Down | DGKC | LCI | PSO' (YouTube, 2025-07-24)",
+  "source_url": "https://www.youtube.com/watch?v=tR1zj3lODco",
+  "video_id": "tR1zj3lODco",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "HCAR",
+  "topic": "commentary.financials",
+  "fact_text": "Honda Atlas Cars reported Q1 FY26 EPS of about Rs 5.80 against the Rs 7 analysts expected, and net sales of about Rs 32 billion also came in below expectations.",
+  "value": 5.8,
+  "unit": "PKR_per_share",
+  "period": "Q1 FY26",
+  "source_name": "Standard Capital Securities, 'Midday Flash 24 July 2025 | PSX Market Update | HCAR Results | T-Bills Rate Down | DGKC | LCI | PSO' (YouTube, 2025-07-24)",
+  "source_url": "https://www.youtube.com/watch?v=tR1zj3lODco",
+  "video_id": "tR1zj3lODco",
+  "confidence": "fact"
+ },
+ {
+  "company": "DGKC",
+  "topic": "commentary.outlook",
+  "fact_text": "The analyst said DG Khan Cement's operating performance was sound in FY25 and is likely to stay sound in FY26, as its finance costs ease.",
+  "value": null,
+  "unit": null,
+  "period": "FY25",
+  "source_name": "Standard Capital Securities, 'Midday Flash 24 July 2025 | PSX Market Update | HCAR Results | T-Bills Rate Down | DGKC | LCI | PSO' (YouTube, 2025-07-24)",
+  "source_url": "https://www.youtube.com/watch?v=tR1zj3lODco",
+  "video_id": "tR1zj3lODco",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.rate_cut_transmission",
+  "fact_text": "The analyst compares Nishat Mills, DG Khan Cement, PSO, Lucky Core and Best Way Cement as the companies that would gain most from lower interest rates.",
+  "value": null,
+  "unit": null,
+  "period": "2025-07-24",
+  "source_name": "Standard Capital Securities, 'Midday Flash 24 July 2025 | PSX Market Update | HCAR Results | T-Bills Rate Down | DGKC | LCI | PSO' (YouTube, 2025-07-24)",
+  "source_url": "https://www.youtube.com/watch?v=tR1zj3lODco",
+  "video_id": "tR1zj3lODco",
+  "confidence": "analyst_view"
+ }
+]

@@ -1,0 +1,110 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.trend_definition",
+  "fact_text": "An uptrend is a run of new higher highs, each made after price breaks the previous swing high; a downtrend is the mirror image, with new lower lows after breaking the previous low.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '3. Understanding Market Trends: Upper, Lower & Sideways Trends Explained | PSX Analysis' (YouTube, 2024-08-19)",
+  "source_url": "https://www.youtube.com/watch?v=Lji9TdpfnFM",
+  "video_id": "Lji9TdpfnFM",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.sideways_no_trade_zone",
+  "fact_text": "A sideways market makes neither a new high nor a new low and drifts inside a range; the analyst treats this consolidation as a no-trade zone.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '3. Understanding Market Trends: Upper, Lower & Sideways Trends Explained | PSX Analysis' (YouTube, 2024-08-19)",
+  "source_url": "https://www.youtube.com/watch?v=Lji9TdpfnFM",
+  "video_id": "Lji9TdpfnFM",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.pullback_profit_taking",
+  "fact_text": "A pullback after a high is profit-taking that briefly pushes price down; the analyst treats it as a buying opportunity in an uptrend rather than the end of the trend.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '3. Understanding Market Trends: Upper, Lower & Sideways Trends Explained | PSX Analysis' (YouTube, 2024-08-19)",
+  "source_url": "https://www.youtube.com/watch?v=Lji9TdpfnFM",
+  "video_id": "Lji9TdpfnFM",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.pullback_vs_reversal",
+  "fact_text": "Many investors mistake a normal pullback for the start of a downtrend; the analyst says a healthy uptrend often resumes with a new high after the pullback, so buys belong at the pullback, not above the high.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '3. Understanding Market Trends: Upper, Lower & Sideways Trends Explained | PSX Analysis' (YouTube, 2024-08-19)",
+  "source_url": "https://www.youtube.com/watch?v=Lji9TdpfnFM",
+  "video_id": "Lji9TdpfnFM",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.trade_with_trend",
+  "fact_text": "The analyst's rule is to trade with the trend: in an uptrend he looks only for buy positions, and in a downtrend he looks to sell into pullbacks.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '3. Understanding Market Trends: Upper, Lower & Sideways Trends Explained | PSX Analysis' (YouTube, 2024-08-19)",
+  "source_url": "https://www.youtube.com/watch?v=Lji9TdpfnFM",
+  "video_id": "Lji9TdpfnFM",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.downtrend_zigzag",
+  "fact_text": "Downtrends usually fall in a zigzag, with each rally between lower lows, rather than dropping in a straight line.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '3. Understanding Market Trends: Upper, Lower & Sideways Trends Explained | PSX Analysis' (YouTube, 2024-08-19)",
+  "source_url": "https://www.youtube.com/watch?v=Lji9TdpfnFM",
+  "video_id": "Lji9TdpfnFM",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.range_breakout_entry",
+  "fact_text": "In a sideways range the analyst waits for price to break either the range high or the range low before a trade setup is considered.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '3. Understanding Market Trends: Upper, Lower & Sideways Trends Explained | PSX Analysis' (YouTube, 2024-08-19)",
+  "source_url": "https://www.youtube.com/watch?v=Lji9TdpfnFM",
+  "video_id": "Lji9TdpfnFM",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MEBL",
+  "topic": "market.trend_state",
+  "fact_text": "As of 19 Aug 2024 the analyst described Meezan Bank as consolidating sideways after an earlier uptrend, with no new high or low, so he saw no trade until the range breaks.",
+  "value": null,
+  "unit": null,
+  "period": "2024-08-19",
+  "source_name": "Standard Capital Securities, '3. Understanding Market Trends: Upper, Lower & Sideways Trends Explained | PSX Analysis' (YouTube, 2024-08-19)",
+  "source_url": "https://www.youtube.com/watch?v=Lji9TdpfnFM",
+  "video_id": "Lji9TdpfnFM",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "TRG",
+  "topic": "market.trend_state",
+  "fact_text": "As of 19 Aug 2024 the analyst described TRG as in a long downtrend, making successive lower lows with no sign yet of a trend reversal.",
+  "value": null,
+  "unit": null,
+  "period": "2024-08-19",
+  "source_name": "Standard Capital Securities, '3. Understanding Market Trends: Upper, Lower & Sideways Trends Explained | PSX Analysis' (YouTube, 2024-08-19)",
+  "source_url": "https://www.youtube.com/watch?v=Lji9TdpfnFM",
+  "video_id": "Lji9TdpfnFM",
+  "confidence": "analyst_view"
+ }
+]

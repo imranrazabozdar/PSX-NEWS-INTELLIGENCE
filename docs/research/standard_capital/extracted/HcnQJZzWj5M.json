@@ -1,0 +1,110 @@
+[
+ {
+  "company": "SECTOR:PHARMA",
+  "topic": "news.policy",
+  "fact_text": "The drug price regulator set rules for 146 medicines on 2024-02-21, and a Lahore High Court stay was reported on 2024-02-22.",
+  "value": 146,
+  "unit": "count",
+  "period": "2024-02-21",
+  "source_name": "Standard Capital Securities, 'Attractive Results Dividends keep on Pouring - PSX Market Update' (YouTube, 2024-02-22)",
+  "source_url": "https://www.youtube.com/watch?v=HcnQJZzWj5M",
+  "video_id": "HcnQJZzWj5M",
+  "confidence": "fact"
+ },
+ {
+  "company": "SECTOR:PHARMA",
+  "topic": "commentary.risk",
+  "fact_text": "Analyst said pharma shares may fall back after the court stay, while price deregulation would help firms with unique drugs but add inflation pressure.",
+  "value": null,
+  "unit": null,
+  "period": "2024-02-22",
+  "source_name": "Standard Capital Securities, 'Attractive Results Dividends keep on Pouring - PSX Market Update' (YouTube, 2024-02-22)",
+  "source_url": "https://www.youtube.com/watch?v=HcnQJZzWj5M",
+  "video_id": "HcnQJZzWj5M",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "Service Global Footwear",
+  "topic": "news.investment",
+  "fact_text": "Service Global Footwear plans to invest in its parent, Service Industries, which the analyst said matters for the two companies.",
+  "value": null,
+  "unit": null,
+  "period": "2024-02-22",
+  "source_name": "Standard Capital Securities, 'Attractive Results Dividends keep on Pouring - PSX Market Update' (YouTube, 2024-02-22)",
+  "source_url": "https://www.youtube.com/watch?v=HcnQJZzWj5M",
+  "video_id": "HcnQJZzWj5M",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "UBL",
+  "topic": "news.dividend",
+  "fact_text": "United Bank paid a fourth-quarter dividend of Rs 11 and an annual dividend of Rs 44, against earnings per share of about Rs 45, a payout above 90 percent.",
+  "value": 44,
+  "unit": "PKR_per_share",
+  "period": "2023",
+  "source_name": "Standard Capital Securities, 'Attractive Results Dividends keep on Pouring - PSX Market Update' (YouTube, 2024-02-22)",
+  "source_url": "https://www.youtube.com/watch?v=HcnQJZzWj5M",
+  "video_id": "HcnQJZzWj5M",
+  "confidence": "fact"
+ },
+ {
+  "company": "UBL",
+  "topic": "commentary.valuation",
+  "fact_text": "Analyst estimated the UBL dividend yield at about 24 percent for the year, but said a payout above 90 percent is not sustainable.",
+  "value": 24,
+  "unit": "percent",
+  "period": "2023",
+  "source_name": "Standard Capital Securities, 'Attractive Results Dividends keep on Pouring - PSX Market Update' (YouTube, 2024-02-22)",
+  "source_url": "https://www.youtube.com/watch?v=HcnQJZzWj5M",
+  "video_id": "HcnQJZzWj5M",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MCB",
+  "topic": "news.dividend",
+  "fact_text": "MCB paid large dividends in all four quarters of the year, with a payout of around 60 percent of earnings.",
+  "value": 60,
+  "unit": "percent",
+  "period": "2023",
+  "source_name": "Standard Capital Securities, 'Attractive Results Dividends keep on Pouring - PSX Market Update' (YouTube, 2024-02-22)",
+  "source_url": "https://www.youtube.com/watch?v=HcnQJZzWj5M",
+  "video_id": "HcnQJZzWj5M",
+  "confidence": "fact"
+ },
+ {
+  "company": "SECTOR:BANKS",
+  "topic": "returns.payout_sustainability",
+  "fact_text": "Analyst expects bank dividend payouts to fall toward a sustainable share of earnings, since payouts above 90 percent are hard to keep.",
+  "value": 90,
+  "unit": "percent",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Attractive Results Dividends keep on Pouring - PSX Market Update' (YouTube, 2024-02-22)",
+  "source_url": "https://www.youtube.com/watch?v=HcnQJZzWj5M",
+  "video_id": "HcnQJZzWj5M",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.political_outlook",
+  "fact_text": "Analyst said a government forming after the election would be positive for the market, with an early rally likely if stability follows, though many questions remain.",
+  "value": null,
+  "unit": null,
+  "period": "2024-02-22",
+  "source_name": "Standard Capital Securities, 'Attractive Results Dividends keep on Pouring - PSX Market Update' (YouTube, 2024-02-22)",
+  "source_url": "https://www.youtube.com/watch?v=HcnQJZzWj5M",
+  "video_id": "HcnQJZzWj5M",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "strategy.budget_finance_minister",
+  "fact_text": "Analyst said many investors want a dynamic finance minister who favours exports, remittances and industrial growth before the budget.",
+  "value": null,
+  "unit": null,
+  "period": "2024-02-22",
+  "source_name": "Standard Capital Securities, 'Attractive Results Dividends keep on Pouring - PSX Market Update' (YouTube, 2024-02-22)",
+  "source_url": "https://www.youtube.com/watch?v=HcnQJZzWj5M",
+  "video_id": "HcnQJZzWj5M",
+  "confidence": "analyst_view"
+ }
+]

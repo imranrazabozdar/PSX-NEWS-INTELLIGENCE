@@ -1,0 +1,50 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.trend_definition",
+  "fact_text": "An uptrend is a series of higher highs and higher lows, while a downtrend is a series of lower highs and lower lows.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '13. How to Use Parallel Channel Tool in Technical Analysis | PSX & Pakistan Stock Market Guide' (YouTube, 2024-10-26)",
+  "source_url": "https://www.youtube.com/watch?v=xvTH_UTOAos",
+  "video_id": "xvTH_UTOAos",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.parallel_channel",
+  "fact_text": "A parallel channel is drawn by joining the lows of an uptrend, then running a parallel line through the highs, and price is read as moving between those two lines.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '13. How to Use Parallel Channel Tool in Technical Analysis | PSX & Pakistan Stock Market Guide' (YouTube, 2024-10-26)",
+  "source_url": "https://www.youtube.com/watch?v=xvTH_UTOAos",
+  "video_id": "xvTH_UTOAos",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.channel_trading",
+  "fact_text": "While price holds inside a channel, the analyst plans sells or profit-taking near the upper line and buys near the lower line, and a downtrend channel shows rejection at its top.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '13. How to Use Parallel Channel Tool in Technical Analysis | PSX & Pakistan Stock Market Guide' (YouTube, 2024-10-26)",
+  "source_url": "https://www.youtube.com/watch?v=xvTH_UTOAos",
+  "video_id": "xvTH_UTOAos",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.channel_breakout",
+  "fact_text": "A close outside the channel, especially on heavy volume, is treated as a breakout signal, which the analyst said can be followed by a sharp move in the new direction.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '13. How to Use Parallel Channel Tool in Technical Analysis | PSX & Pakistan Stock Market Guide' (YouTube, 2024-10-26)",
+  "source_url": "https://www.youtube.com/watch?v=xvTH_UTOAos",
+  "video_id": "xvTH_UTOAos",
+  "confidence": "analyst_view"
+ }
+]

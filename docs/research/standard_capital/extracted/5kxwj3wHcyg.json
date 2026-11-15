@@ -1,0 +1,110 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.chart_toolbar",
+  "fact_text": "The SCSTrade charting toolbar has basic tools (crosshair, trend line, extended line, horizontal and vertical lines) and advanced tools (Fibonacci retracement, trend-based extension, Fibonacci circles, spiral and pitchfork fans).",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '6. How to Use Tools in SCSTrade.com | Make Your Charts More Professional Like Pro Trader' (YouTube, 2024-09-26)",
+  "source_url": "https://www.youtube.com/watch?v=5kxwj3wHcyg",
+  "video_id": "5kxwj3wHcyg",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.symbol_search",
+  "fact_text": "A chart is opened by typing a stock symbol or index name, such as KSE-100, into the symbol search box on the terminal.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '6. How to Use Tools in SCSTrade.com | Make Your Charts More Professional Like Pro Trader' (YouTube, 2024-09-26)",
+  "source_url": "https://www.youtube.com/watch?v=5kxwj3wHcyg",
+  "video_id": "5kxwj3wHcyg",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.trendline_settings",
+  "fact_text": "A trend line is drawn by clicking a low and dragging to a second point; its settings window sets line weight, colour, dashed or dotted style, and where the label sits (top, middle or bottom).",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '6. How to Use Tools in SCSTrade.com | Make Your Charts More Professional Like Pro Trader' (YouTube, 2024-09-26)",
+  "source_url": "https://www.youtube.com/watch?v=5kxwj3wHcyg",
+  "video_id": "5kxwj3wHcyg",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.fibonacci_retracement",
+  "fact_text": "The Fibonacci retracement tool is drawn from the bottom of an upward move to its top, to show the levels a market correction may reach.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '6. How to Use Tools in SCSTrade.com | Make Your Charts More Professional Like Pro Trader' (YouTube, 2024-09-26)",
+  "source_url": "https://www.youtube.com/watch?v=5kxwj3wHcyg",
+  "video_id": "5kxwj3wHcyg",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.trend_based_extension",
+  "fact_text": "The trend-based extension tool is drawn from one swing point to a second swing point, and its settings let the user set the label and drag the tool to project further levels.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '6. How to Use Tools in SCSTrade.com | Make Your Charts More Professional Like Pro Trader' (YouTube, 2024-09-26)",
+  "source_url": "https://www.youtube.com/watch?v=5kxwj3wHcyg",
+  "video_id": "5kxwj3wHcyg",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.long_short_position_tool",
+  "fact_text": "The long and short position tools shade a reward zone and a risk zone, and show the risk-to-reward ratio set by the chosen risk percentage and reward percentage.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '6. How to Use Tools in SCSTrade.com | Make Your Charts More Professional Like Pro Trader' (YouTube, 2024-09-26)",
+  "source_url": "https://www.youtube.com/watch?v=5kxwj3wHcyg",
+  "video_id": "5kxwj3wHcyg",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.risk_reward_example",
+  "fact_text": "With a 5% risk setting and a 15% reward setting, the position tool displays a 3:1 risk-to-reward ratio.",
+  "value": 3,
+  "unit": "times",
+  "period": null,
+  "source_name": "Standard Capital Securities, '6. How to Use Tools in SCSTrade.com | Make Your Charts More Professional Like Pro Trader' (YouTube, 2024-09-26)",
+  "source_url": "https://www.youtube.com/watch?v=5kxwj3wHcyg",
+  "video_id": "5kxwj3wHcyg",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.zone_marking",
+  "fact_text": "Brush and rectangle tools mark a support or resistance zone; the analyst treats a resistance zone as a level where price may be rejected, and colours its border and fill to separate them.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '6. How to Use Tools in SCSTrade.com | Make Your Charts More Professional Like Pro Trader' (YouTube, 2024-09-26)",
+  "source_url": "https://www.youtube.com/watch?v=5kxwj3wHcyg",
+  "video_id": "5kxwj3wHcyg",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.chart_settings",
+  "fact_text": "Chart settings control candle colours, the status price line, the countdown to bar close and the canvas background; the analyst usually keeps a black background.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '6. How to Use Tools in SCSTrade.com | Make Your Charts More Professional Like Pro Trader' (YouTube, 2024-09-26)",
+  "source_url": "https://www.youtube.com/watch?v=5kxwj3wHcyg",
+  "video_id": "5kxwj3wHcyg",
+  "confidence": "fact"
+ }
+]

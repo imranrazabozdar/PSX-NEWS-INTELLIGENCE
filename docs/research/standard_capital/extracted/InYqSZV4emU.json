@@ -1,0 +1,110 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.policy_rate",
+  "fact_text": "Interest rates were at 22 percent in the video, keeping financing costs high for companies.",
+  "value": 22,
+  "unit": "percent",
+  "period": "2024-02-14",
+  "source_name": "Standard Capital Securities, 'Should you invest right now? 📈' (YouTube, 2024-02-14)",
+  "source_url": "https://www.youtube.com/watch?v=InYqSZV4emU",
+  "video_id": "InYqSZV4emU",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.coalition_outlook",
+  "fact_text": "Analyst expects a weak coalition government to struggle with delayed SIFC projects, higher gas prices and high inflation, making its policy choices hard.",
+  "value": null,
+  "unit": null,
+  "period": "2024-02-14",
+  "source_name": "Standard Capital Securities, 'Should you invest right now? 📈' (YouTube, 2024-02-14)",
+  "source_url": "https://www.youtube.com/watch?v=InYqSZV4emU",
+  "video_id": "InYqSZV4emU",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.imf_program",
+  "fact_text": "Analyst expects a new IMF programme to require tough decisions from the incoming government, which may be politically costly.",
+  "value": null,
+  "unit": null,
+  "period": "2024-02-14",
+  "source_name": "Standard Capital Securities, 'Should you invest right now? 📈' (YouTube, 2024-02-14)",
+  "source_url": "https://www.youtube.com/watch?v=InYqSZV4emU",
+  "video_id": "InYqSZV4emU",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.gas_price",
+  "fact_text": "Analyst said further gas price increases are a major challenge for the incoming political government, with the impact passed through to fertilizer and industry.",
+  "value": null,
+  "unit": null,
+  "period": "2024-02-14",
+  "source_name": "Standard Capital Securities, 'Should you invest right now? 📈' (YouTube, 2024-02-14)",
+  "source_url": "https://www.youtube.com/watch?v=InYqSZV4emU",
+  "video_id": "InYqSZV4emU",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:FERTILIZER",
+  "topic": "cost.gas_pass_through",
+  "fact_text": "Large fertilizer makers such as Fauji Fertilizer and Engro Fertilizers pass gas price increases on to fertilizer prices, which protects their earnings.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Should you invest right now? 📈' (YouTube, 2024-02-14)",
+  "source_url": "https://www.youtube.com/watch?v=InYqSZV4emU",
+  "video_id": "InYqSZV4emU",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:FERTILIZER",
+  "topic": "returns.payout",
+  "fact_text": "Fertilizer companies typically pay out around 80 to 90 percent of earnings as dividends, which the analyst cited as a reason for value interest.",
+  "value": 80,
+  "unit": "percent",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Should you invest right now? 📈' (YouTube, 2024-02-14)",
+  "source_url": "https://www.youtube.com/watch?v=InYqSZV4emU",
+  "video_id": "InYqSZV4emU",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "HUBC",
+  "topic": "news.dividend",
+  "fact_text": "Hub Power announced a second-quarter dividend through a PSX notice and is putting money into two projects, one of which the analyst said was already under way.",
+  "value": null,
+  "unit": null,
+  "period": "2024-02-14",
+  "source_name": "Standard Capital Securities, 'Should you invest right now? 📈' (YouTube, 2024-02-14)",
+  "source_url": "https://www.youtube.com/watch?v=InYqSZV4emU",
+  "video_id": "InYqSZV4emU",
+  "confidence": "fact"
+ },
+ {
+  "company": "SECTOR:CEMENT",
+  "topic": "operations.dispatch_mix",
+  "fact_text": "Cement stays in focus because housing demand persists, and both local and export dispatches matter for cement makers.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Should you invest right now? 📈' (YouTube, 2024-02-14)",
+  "source_url": "https://www.youtube.com/watch?v=InYqSZV4emU",
+  "video_id": "InYqSZV4emU",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.value_investing_principle",
+  "fact_text": "Analyst's rule is to favour value stocks with good management and operations regardless of political or economic conditions, and to invest only in businesses one understands.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Should you invest right now? 📈' (YouTube, 2024-02-14)",
+  "source_url": "https://www.youtube.com/watch?v=InYqSZV4emU",
+  "video_id": "InYqSZV4emU",
+  "confidence": "analyst_view"
+ }
+]

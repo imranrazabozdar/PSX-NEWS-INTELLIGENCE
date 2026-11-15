@@ -1,0 +1,50 @@
+[
+ {
+  "company": "FABL",
+  "topic": "commentary.outlook",
+  "fact_text": "Faysal Bank broke a descending trendline but then closed back below it, and the candles that followed showed selling pressure, according to the analyst's chart reading.",
+  "value": null,
+  "unit": null,
+  "period": "2025-02-01",
+  "source_name": "Standard Capital Securities, 'Faysal Bank Stock Analysis | PSX Market Trends & Future Growth | Pakistan Stock Market Insights' (YouTube, 2025-02-01)",
+  "source_url": "https://www.youtube.com/watch?v=kIwhuqlJv7w",
+  "video_id": "kIwhuqlJv7w",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "FABL",
+  "topic": "commentary.outlook",
+  "fact_text": "After the breakdown the analyst pointed to a support zone around 44 to 45 rupees, where the stock found buyers on several attempts before a further decline.",
+  "value": 44,
+  "unit": "PKR_per_share",
+  "period": "2025-02-01",
+  "source_name": "Standard Capital Securities, 'Faysal Bank Stock Analysis | PSX Market Trends & Future Growth | Pakistan Stock Market Insights' (YouTube, 2025-02-01)",
+  "source_url": "https://www.youtube.com/watch?v=kIwhuqlJv7w",
+  "video_id": "kIwhuqlJv7w",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "FABL",
+  "topic": "commentary.outlook",
+  "fact_text": "The analyst said the broken trendline acts as a strong resistance line, and the price has been holding above the broken level while it consolidates.",
+  "value": null,
+  "unit": null,
+  "period": "2025-02-01",
+  "source_name": "Standard Capital Securities, 'Faysal Bank Stock Analysis | PSX Market Trends & Future Growth | Pakistan Stock Market Insights' (YouTube, 2025-02-01)",
+  "source_url": "https://www.youtube.com/watch?v=kIwhuqlJv7w",
+  "video_id": "kIwhuqlJv7w",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.trendline_flip",
+  "fact_text": "A trendline that price breaks and then fails to hold above can flip into resistance, and the analyst treated a retest from below as the confirmation of that role.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Faysal Bank Stock Analysis | PSX Market Trends & Future Growth | Pakistan Stock Market Insights' (YouTube, 2025-02-01)",
+  "source_url": "https://www.youtube.com/watch?v=kIwhuqlJv7w",
+  "video_id": "kIwhuqlJv7w",
+  "confidence": "analyst_view"
+ }
+]

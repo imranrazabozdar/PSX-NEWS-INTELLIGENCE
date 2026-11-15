@@ -1,0 +1,122 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_var",
+  "fact_text": "On a value-at-risk measure the KSE-100 is at a high risk level, while the analyst says KSE-30 offers some stocks with lower risk.",
+  "value": null,
+  "unit": null,
+  "period": "2024-05-23",
+  "source_name": "Standard Capital Securities, 'PSX Market Insights: KSE 100 & KSE 30 Value at Risk, PIA Controversies, & Upcoming Budget' (YouTube, 2024-05-23)",
+  "source_url": "https://www.youtube.com/watch?v=MD7_ShygkVY",
+  "video_id": "MD7_ShygkVY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "HUBC",
+  "topic": "commentary.risk",
+  "fact_text": "On a value-at-risk measure Hub Power, a blue-chip stock, sits at a medium-to-low risk level, according to the analyst.",
+  "value": null,
+  "unit": null,
+  "period": "2024-05-23",
+  "source_name": "Standard Capital Securities, 'PSX Market Insights: KSE 100 & KSE 30 Value at Risk, PIA Controversies, & Upcoming Budget' (YouTube, 2024-05-23)",
+  "source_url": "https://www.youtube.com/watch?v=MD7_ShygkVY",
+  "video_id": "MD7_ShygkVY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "Mughal Steel",
+  "topic": "commentary.risk",
+  "fact_text": "Mughal Steel sits at a medium risk level on value at risk, and the analyst's earlier report on it gave a target and DCF value that the video does not restate.",
+  "value": null,
+  "unit": null,
+  "period": "2024-05-23",
+  "source_name": "Standard Capital Securities, 'PSX Market Insights: KSE 100 & KSE 30 Value at Risk, PIA Controversies, & Upcoming Budget' (YouTube, 2024-05-23)",
+  "source_url": "https://www.youtube.com/watch?v=MD7_ShygkVY",
+  "video_id": "MD7_ShygkVY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "Pakistan International Airlines",
+  "topic": "news.policy",
+  "fact_text": "The PIA stock is being delisted, and the analyst says investors who could not sell at higher price levels are holding through the delisting.",
+  "value": null,
+  "unit": null,
+  "period": "2024-05-23",
+  "source_name": "Standard Capital Securities, 'PSX Market Insights: KSE 100 & KSE 30 Value at Risk, PIA Controversies, & Upcoming Budget' (YouTube, 2024-05-23)",
+  "source_url": "https://www.youtube.com/watch?v=MD7_ShygkVY",
+  "video_id": "MD7_ShygkVY",
+  "confidence": "fact"
+ },
+ {
+  "company": "Pakistan International Airlines",
+  "topic": "news.policy",
+  "fact_text": "The analyst says PIA will be held under PIA Holding, which will list under a different symbol, so the delisting is not a reason for panic since the privatisation runs through that holding.",
+  "value": null,
+  "unit": null,
+  "period": "2024-05-23",
+  "source_name": "Standard Capital Securities, 'PSX Market Insights: KSE 100 & KSE 30 Value at Risk, PIA Controversies, & Upcoming Budget' (YouTube, 2024-05-23)",
+  "source_url": "https://www.youtube.com/watch?v=MD7_ShygkVY",
+  "video_id": "MD7_ShygkVY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "Pakistan International Airlines",
+  "topic": "market.price_action",
+  "fact_text": "The analyst expects PIA's price to stay weak for some time, with the new listing opening at the market price that prevails at the time of the closing.",
+  "value": null,
+  "unit": null,
+  "period": "2024-05-23",
+  "source_name": "Standard Capital Securities, 'PSX Market Insights: KSE 100 & KSE 30 Value at Risk, PIA Controversies, & Upcoming Budget' (YouTube, 2024-05-23)",
+  "source_url": "https://www.youtube.com/watch?v=MD7_ShygkVY",
+  "video_id": "MD7_ShygkVY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "BOP",
+  "topic": "news.policy",
+  "fact_text": "A SECP notice relates to Bank of Punjab issuing about 971 million shares against an 8 billion PKR term finance certificate, which the analyst says will dilute earnings per share only modestly.",
+  "value": 971,
+  "unit": "million_shares",
+  "period": "2024-05-23",
+  "source_name": "Standard Capital Securities, 'PSX Market Insights: KSE 100 & KSE 30 Value at Risk, PIA Controversies, & Upcoming Budget' (YouTube, 2024-05-23)",
+  "source_url": "https://www.youtube.com/watch?v=MD7_ShygkVY",
+  "video_id": "MD7_ShygkVY",
+  "confidence": "fact"
+ },
+ {
+  "company": "BOP",
+  "topic": "commentary.valuation",
+  "fact_text": "Bank of Punjab shares have lagged the index rise to 75,000 points, and the analyst says the stock traded at a discount to book value, below peers such as National Bank.",
+  "value": 75000,
+  "unit": "points",
+  "period": "2024-05-23",
+  "source_name": "Standard Capital Securities, 'PSX Market Insights: KSE 100 & KSE 30 Value at Risk, PIA Controversies, & Upcoming Budget' (YouTube, 2024-05-23)",
+  "source_url": "https://www.youtube.com/watch?v=MD7_ShygkVY",
+  "video_id": "MD7_ShygkVY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.budget",
+  "fact_text": "The IMF is pressing for a larger tax-based budget in June 2024, while the analyst doubts industry running at 30 to 50 percent capacity can support that target.",
+  "value": 30,
+  "unit": "percent",
+  "period": "2024-06",
+  "source_name": "Standard Capital Securities, 'PSX Market Insights: KSE 100 & KSE 30 Value at Risk, PIA Controversies, & Upcoming Budget' (YouTube, 2024-05-23)",
+  "source_url": "https://www.youtube.com/watch?v=MD7_ShygkVY",
+  "video_id": "MD7_ShygkVY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.budget_sentiment",
+  "fact_text": "The analyst expects investors to be cautious on the KSE-100 around the June 2024 budget session, which is more tied to the market than other policy news.",
+  "value": null,
+  "unit": null,
+  "period": "2024-06",
+  "source_name": "Standard Capital Securities, 'PSX Market Insights: KSE 100 & KSE 30 Value at Risk, PIA Controversies, & Upcoming Budget' (YouTube, 2024-05-23)",
+  "source_url": "https://www.youtube.com/watch?v=MD7_ShygkVY",
+  "video_id": "MD7_ShygkVY",
+  "confidence": "analyst_view"
+ }
+]

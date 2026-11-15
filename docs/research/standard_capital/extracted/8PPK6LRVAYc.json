@@ -1,0 +1,74 @@
+[
+ {
+  "company": "SSGC",
+  "topic": "market.price_levels",
+  "fact_text": "SSGC traded near PKR 43 when the analyst filmed the chart, after recovering from a low of about PKR 30.",
+  "value": 43,
+  "unit": "PKR_per_share",
+  "period": "2025-04-21",
+  "source_name": "Standard Capital Securities, 'SSGC Stock Target Analysis | Live Technical Analysis of Sui Southern Gas Company | PSX Stock Market' (YouTube, 2025-04-21)",
+  "source_url": "https://www.youtube.com/watch?v=8PPK6LRVAYc",
+  "video_id": "8PPK6LRVAYc",
+  "confidence": "fact"
+ },
+ {
+  "company": "SSGC",
+  "topic": "market.price_levels",
+  "fact_text": "SSGC rallied from about PKR 9 to a high of about PKR 50, then corrected to a low near PKR 30 before rising again.",
+  "value": 50,
+  "unit": "PKR_per_share",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'SSGC Stock Target Analysis | Live Technical Analysis of Sui Southern Gas Company | PSX Stock Market' (YouTube, 2025-04-21)",
+  "source_url": "https://www.youtube.com/watch?v=8PPK6LRVAYc",
+  "video_id": "8PPK6LRVAYc",
+  "confidence": "fact"
+ },
+ {
+  "company": "SSGC",
+  "topic": "market.price_levels",
+  "fact_text": "The analyst sees a resistance zone around PKR 44 to 45 just above the price at the time of the video.",
+  "value": 44,
+  "unit": "PKR_per_share",
+  "period": "2025-04-21",
+  "source_name": "Standard Capital Securities, 'SSGC Stock Target Analysis | Live Technical Analysis of Sui Southern Gas Company | PSX Stock Market' (YouTube, 2025-04-21)",
+  "source_url": "https://www.youtube.com/watch?v=8PPK6LRVAYc",
+  "video_id": "8PPK6LRVAYc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SSGC",
+  "topic": "market.price_levels",
+  "fact_text": "On the 3-hour chart SSGC traded inside a parallel channel, respected its top and bottom, and then broke below the channel bottom.",
+  "value": null,
+  "unit": null,
+  "period": "2025-04-21",
+  "source_name": "Standard Capital Securities, 'SSGC Stock Target Analysis | Live Technical Analysis of Sui Southern Gas Company | PSX Stock Market' (YouTube, 2025-04-21)",
+  "source_url": "https://www.youtube.com/watch?v=8PPK6LRVAYc",
+  "video_id": "8PPK6LRVAYc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SSGC",
+  "topic": "market.price_levels",
+  "fact_text": "After the channel-bottom break, the analyst watches whether the price holds the first resistance on retest, and sees the next high near PKR 48 as the level to watch.",
+  "value": 48,
+  "unit": "PKR_per_share",
+  "period": "2025-04-21",
+  "source_name": "Standard Capital Securities, 'SSGC Stock Target Analysis | Live Technical Analysis of Sui Southern Gas Company | PSX Stock Market' (YouTube, 2025-04-21)",
+  "source_url": "https://www.youtube.com/watch?v=8PPK6LRVAYc",
+  "video_id": "8PPK6LRVAYc",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:OIL_GAS",
+  "topic": "method.parallel_channel",
+  "fact_text": "The analyst reads a rejection at a parallel channel's top and a bounce at its bottom as the pattern to trade the range, and treats a break of the channel bottom as the point to re-check the setup.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'SSGC Stock Target Analysis | Live Technical Analysis of Sui Southern Gas Company | PSX Stock Market' (YouTube, 2025-04-21)",
+  "source_url": "https://www.youtube.com/watch?v=8PPK6LRVAYc",
+  "video_id": "8PPK6LRVAYc",
+  "confidence": "analyst_view"
+ }
+]

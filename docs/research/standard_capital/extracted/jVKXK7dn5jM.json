@@ -1,0 +1,86 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_breadth",
+  "fact_text": "Many stocks rose only about 25 to 40 percent in the rally, while others gained 100 percent or more, and the analyst said the market rise is real.",
+  "value": null,
+  "unit": "percent",
+  "period": "Nov 2023",
+  "source_name": "Standard Capital Securities, 'PSX Mysteries: Unveiling Reasons Behind Low PBV in Banking Stocks' (YouTube, 2023-11-30)",
+  "source_url": "https://www.youtube.com/watch?v=jVKXK7dn5jM",
+  "video_id": "jVKXK7dn5jM",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_rally_base",
+  "fact_text": "The rally that started in September 2023 began from around 45,000 on the KSE-100.",
+  "value": 45000,
+  "unit": "index_points",
+  "period": "Sep 2023",
+  "source_name": "Standard Capital Securities, 'PSX Mysteries: Unveiling Reasons Behind Low PBV in Banking Stocks' (YouTube, 2023-11-30)",
+  "source_url": "https://www.youtube.com/watch?v=jVKXK7dn5jM",
+  "video_id": "jVKXK7dn5jM",
+  "confidence": "fact"
+ },
+ {
+  "company": "HBL",
+  "topic": "commentary.valuation",
+  "fact_text": "HBL's price-to-book and price-to-earnings multiples are below 3 times, which the analyst called significantly undervalued against peers.",
+  "value": 3,
+  "unit": "times",
+  "period": "2023-11-30",
+  "source_name": "Standard Capital Securities, 'PSX Mysteries: Unveiling Reasons Behind Low PBV in Banking Stocks' (YouTube, 2023-11-30)",
+  "source_url": "https://www.youtube.com/watch?v=jVKXK7dn5jM",
+  "video_id": "jVKXK7dn5jM",
+  "confidence": "fact"
+ },
+ {
+  "company": "HBL",
+  "topic": "commentary.valuation",
+  "fact_text": "The expected book value per share for HBL was about Rs 37, according to the analyst.",
+  "value": 37,
+  "unit": "PKR_per_share",
+  "period": "2023-11-30",
+  "source_name": "Standard Capital Securities, 'PSX Mysteries: Unveiling Reasons Behind Low PBV in Banking Stocks' (YouTube, 2023-11-30)",
+  "source_url": "https://www.youtube.com/watch?v=jVKXK7dn5jM",
+  "video_id": "jVKXK7dn5jM",
+  "confidence": "fact"
+ },
+ {
+  "company": "HBL",
+  "topic": "commentary.thesis",
+  "fact_text": "HBL's dividends have not come every quarter as a peer's have, a likely reason for the low valuation, and the analyst expected dividends to resume in coming years.",
+  "value": null,
+  "unit": null,
+  "period": "2023-11-30",
+  "source_name": "Standard Capital Securities, 'PSX Mysteries: Unveiling Reasons Behind Low PBV in Banking Stocks' (YouTube, 2023-11-30)",
+  "source_url": "https://www.youtube.com/watch?v=jVKXK7dn5jM",
+  "video_id": "jVKXK7dn5jM",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "BOP",
+  "topic": "commentary.valuation",
+  "fact_text": "Bank of Punjab, a provincial bank, has a low price-to-book and price-to-earnings multiple, which the analyst saw as an opportunity.",
+  "value": null,
+  "unit": null,
+  "period": "2023-11-30",
+  "source_name": "Standard Capital Securities, 'PSX Mysteries: Unveiling Reasons Behind Low PBV in Banking Stocks' (YouTube, 2023-11-30)",
+  "source_url": "https://www.youtube.com/watch?v=jVKXK7dn5jM",
+  "video_id": "jVKXK7dn5jM",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:BANKS",
+  "topic": "valuation.bank_peer_gap",
+  "fact_text": "The analyst compared HBL and Bank of Punjab with peer banks and said both look undervalued, a gap he expected could close in 2024.",
+  "value": null,
+  "unit": null,
+  "period": "2024",
+  "source_name": "Standard Capital Securities, 'PSX Mysteries: Unveiling Reasons Behind Low PBV in Banking Stocks' (YouTube, 2023-11-30)",
+  "source_url": "https://www.youtube.com/watch?v=jVKXK7dn5jM",
+  "video_id": "jVKXK7dn5jM",
+  "confidence": "analyst_view"
+ }
+]

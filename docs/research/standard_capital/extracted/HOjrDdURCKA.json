@@ -1,0 +1,38 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.moving_average",
+  "fact_text": "A simple moving average is the average of the previous 50 closing prices, and on a chart it often acts as support or resistance.",
+  "value": 50,
+  "unit": "periods",
+  "period": null,
+  "source_name": "Standard Capital Securities, '7. What is Moving Average Indicator? How to Use It to Trade Successfully in the PSX' (YouTube, 2024-10-01)",
+  "source_url": "https://www.youtube.com/watch?v=HOjrDdURCKA",
+  "video_id": "HOjrDdURCKA",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.exponential_moving_average",
+  "fact_text": "An exponential moving average reacts faster to price than a simple moving average, and the analyst prefers it because price respects it more.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '7. What is Moving Average Indicator? How to Use It to Trade Successfully in the PSX' (YouTube, 2024-10-01)",
+  "source_url": "https://www.youtube.com/watch?v=HOjrDdURCKA",
+  "video_id": "HOjrDdURCKA",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.moving_average",
+  "fact_text": "The analyst said a trade can be taken when price returns to a moving average and is confirmed by the chart.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '7. What is Moving Average Indicator? How to Use It to Trade Successfully in the PSX' (YouTube, 2024-10-01)",
+  "source_url": "https://www.youtube.com/watch?v=HOjrDdURCKA",
+  "video_id": "HOjrDdURCKA",
+  "confidence": "analyst_view"
+ }
+]

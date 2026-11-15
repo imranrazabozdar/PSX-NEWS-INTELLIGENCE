@@ -1,0 +1,122 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.calendar",
+  "fact_text": "The analyst noted that the week after 20 Mar 2025 is a rollover week, followed by the Eid holidays.",
+  "value": null,
+  "unit": null,
+  "period": "2025-03-20",
+  "source_name": "Standard Capital Securities, 'KSE 100 Index Update: PAEL Stock Analysis & Impact of IPP Payments on HUBC | Pakistan Stock Market' (YouTube, 2025-03-20)",
+  "source_url": "https://www.youtube.com/watch?v=tnYv-ebUss4",
+  "video_id": "tnYv-ebUss4",
+  "confidence": "fact"
+ },
+ {
+  "company": "SECTOR:CEMENT",
+  "topic": "cycle.cement_demand",
+  "fact_text": "The analyst said cement stock performance depends on dispatch figures and interest rates, which are the key drivers he tracks for the sector.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'KSE 100 Index Update: PAEL Stock Analysis & Impact of IPP Payments on HUBC | Pakistan Stock Market' (YouTube, 2025-03-20)",
+  "source_url": "https://www.youtube.com/watch?v=tnYv-ebUss4",
+  "video_id": "tnYv-ebUss4",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "HUBC",
+  "topic": "commentary.valuation",
+  "fact_text": "Hub Power and other growth names saw their prices and price-to-earnings multiples rise after the rally, which the analyst said raised their valuations.",
+  "value": null,
+  "unit": null,
+  "period": "2025-03-20",
+  "source_name": "Standard Capital Securities, 'KSE 100 Index Update: PAEL Stock Analysis & Impact of IPP Payments on HUBC | Pakistan Stock Market' (YouTube, 2025-03-20)",
+  "source_url": "https://www.youtube.com/watch?v=tnYv-ebUss4",
+  "video_id": "tnYv-ebUss4",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PAEL",
+  "topic": "commentary.thesis",
+  "fact_text": "Pak Elektron has a collaboration with a Swedish electronics giant, which the analyst called a major development for the company.",
+  "value": null,
+  "unit": null,
+  "period": "2025-03-20",
+  "source_name": "Standard Capital Securities, 'KSE 100 Index Update: PAEL Stock Analysis & Impact of IPP Payments on HUBC | Pakistan Stock Market' (YouTube, 2025-03-20)",
+  "source_url": "https://www.youtube.com/watch?v=tnYv-ebUss4",
+  "video_id": "tnYv-ebUss4",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PAEL",
+  "topic": "commentary.valuation",
+  "fact_text": "The analyst said Pak Elektron's price-earnings-growth ratio should be below 1 and was falling, which he read as an attractive growth-adjusted valuation.",
+  "value": 1,
+  "unit": "times",
+  "period": "2025-03-20",
+  "source_name": "Standard Capital Securities, 'KSE 100 Index Update: PAEL Stock Analysis & Impact of IPP Payments on HUBC | Pakistan Stock Market' (YouTube, 2025-03-20)",
+  "source_url": "https://www.youtube.com/watch?v=tnYv-ebUss4",
+  "video_id": "tnYv-ebUss4",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PAEL",
+  "topic": "commentary.financials",
+  "fact_text": "Pak Elektron's nine-month sales for 2024 were about Rs 57 billion, which the analyst described as a strong figure.",
+  "value": 57,
+  "unit": "PKR_billions",
+  "period": "2024",
+  "source_name": "Standard Capital Securities, 'KSE 100 Index Update: PAEL Stock Analysis & Impact of IPP Payments on HUBC | Pakistan Stock Market' (YouTube, 2025-03-20)",
+  "source_url": "https://www.youtube.com/watch?v=tnYv-ebUss4",
+  "video_id": "tnYv-ebUss4",
+  "confidence": "fact"
+ },
+ {
+  "company": "PAEL",
+  "topic": "cycle.appliance_demand",
+  "fact_text": "Appliance sales peak in summer, Ramadan and festival periods, and the analyst said this seasonality supports the top-line growth of appliance makers such as Pak Elektron.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'KSE 100 Index Update: PAEL Stock Analysis & Impact of IPP Payments on HUBC | Pakistan Stock Market' (YouTube, 2025-03-20)",
+  "source_url": "https://www.youtube.com/watch?v=tnYv-ebUss4",
+  "video_id": "tnYv-ebUss4",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.inflation_income",
+  "fact_text": "The analyst said household incomes have not risen in line with inflation, which limits appliance purchases, although Pakistan's large population supports baseline demand.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'KSE 100 Index Update: PAEL Stock Analysis & Impact of IPP Payments on HUBC | Pakistan Stock Market' (YouTube, 2025-03-20)",
+  "source_url": "https://www.youtube.com/watch?v=tnYv-ebUss4",
+  "video_id": "tnYv-ebUss4",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:POWER",
+  "topic": "macro.ipp_payment_mechanism",
+  "fact_text": "Government IPP payments moved from capacity payments to take-and-pay, so generators are paid for the electricity they actually deliver rather than for installed capacity.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'KSE 100 Index Update: PAEL Stock Analysis & Impact of IPP Payments on HUBC | Pakistan Stock Market' (YouTube, 2025-03-20)",
+  "source_url": "https://www.youtube.com/watch?v=tnYv-ebUss4",
+  "video_id": "tnYv-ebUss4",
+  "confidence": "fact"
+ },
+ {
+  "company": "SECTOR:POWER",
+  "topic": "news.ipp_release",
+  "fact_text": "The government released about Rs 53 billion to IPPs under the take-and-pay arrangement, with Hub Power among the large recipients.",
+  "value": 53,
+  "unit": "PKR_billions",
+  "period": "2025-03-20",
+  "source_name": "Standard Capital Securities, 'KSE 100 Index Update: PAEL Stock Analysis & Impact of IPP Payments on HUBC | Pakistan Stock Market' (YouTube, 2025-03-20)",
+  "source_url": "https://www.youtube.com/watch?v=tnYv-ebUss4",
+  "video_id": "tnYv-ebUss4",
+  "confidence": "fact"
+ }
+]

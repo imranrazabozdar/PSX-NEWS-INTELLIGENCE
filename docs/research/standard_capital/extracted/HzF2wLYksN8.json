@@ -1,0 +1,38 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_level",
+  "fact_text": "The KSE-100 index was described as rebounding toward the 62,900 level in the 28 Feb 2024 market update.",
+  "value": 62900,
+  "unit": "index_points",
+  "period": "2024-02-28",
+  "source_name": "Standard Capital Securities, 'EFERT's Surge Amid Gas Price Disparity | PSX Update & Economic Insights' (YouTube, 2024-02-28)",
+  "source_url": "https://www.youtube.com/watch?v=HzF2wLYksN8",
+  "video_id": "HzF2wLYksN8",
+  "confidence": "fact"
+ },
+ {
+  "company": "EFERT",
+  "topic": "market.stock_move",
+  "fact_text": "The analyst tied the surge in Engro Fertilizer's share price to a gas price disparity affecting fertilizer plants, which he called a burning topic.",
+  "value": null,
+  "unit": null,
+  "period": "2024-02-28",
+  "source_name": "Standard Capital Securities, 'EFERT's Surge Amid Gas Price Disparity | PSX Update & Economic Insights' (YouTube, 2024-02-28)",
+  "source_url": "https://www.youtube.com/watch?v=HzF2wLYksN8",
+  "video_id": "HzF2wLYksN8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.index_drivers",
+  "fact_text": "The analyst named PTC, PSO and PPL as the stocks driving the index in the 28 Feb 2024 update.",
+  "value": null,
+  "unit": null,
+  "period": "2024-02-28",
+  "source_name": "Standard Capital Securities, 'EFERT's Surge Amid Gas Price Disparity | PSX Update & Economic Insights' (YouTube, 2024-02-28)",
+  "source_url": "https://www.youtube.com/watch?v=HzF2wLYksN8",
+  "video_id": "HzF2wLYksN8",
+  "confidence": "analyst_view"
+ }
+]

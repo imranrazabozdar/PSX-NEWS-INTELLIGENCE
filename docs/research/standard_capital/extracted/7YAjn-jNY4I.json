@@ -1,0 +1,62 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.volume_bars",
+  "fact_text": "On a daily chart the volume indicator shows one bar per trading day, and each bar's height is the number of shares traded that day.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '17. Unlock the Secret to Profitable Trading! How Volume Indicators Can Predict Market Moves in PSX' (YouTube, 2024-11-12)",
+  "source_url": "https://www.youtube.com/watch?v=7YAjn-jNY4I",
+  "video_id": "7YAjn-jNY4I",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.volume_price_reading",
+  "fact_text": "The analyst reads volume together with the candle's price move: the volume bar shows how many shares changed hands, and the price change shows whether buyers or sellers controlled that session.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '17. Unlock the Secret to Profitable Trading! How Volume Indicators Can Predict Market Moves in PSX' (YouTube, 2024-11-12)",
+  "source_url": "https://www.youtube.com/watch?v=7YAjn-jNY4I",
+  "video_id": "7YAjn-jNY4I",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.volume_aggressive_buying",
+  "fact_text": "A price jump on lower volume than the previous session is read as aggressive buying, where buyers accept higher prices to get the shares they want.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '17. Unlock the Secret to Profitable Trading! How Volume Indicators Can Predict Market Moves in PSX' (YouTube, 2024-11-12)",
+  "source_url": "https://www.youtube.com/watch?v=7YAjn-jNY4I",
+  "video_id": "7YAjn-jNY4I",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.volume_consolidation",
+  "fact_text": "When volume falls session after session while price moves sideways in consolidation, the analyst reads fading interest in the stock, which can point to a later downside move because volume no longer supports price.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '17. Unlock the Secret to Profitable Trading! How Volume Indicators Can Predict Market Moves in PSX' (YouTube, 2024-11-12)",
+  "source_url": "https://www.youtube.com/watch?v=7YAjn-jNY4I",
+  "video_id": "7YAjn-jNY4I",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.volume_trend_strength",
+  "fact_text": "The analyst uses volume to judge whether a price trend is strong or weak and what price movement may follow.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '17. Unlock the Secret to Profitable Trading! How Volume Indicators Can Predict Market Moves in PSX' (YouTube, 2024-11-12)",
+  "source_url": "https://www.youtube.com/watch?v=7YAjn-jNY4I",
+  "video_id": "7YAjn-jNY4I",
+  "confidence": "analyst_view"
+ }
+]

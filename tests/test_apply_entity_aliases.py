@@ -24,10 +24,13 @@ def test_names_fold_to_tickers_and_others_are_untouched_and_it_is_idempotent():
         ["ILP", "MACRO:PAKISTAN"]
 
 
-def test_the_shipped_alias_file_holds_only_tickers():
+def test_the_shipped_alias_file_holds_tickers_sectors_or_name_folds():
     aliases = ali.load()
     assert len(aliases) >= 30
-    assert all(t == t.upper() and t.removeprefix("SECTOR:").isalnum() for t in aliases.values())
+    for name, target in aliases.items():
+        folded = target != target.upper()  # a name-to-name fold, e.g. two spellings of one unlisted company
+        assert folded or target.removeprefix("SECTOR:").removeprefix("MACRO:").isalnum(), (name, target)
+    assert sum(t != t.upper() for t in aliases.values()) <= 5
 
 
 def test_no_name_is_both_aliased_and_marked_not_listed():

@@ -1,0 +1,122 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_move",
+  "fact_text": "The KSE-100 was trading near 145,000 points and touching an all-time high after about 10 to 15 days of gains.",
+  "value": 145000,
+  "unit": "points",
+  "period": "2025-08-09",
+  "source_name": "Standard Capital Securities, 'PPL Stock Technical Analysis | Support & Resistance, Future Targets & Project Outlook | PSX' (YouTube, 2025-08-09)",
+  "source_url": "https://www.youtube.com/watch?v=oU3yRb55Eys",
+  "video_id": "oU3yRb55Eys",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_drivers",
+  "fact_text": "The analyst said banking and oil stocks were the main forces lifting the KSE-100, and the healthy correction many analysts had predicted had not come.",
+  "value": null,
+  "unit": null,
+  "period": "2025-08-09",
+  "source_name": "Standard Capital Securities, 'PPL Stock Technical Analysis | Support & Resistance, Future Targets & Project Outlook | PSX' (YouTube, 2025-08-09)",
+  "source_url": "https://www.youtube.com/watch?v=oU3yRb55Eys",
+  "video_id": "oU3yRb55Eys",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:OIL_GAS",
+  "topic": "market.oil_gas_rally",
+  "fact_text": "PSO, PPL and OGDCL had been strongly bullish over the prior three to four sessions, and the analyst expected further gains in those stocks.",
+  "value": null,
+  "unit": null,
+  "period": "Aug 2025",
+  "source_name": "Standard Capital Securities, 'PPL Stock Technical Analysis | Support & Resistance, Future Targets & Project Outlook | PSX' (YouTube, 2025-08-09)",
+  "source_url": "https://www.youtube.com/watch?v=oU3yRb55Eys",
+  "video_id": "oU3yRb55Eys",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.circular_debt",
+  "fact_text": "The analyst linked oil-sector strength to news that circular-debt receivables would be received, which he said could support further gains in PSO, OGDCL and PPL.",
+  "value": null,
+  "unit": null,
+  "period": "Aug 2025",
+  "source_name": "Standard Capital Securities, 'PPL Stock Technical Analysis | Support & Resistance, Future Targets & Project Outlook | PSX' (YouTube, 2025-08-09)",
+  "source_url": "https://www.youtube.com/watch?v=oU3yRb55Eys",
+  "video_id": "oU3yRb55Eys",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PPL",
+  "topic": "commentary.catalyst",
+  "fact_text": "PPL was rejected three times at an earlier resistance zone, then a bullish candle on heavy volume broke it, the price retested the level, and a new all-time high followed.",
+  "value": null,
+  "unit": null,
+  "period": "2025-08-09",
+  "source_name": "Standard Capital Securities, 'PPL Stock Technical Analysis | Support & Resistance, Future Targets & Project Outlook | PSX' (YouTube, 2025-08-09)",
+  "source_url": "https://www.youtube.com/watch?v=oU3yRb55Eys",
+  "video_id": "oU3yRb55Eys",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PPL",
+  "topic": "commentary.catalyst",
+  "fact_text": "The analyst set Rs 194 as PPL's key resistance; a break above it could take the stock toward Rs 214 and Rs 225.",
+  "value": 194,
+  "unit": "PKR_per_share",
+  "period": "2025-08-09",
+  "source_name": "Standard Capital Securities, 'PPL Stock Technical Analysis | Support & Resistance, Future Targets & Project Outlook | PSX' (YouTube, 2025-08-09)",
+  "source_url": "https://www.youtube.com/watch?v=oU3yRb55Eys",
+  "video_id": "oU3yRb55Eys",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PPL",
+  "topic": "commentary.outlook",
+  "fact_text": "If the Rs 194 level breaks, the analyst saw a short-term upside move, and a longer rally to the 1.61 extension level could reach about Rs 233.",
+  "value": 233,
+  "unit": "PKR_per_share",
+  "period": "2025-08-09",
+  "source_name": "Standard Capital Securities, 'PPL Stock Technical Analysis | Support & Resistance, Future Targets & Project Outlook | PSX' (YouTube, 2025-08-09)",
+  "source_url": "https://www.youtube.com/watch?v=oU3yRb55Eys",
+  "video_id": "oU3yRb55Eys",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PPL",
+  "topic": "commentary.outlook",
+  "fact_text": "PPL's previous high was Rs 216, and the analyst expected the stock to break that high and set new all-time highs.",
+  "value": 216,
+  "unit": "PKR_per_share",
+  "period": "2025-08-09",
+  "source_name": "Standard Capital Securities, 'PPL Stock Technical Analysis | Support & Resistance, Future Targets & Project Outlook | PSX' (YouTube, 2025-08-09)",
+  "source_url": "https://www.youtube.com/watch?v=oU3yRb55Eys",
+  "video_id": "oU3yRb55Eys",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PPL",
+  "topic": "commentary.outlook",
+  "fact_text": "PPL has formed a price channel, and the analyst pointed to the channel top near Rs 203 to 204 as the level the price would reach.",
+  "value": 203,
+  "unit": "PKR_per_share",
+  "period": "2025-08-09",
+  "source_name": "Standard Capital Securities, 'PPL Stock Technical Analysis | Support & Resistance, Future Targets & Project Outlook | PSX' (YouTube, 2025-08-09)",
+  "source_url": "https://www.youtube.com/watch?v=oU3yRb55Eys",
+  "video_id": "oU3yRb55Eys",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "PPL",
+  "topic": "method.shape_projection",
+  "fact_text": "The analyst derives upside targets with a shape projection tool, taking the low-to-high swing and projecting it from the correction.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PPL Stock Technical Analysis | Support & Resistance, Future Targets & Project Outlook | PSX' (YouTube, 2025-08-09)",
+  "source_url": "https://www.youtube.com/watch?v=oU3yRb55Eys",
+  "video_id": "oU3yRb55Eys",
+  "confidence": "fact"
+ }
+]

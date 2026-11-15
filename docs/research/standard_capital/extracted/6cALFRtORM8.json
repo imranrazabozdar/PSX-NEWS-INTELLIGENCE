@@ -1,0 +1,122 @@
+[
+ {
+  "company": "SECTOR:TEXTILE",
+  "topic": "news.policy",
+  "fact_text": "The government imposed an 18% general sales tax on imported raw cotton, which the analyst reads as support for export-oriented textile composites.",
+  "value": 18,
+  "unit": "percent",
+  "period": "2025-07-30",
+  "source_name": "Standard Capital Securities, 'Midday Flash 30 July 2025 | Textile Exports Outlook & Fertilizer Sector Dividends | PSX' (YouTube, 2025-07-30)",
+  "source_url": "https://www.youtube.com/watch?v=6cALFRtORM8",
+  "video_id": "6cALFRtORM8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:TEXTILE",
+  "topic": "macro.textile_us_duties",
+  "fact_text": "Pakistan is nearing a trade agreement with the United States, and lower US duties on Pakistani textiles could raise Pakistani exports, the analyst said.",
+  "value": null,
+  "unit": null,
+  "period": "2025-07-30",
+  "source_name": "Standard Capital Securities, 'Midday Flash 30 July 2025 | Textile Exports Outlook & Fertilizer Sector Dividends | PSX' (YouTube, 2025-07-30)",
+  "source_url": "https://www.youtube.com/watch?v=6cALFRtORM8",
+  "video_id": "6cALFRtORM8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:TEXTILE",
+  "topic": "signal.textile_export_share",
+  "fact_text": "Textile products make up about 60-65% of Pakistan's total exports, so the analyst said that share needs to grow further.",
+  "value": 60,
+  "unit": "percent",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash 30 July 2025 | Textile Exports Outlook & Fertilizer Sector Dividends | PSX' (YouTube, 2025-07-30)",
+  "source_url": "https://www.youtube.com/watch?v=6cALFRtORM8",
+  "video_id": "6cALFRtORM8",
+  "confidence": "fact"
+ },
+ {
+  "company": "SECTOR:TEXTILE",
+  "topic": "profile.business",
+  "fact_text": "Textile composites run spinning and weaving lines that turn cotton into yarn, fabric and home textiles such as bedsheets, where Pakistan is described as the largest bedsheet exporter.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash 30 July 2025 | Textile Exports Outlook & Fertilizer Sector Dividends | PSX' (YouTube, 2025-07-30)",
+  "source_url": "https://www.youtube.com/watch?v=6cALFRtORM8",
+  "video_id": "6cALFRtORM8",
+  "confidence": "fact"
+ },
+ {
+  "company": "NML",
+  "topic": "commentary.thesis",
+  "fact_text": "The analyst said Nishat Mills is attractive partly because it pays dividends and holds investments in group companies and MCB shares.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash 30 July 2025 | Textile Exports Outlook & Fertilizer Sector Dividends | PSX' (YouTube, 2025-07-30)",
+  "source_url": "https://www.youtube.com/watch?v=6cALFRtORM8",
+  "video_id": "6cALFRtORM8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "FFC",
+  "topic": "news.dividend",
+  "fact_text": "Fauji Fertilizer declared a half-year dividend of PKR 12 per share, ahead of other fertilizer companies.",
+  "value": 12,
+  "unit": "PKR_per_share",
+  "period": "H1 2025",
+  "source_name": "Standard Capital Securities, 'Midday Flash 30 July 2025 | Textile Exports Outlook & Fertilizer Sector Dividends | PSX' (YouTube, 2025-07-30)",
+  "source_url": "https://www.youtube.com/watch?v=6cALFRtORM8",
+  "video_id": "6cALFRtORM8",
+  "confidence": "fact"
+ },
+ {
+  "company": "FFC",
+  "topic": "news.results",
+  "fact_text": "Fauji Fertilizer's top-line sales grew 61% quarter on quarter, which the analyst cited as a strong sign of momentum.",
+  "value": 61,
+  "unit": "percent",
+  "period": "2025-07-30",
+  "source_name": "Standard Capital Securities, 'Midday Flash 30 July 2025 | Textile Exports Outlook & Fertilizer Sector Dividends | PSX' (YouTube, 2025-07-30)",
+  "source_url": "https://www.youtube.com/watch?v=6cALFRtORM8",
+  "video_id": "6cALFRtORM8",
+  "confidence": "fact"
+ },
+ {
+  "company": "EFERT",
+  "topic": "news.results",
+  "fact_text": "Engro Fertilizer's top-line growth was 27% quarter on quarter, below Fauji Fertilizer's growth but still strong, according to the analyst.",
+  "value": 27,
+  "unit": "percent",
+  "period": "2025-07-30",
+  "source_name": "Standard Capital Securities, 'Midday Flash 30 July 2025 | Textile Exports Outlook & Fertilizer Sector Dividends | PSX' (YouTube, 2025-07-30)",
+  "source_url": "https://www.youtube.com/watch?v=6cALFRtORM8",
+  "video_id": "6cALFRtORM8",
+  "confidence": "fact"
+ },
+ {
+  "company": "FATIMA",
+  "topic": "news.dividend",
+  "fact_text": "Many investors expect Fatima Fertilizer to declare a half-year dividend and show quarter-on-quarter sales growth, the analyst said.",
+  "value": null,
+  "unit": null,
+  "period": "H1 2025",
+  "source_name": "Standard Capital Securities, 'Midday Flash 30 July 2025 | Textile Exports Outlook & Fertilizer Sector Dividends | PSX' (YouTube, 2025-07-30)",
+  "source_url": "https://www.youtube.com/watch?v=6cALFRtORM8",
+  "video_id": "6cALFRtORM8",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.quarterly_sales_growth",
+  "fact_text": "The analyst stresses that sales growth measured quarter on quarter, alongside earnings and cash, is a key signal that stock markets watch.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash 30 July 2025 | Textile Exports Outlook & Fertilizer Sector Dividends | PSX' (YouTube, 2025-07-30)",
+  "source_url": "https://www.youtube.com/watch?v=6cALFRtORM8",
+  "video_id": "6cALFRtORM8",
+  "confidence": "analyst_view"
+ }
+]

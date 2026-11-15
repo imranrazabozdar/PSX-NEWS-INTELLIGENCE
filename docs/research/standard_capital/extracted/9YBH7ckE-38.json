@@ -1,0 +1,110 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.tbill_yield",
+  "fact_text": "After a government sukuk issue and a T-bill auction, yields on T-bills of various tenors fell by about 50 basis points, as of 29 Jan 2024.",
+  "value": 50,
+  "unit": "basis_points",
+  "period": "2024-01-29",
+  "source_name": "Standard Capital Securities, 'PSX Market Strategy | Portfolio Options for Smart Investors 🔍' (YouTube, 2024-01-29)",
+  "source_url": "https://www.youtube.com/watch?v=9YBH7ckE-38",
+  "video_id": "9YBH7ckE-38",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.rate_cut_transmission",
+  "fact_text": "Some market participants expect a policy rate cut, which the analyst says would help trade and industry, and he sees it as a sign of easing.",
+  "value": null,
+  "unit": null,
+  "period": "2024-01-29",
+  "source_name": "Standard Capital Securities, 'PSX Market Strategy | Portfolio Options for Smart Investors 🔍' (YouTube, 2024-01-29)",
+  "source_url": "https://www.youtube.com/watch?v=9YBH7ckE-38",
+  "video_id": "9YBH7ckE-38",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.inflation",
+  "fact_text": "Weekly inflation figures dipped in the weeks before 29 Jan 2024, which the analyst sees as a positive sign.",
+  "value": null,
+  "unit": null,
+  "period": "2024-01-29",
+  "source_name": "Standard Capital Securities, 'PSX Market Strategy | Portfolio Options for Smart Investors 🔍' (YouTube, 2024-01-29)",
+  "source_url": "https://www.youtube.com/watch?v=9YBH7ckE-38",
+  "video_id": "9YBH7ckE-38",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.circular_debt_ecc",
+  "fact_text": "As of 29 Jan 2024 the market is waiting for an ECC decision on the 1,250 billion rupee circular debt payment, and the analyst says some people believe it needs IMF approval first.",
+  "value": 1250,
+  "unit": "PKR_billions",
+  "period": "2024-01-29",
+  "source_name": "Standard Capital Securities, 'PSX Market Strategy | Portfolio Options for Smart Investors 🔍' (YouTube, 2024-01-29)",
+  "source_url": "https://www.youtube.com/watch?v=9YBH7ckE-38",
+  "video_id": "9YBH7ckE-38",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.election",
+  "fact_text": "The general election is due on 8 Feb 2024, and the analyst expects the market outlook to be shaped by the post-election situation.",
+  "value": null,
+  "unit": null,
+  "period": "2024-02-08",
+  "source_name": "Standard Capital Securities, 'PSX Market Strategy | Portfolio Options for Smart Investors 🔍' (YouTube, 2024-01-29)",
+  "source_url": "https://www.youtube.com/watch?v=9YBH7ckE-38",
+  "video_id": "9YBH7ckE-38",
+  "confidence": "fact"
+ },
+ {
+  "company": "SECTOR:CEMENT",
+  "topic": "valuation.northern_zone",
+  "fact_text": "The analyst says Northern zone cement companies, in Punjab and KP, are trading below their valuation as of 29 Jan 2024 and may be attractive for portfolios.",
+  "value": null,
+  "unit": null,
+  "period": "2024-01-29",
+  "source_name": "Standard Capital Securities, 'PSX Market Strategy | Portfolio Options for Smart Investors 🔍' (YouTube, 2024-01-29)",
+  "source_url": "https://www.youtube.com/watch?v=9YBH7ckE-38",
+  "video_id": "9YBH7ckE-38",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:BANKS",
+  "topic": "commentary.financials",
+  "fact_text": "The analyst notes that banks' net interest margins and spreads have widened to high levels, which he links to earnings strength at Islamic banks.",
+  "value": null,
+  "unit": null,
+  "period": "2024-01-29",
+  "source_name": "Standard Capital Securities, 'PSX Market Strategy | Portfolio Options for Smart Investors 🔍' (YouTube, 2024-01-29)",
+  "source_url": "https://www.youtube.com/watch?v=9YBH7ckE-38",
+  "video_id": "9YBH7ckE-38",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:BANKS",
+  "topic": "news.dividend",
+  "fact_text": "The analyst says Islamic banks may still have final-quarter dividends to come.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'PSX Market Strategy | Portfolio Options for Smart Investors 🔍' (YouTube, 2024-01-29)",
+  "source_url": "https://www.youtube.com/watch?v=9YBH7ckE-38",
+  "video_id": "9YBH7ckE-38",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SAZEW",
+  "topic": "commentary.outlook",
+  "fact_text": "Sazgar Engineering's SUV sales dipped in the months before 29 Jan 2024, but the analyst says more SUV sales are still to come.",
+  "value": null,
+  "unit": null,
+  "period": "2024-01-29",
+  "source_name": "Standard Capital Securities, 'PSX Market Strategy | Portfolio Options for Smart Investors 🔍' (YouTube, 2024-01-29)",
+  "source_url": "https://www.youtube.com/watch?v=9YBH7ckE-38",
+  "video_id": "9YBH7ckE-38",
+  "confidence": "analyst_view"
+ }
+]

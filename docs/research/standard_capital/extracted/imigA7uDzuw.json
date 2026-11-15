@@ -1,0 +1,122 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.super_tax_instalments",
+  "fact_text": "The FBR allowed corporates to pay their super tax in instalments instead of a lump sum, which the analyst described as relief after objections from companies.",
+  "value": null,
+  "unit": null,
+  "period": "2026-02-06",
+  "source_name": "Standard Capital Securities, 'Midday Flash | 06 Feb 2026 | Super Tax Relief | KEL CEO Resigns | NBP Hearing | MCB | Reko Diq' (YouTube, 2026-02-06)",
+  "source_url": "https://www.youtube.com/watch?v=imigA7uDzuw",
+  "video_id": "imigA7uDzuw",
+  "confidence": "fact"
+ },
+ {
+  "company": "KEL",
+  "topic": "news.management",
+  "fact_text": "Karachi Electric's CEO resigned, and three CEO candidates have been shortlisted for the position, which the analyst said could move the share price.",
+  "value": 3,
+  "unit": "candidates",
+  "period": "2026-02-06",
+  "source_name": "Standard Capital Securities, 'Midday Flash | 06 Feb 2026 | Super Tax Relief | KEL CEO Resigns | NBP Hearing | MCB | Reko Diq' (YouTube, 2026-02-06)",
+  "source_url": "https://www.youtube.com/watch?v=imigA7uDzuw",
+  "video_id": "imigA7uDzuw",
+  "confidence": "fact"
+ },
+ {
+  "company": "NBP",
+  "topic": "news.litigation_provision",
+  "fact_text": "National Bank of Pakistan has a pension-related case with a review petition hearing on 13 Feb 2026, and it holds loan provisions of about PKR 49 billion in its nine-month 2025 accounts.",
+  "value": 49,
+  "unit": "PKR_billions",
+  "period": "9M 2025",
+  "source_name": "Standard Capital Securities, 'Midday Flash | 06 Feb 2026 | Super Tax Relief | KEL CEO Resigns | NBP Hearing | MCB | Reko Diq' (YouTube, 2026-02-06)",
+  "source_url": "https://www.youtube.com/watch?v=imigA7uDzuw",
+  "video_id": "imigA7uDzuw",
+  "confidence": "fact"
+ },
+ {
+  "company": "NBP",
+  "topic": "commentary.risk",
+  "fact_text": "Analyst view: even if the pension case needs further provisioning, the amount would not be a major issue for a bank of National Bank's size.",
+  "value": null,
+  "unit": null,
+  "period": "2026-02-06",
+  "source_name": "Standard Capital Securities, 'Midday Flash | 06 Feb 2026 | Super Tax Relief | KEL CEO Resigns | NBP Hearing | MCB | Reko Diq' (YouTube, 2026-02-06)",
+  "source_url": "https://www.youtube.com/watch?v=imigA7uDzuw",
+  "video_id": "imigA7uDzuw",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "NBP",
+  "topic": "commentary.catalyst",
+  "fact_text": "The market was anticipating a large dividend from National Bank, and the analyst expects the dividend to come through at the next board meeting, as he saw the 2025 closing as expected.",
+  "value": null,
+  "unit": null,
+  "period": "2026-02-06",
+  "source_name": "Standard Capital Securities, 'Midday Flash | 06 Feb 2026 | Super Tax Relief | KEL CEO Resigns | NBP Hearing | MCB | Reko Diq' (YouTube, 2026-02-06)",
+  "source_url": "https://www.youtube.com/watch?v=imigA7uDzuw",
+  "video_id": "imigA7uDzuw",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MCB",
+  "topic": "news.dividend",
+  "fact_text": "MCB Bank declared a fourth-quarter final dividend of PKR 9 per share, bringing the total dividend to PKR 36 per share for the year.",
+  "value": 36,
+  "unit": "PKR_per_share",
+  "period": "FY25",
+  "source_name": "Standard Capital Securities, 'Midday Flash | 06 Feb 2026 | Super Tax Relief | KEL CEO Resigns | NBP Hearing | MCB | Reko Diq' (YouTube, 2026-02-06)",
+  "source_url": "https://www.youtube.com/watch?v=imigA7uDzuw",
+  "video_id": "imigA7uDzuw",
+  "confidence": "fact"
+ },
+ {
+  "company": "MCB",
+  "topic": "commentary.valuation",
+  "fact_text": "At the prevailing share price, the full-year dividend gives MCB an annual dividend yield of about 8%, which the analyst cited as a strong yield for a bank.",
+  "value": 8,
+  "unit": "percent",
+  "period": "2026-02-06",
+  "source_name": "Standard Capital Securities, 'Midday Flash | 06 Feb 2026 | Super Tax Relief | KEL CEO Resigns | NBP Hearing | MCB | Reko Diq' (YouTube, 2026-02-06)",
+  "source_url": "https://www.youtube.com/watch?v=imigA7uDzuw",
+  "video_id": "imigA7uDzuw",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "Reko Diq",
+  "topic": "commentary.risk",
+  "fact_text": "Security concerns in Balochistan around the Reko Diq project spread through social media and local media, and the analyst said the market reaction to them was a short-term effect on OGDC and PPL.",
+  "value": null,
+  "unit": null,
+  "period": "2026-02-06",
+  "source_name": "Standard Capital Securities, 'Midday Flash | 06 Feb 2026 | Super Tax Relief | KEL CEO Resigns | NBP Hearing | MCB | Reko Diq' (YouTube, 2026-02-06)",
+  "source_url": "https://www.youtube.com/watch?v=imigA7uDzuw",
+  "video_id": "imigA7uDzuw",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.rate_cut_timing",
+  "fact_text": "Analyst view: the rise in yields seen in the video suggests a policy rate cut may not come as soon as expected, and conditions could improve around Ramadan.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash | 06 Feb 2026 | Super Tax Relief | KEL CEO Resigns | NBP Hearing | MCB | Reko Diq' (YouTube, 2026-02-06)",
+  "source_url": "https://www.youtube.com/watch?v=imigA7uDzuw",
+  "video_id": "imigA7uDzuw",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "news.investment_delegation",
+  "fact_text": "A Kazakhstan delegation visited Pakistan and announced several investment initiatives, mainly in mining, which the analyst said could be positive for Pakistan.",
+  "value": null,
+  "unit": null,
+  "period": "2026-02-06",
+  "source_name": "Standard Capital Securities, 'Midday Flash | 06 Feb 2026 | Super Tax Relief | KEL CEO Resigns | NBP Hearing | MCB | Reko Diq' (YouTube, 2026-02-06)",
+  "source_url": "https://www.youtube.com/watch?v=imigA7uDzuw",
+  "video_id": "imigA7uDzuw",
+  "confidence": "fact"
+ }
+]

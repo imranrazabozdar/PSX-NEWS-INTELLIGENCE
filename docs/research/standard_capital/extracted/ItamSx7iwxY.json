@@ -1,0 +1,110 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.fifo_settlement_default",
+  "fact_text": "NCCPL settles a sale of shares bought on an earlier trading day on a first-in, first-out basis, so the oldest purchase lots are treated as sold first.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'FIFO & LIFO in PSX Trading | NCCPL Settlement Explained' (YouTube, 2026-08-06)",
+  "source_url": "https://www.youtube.com/watch?v=ItamSx7iwxY",
+  "video_id": "ItamSx7iwxY",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.lifo_intraday_settlement",
+  "fact_text": "Shares bought and sold on the same trading day are settled on a last-in, first-out basis, so the most recent purchase lot is matched against the sale first.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'FIFO & LIFO in PSX Trading | NCCPL Settlement Explained' (YouTube, 2026-08-06)",
+  "source_url": "https://www.youtube.com/watch?v=ItamSx7iwxY",
+  "video_id": "ItamSx7iwxY",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.lot_average_cost",
+  "fact_text": "Three lots of 100 shares bought at Rs 10, Rs 12 and Rs 14 make 300 shares with a total cost of Rs 3,600 and an average buying price of Rs 12.",
+  "value": 12,
+  "unit": "PKR",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'FIFO & LIFO in PSX Trading | NCCPL Settlement Explained' (YouTube, 2026-08-06)",
+  "source_url": "https://www.youtube.com/watch?v=ItamSx7iwxY",
+  "video_id": "ItamSx7iwxY",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.fifo_realised_pnl_example",
+  "fact_text": "In the worked example, selling 150 of the 300 shares at Rs 16 under FIFO gives a realised profit of Rs 800, from 100 shares at Rs 10 and 50 shares at Rs 12 as cost.",
+  "value": 800,
+  "unit": "PKR",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'FIFO & LIFO in PSX Trading | NCCPL Settlement Explained' (YouTube, 2026-08-06)",
+  "source_url": "https://www.youtube.com/watch?v=ItamSx7iwxY",
+  "video_id": "ItamSx7iwxY",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.fifo_remaining_average_cost",
+  "fact_text": "After the FIFO sale in the worked example, the 150 shares left (50 at Rs 12 and 100 at Rs 14) have an average buying price of about Rs 13.33.",
+  "value": 13.33,
+  "unit": "PKR",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'FIFO & LIFO in PSX Trading | NCCPL Settlement Explained' (YouTube, 2026-08-06)",
+  "source_url": "https://www.youtube.com/watch?v=ItamSx7iwxY",
+  "video_id": "ItamSx7iwxY",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.intraday_lifo_pnl_example",
+  "fact_text": "In the intraday example, 100 shares bought at Rs 14 and 50 shares from the Rs 10 lot are sold at Rs 16 under LIFO, giving a realised profit of Rs 500 on Rs 2,400 of sales.",
+  "value": 500,
+  "unit": "PKR",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'FIFO & LIFO in PSX Trading | NCCPL Settlement Explained' (YouTube, 2026-08-06)",
+  "source_url": "https://www.youtube.com/watch?v=ItamSx7iwxY",
+  "video_id": "ItamSx7iwxY",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.intraday_remaining_average_cost",
+  "fact_text": "After the intraday sale in the example, the 150 shares left (50 at Rs 10 and 100 at Rs 12) have an average buying price of about Rs 11.33.",
+  "value": 11.33,
+  "unit": "PKR",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'FIFO & LIFO in PSX Trading | NCCPL Settlement Explained' (YouTube, 2026-08-06)",
+  "source_url": "https://www.youtube.com/watch?v=ItamSx7iwxY",
+  "video_id": "ItamSx7iwxY",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.same_day_rebuy_matching",
+  "fact_text": "If shares are bought again after a sale on the same trading day, the sale is matched to that later purchase under LIFO, so a Rs 12 sale of a Rs 13 purchase shows a Rs 1 loss, even though the system may show a profit.",
+  "value": 1,
+  "unit": "PKR",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'FIFO & LIFO in PSX Trading | NCCPL Settlement Explained' (YouTube, 2026-08-06)",
+  "source_url": "https://www.youtube.com/watch?v=ItamSx7iwxY",
+  "video_id": "ItamSx7iwxY",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.booking_profit_caution",
+  "fact_text": "The analyst's view was that an investor booking profit on a trading day should avoid a later purchase that would be matched against the sale, or buy only at lower prices, so the booked profit is not turned into a loss.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'FIFO & LIFO in PSX Trading | NCCPL Settlement Explained' (YouTube, 2026-08-06)",
+  "source_url": "https://www.youtube.com/watch?v=ItamSx7iwxY",
+  "video_id": "ItamSx7iwxY",
+  "confidence": "analyst_view"
+ }
+]

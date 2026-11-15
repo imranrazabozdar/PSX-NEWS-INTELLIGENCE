@@ -1,0 +1,98 @@
+[
+ {
+  "company": "SECTOR:CEMENT",
+  "topic": "valuation.ev_per_ton",
+  "fact_text": "Cement companies trade at about USD 29 per ton on enterprise value, which the analyst called cheap for their valuation.",
+  "value": 29,
+  "unit": "USD_per_ton",
+  "period": "2024-02-19",
+  "source_name": "Standard Capital Securities, 'Post-Election Strategies for Smart Investors 📈' (YouTube, 2024-02-19)",
+  "source_url": "https://www.youtube.com/watch?v=tzcFWYYxf24",
+  "video_id": "tzcFWYYxf24",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:CEMENT",
+  "topic": "cost.bag_price",
+  "fact_text": "Cement bag prices in the northern zone and KPK have roughly doubled since 2019 and 2020, which supports cement makers' margins.",
+  "value": null,
+  "unit": null,
+  "period": "2024-02-19",
+  "source_name": "Standard Capital Securities, 'Post-Election Strategies for Smart Investors 📈' (YouTube, 2024-02-19)",
+  "source_url": "https://www.youtube.com/watch?v=tzcFWYYxf24",
+  "video_id": "tzcFWYYxf24",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:REFINERY",
+  "topic": "cycle.fuel_prices",
+  "fact_text": "Lower petrol and diesel prices in 2023 led to a large reported loss at National Refinery.",
+  "value": null,
+  "unit": null,
+  "period": "2023",
+  "source_name": "Standard Capital Securities, 'Post-Election Strategies for Smart Investors 📈' (YouTube, 2024-02-19)",
+  "source_url": "https://www.youtube.com/watch?v=tzcFWYYxf24",
+  "video_id": "tzcFWYYxf24",
+  "confidence": "fact"
+ },
+ {
+  "company": "ATRL",
+  "topic": "cost.crude_source",
+  "fact_text": "Attock Refinery gets local crude from a group company, so it is less exposed to dollar and global oil price moves than coastal refineries such as Pakistan Refinery and National Refinery.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Post-Election Strategies for Smart Investors 📈' (YouTube, 2024-02-19)",
+  "source_url": "https://www.youtube.com/watch?v=tzcFWYYxf24",
+  "video_id": "tzcFWYYxf24",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SAZEW",
+  "topic": "commentary.thesis",
+  "fact_text": "Sazgar Engineering, a maker of rickshaws, is moving into electric vehicles, which the analyst cited as a value-investing idea.",
+  "value": null,
+  "unit": null,
+  "period": "2024-02-19",
+  "source_name": "Standard Capital Securities, 'Post-Election Strategies for Smart Investors 📈' (YouTube, 2024-02-19)",
+  "source_url": "https://www.youtube.com/watch?v=tzcFWYYxf24",
+  "video_id": "tzcFWYYxf24",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "AIRLINK",
+  "topic": "profile.business",
+  "fact_text": "Airlink assembles mobile phones and televisions from imported CKD kits and sells them through distributors to Chinese brands.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Post-Election Strategies for Smart Investors 📈' (YouTube, 2024-02-19)",
+  "source_url": "https://www.youtube.com/watch?v=tzcFWYYxf24",
+  "video_id": "tzcFWYYxf24",
+  "confidence": "fact"
+ },
+ {
+  "company": "SECTOR:BANKS",
+  "topic": "returns.islamic_bank_yield",
+  "fact_text": "Analyst said Islamic banks earn higher yields on earning assets than conventional banks, which he called an important point for them.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Post-Election Strategies for Smart Investors 📈' (YouTube, 2024-02-19)",
+  "source_url": "https://www.youtube.com/watch?v=tzcFWYYxf24",
+  "video_id": "tzcFWYYxf24",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "strategy.post_election",
+  "fact_text": "Analyst said portfolios should be redesigned and rebalanced for the post-election period, when a coalition government is expected.",
+  "value": null,
+  "unit": null,
+  "period": "2024-02-19",
+  "source_name": "Standard Capital Securities, 'Post-Election Strategies for Smart Investors 📈' (YouTube, 2024-02-19)",
+  "source_url": "https://www.youtube.com/watch?v=tzcFWYYxf24",
+  "video_id": "tzcFWYYxf24",
+  "confidence": "analyst_view"
+ }
+]

@@ -1,0 +1,62 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.rsi_divergence",
+  "fact_text": "RSI normally moves with price, and a divergence is when the two move in opposite directions, which the analyst treats as a possible reversal signal.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'RSI Divergence Explained: Master Technical Analysis for PSX & Equity Markets' (YouTube, 2025-01-24)",
+  "source_url": "https://www.youtube.com/watch?v=iSd2ednc5rY",
+  "video_id": "iSd2ednc5rY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.rsi_bullish_divergence",
+  "fact_text": "A bullish RSI divergence forms when price makes a lower low while RSI makes a higher low, which the analyst reads as a possible upside reversal.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'RSI Divergence Explained: Master Technical Analysis for PSX & Equity Markets' (YouTube, 2025-01-24)",
+  "source_url": "https://www.youtube.com/watch?v=iSd2ednc5rY",
+  "video_id": "iSd2ednc5rY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.rsi_timeframe",
+  "fact_text": "The analyst says RSI divergences can appear on any timeframe, not only on long-term charts.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'RSI Divergence Explained: Master Technical Analysis for PSX & Equity Markets' (YouTube, 2025-01-24)",
+  "source_url": "https://www.youtube.com/watch?v=iSd2ednc5rY",
+  "video_id": "iSd2ednc5rY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SNGP",
+  "topic": "method.rsi_divergence_example",
+  "fact_text": "On Sui Northern Gas's chart, price made a lower low while RSI made a higher low, and the analyst reports a sharp rally afterwards.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'RSI Divergence Explained: Master Technical Analysis for PSX & Equity Markets' (YouTube, 2025-01-24)",
+  "source_url": "https://www.youtube.com/watch?v=iSd2ednc5rY",
+  "video_id": "iSd2ednc5rY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "CHCC",
+  "topic": "method.rsi_divergence_example",
+  "fact_text": "On Cherat Cement's chart, price made a lower low while RSI stayed flat, and the analyst reports a strong rally after the divergence.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'RSI Divergence Explained: Master Technical Analysis for PSX & Equity Markets' (YouTube, 2025-01-24)",
+  "source_url": "https://www.youtube.com/watch?v=iSd2ednc5rY",
+  "video_id": "iSd2ednc5rY",
+  "confidence": "analyst_view"
+ }
+]

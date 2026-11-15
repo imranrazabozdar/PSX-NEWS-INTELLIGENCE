@@ -1,0 +1,38 @@
+[
+ {
+  "company": "LUCK",
+  "topic": "profile.segments",
+  "fact_text": "Lucky Cement's consolidated accounts combine its cement business with Samsung mobile assembly, K Motors vehicle sales and its textile subsidiaries.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'The Valuation Mastery | Class 01 | Learn Financial Statements | Balance Sheet & Income Statement' (YouTube, 2025-10-04)",
+  "source_url": "https://www.youtube.com/watch?v=A98brlZIqfw",
+  "video_id": "A98brlZIqfw",
+  "confidence": "fact"
+ },
+ {
+  "company": "LUCK",
+  "topic": "method.consolidated_statements",
+  "fact_text": "Consolidated statements add subsidiaries' results and debts to the parent's figures, while standalone statements show only the listed company's own business.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'The Valuation Mastery | Class 01 | Learn Financial Statements | Balance Sheet & Income Statement' (YouTube, 2025-10-04)",
+  "source_url": "https://www.youtube.com/watch?v=A98brlZIqfw",
+  "video_id": "A98brlZIqfw",
+  "confidence": "fact"
+ },
+ {
+  "company": "LUCK",
+  "topic": "method.consolidated_statements",
+  "fact_text": "The analyst suggests long-term investors focus on consolidated statements, since he says the share price depends more on consolidated than standalone results.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'The Valuation Mastery | Class 01 | Learn Financial Statements | Balance Sheet & Income Statement' (YouTube, 2025-10-04)",
+  "source_url": "https://www.youtube.com/watch?v=A98brlZIqfw",
+  "video_id": "A98brlZIqfw",
+  "confidence": "analyst_view"
+ }
+]

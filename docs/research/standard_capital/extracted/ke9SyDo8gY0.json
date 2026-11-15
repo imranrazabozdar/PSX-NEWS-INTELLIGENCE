@@ -1,0 +1,50 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.trend_identification",
+  "fact_text": "The analyst said an uptrend breaks prior highs and a downtrend breaks prior lows, so corrections are measured from the swing points.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '8. Fibonacci Retracement Tool Explained | How to Identify Trends in PSX & Equity Market' (YouTube, 2024-10-05)",
+  "source_url": "https://www.youtube.com/watch?v=ke9SyDo8gY0",
+  "video_id": "ke9SyDo8gY0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.fibonacci_retracement",
+  "fact_text": "On the KSE-100 chart the analyst saw a correction in an uptrend respected at a Fibonacci level, which led to a bullish move.",
+  "value": null,
+  "unit": null,
+  "period": "2024-10-05",
+  "source_name": "Standard Capital Securities, '8. Fibonacci Retracement Tool Explained | How to Identify Trends in PSX & Equity Market' (YouTube, 2024-10-05)",
+  "source_url": "https://www.youtube.com/watch?v=ke9SyDo8gY0",
+  "video_id": "ke9SyDo8gY0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "ENGRO",
+  "topic": "method.fibonacci_retracement",
+  "fact_text": "In a downtrend the analyst applied the tool from high to low on Engro Corporation and saw price stop near the 0.6 level.",
+  "value": 0.6,
+  "unit": "ratio",
+  "period": "2024-10-05",
+  "source_name": "Standard Capital Securities, '8. Fibonacci Retracement Tool Explained | How to Identify Trends in PSX & Equity Market' (YouTube, 2024-10-05)",
+  "source_url": "https://www.youtube.com/watch?v=ke9SyDo8gY0",
+  "video_id": "ke9SyDo8gY0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.fibonacci_retracement",
+  "fact_text": "The analyst said a Fibonacci level should be acted on only with price confirmation, not on the level alone.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '8. Fibonacci Retracement Tool Explained | How to Identify Trends in PSX & Equity Market' (YouTube, 2024-10-05)",
+  "source_url": "https://www.youtube.com/watch?v=ke9SyDo8gY0",
+  "video_id": "ke9SyDo8gY0",
+  "confidence": "analyst_view"
+ }
+]

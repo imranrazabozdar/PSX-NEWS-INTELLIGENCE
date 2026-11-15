@@ -1,0 +1,122 @@
+[
+ {
+  "company": "SECTOR:PHARMA",
+  "topic": "method.ppe_capex_growth",
+  "fact_text": "Growth in property, plant and equipment (PPE) additions in reported accounts is a leading signal: capex spent in a year lifts sales in later years, then profit and dividends.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Pharma Sector Asset Pricing | Valuation Analysis & Market Impact.' (YouTube, 2023-11-21)",
+  "source_url": "https://www.youtube.com/watch?v=Zq2q7xQLaJA",
+  "video_id": "Zq2q7xQLaJA",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:PHARMA",
+  "topic": "news.policy",
+  "fact_text": "The government allowed some medicine price increases in late 2023, which the analyst said gives pharma companies a modest benefit.",
+  "value": null,
+  "unit": null,
+  "period": "2023-11-21",
+  "source_name": "Standard Capital Securities, 'Pharma Sector Asset Pricing | Valuation Analysis & Market Impact.' (YouTube, 2023-11-21)",
+  "source_url": "https://www.youtube.com/watch?v=Zq2q7xQLaJA",
+  "video_id": "Zq2q7xQLaJA",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.lc_restrictions",
+  "fact_text": "Letter of credit restrictions eased somewhat in late 2023 and API imports may have resumed, after a sharp rise in the dollar had hurt pharma companies.",
+  "value": null,
+  "unit": null,
+  "period": "2023-11-21",
+  "source_name": "Standard Capital Securities, 'Pharma Sector Asset Pricing | Valuation Analysis & Market Impact.' (YouTube, 2023-11-21)",
+  "source_url": "https://www.youtube.com/watch?v=Zq2q7xQLaJA",
+  "video_id": "Zq2q7xQLaJA",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "AGP",
+  "topic": "commentary.financials",
+  "fact_text": "AGP, described as among the largest pharma companies in Pakistan, grew PPE strongly alongside many acquisitions and brand purchases.",
+  "value": null,
+  "unit": null,
+  "period": "2023-11-21",
+  "source_name": "Standard Capital Securities, 'Pharma Sector Asset Pricing | Valuation Analysis & Market Impact.' (YouTube, 2023-11-21)",
+  "source_url": "https://www.youtube.com/watch?v=Zq2q7xQLaJA",
+  "video_id": "Zq2q7xQLaJA",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:PHARMA",
+  "topic": "valuation.pharma_multiples",
+  "fact_text": "The pharma companies covered traded at a price-to-sales multiple below 1, and their average price-to-book multiple was about 1.7 times.",
+  "value": 1.7,
+  "unit": "times",
+  "period": "2023-11-21",
+  "source_name": "Standard Capital Securities, 'Pharma Sector Asset Pricing | Valuation Analysis & Market Impact.' (YouTube, 2023-11-21)",
+  "source_url": "https://www.youtube.com/watch?v=Zq2q7xQLaJA",
+  "video_id": "Zq2q7xQLaJA",
+  "confidence": "fact"
+ },
+ {
+  "company": "SECTOR:PHARMA",
+  "topic": "commentary.financials",
+  "fact_text": "The companies covered carry very low debt-to-equity and have no Shariah compliance issue, according to the analyst.",
+  "value": null,
+  "unit": null,
+  "period": "2023-11-21",
+  "source_name": "Standard Capital Securities, 'Pharma Sector Asset Pricing | Valuation Analysis & Market Impact.' (YouTube, 2023-11-21)",
+  "source_url": "https://www.youtube.com/watch?v=Zq2q7xQLaJA",
+  "video_id": "Zq2q7xQLaJA",
+  "confidence": "fact"
+ },
+ {
+  "company": "SECTOR:PHARMA",
+  "topic": "method.consumer_inflation",
+  "fact_text": "In consumer companies such as pharma, sales growth tends to be higher and inflation feeds through to prices, which supports revenue.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Pharma Sector Asset Pricing | Valuation Analysis & Market Impact.' (YouTube, 2023-11-21)",
+  "source_url": "https://www.youtube.com/watch?v=Zq2q7xQLaJA",
+  "video_id": "Zq2q7xQLaJA",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.imf_review",
+  "fact_text": "An IMF review was under way in late 2023, and the analyst expected the coming months to be very hard for Pakistan.",
+  "value": null,
+  "unit": null,
+  "period": "2023-11-21",
+  "source_name": "Standard Capital Securities, 'Pharma Sector Asset Pricing | Valuation Analysis & Market Impact.' (YouTube, 2023-11-21)",
+  "source_url": "https://www.youtube.com/watch?v=Zq2q7xQLaJA",
+  "video_id": "Zq2q7xQLaJA",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.external_repayments",
+  "fact_text": "Pakistan faces about 25 billion dollars of external repayments, and the analyst flagged rupee-dollar pressure as a key risk.",
+  "value": 25,
+  "unit": "USD_billions",
+  "period": "2023-11-21",
+  "source_name": "Standard Capital Securities, 'Pharma Sector Asset Pricing | Valuation Analysis & Market Impact.' (YouTube, 2023-11-21)",
+  "source_url": "https://www.youtube.com/watch?v=Zq2q7xQLaJA",
+  "video_id": "Zq2q7xQLaJA",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.dividend_focus",
+  "fact_text": "The analyst advised investors to focus on dividend-paying stocks and on sectors where PPE is rising.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Pharma Sector Asset Pricing | Valuation Analysis & Market Impact.' (YouTube, 2023-11-21)",
+  "source_url": "https://www.youtube.com/watch?v=Zq2q7xQLaJA",
+  "video_id": "Zq2q7xQLaJA",
+  "confidence": "analyst_view"
+ }
+]

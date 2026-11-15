@@ -1,0 +1,74 @@
+[
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_trend",
+  "fact_text": "On the one-hour chart the KSE-100 had respected an uptrend line, bouncing off it on each dip before the early January 2025 sell-off.",
+  "value": null,
+  "unit": null,
+  "period": "2025-01-04",
+  "source_name": "Standard Capital Securities, 'Expert Reveals TOP Market Levels in PSX 2025' (YouTube, 2025-01-04)",
+  "source_url": "https://www.youtube.com/watch?v=IlpyTgZxjgY",
+  "video_id": "IlpyTgZxjgY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_support",
+  "fact_text": "The KSE-100 had bounced three times from one support zone, which had earlier been resistance that broke upward, so the analyst treated it as strong support on 4 Jan 2025.",
+  "value": null,
+  "unit": null,
+  "period": "2025-01-04",
+  "source_name": "Standard Capital Securities, 'Expert Reveals TOP Market Levels in PSX 2025' (YouTube, 2025-01-04)",
+  "source_url": "https://www.youtube.com/watch?v=IlpyTgZxjgY",
+  "video_id": "IlpyTgZxjgY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_head_shoulders",
+  "fact_text": "On 4 Jan 2025 the analyst saw a bearish head-and-shoulders pattern forming on the hourly chart, with support near 108,000 index points that it had to hold.",
+  "value": 108000,
+  "unit": "index_points",
+  "period": "2025-01-04",
+  "source_name": "Standard Capital Securities, 'Expert Reveals TOP Market Levels in PSX 2025' (YouTube, 2025-01-04)",
+  "source_url": "https://www.youtube.com/watch?v=IlpyTgZxjgY",
+  "video_id": "IlpyTgZxjgY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.kse100_sentiment",
+  "fact_text": "Market sentiment was weak on 4 Jan 2025, and the analyst said the KSE-100 chart looked technically weak as well.",
+  "value": null,
+  "unit": null,
+  "period": "2025-01-04",
+  "source_name": "Standard Capital Securities, 'Expert Reveals TOP Market Levels in PSX 2025' (YouTube, 2025-01-04)",
+  "source_url": "https://www.youtube.com/watch?v=IlpyTgZxjgY",
+  "video_id": "IlpyTgZxjgY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.resistance_flip_support",
+  "fact_text": "A resistance level that the index breaks to the upside tends to act as strong support when price returns to it, the analyst argued from KSE-100 chart history.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Expert Reveals TOP Market Levels in PSX 2025' (YouTube, 2025-01-04)",
+  "source_url": "https://www.youtube.com/watch?v=IlpyTgZxjgY",
+  "video_id": "IlpyTgZxjgY",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.head_shoulders_breakdown",
+  "fact_text": "A confirmed breakdown of a head-and-shoulders pattern on the hourly chart is read as a bearish signal, with a sharp downward move expected once the support gives way.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Expert Reveals TOP Market Levels in PSX 2025' (YouTube, 2025-01-04)",
+  "source_url": "https://www.youtube.com/watch?v=IlpyTgZxjgY",
+  "video_id": "IlpyTgZxjgY",
+  "confidence": "analyst_view"
+ }
+]

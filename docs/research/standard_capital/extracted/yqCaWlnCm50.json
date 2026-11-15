@@ -1,0 +1,50 @@
+[
+ {
+  "company": "AIRLINK",
+  "topic": "market.share_price",
+  "fact_text": "On 14 Nov 2024 the chart cursor showed AIRLINK trading at 128.85 PKR, as the analyst demonstrated the price and date readout.",
+  "value": 128.85,
+  "unit": "PKR",
+  "period": "2024-11-14",
+  "source_name": "Standard Capital Securities, '19. My Favorite Trading Tools for PSX and Pakistan Stock Market Success' (YouTube, 2024-12-04)",
+  "source_url": "https://www.youtube.com/watch?v=yqCaWlnCm50",
+  "video_id": "yqCaWlnCm50",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.price_move_measure",
+  "fact_text": "The chart's measure tool reports the percentage move between two points, the number of candles and the number of days the move took, which sizes a price swing.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '19. My Favorite Trading Tools for PSX and Pakistan Stock Market Success' (YouTube, 2024-12-04)",
+  "source_url": "https://www.youtube.com/watch?v=yqCaWlnCm50",
+  "video_id": "yqCaWlnCm50",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.magnet_snap_levels",
+  "fact_text": "The magnet tool snaps a drawn line to the exact high or low of a candle, so a trendline or level lands on a precise price rather than an approximate one.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '19. My Favorite Trading Tools for PSX and Pakistan Stock Market Success' (YouTube, 2024-12-04)",
+  "source_url": "https://www.youtube.com/watch?v=yqCaWlnCm50",
+  "video_id": "yqCaWlnCm50",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "method.trendline_higher_lows",
+  "fact_text": "The analyst reads an uptrend by drawing a trendline that connects the higher lows of a price chart.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '19. My Favorite Trading Tools for PSX and Pakistan Stock Market Success' (YouTube, 2024-12-04)",
+  "source_url": "https://www.youtube.com/watch?v=yqCaWlnCm50",
+  "video_id": "yqCaWlnCm50",
+  "confidence": "analyst_view"
+ }
+]

@@ -1,0 +1,110 @@
+[
+ {
+  "company": "MCB",
+  "topic": "news.shareholder",
+  "fact_text": "The 10 Oct 2025 flash reported the death of Sheikh Mukhtar, who held shares in MCB Bank and who owned Ibrahim Fibres and Elite Bank, which he bought in 2004.",
+  "value": null,
+  "unit": null,
+  "period": "2025-10-10",
+  "source_name": "Standard Capital Securities, 'Midday Flash 10 Oct 2025 | PSX Market Under Selling Pressure | KEL Meetings | GAL Jack T9 Launch' (YouTube, 2025-10-10)",
+  "source_url": "https://www.youtube.com/watch?v=snW7XzidHig",
+  "video_id": "snW7XzidHig",
+  "confidence": "fact"
+ },
+ {
+  "company": "KEL",
+  "topic": "news.agreement",
+  "fact_text": "Meetings at the Sindh Governor House led to agreements tied to power supply for Karachi Electric, as reported in the 10 Oct 2025 flash.",
+  "value": null,
+  "unit": null,
+  "period": "2025-10-10",
+  "source_name": "Standard Capital Securities, 'Midday Flash 10 Oct 2025 | PSX Market Under Selling Pressure | KEL Meetings | GAL Jack T9 Launch' (YouTube, 2025-10-10)",
+  "source_url": "https://www.youtube.com/watch?v=snW7XzidHig",
+  "video_id": "snW7XzidHig",
+  "confidence": "fact"
+ },
+ {
+  "company": "KEL",
+  "topic": "commentary.financials",
+  "fact_text": "The analyst said Karachi Electric's fundamentals are better, that its FY24 results were somewhat strong, and that FY25 results should begin to show higher earnings.",
+  "value": null,
+  "unit": null,
+  "period": "FY25",
+  "source_name": "Standard Capital Securities, 'Midday Flash 10 Oct 2025 | PSX Market Under Selling Pressure | KEL Meetings | GAL Jack T9 Launch' (YouTube, 2025-10-10)",
+  "source_url": "https://www.youtube.com/watch?v=snW7XzidHig",
+  "video_id": "snW7XzidHig",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "KEL",
+  "topic": "commentary.thesis",
+  "fact_text": "A multi-year tariff for Karachi Electric is already in place, which is one reason investor interest in the stock has risen.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'Midday Flash 10 Oct 2025 | PSX Market Under Selling Pressure | KEL Meetings | GAL Jack T9 Launch' (YouTube, 2025-10-10)",
+  "source_url": "https://www.youtube.com/watch?v=snW7XzidHig",
+  "video_id": "snW7XzidHig",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "Ghandhara Automobiles",
+  "topic": "news.launch",
+  "fact_text": "Ghandhara Automobiles was set to launch the JAC T9 at around PKR 87 lakh, as reported in the 10 Oct 2025 flash.",
+  "value": 87,
+  "unit": "PKR_lakh",
+  "period": "Oct 2025",
+  "source_name": "Standard Capital Securities, 'Midday Flash 10 Oct 2025 | PSX Market Under Selling Pressure | KEL Meetings | GAL Jack T9 Launch' (YouTube, 2025-10-10)",
+  "source_url": "https://www.youtube.com/watch?v=snW7XzidHig",
+  "video_id": "snW7XzidHig",
+  "confidence": "fact"
+ },
+ {
+  "company": "Ghandhara Automobiles",
+  "topic": "commentary.outlook",
+  "fact_text": "The analyst said Ghandhara has already shown strong PAMA sales numbers, and that its September 2025 figures and the first JAC T9 sales were expected soon.",
+  "value": null,
+  "unit": null,
+  "period": "Sep 2025",
+  "source_name": "Standard Capital Securities, 'Midday Flash 10 Oct 2025 | PSX Market Under Selling Pressure | KEL Meetings | GAL Jack T9 Launch' (YouTube, 2025-10-10)",
+  "source_url": "https://www.youtube.com/watch?v=snW7XzidHig",
+  "video_id": "snW7XzidHig",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "market.foreign_reserves",
+  "fact_text": "State Bank foreign exchange reserves rose during October 2025, according to the 10 Oct 2025 flash.",
+  "value": null,
+  "unit": null,
+  "period": "Oct 2025",
+  "source_name": "Standard Capital Securities, 'Midday Flash 10 Oct 2025 | PSX Market Under Selling Pressure | KEL Meetings | GAL Jack T9 Launch' (YouTube, 2025-10-10)",
+  "source_url": "https://www.youtube.com/watch?v=snW7XzidHig",
+  "video_id": "snW7XzidHig",
+  "confidence": "fact"
+ },
+ {
+  "company": "MACRO:PAKISTAN",
+  "topic": "macro.business_outlook",
+  "fact_text": "The analyst said Pakistan's business outlook looked better on the whole in October 2025, citing new IT agreements with Gulf countries and rising foreign reserves.",
+  "value": null,
+  "unit": null,
+  "period": "Oct 2025",
+  "source_name": "Standard Capital Securities, 'Midday Flash 10 Oct 2025 | PSX Market Under Selling Pressure | KEL Meetings | GAL Jack T9 Launch' (YouTube, 2025-10-10)",
+  "source_url": "https://www.youtube.com/watch?v=snW7XzidHig",
+  "video_id": "snW7XzidHig",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SYS",
+  "topic": "news.agreement",
+  "fact_text": "The 10 Oct 2025 flash reported IT agreements with several Gulf countries, and the analyst discussed System Limited in that context.",
+  "value": null,
+  "unit": null,
+  "period": "2025-10-10",
+  "source_name": "Standard Capital Securities, 'Midday Flash 10 Oct 2025 | PSX Market Under Selling Pressure | KEL Meetings | GAL Jack T9 Launch' (YouTube, 2025-10-10)",
+  "source_url": "https://www.youtube.com/watch?v=snW7XzidHig",
+  "video_id": "snW7XzidHig",
+  "confidence": "analyst_view"
+ }
+]

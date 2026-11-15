@@ -1,0 +1,122 @@
+[
+ {
+  "company": "ENGRO",
+  "topic": "profile.business",
+  "fact_text": "Engro Corporation is a holding company with stakes in several businesses, including infrastructure (towers leased to mobile operators), energy, food and fertilizer, and it has paid dividends for decades.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '2024 Investor Guide: Very Important for Investors!' (YouTube, 2024-01-09)",
+  "source_url": "https://www.youtube.com/watch?v=yIs51cDP1k0",
+  "video_id": "yIs51cDP1k0",
+  "confidence": "fact"
+ },
+ {
+  "company": "ENGRO",
+  "topic": "commentary.thesis",
+  "fact_text": "The analyst sees Engro's holding structure, which now includes a mutual-fund-like portfolio, as a route to dividend income, with Engro Infra's mobile-tower assets an upcoming listing.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '2024 Investor Guide: Very Important for Investors!' (YouTube, 2024-01-09)",
+  "source_url": "https://www.youtube.com/watch?v=yIs51cDP1k0",
+  "video_id": "yIs51cDP1k0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "LUCK",
+  "topic": "commentary.thesis",
+  "fact_text": "Lucky Cement's plant expansion has taken its capacity to about 15 million tonnes a year, and the analyst calls it a value stock with a track record of delivering on projects, though its dividend is modest.",
+  "value": 15,
+  "unit": "million_tonnes_per_year",
+  "period": "2024-01-09",
+  "source_name": "Standard Capital Securities, '2024 Investor Guide: Very Important for Investors!' (YouTube, 2024-01-09)",
+  "source_url": "https://www.youtube.com/watch?v=yIs51cDP1k0",
+  "video_id": "yIs51cDP1k0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "Lucky Motor",
+  "topic": "commentary.outlook",
+  "fact_text": "Lucky Motor plans to make CKD parts for its vehicles in Pakistan over time and may move into EVs, depending on how local conditions support it.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '2024 Investor Guide: Very Important for Investors!' (YouTube, 2024-01-09)",
+  "source_url": "https://www.youtube.com/watch?v=yIs51cDP1k0",
+  "video_id": "yIs51cDP1k0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "FCCL",
+  "topic": "profile.business",
+  "fact_text": "Fauji Cement's capacity has reached about 10.6 million tonnes a year, and its fourth plant at DG Khan has started production.",
+  "value": 10.6,
+  "unit": "million_tonnes_per_year",
+  "period": "2024-01-09",
+  "source_name": "Standard Capital Securities, '2024 Investor Guide: Very Important for Investors!' (YouTube, 2024-01-09)",
+  "source_url": "https://www.youtube.com/watch?v=yIs51cDP1k0",
+  "video_id": "yIs51cDP1k0",
+  "confidence": "fact"
+ },
+ {
+  "company": "FCCL",
+  "topic": "commentary.thesis",
+  "fact_text": "Fauji Cement has not paid dividends for several years, but the analyst expects payouts to resume, as the company used to pay two dividends a year.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '2024 Investor Guide: Very Important for Investors!' (YouTube, 2024-01-09)",
+  "source_url": "https://www.youtube.com/watch?v=yIs51cDP1k0",
+  "video_id": "yIs51cDP1k0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "FCCL",
+  "topic": "commentary.thesis",
+  "fact_text": "Fauji Cement has local demand from housing schemes around Taxila, Wah and Fateh Jang, and from water reservoir projects in KP and Gilgit-Baltistan, where Frontier Works Organization buys its cement.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '2024 Investor Guide: Very Important for Investors!' (YouTube, 2024-01-09)",
+  "source_url": "https://www.youtube.com/watch?v=yIs51cDP1k0",
+  "video_id": "yIs51cDP1k0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "BIPL",
+  "topic": "news.dividend",
+  "fact_text": "Bank Islami declared a large dividend in 2023 and its profits began to rise sharply after that.",
+  "value": null,
+  "unit": null,
+  "period": "2023",
+  "source_name": "Standard Capital Securities, '2024 Investor Guide: Very Important for Investors!' (YouTube, 2024-01-09)",
+  "source_url": "https://www.youtube.com/watch?v=yIs51cDP1k0",
+  "video_id": "yIs51cDP1k0",
+  "confidence": "fact"
+ },
+ {
+  "company": "BIPL",
+  "topic": "profile.business",
+  "fact_text": "The analyst describes Bank Islami as the fully Shariah-compliant bank in Pakistan after Meezan, with a published list of Shariah advisers and products.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '2024 Investor Guide: Very Important for Investors!' (YouTube, 2024-01-09)",
+  "source_url": "https://www.youtube.com/watch?v=yIs51cDP1k0",
+  "video_id": "yIs51cDP1k0",
+  "confidence": "analyst_view"
+ },
+ {
+  "company": "SECTOR:BANKS",
+  "topic": "commentary.financials",
+  "fact_text": "Islamic banks in Pakistan tend to earn better margins than conventional banks, according to the analyst, which is why he watches their dividends closely.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, '2024 Investor Guide: Very Important for Investors!' (YouTube, 2024-01-09)",
+  "source_url": "https://www.youtube.com/watch?v=yIs51cDP1k0",
+  "video_id": "yIs51cDP1k0",
+  "confidence": "analyst_view"
+ }
+]

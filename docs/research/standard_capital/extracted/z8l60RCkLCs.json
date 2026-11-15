@@ -1,0 +1,62 @@
+[
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "method.contract_code",
+  "fact_text": "In a PMEX code such as CRUDE 10 JA25 ID, the number is the barrel size, JA25 is the January 2025 expiry, and the ID suffix marks an intraday contract.",
+  "value": 10,
+  "unit": "barrels",
+  "period": "Jan 2025",
+  "source_name": "Standard Capital Securities, 'What are Initial Margin & Contract Code ? Learn PMEX Insights ! Pakistan Mercantile Exchange' (YouTube, 2024-12-11)",
+  "source_url": "https://www.youtube.com/watch?v=z8l60RCkLCs",
+  "video_id": "z8l60RCkLCs",
+  "confidence": "fact"
+ },
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "method.intraday_contract",
+  "fact_text": "An intraday contract is opened and closed on the same day and closes automatically at the end of that day, whereas a normal contract can be held for up to three months.",
+  "value": 3,
+  "unit": "months",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What are Initial Margin & Contract Code ? Learn PMEX Insights ! Pakistan Mercantile Exchange' (YouTube, 2024-12-11)",
+  "source_url": "https://www.youtube.com/watch?v=z8l60RCkLCs",
+  "video_id": "z8l60RCkLCs",
+  "confidence": "fact"
+ },
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "method.intraday_margin",
+  "fact_text": "The initial margin on an intraday contract is half of the initial margin on a normal contract of the same size, so intraday traders post 50% of the normal amount.",
+  "value": 50,
+  "unit": "percent",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What are Initial Margin & Contract Code ? Learn PMEX Insights ! Pakistan Mercantile Exchange' (YouTube, 2024-12-11)",
+  "source_url": "https://www.youtube.com/watch?v=z8l60RCkLCs",
+  "video_id": "z8l60RCkLCs",
+  "confidence": "fact"
+ },
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "method.crude_contract_sizes",
+  "fact_text": "PMEX lists crude oil contracts of 10, 100 and 1,000 barrels, and the 100-barrel crude contract is a normal three-month contract.",
+  "value": 100,
+  "unit": "barrels",
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What are Initial Margin & Contract Code ? Learn PMEX Insights ! Pakistan Mercantile Exchange' (YouTube, 2024-12-11)",
+  "source_url": "https://www.youtube.com/watch?v=z8l60RCkLCs",
+  "video_id": "z8l60RCkLCs",
+  "confidence": "fact"
+ },
+ {
+  "company": "Pakistan Mercantile Exchange",
+  "topic": "method.margin_fx_link",
+  "fact_text": "PMEX margin in rupees moves with the USD/PKR rate, so PMEX updates its daily margin sheet to reflect the exchange rate.",
+  "value": null,
+  "unit": null,
+  "period": null,
+  "source_name": "Standard Capital Securities, 'What are Initial Margin & Contract Code ? Learn PMEX Insights ! Pakistan Mercantile Exchange' (YouTube, 2024-12-11)",
+  "source_url": "https://www.youtube.com/watch?v=z8l60RCkLCs",
+  "video_id": "z8l60RCkLCs",
+  "confidence": "fact"
+ }
+]
