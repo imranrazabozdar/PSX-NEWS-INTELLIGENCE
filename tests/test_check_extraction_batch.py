@@ -49,3 +49,23 @@ def test_buy_sell_wording_is_flagged():
 def test_a_row_missing_the_undated_declaration_breaks_the_schema():
     rows = [row("Energy is 70 percent of cost.", source_name="ARN, 'X'") for _ in range(40)]
     assert any("schema" in r for r in gate.judge(rows, SOURCE).reasons)
+
+
+# ---------- advice means a recommendation to a reader, not the word "sell"
+
+def test_selling_electricity_or_buying_back_shares_is_not_advice():
+    rows = [row("A power plant may sell electricity directly to private customers.") for _ in range(40)]
+    rows += [row("The company announced a plan to buy back shares.") for _ in range(5)]
+    assert not any("advice" in r for r in gate.judge(rows, SOURCE).reasons)
+
+
+def test_a_directive_to_the_reader_still_counts_as_advice():
+    for text in ("You should buy this stock now.", "I would sell the shares at 45.",
+                 "The target price is 45.", "Buy the stock before the result."):
+        rows = [row(text) for _ in range(40)]
+        assert any("advice" in r for r in gate.judge(rows, SOURCE).reasons), text
+
+
+def test_a_reviewed_empty_file_is_trusted_but_an_unreviewed_one_is_still_flagged():
+    assert not gate.judge([], SOURCE).ok
+    assert gate.judge([], SOURCE, reviewed_empty=True).ok

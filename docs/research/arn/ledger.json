@@ -387,9 +387,11 @@
   "title": "Petrol Tax Reduced, Largest Crypto Exchange Hacked | Shafy's Weekly",
   "sector_bucket": "macro_general",
   "chars": 25295,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 24,
+  "spec": "v3_dense",
+  "reviewed_empty": false
  },
  "1X4PjP44Iig": {
   "title": "ARN Financials at Young Entrepreneur Fest | Value Investing & Stock Market Quiz",
@@ -467,9 +469,11 @@
   "title": "He Fed My Entire YouTube Channel Into AI - Then Built His Investment Strategy",
   "sector_bucket": "macro_general",
   "chars": 43418,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 7,
+  "spec": "v3_dense",
+  "reviewed_empty": false
  },
  "rrkvWBp3E8g": {
   "title": "Avoiding The Debt Trap",
@@ -587,9 +591,11 @@
   "title": "Your Investment related Questions Answered",
   "sector_bucket": "macro_general",
   "chars": 80667,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 14,
+  "spec": "v2_sparse",
+  "reviewed_empty": false
  },
  "omhACznFVu0": {
   "title": "Moody's Upgrades Pakistan's Rating to B3 (What Investors Need to Know). Shafy Weekly Roundup!",
@@ -619,9 +625,11 @@
   "title": "How PSX can reach 450,000 - My Analysis",
   "sector_bucket": "macro_general",
   "chars": 34482,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 29,
+  "spec": "v3_dense",
+  "reviewed_empty": false
  },
  "7KzzhIzlxgo": {
   "title": "Abdul Rehman's Response to Propaganda",
@@ -659,17 +667,21 @@
   "title": "Dolmen City REIT Analysis: Better Than Buying Property?",
   "sector_bucket": "macro_general",
   "chars": 18946,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 18,
+  "spec": "v3_dense",
+  "reviewed_empty": false
  },
  "ZMxvXRnQ0rM": {
   "title": "Investment Strategy Q&A - The Hybrid Investment Approach Every Pakistani Should Know",
   "sector_bucket": "macro_general",
   "chars": 40272,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 25,
+  "spec": "v3_dense",
+  "reviewed_empty": false
  },
  "0qZk0Qmf_-4": {
   "title": "Stock Market Manipulation Myth BUSTED! Can Big Players Manipulate Stocks?",
@@ -715,9 +727,11 @@
   "title": "Building a Rs1 Crore Portfolio: Step-by-Step Guide",
   "sector_bucket": "macro_general",
   "chars": 34657,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 0,
+  "spec": "v3_dense",
+  "reviewed_empty": true
  },
  "fst1PY4sby0": {
   "title": "Multibagger Stocks Checklist: What to Look For Right Now",
@@ -731,9 +745,11 @@
   "title": "Severe Fuel Shortage Ahead? Pakistan Seeks $10 Billion Loan! 423 Billion Loan To China",
   "sector_bucket": "macro_general",
   "chars": 26874,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 24,
+  "spec": "v3_dense",
+  "reviewed_empty": false
  },
  "seGPm1YYfBw": {
   "title": "Start at 20s or 30s - The Cost of Waiting: Why You Should Start Investing Early",
@@ -747,9 +763,11 @@
   "title": "PSX vs US Stocks: Which Market Can Build More Wealth?",
   "sector_bucket": "macro_general",
   "chars": 41905,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 44,
+  "spec": "v3_dense",
+  "reviewed_empty": false
  },
  "AU_VGOLvGfs": {
   "title": "How to become a Value Investor - Irfan Khan explains",
@@ -875,9 +893,11 @@
   "title": "Don't Lose Money: 2026 Budget Moves for Every Investor",
   "sector_bucket": "macro_general",
   "chars": 49170,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 41,
+  "spec": "v2_sparse",
+  "reviewed_empty": false
  },
  "oYTMkaISuPI": {
   "title": "Every Salaried Person NEEDS to Watch This Budget Video",
@@ -891,9 +911,11 @@
   "title": "How Pakistan's Biggest Telecom Lost 93% of Its Value in 20 Years. Can It Make a Comeback?",
   "sector_bucket": "macro_general",
   "chars": 25303,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 39,
+  "spec": "v3_dense",
+  "reviewed_empty": false
  },
  "E_cTfo6JOqc": {
   "title": "How I Would Build My Portfolio if I Started Investing Today",
@@ -995,9 +1017,11 @@
   "title": "Ozempic Launch in Pakistan | Which Company Is Best Positioned?",
   "sector_bucket": "macro_general",
   "chars": 24821,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 26,
+  "spec": "v3_dense",
+  "reviewed_empty": false
  },
  "LnkxdZxxFBQ": {
   "title": "War Time Investing - My Thoughts on PSX - 5 March 2026",
@@ -1155,9 +1179,11 @@
   "title": "Practical Investing - Investing for Overseas Pakistani's",
   "sector_bucket": "macro_general",
   "chars": 36320,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 15,
+  "spec": "v3_dense",
+  "reviewed_empty": false
  },
  "45vnn5SJsuY": {
   "title": "How to Invest in Special Situations in Pakistan",
@@ -1171,25 +1197,31 @@
   "title": "Systems Limited - Pakistan's No.1 IT Exporter",
   "sector_bucket": "macro_general",
   "chars": 34688,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 33,
+  "spec": "v3_dense",
+  "reviewed_empty": false
  },
  "XWGLOILj_9o": {
   "title": "How to Make Stocks Portfolio in 5 minutes",
   "sector_bucket": "macro_general",
   "chars": 36081,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 15,
+  "spec": "v3_dense",
+  "reviewed_empty": false
  },
  "v1zBYsmzln8": {
   "title": "PSX Rally !! Special session",
   "sector_bucket": "macro_general",
   "chars": 72676,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 20,
+  "spec": "v2_sparse",
+  "reviewed_empty": false
  },
  "f4u-JQTnsfo": {
   "title": "ARN AGM 2025",
@@ -1219,17 +1251,21 @@
   "title": "How You can achieve Financial Independence? The F.I.R.E Talk with Ammar Siddiqui @theammarsid",
   "sector_bucket": "macro_general",
   "chars": 72945,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 31,
+  "spec": "v2_sparse",
+  "reviewed_empty": false
  },
  "TRQSW_zRqoU": {
   "title": "How to Invest a little amount per month & change your life !!",
   "sector_bucket": "macro_general",
   "chars": 56380,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 22,
+  "spec": "v2_sparse",
+  "reviewed_empty": false
  },
  "rkm1Z4DmDKk": {
   "title": "Pakistan's bike company - Atlas Honda. Everything you need to know",
@@ -1267,9 +1303,11 @@
   "title": "INVEST LIKE A PRO - UNDERSTAND BOOM BUST CYCLES",
   "sector_bucket": "macro_general",
   "chars": 59566,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 28,
+  "spec": "v2_sparse",
+  "reviewed_empty": false
  },
  "yEXiDjipo10": {
   "title": "PSX IS A BUBBLE? CRASH COMING SOON? HOW TO BEAT THE MARKET !!",
@@ -1355,17 +1393,21 @@
   "title": "What is happening in Power Sector - Everything you need to know",
   "sector_bucket": "macro_general",
   "chars": 15965,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 14,
+  "spec": "v3_dense",
+  "reviewed_empty": false
  },
  "wN-F3v_OSuY": {
   "title": "STOCK MARKET IS THE NO.1 ASSET CLASS -  DETAILED DISCUSSION",
   "sector_bucket": "macro_general",
   "chars": 99760,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 15,
+  "spec": "v2_sparse",
+  "reviewed_empty": false
  },
  "8TZirhu0EoE": {
   "title": "The story behind the sucess of our investment in EXIDE - Everything you need to know",
@@ -1459,9 +1501,11 @@
   "title": "BUDGET 2024 - TAX, ANALYSIS, OUTLOOK & IMPACT ON EACH SECTOR OF PSX",
   "sector_bucket": "macro_general",
   "chars": 20443,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 39,
+  "spec": "v3_dense",
+  "reviewed_empty": false
  },
  "R5OzmOhub5k": {
   "title": "TOP 5 INVESTING BOOKS TO IMPROVE YOUR INVESTING RESULTS",
@@ -1579,9 +1623,11 @@
   "title": "Pakistan Refinery Policy 2026 | Which Refinery Has the Strongest Upgrade Plan?",
   "sector_bucket": "oil_gas",
   "chars": 22889,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 27,
+  "spec": "v3_dense",
+  "reviewed_empty": false
  },
  "8AFuGaQVq1c": {
   "title": "New Record in PSX, Pakistan Targets $10 Billion, End of Sui Gas? Shafy's Weekly",
@@ -1619,9 +1665,11 @@
   "title": "MARI Crash, Retirement Plan, Blue Chips & SIP - Honest Q&A",
   "sector_bucket": "oil_gas",
   "chars": 44753,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 30,
+  "spec": "v3_dense",
+  "reviewed_empty": false
  },
  "8ekLlPoIKRg": {
   "title": "Banking, Fertilizer Ya Refineries? Best Sector during Oil Crisis.",
@@ -1635,9 +1683,11 @@
   "title": "Rising Oil Prices & PSX | Risk or Opportunity?",
   "sector_bucket": "oil_gas",
   "chars": 59380,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 31,
+  "spec": "v2_sparse",
+  "reviewed_empty": false
  },
  "khNM1Mg_FjM": {
   "title": "From Music to Financial Freedom - Ali Aftab Saeed's Journey towards Financial Freedom",
@@ -1651,9 +1701,11 @@
   "title": "Dividend King of Oil & Gas - Everything You Need to Know About Pakistan Oilfields",
   "sector_bucket": "oil_gas",
   "chars": 17655,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 27,
+  "spec": "v3_dense",
+  "reviewed_empty": false
  },
  "gacqlIyhmk0": {
   "title": "How to Invest in Refinery Sector - Big Investment in Refinery Policy",
@@ -1699,9 +1751,11 @@
   "title": "Hubco Analysis: Can Rs5 Quarterly Dividend Continue?",
   "sector_bucket": "power_ev",
   "chars": 24368,
-  "status": "pending",
-  "model": null,
-  "rows": 0
+  "status": "extracted",
+  "model": "haiku",
+  "rows": 24,
+  "spec": "v3_dense",
+  "reviewed_empty": false
  },
  "LLv27CaL9Fg": {
   "title": "Will HUBCO be the next SAZGAR? All you need to know about HUBCO",
