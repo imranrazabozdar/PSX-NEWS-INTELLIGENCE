@@ -74,3 +74,10 @@ with an index (id, title, url, channel), get verified upload dates (yt-dlp `id Y
 gate failure), then absorb with `scripts/absorb_sector_capsule.py`. Facts from different sources about the same
 company merge under one entity; the company brief reports how many distinct sources back it, and warns when
 knowledge is single-source. Conflicts between sources are surfaced by the council, never averaged.
+
+## Company links (cause and effect)
+`company_link` holds 2,579 analyst-stated links (driver -> affected company/sector/macro, direction, exact quote, fact id)
+extracted from the archive by Haiku and gated in Python (`scripts/check_links_batch.py`: real fact, exact quote, valid
+direction). Reload with `python -m scripts.load_company_links --dir <work dir> --apply`; it is idempotent and, like
+every loader, may need a second run if the per-process write budget is reached. The council pack shows the most
+event-relevant, newest links for the companies, their sectors and MACRO:PAKISTAN. They are views, never facts.
