@@ -1,5 +1,5 @@
 {
-  "_source": "https://www.ksestocks.com/ListedCompanies/SortByName (owner-confirmed trusted, 2026-11-15); plus official PSX company pages dps.psx.com.pk/company/<SYMBOL> (2026-11-15)",
+  "_source": "https://www.ksestocks.com/ListedCompanies/SortByName (owner-confirmed trusted, 2026-11-15); plus official PSX company pages dps.psx.com.pk/company/<SYMBOL> (2026-11-15); plus owner-supplied tickers (2026-11-15)",
   "aliases": {
     "Aisha Steel Mills": "ASL",
     "Atlas Battery": "ATBA",
@@ -42,6 +42,11 @@
     "Meezan ETF": "MZNPETF",
     "Mahana Islamic Index ETF": "MIIETF",
     "Jorabad Sugar Mills": "JSML",
-    "City Pharma": "CPHL"
+    "City Pharma": "CPHL",
+    "Mizan Bank": "MEBL",
+    "Maple Leaf Group": "MLCF",
+    "LSC Capital": "LSEFSL",
+    "Tasdeeq Information Services": "TISL",
+    "Naya Nazimabad REIT": "NNAR"
   }
 }
