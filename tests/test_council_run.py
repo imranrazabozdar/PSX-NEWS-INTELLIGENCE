@@ -179,3 +179,9 @@ def test_event_factor_ranks_matching_facts_first_and_a_brief_is_added():
     texts = [i.text for i in pack.items if i.company == "OGDC"]
     assert any("Rate cuts" in t for t in texts)
     assert any("stored fact(s)" in t for t in texts)
+
+
+def test_brief_warns_when_knowledge_comes_from_one_source():
+    pack = council_run.build_pack("Oil spikes.", ["OGDC"], _db())
+    brief = next(i.text for i in pack.items if "stored fact(s)" in i.text)
+    assert "1 distinct source" in brief and "Single-source" in brief

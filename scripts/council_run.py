@@ -122,7 +122,20 @@ def _brief(db: Any, company: str) -> str:
         return f"The brain holds no stored knowledge on {company}; treat any view of it as unsupported."
     total = sum(int(r["n"]) for r in rows)
     top = ", ".join(f"{r['topic']} ({r['n']})" for r in rows[:6])
-    return f"{company}: {total} stored fact(s) across {len(rows)} topic(s); most covered: {top}."
+    text = f"{company}: {total} stored fact(s) across {len(rows)} topic(s); most covered: {top}."
+    try:
+        src = list(db.execute("SELECT source_name, COUNT(*) AS n FROM research_fact WHERE company = ? "
+                              "GROUP BY source_name ORDER BY n DESC", (company,)))
+        views = db.execute("SELECT COUNT(*) AS n FROM research_fact WHERE company = ? AND "
+                           "confidence = 'analyst_view'", (company,))[0]["n"]
+        channels = {str(r["source_name"]).split(",")[0] for r in src}
+        text += (f" Drawn from {len(channels)} distinct source(s); {views} of {total} are analyst views, "
+                 "not reported figures.")
+        if len(channels) == 1:
+            text += " Single-source knowledge: weigh with caution."
+    except Exception:  # noqa: BLE001
+        return text
+    return text
 
 
 def build_pack(event: str, companies: list[str], db: Any, *, limit_per_company: int = 40,
