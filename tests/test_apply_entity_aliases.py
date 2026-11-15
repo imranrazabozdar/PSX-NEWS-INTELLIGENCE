@@ -27,3 +27,10 @@ def test_names_fold_to_tickers_and_others_are_untouched_and_it_is_idempotent():
 def test_the_shipped_alias_file_holds_only_tickers():
     aliases = ali.load()
     assert len(aliases) >= 30 and all(t == t.upper() and t.isalnum() for t in aliases.values())
+
+
+def test_no_name_is_both_aliased_and_marked_not_listed():
+    import json
+
+    data = json.loads(ali.ALIASES.read_text(encoding="utf-8"))
+    assert not set(data["aliases"]) & set(data["not_listed"])
