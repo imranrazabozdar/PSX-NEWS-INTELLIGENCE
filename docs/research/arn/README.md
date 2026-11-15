@@ -17,6 +17,12 @@ A time-bound claim with no stated period was dropped at extraction rather than l
 against 13 titles that state their own year. Position, not date, is therefore the recency key until real
 upload dates are supplied.
 
+**Attribution is to the channel, never assumed to be one person.** Some videos are hosted by someone else
+("Shafy's Weekly") or feature a guest, and a transcript does not say who is speaking. Each row's source
+therefore reads "Abdul Rehman Najam channel, '<title>' (YouTube transcript, undated)", and where the title
+suggests a different host or guest it adds "speaker may be a host or guest, not the channel owner".
+`scripts/prepare_transcript_capsule.py` applies this deterministically, so extraction does not have to.
+
 **Not investment advice.** The rows are one analyst's views and mechanics, labelled `analyst_view` unless
 they are checkable structural facts.
 

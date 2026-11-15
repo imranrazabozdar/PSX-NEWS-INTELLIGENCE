@@ -80,6 +80,21 @@ def build_alias_map(companies: list[str]) -> dict[str, str]:
     return alias
 
 
+# The archive is one CHANNEL, not one speaker. Some videos are hosted by someone else ("Shafy's Weekly") or
+# feature a guest ("Irfan Khan explains", "ft. Ammar Siddiqui"), and a transcript does not say who is talking.
+# So provenance states what is certain (the channel) and flags titles where the speaker may differ, instead
+# of crediting every view to the channel's owner.
+_OTHER_SPEAKER = re.compile(r"shafy|\bft\b\.?|@|explains|interview|guest|masterclass|alumni", re.I)
+_TITLE_IN_SOURCE = re.compile(r"'(.+)'")
+
+
+def attribution(source_name: str) -> str:
+    match = _TITLE_IN_SOURCE.search(source_name)
+    title = match.group(1) if match else source_name
+    note = "; speaker may be a host or guest, not the channel owner" if _OTHER_SPEAKER.search(title) else ""
+    return f"Abdul Rehman Najam channel, '{title}' (YouTube transcript, undated{note})"
+
+
 def convert(row: dict[str, Any]) -> dict[str, Any]:
     """One extracted row to one research_fact row. Raises ResearchFactError on anything malformed."""
     source = _ELLIPSIS.sub("…", str(row.get("source_name", "")).strip())
@@ -99,6 +114,7 @@ def convert(row: dict[str, Any]) -> dict[str, Any]:
     }
     if "undated" not in out["source_name"].lower():
         raise rf.ResearchFactError(f"source must declare it is undated: {out['source_name'][:60]!r}")
+    out["source_name"] = attribution(out["source_name"])
     return rf.validate_fact(out)
 
 

@@ -116,3 +116,26 @@ def test_folded_rows_land_under_one_entity_in_the_capsule(tmp_path):
     prep.build(tmp_path / "in", tmp_path / "out.json")
     out = json.loads((tmp_path / "out.json").read_text())
     assert {r["company"] for r in out} == {"HALEON"} and len(out) == 2
+
+
+# ---------- provenance: a channel is not a speaker
+
+def test_every_row_is_attributed_to_the_channel_not_assumed_to_be_its_owner_speaking():
+    row = prep.convert(GOOD)
+    assert row["source_name"].startswith("Abdul Rehman Najam channel,")
+    assert "speaker may be" not in row["source_name"]
+
+
+def test_a_host_or_guest_led_title_is_flagged_so_the_view_is_not_credited_to_the_owner():
+    for title in ("Shafy's Weekly Roundup", "Salary to Financial Freedom ft Ammar Siddiqui",
+                  "How to become a Value Investor - Irfan Khan explains"):
+        source = f"Abdul Rehman Najam, '{title}' (YouTube transcript, undated)"
+        row = prep.convert(dict(GOOD, source_name=source))
+        assert "speaker may be a host or guest" in row["source_name"], title
+        assert "undated" in row["source_name"]
+
+
+def test_attribution_is_idempotent_so_a_second_pass_does_not_stack_notes():
+    once = prep.convert(dict(GOOD, source_name="ARN, 'Shafy Weekly' (YouTube transcript, undated)"))
+    twice = prep.convert(dict(once))
+    assert once["source_name"] == twice["source_name"]
