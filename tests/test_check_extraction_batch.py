@@ -99,3 +99,16 @@ def test_a_single_stray_row_is_tolerated_but_a_pattern_is_not():
     clean = [row("Profit before tax was 2500 in the period.") for _ in range(40)]
     one = clean + [row("Royalty was 12.5 percent of the gas price.")]
     assert not any("another video" in r for r in gate.judge(one, OWN, siblings=[SIBLING]).reasons)
+
+
+def test_dated_mode_accepts_a_dated_source_and_refuses_relative_words_in_the_sentence():
+    src = "words " * 100 + "KSE closed at 164000 points"
+    ok = {"company": "MACRO:PAKISTAN", "topic": "market.kse100_move", "value": 164000, "unit": "points",
+          "fact_text": "On 9 Oct 2026 the KSE-100 closed at 164000 points.", "period": "2026-10-09",
+          "source_name": "Standard Capital Securities, 'T' (YouTube, 2026-10-09)", "source_url": "u",
+          "video_id": "v", "confidence": "fact"}
+    assert gate.judge([ok], src, dated=True).ok
+    assert not gate.judge([ok], src).ok  # ARN mode still insists on "undated"
+    bad = dict(ok, fact_text="Today the KSE-100 closed at 164000 points.")
+    verdict = gate.judge([bad], src, dated=True)
+    assert not verdict.ok and "relative time word" in "; ".join(verdict.reasons)

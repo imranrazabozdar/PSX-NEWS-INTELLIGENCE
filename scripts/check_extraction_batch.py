@@ -35,6 +35,13 @@ KEYS = {"company", "topic", "fact_text", "value", "unit", "period", "source_name
 _NUM = re.compile(r"\d[\d,]*\.?\d*")
 _RELATIVE = re.compile(r"\b(last year|recently|currently|these days|nowadays|this year|next year|today|"
                        r"at the moment|before the video)\b", re.I)
+# A DATED channel (verified upload dates) may state time-bound facts, but only with absolute dates: a relative
+# word inside the sentence ("today", "last week") is a defect because the sentence outlives the video.
+_RELATIVE_TEXT = re.compile(
+    r"\b(today|yesterday|tomorrow|tonight|this (?:week|month|year|session|quarter)|last (?:week|month|year|"
+    r"session|quarter)|next (?:week|month|year|session|quarter)|recently|currently|right now|these days|"
+    r"nowadays|so far|the other day|at the moment|at present)\b|\blast (?:two|three|four|few|several|\d+) ",
+    re.I)
 # Advice is a recommendation addressed to a reader, not the word "sell": a power plant may "sell" electricity
 # and a company may "buy back" shares. Only directive wording and price targets count.
 _ADVICE = re.compile(
@@ -85,7 +92,8 @@ MAX_BLEED_ROWS = 1
 
 
 def judge(rows: list[dict[str, Any]], source: str, unit: str = "",
-          reviewed_empty: bool = False, siblings: list[str] | None = None) -> FileVerdict:
+          reviewed_empty: bool = False, siblings: list[str] | None = None,
+          dated: bool = False) -> FileVerdict:
     reasons: list[str] = []
     chars = max(1, len(source))
     if not rows:
@@ -96,7 +104,7 @@ def judge(rows: list[dict[str, Any]], source: str, unit: str = "",
         return FileVerdict(unit, 0, not reasons, reasons)
     bad_schema = [r for r in rows if set(r) != KEYS or len(str(r.get("fact_text", ""))) > 300
                   or r.get("confidence") not in ("fact", "analyst_view")
-                  or "undated" not in str(r.get("source_name", "")).lower()]
+                  or (not dated and "undated" not in str(r.get("source_name", "")).lower())]
     if bad_schema:
         reasons.append(f"{len(bad_schema)} row(s) break the schema")
     src_nums = _numbers(source)
@@ -110,6 +118,10 @@ def judge(rows: list[dict[str, Any]], source: str, unit: str = "",
     rel = sum(1 for r in rows if _RELATIVE.search(str(r.get("period") or "")))
     if rel:
         reasons.append(f"{rel} row(s) carry a relative period")
+    if dated:
+        rel_text = sum(1 for r in rows if _RELATIVE_TEXT.search(str(r.get("fact_text", ""))))
+        if rel_text:
+            reasons.append(f"{rel_text} row(s) use a relative time word in the sentence")
     advice = sum(1 for r in rows if _ADVICE.search(str(r.get("fact_text", ""))))
     if advice / len(rows) > MAX_ADVICE_SHARE:
         reasons.append(f"{advice} row(s) read as advice")
@@ -141,7 +153,8 @@ def _source_for(unit: str, chunk_dir: Path, manifest: dict[str, list[str]]) -> t
     return "", []
 
 
-def check(out_dir: Path, chunk_dir: Path, reviewed_empty: frozenset[str] = frozenset()) -> list[FileVerdict]:
+def check(out_dir: Path, chunk_dir: Path, reviewed_empty: frozenset[str] = frozenset(),
+          dated: bool = False) -> list[FileVerdict]:
     manifest = json.loads((chunk_dir / "manifest.json").read_text(encoding="utf-8"))
     verdicts = []
     for path in sorted(glob.glob(str(out_dir / "*.json"))):
@@ -152,7 +165,7 @@ def check(out_dir: Path, chunk_dir: Path, reviewed_empty: frozenset[str] = froze
             verdicts.append(FileVerdict(unit, 0, False, ["unreadable JSON"]))
             continue
         own, siblings = _source_for(unit, chunk_dir, manifest)
-        verdicts.append(judge(rows, own, unit, unit in reviewed_empty, siblings))
+        verdicts.append(judge(rows, own, unit, unit in reviewed_empty, siblings, dated))
     return verdicts
 
 
@@ -162,10 +175,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--chunk-dir", required=True, type=Path)
     parser.add_argument("--reviewed-empty", type=Path, default=None,
                         help="JSON list of unit ids whose empty output a person has confirmed is correct")
+    parser.add_argument("--dated", action="store_true",
+                        help="verified upload dates: no 'undated' source, no relative time words")
     args = parser.parse_args(argv)
     reviewed = frozenset(json.loads(args.reviewed_empty.read_text(encoding="utf-8"))) \
         if args.reviewed_empty else frozenset()
-    verdicts = check(args.out_dir, args.chunk_dir, reviewed)
+    verdicts = check(args.out_dir, args.chunk_dir, reviewed, args.dated)
     failed = [v for v in verdicts if not v.ok]
     print(f"{len(verdicts)} file(s): {len(verdicts) - len(failed)} pass, {len(failed)} to escalate; "
           f"{sum(v.rows for v in verdicts)} rows")

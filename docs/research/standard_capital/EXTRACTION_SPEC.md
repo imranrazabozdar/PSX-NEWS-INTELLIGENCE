@@ -118,3 +118,16 @@ Long files get skimmed. Counter that deliberately:
 - Reported events and figures are "fact"; the analyst's reasons, outlook and judgements are "analyst_view".
 - Give the entity the right owner: a company event -> its ticker; a sector point -> SECTOR:X; index, oil,
   rupee, rates, flows, budget, IMF -> MACRO:PAKISTAN.
+
+## FIGURES SWEEP (mandatory second pass; earlier runs lost about half of the figures)
+Numbers are the most valuable part of a dated video, and they are the easiest to skip. After you finish the
+first pass over a video, make a SECOND pass reading ONLY for figures, and make sure every distinct one is in
+a row:
+- every price, level, rate, percentage, amount, per-unit figure, count, ratio and multiple;
+- BOTH sides of a comparison ("EPS 5.70 against 3.60 a year earlier" is two figures, keep both);
+- breakdowns and steps (quarterly payouts 0.40 -> 0.50 -> 0.54 -> 0.63 -> 0.66 are each worth keeping);
+- spoken numbers in Devanagari words ("साढ़े", "सवा", "डेढ़", "हज़ार", "लाख", "करोड़", "अरब") - convert them;
+- alternative readings the speaker mentions ("399 or 398"), and levies, taxes, margins and spreads.
+Several figures about one subject may share ONE row if the sentence stays under 300 characters.
+Count the distinct figures in the transcript and in your rows before writing; add rows for any you missed.
+Also avoid relative counts such as "the last two quarters": name the quarters or fiscal year.
