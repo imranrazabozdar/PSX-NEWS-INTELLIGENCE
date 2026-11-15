@@ -64,3 +64,63 @@ def test_the_shipped_cement_capsule_is_valid_and_has_no_placeholder_sources():
     rows = cap.load_capsule(path)
     assert len(rows) == 74
     assert not any("..." in r["source_name"] for r in rows)
+
+
+# ---------- updating a company later must not restate what it already knows
+
+def _row(**kw):
+    return dict(ROW, **kw)
+
+
+ENERGY_A = "Energy is roughly seventy percent of a cement maker's production cost."
+ENERGY_B = "Roughly seventy percent of cement production cost is energy."
+ENERGY_SHORT = "Energy is roughly seventy percent of production cost."
+LIMESTONE = "Limestone from owned mining leases keeps raw material near five percent."
+DEBT_A = "Heavy expansion debt leaves the balance sheet exposed to interest rate moves."
+DEBT_B = "Expansion debt that is heavy leaves the balance sheet exposed to interest rate moves."
+
+
+def test_a_reworded_repeat_of_a_stored_fact_is_skipped_as_a_near_duplicate(tmp_path, capsys):
+    db = _db()
+    first = _write(tmp_path, [_row(company="LUCK", topic="cost.energy_share",
+                                   fact_text=ENERGY_A)])
+    cap.absorb(first, apply=True, db=db)
+    later = tmp_path / "later.json"
+    later.write_text(json.dumps([_row(company="LUCK", topic="cost.energy_share",
+                                      fact_text=ENERGY_B)]))
+    cap.absorb(later, apply=True, db=db)
+    assert db.execute("SELECT COUNT(*) AS n FROM research_fact")[0]["n"] == 1
+    assert "near-duplicates skipped: 1" in capsys.readouterr().out
+
+
+def test_a_genuinely_new_fact_about_the_same_company_is_added(tmp_path):
+    db = _db()
+    cap.absorb(_write(tmp_path, [_row(company="LUCK", topic="cost.energy_share",
+                                      fact_text=ENERGY_SHORT)]),
+               apply=True, db=db)
+    new = tmp_path / "new.json"
+    new.write_text(json.dumps([_row(company="LUCK", topic="cost.energy_share",
+                                    fact_text=LIMESTONE)]))
+    cap.absorb(new, apply=True, db=db)
+    assert db.execute("SELECT COUNT(*) AS n FROM research_fact")[0]["n"] == 2
+
+
+def test_the_same_sentence_about_a_different_company_is_not_a_duplicate(tmp_path):
+    db = _db()
+    text = "Captive power gives the company a durable cost advantage over its rivals."
+    cap.absorb(_write(tmp_path, [_row(company="LUCK", topic="commentary.thesis", fact_text=text)]),
+               apply=True, db=db)
+    other = tmp_path / "other.json"
+    other.write_text(json.dumps([_row(company="FCCL", topic="commentary.thesis", fact_text=text)]))
+    cap.absorb(other, apply=True, db=db)
+    assert db.execute("SELECT COUNT(*) AS n FROM research_fact")[0]["n"] == 2
+
+
+def test_two_near_identical_rows_inside_one_capsule_leave_one(tmp_path):
+    db = _db()
+    rows = [_row(company="MLCF", topic="commentary.risk",
+                 fact_text=DEBT_A),
+            _row(company="MLCF", topic="commentary.risk",
+                 fact_text=DEBT_B)]
+    cap.absorb(_write(tmp_path, rows), apply=True, db=db)
+    assert db.execute("SELECT COUNT(*) AS n FROM research_fact")[0]["n"] == 1

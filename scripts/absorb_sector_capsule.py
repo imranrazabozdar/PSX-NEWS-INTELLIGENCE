@@ -1,8 +1,10 @@
 """Absorb one sector knowledge capsule into psx-library research_fact.
 
 A capsule is a JSON list of research_fact rows (see engines/research_facts.py). Default is a DRY RUN: it
-validates every row, prints counts per company, and writes nothing. --apply writes, skipping any row whose
-(company, topic, fact_text) already exists, so re-running a capsule is safe. Placeholder sources are refused.
+validates every row, prints counts per company, and writes nothing. --apply writes, skipping any row that is
+already known: an exact repeat, or a NEAR-duplicate of a row stored for the same company and topic family.
+That second check is what lets a company's profile be updated by later capsules without restating itself.
+Placeholder sources are refused.
 """
 
 from __future__ import annotations
@@ -16,6 +18,7 @@ from typing import Any
 
 from engines import library_db
 from engines import research_facts as rf
+from scripts.prepare_transcript_capsule import is_near_duplicate, normalise
 
 PLACEHOLDER_MARKERS = ("...", "<", "TODO", "xxx")
 
@@ -48,15 +51,31 @@ def absorb(path: Path, *, apply: bool, db: Any = None) -> int:
         print(f"target host: {conn.host}")
     for stmt in _schema_statements():
         db.execute(stmt)
-    written = skipped = 0
+    written = skipped = near = 0
+    known: dict[tuple[str, str], list[frozenset[str]]] = {}
+
+    def known_for(company: str, family: str) -> list[frozenset[str]]:
+        key = (company, family)
+        if key not in known:
+            found = db.execute("SELECT fact_text FROM research_fact WHERE company = ? AND topic LIKE ?",
+                               (company, family + ".%"))
+            known[key] = [normalise(str(r["fact_text"])) for r in found]
+        return known[key]
+
     for r in rows:
         dup = db.execute(_DUP, (r["company"], r["topic"], r["fact_text"]))[0]["n"]
         if dup:
             skipped += 1
             continue
+        words = normalise(r["fact_text"])
+        family = r["topic"].split(".", 1)[0]
+        if any(is_near_duplicate(words, prior) for prior in known_for(r["company"], family)):
+            near += 1
+            continue
         db.execute(_INSERT, tuple(r[c] for c in rf.COLUMNS))
+        known_for(r["company"], family).append(words)  # later rows in this capsule compare against it too
         written += 1
-    print(f"written: {written}, already present (skipped): {skipped}")
+    print(f"written: {written}, exact repeats skipped: {skipped}, near-duplicates skipped: {near}")
     return 0
 
 
