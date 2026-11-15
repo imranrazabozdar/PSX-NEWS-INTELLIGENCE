@@ -3,8 +3,8 @@
 Step 1 (`clean`): drop only the rows that are individually defective -- a relative time word in the sentence,
 a number that appears nowhere in the video, a number found only in a sibling video, or advice wording --
 and keep the rest. Step 2 (`hints`): for every video whose figures were under-captured, list each missed
-figure with the transcript text around it, so a small model only has to turn those few lines into rows instead of
-re-reading the whole video.
+figure with the transcript text around it, so a small model only has to turn those few lines into rows
+instead of re-reading the whole video.
 """
 
 from __future__ import annotations
