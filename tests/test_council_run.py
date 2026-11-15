@@ -116,3 +116,66 @@ def test_a_sector_name_hidden_inside_a_longer_word_does_not_drag_the_sector_in()
 def test_a_sector_can_be_asked_for_explicitly():
     db = _db_with_sector()
     assert council_run.sectors_for(["OGDC"], db, ["cement"]) == ["SECTOR:CEMENT"]
+
+
+# ---------- every topic family we ingest must actually reach a lens
+
+def test_company_commentary_reaches_the_financial_lens():
+    """commentary.* routed nowhere once, so a whole archive of company analysis was invisible."""
+    for topic in ("commentary.thesis", "commentary.risk", "risk.leverage", "thesis.core",
+                  "catalyst.expansion", "method.oil_gas_valuation", "profile.business"):
+        assert council_run.kind_for(topic) == "note", topic
+
+
+def test_sector_and_macro_families_still_route_to_the_macro_lens():
+    for topic in ("cost.energy_share", "cycle.utilisation", "capacity.installed",
+                  "operations.kiln", "valuation.ev_per_ton", "strategy.pairing",
+                  "signal.rate_cut", "returns.20yr"):
+        assert council_run.kind_for(topic) == "sector_rule", topic
+    assert council_run.kind_for("macro.rate_cut_transmission") == "macro"
+
+
+def test_a_topic_family_nobody_routes_is_still_shown_to_nobody():
+    assert council_run.kind_for("random.unmapped") is None
+
+
+def test_macro_backdrop_is_included_and_newest_dated_facts_come_first():
+    db = _db()
+    for name in ("0005_video_source.sql", "0006_video_dating.sql"):
+        for stmt in mig.statements((ROOT / "database" / "library" / name).read_text(encoding="utf-8")):
+            db.execute(stmt)
+    db.execute(INSERT, ("MACRO:PAKISTAN", "macro.policy_rate", "Policy rate backdrop", None, None, "", "ARN",
+                        "u-old", "2026-11-14", "", "analyst_view", "2026-11-14T00:00:00Z"))
+    db.execute(INSERT, ("MACRO:PAKISTAN", "macro.policy_rate", "Newer rate view", None, None, "", "ARN",
+                        "u-new", "2026-11-14", "", "analyst_view", "2026-11-14T00:00:00Z"))
+    for vid, url, day in (("old", "u-old", "2024-06-01"), ("new", "u-new", "2026-10-01")):
+        db.execute("INSERT INTO video_source (video_id, title, channel, archive_position, url, "
+                   "speaker_may_differ, status) VALUES (?,?,?,?,?,?,?)",
+                   (vid, "t", "c", 0, url, 0, "extracted"))
+        db.execute("INSERT INTO video_dating (video_id, date_from, date_to, basis, note) VALUES (?,?,?,?,?)",
+                   (vid, day, day, "verified", ""))
+    pack = council_run.build_pack("Rates move.", ["OGDC"], db)
+    macro = [i for i in pack.items if i.company == "MACRO:PAKISTAN"]
+    assert [i.source_date for i in macro] == ["2026-10-01 [current]", "2024-06-01 [old]"]
+
+
+def test_freshness_bands_and_factor_tags():
+    from datetime import date
+
+    from engines import freshness
+
+    today = date(2026, 11, 15)
+    assert freshness.label("2026-10-01", today) == "current"
+    assert freshness.label("2026-01-01", today) == "recent"
+    assert freshness.label("2025-03-01", today) == "dated"
+    assert freshness.label("2024-06-01", today) == "old"
+    assert freshness.label("", today) == "undated"
+    tags = freshness.factors_in("SBP cuts the policy rate; rupee steady")
+    assert tags == {"interest_rate", "exchange_rate"}
+
+
+def test_event_factor_ranks_matching_facts_first_and_a_brief_is_added():
+    pack = council_run.build_pack("SBP cut the policy rate.", ["OGDC"], _db(), limit_per_company=2)
+    texts = [i.text for i in pack.items if i.company == "OGDC"]
+    assert any("Rate cuts" in t for t in texts)
+    assert any("stored fact(s)" in t for t in texts)

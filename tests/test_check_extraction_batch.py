@@ -1,0 +1,101 @@
+"""The extraction quality gate: what it trusts, and what it sends to a stronger model."""
+
+from __future__ import annotations
+
+from scripts import check_extraction_batch as gate
+
+SOURCE = ("cement energy is 70 percent of cost and limestone is 5 percent " * 400) + " 1500 2000 3000 45 60"
+
+
+def row(text, period=None, **kw):
+    base = {"company": "SECTOR:CEMENT", "topic": "cost.energy_share", "fact_text": text, "value": None,
+            "unit": None, "period": period, "source_name": "ARN, 'X' (YouTube transcript, undated)",
+            "source_url": "https://y/x", "video_id": "x", "confidence": "analyst_view"}
+    base.update(kw)
+    return base
+
+
+def test_a_well_grounded_file_passes():
+    rows = [row("Energy is 70 percent of cost.") for _ in range(40)]
+    assert gate.judge(rows, SOURCE).ok
+
+
+def test_numbers_the_speaker_never_said_are_flagged_as_invented():
+    rows = [row("Margins were 9123 and 8841 and 7712 and 6655 and 5544 and 4433.") for _ in range(40)]
+    v = gate.judge(rows, SOURCE)
+    assert not v.ok and any("possible invention" in r for r in v.reasons)
+
+
+def test_a_relative_period_is_a_defect_because_it_mixes_eras():
+    rows = [row("Energy is 70 percent of cost.", period="last year") for _ in range(40)]
+    assert any("relative period" in r for r in gate.judge(rows, SOURCE).reasons)
+
+
+def test_a_sparse_file_from_a_long_source_is_escalated_as_skimmed():
+    v = gate.judge([row("Energy is 70 percent of cost.")], SOURCE)
+    assert not v.ok and any("too sparse" in r for r in v.reasons)
+
+
+def test_an_empty_file_is_fine_for_a_short_source_and_suspect_for_a_long_one():
+    assert gate.judge([], "short personal finance talk").ok
+    assert not gate.judge([], SOURCE).ok
+
+
+def test_buy_sell_wording_is_flagged():
+    rows = [row("You should buy this stock at 45.") for _ in range(40)]
+    assert any("advice" in r for r in gate.judge(rows, SOURCE).reasons)
+
+
+def test_a_row_missing_the_undated_declaration_breaks_the_schema():
+    rows = [row("Energy is 70 percent of cost.", source_name="ARN, 'X'") for _ in range(40)]
+    assert any("schema" in r for r in gate.judge(rows, SOURCE).reasons)
+
+
+# ---------- advice means a recommendation to a reader, not the word "sell"
+
+def test_selling_electricity_or_buying_back_shares_is_not_advice():
+    rows = [row("A power plant may sell electricity directly to private customers.") for _ in range(40)]
+    rows += [row("The company announced a plan to buy back shares.") for _ in range(5)]
+    assert not any("advice" in r for r in gate.judge(rows, SOURCE).reasons)
+
+
+def test_a_directive_to_the_reader_still_counts_as_advice():
+    for text in ("You should buy this stock now.", "I would sell the shares at 45.",
+                 "The target price is 45.", "Buy the stock before the result."):
+        rows = [row(text) for _ in range(40)]
+        assert any("advice" in r for r in gate.judge(rows, SOURCE).reasons), text
+
+
+def test_a_reviewed_empty_file_is_trusted_but_an_unreviewed_one_is_still_flagged():
+    assert not gate.judge([], SOURCE).ok
+    assert gate.judge([], SOURCE, reviewed_empty=True).ok
+
+
+# ---------- bleed: a fact filed under the wrong video of the same chunk
+
+OWN = ("financial statements balance sheet profit margin " * 300) + " 2500 4100"
+SIBLING = ("petroleum policy royalty gas price " * 300) + " 1994 1997 2001 2012 12.5"
+
+
+def test_numbers_found_only_in_a_sibling_video_are_flagged_as_bleed():
+    rows = [row("Policies from 1994, 1997, 2001 and 2012 set the producer price.") for _ in range(3)]
+    v = gate.judge(rows * 12, OWN, siblings=[SIBLING])
+    assert any("another video of the same chunk" in r for r in v.reasons)
+
+
+def test_a_row_grounded_in_its_own_video_is_not_bleed():
+    rows = [row("Profit before tax was 2500 in the period.") for _ in range(40)]
+    assert not any("another video" in r for r in gate.judge(rows, OWN, siblings=[SIBLING]).reasons)
+
+
+def test_a_number_in_neither_video_is_invention_not_bleed():
+    rows = [row("Margins reached 9123 and 8841 and 7712 and 6655 and 5544 and 4433.") for _ in range(40)]
+    reasons = gate.judge(rows, OWN, siblings=[SIBLING]).reasons
+    assert any("possible invention" in r for r in reasons)
+    assert not any("another video" in r for r in reasons)
+
+
+def test_a_single_stray_row_is_tolerated_but_a_pattern_is_not():
+    clean = [row("Profit before tax was 2500 in the period.") for _ in range(40)]
+    one = clean + [row("Royalty was 12.5 percent of the gas price.")]
+    assert not any("another video" in r for r in gate.judge(one, OWN, siblings=[SIBLING]).reasons)
