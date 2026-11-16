@@ -214,3 +214,30 @@ def rows_from_report(*, company: str, manifest: dict[str, Any], expected: dict[s
             add("report.kam", f"Key audit matter: {title}" + (f", p.{page}" if page else ""), None,
                 f"FY{period_end[:4]}")
     return rows
+
+
+# ---------------------------------------------------------------- reads that use idx_research_fact_company
+
+CHUNK = 200  # entities per query: well under SQLite's parameter limit
+
+
+def facts_for(db: Any, companies: list[str] | set[str], columns: str) -> list[Any]:
+    """Rows of research_fact for just these entities. `columns` is a fixed, code-supplied column list.
+
+    One indexed query per CHUNK entities: the rows read are the matching rows, not the whole table, so a
+    loader or a pack no longer runs out of its per-process row-read budget as the table grows."""
+    wanted = sorted(set(companies))
+    out: list[Any] = []
+    for i in range(0, len(wanted), CHUNK):
+        part = wanted[i : i + CHUNK]
+        marks = ", ".join("?" for _ in part)
+        out.extend(db.execute(f"SELECT {columns} FROM research_fact WHERE company IN ({marks})", tuple(part)))  # noqa: S608
+    return out
+
+
+def sector_names(db: Any) -> set[str]:
+    """Every SECTOR:* entity, by an index range (not LIKE, which cannot use the index)."""
+    rows = db.execute(
+        "SELECT DISTINCT company FROM research_fact WHERE company >= 'SECTOR:' AND company < 'SECTOR;'"
+    )
+    return {str(r["company"]) for r in rows}
