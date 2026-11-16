@@ -54,3 +54,29 @@ BYD (16 rows, Chinese EV maker), FTX (1, collapsed crypto exchange).
 
 Everything not listed here is either a ticker already in the snapshot, a SECTOR/MACRO entity, or a plain company name
 that the validator reports but I would leave alone (261 name-only entities).
+
+## F. Evidence from the owner's Investify screenshots (KSE All list, 16 Nov 2026 close, 20 images)
+Read from the screenshots only; names in the app are sometimes cut off, so "seen" means the ticker and the visible part
+of the name. Nothing has been changed in the alias file or Turso from this.
+
+| Entity in the brain | Seen in the app | Reading |
+|---|---|---|
+| ALFH | BAFL, Bank Al-Falah Ltd | fold ALFH -> BAFL (confirms my recollection) |
+| PEL (Pakistan Electron) | PAEL, Pak Elektron Ltd | fold PEL -> PAEL |
+| STL | STL, Supernet Technologies | ticker is STL (a listed company, not a bad ticker) |
+| BBFL | BBFL, Big Bird Foods Ltd | ticker is BBFL (listed) |
+| GCWL | GCWL, Ghani Chemworld Ltd | GCWL is Ghani Chemworld, NOT Gharibwal Cement: my section A line for GCWL (GWLC) was wrong; GCWL stays GCWL |
+| GWCL | not seen (GWLC only in the older snapshot) | still Gharibwal Cement, GWLC |
+| Apex Agro Processors and Atmospheric Gases (28) and Soya Supreme (12) | SOYASUP, "Agro Processors & ..." (logo APAG) | looks like ONE company; fold both to SOYASUP. The app cuts the full name off, so please confirm |
+| SITARA | SPL = Sitara Peroxide, SPSL = Sitara Petroleum Services; Sitara Chemicals (SITC) not seen | the 9 SITARA rows are about Sitara Chemicals: SITC is still the candidate |
+| POWER, CEPB, ATRL, AICL | all seen with the names I proposed | section A lines confirmed (PWC, PCL, POWC -> POWER; CPAL -> CEPB; ARL -> ATRL; ADAMJEE -> AICL) |
+| MIIETF, MZNPETF, JSMFETF | seen (Mahaana Islamic Index, Meezan Pakistan ETF, JS Momentum Factor ETF) | verified: add to owner_confirmed |
+| JBDC | JVDC, Javedan Corporation | likely a mis-hearing of JVDC; please confirm |
+| PIBC | PIBTL, Pakistan International Bulk Terminal | possible; please confirm |
+| TRT | TREET, Treet Corporation | possible; please confirm |
+| PARCO | not in the list | Pak-Arab Refinery is not on the PSX board: put it in section D (not listed) |
+| SECMC, DHPL, SERG, WAFI, BYCO, DHCL, GHAI, IPAX, IBL, INTER, DAPL, GAGL, SRG, SSG, AGR, SSOM, HINO, BNWM, NICL, ILP, HMB | not on the screens I was sent (the app list is long; the screenshots end near the lower-volume names) | no change from section A / B |
+| Smile Industries, Park Power, Park Jan Power, Park GL / Glen Leasing | not seen | still need your answer |
+
+Other facts visible in the screenshots (not stored anywhere): KSE-100 closed at 178,183, up 309 points (+0.17%),
+16 Nov 2026 5:30 PM.
