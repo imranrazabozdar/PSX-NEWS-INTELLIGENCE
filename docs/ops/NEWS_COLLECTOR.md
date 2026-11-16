@@ -26,6 +26,18 @@ sitemaps cover all sections, about 185 stories a day). Profit's sitemaps list ab
 December 2025; a one-year history would be about 20 days of slow page fetches, or a URL-and-date index (titles from URLs
 are approximate). Not started: owner decision.
 
+## One-month back-fill (owner-approved 16 Nov 2026)
+Profit and Express Tribune business also fill in the last 30 days (`BACKFILL_DAYS`), using whatever is left of each
+run's 25 articles after the live ones, under the same robots check, 8 s gap and daily ceilings.
+- **Profit:** the dated article URLs in its sitemaps (`/sitemap.xml`, newest file first) give the day, so only the last
+  month is fetched; each page is read once. About 5 days at the 200-request daily ceiling.
+- **Tribune:** `/sitemap/posts-N.xml` has no section, so a story is fetched only if its slug looks business-related
+  (`BUSINESS_SLUG`); the page's own `article:section` must say Business or Economy, otherwise it is skipped and
+  remembered. Expect roughly 2 weeks at the 100-request ceiling.
+- Once a source's month is complete it records `backfill_done` for the day and stops reading its sitemaps.
+- Mettis: December 2025 to November 2026 cannot be discovered; it builds up from live runs.
+  The owner decided (16 Nov 2026) that no one is emailed: history is collected slowly, newest first.
+
 ## Rules it enforces (engines/news_collector.py)
 - Every request is checked against the site's stored robots.txt first (refreshed daily). A disallowed URL is never
   fetched. If robots.txt cannot be read and no copy is stored, nothing is fetched.
@@ -56,3 +68,20 @@ Dry run on 344 stored headlines (16 Nov 2026): 97 became rows (112 rows: 42 comp
 through `scripts/absorb_sector_capsule.py` (exact and near-duplicate rows are skipped, so one story from two outlets is
 stored once). Command: `python -m scripts.build_news_capsule --out capsule.json --days 3`, then
 `python -m scripts.absorb_sector_capsule capsule.json --apply`.
+
+## Macro copy, rollup and signals (owner-approved 16 Nov 2026; LOADED 16 Nov: 168 fact rows, 41 rollup rows)
+- A headline that gets a company or sector row is also filed once under `MACRO:PAKISTAN` as `market.news`
+  (unless it already has its own `market.*` topic), so the macro entity holds the Pakistan news flow.
+- `news_rollup` (migration `0009_news_rollup.sql`): one small row per day per entity (company, `SECTOR:<X>`,
+  `MACRO:PAKISTAN`, and `ALL` for the day's total): story count, topic mix, best headline and link.
+- `engines/news_rollup.py` `signals()`: an entity's share of all tracked news in the last 7 days against its own
+  previous 28 days. A `news.signal` fact is made only with 14+ days of history, 3+ stories, and a share at least
+  2x its baseline; a week with less than 20 tracked stories makes none. Shares, not counts, so a source that starts
+  reporting more is not mistaken for a spike. It states counts and dates only, never buy or sell.
+- Dry run: `python -m scripts.build_news_rollup --out signals.json --days 60`. `--apply` upserts `news_rollup`;
+  signals load through `scripts/absorb_sector_capsule.py`. On 16 Nov 2026 (176 headlines, 30 days) it made 88 fact
+  rows, 36 rollup rows and 0 signals, correctly: there is not yet enough history.
+- Space: `news_item` is headlines only (about 300 characters a row); facts are made only for headlines that name
+  a company, a sector or the Pakistan market.
+- Automatic: the "News collector" workflow now also runs, after each collection, the headlines-to-facts step
+  (last 2 days), the rollup upsert (last 60 days) and the signals load. No model; all steps skip repeats.

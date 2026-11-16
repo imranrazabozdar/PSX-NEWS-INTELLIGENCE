@@ -2,6 +2,8 @@
 # No schedule of its own: it is started by the external timer (docs/ops/NEWS_COLLECTOR.md), the same way as
 # psx_fetch.yml, because GitHub's own cron has not been reliable for this repository. Every run checks each
 # site's robots.txt before any request and is capped per run and per day (engines/news_collector.py).
+# After collecting it turns new headlines into dated facts, updates the daily news_rollup and files signals
+# (python only, no model; exact and near-duplicate rows are skipped, so every step is safe to repeat).
 name: News collector
 
 on:
@@ -17,7 +19,7 @@ concurrency:
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     env:
       PSXNI_LIBRARY_TURSO_DATABASE_URL: ${{ secrets.PSXNI_LIBRARY_TURSO_DATABASE_URL }}
       PSXNI_LIBRARY_TURSO_AUTH_TOKEN: ${{ secrets.PSXNI_LIBRARY_TURSO_AUTH_TOKEN }}
@@ -32,3 +34,11 @@ jobs:
         run: pip install -r requirements.txt
       - name: Collect news
         run: python -m engines.news_collector
+      - name: Headlines to facts (last 2 days)
+        run: |
+          python -m scripts.build_news_capsule --out news_capsule.json --days 2 --examples 0
+          if [ -f news_capsule.json ]; then python -m scripts.absorb_sector_capsule news_capsule.json --apply; fi
+      - name: Daily rollup and signals
+        run: |
+          python -m scripts.build_news_rollup --out news_signals.json --days 60 --apply
+          if [ -f news_signals.json ]; then python -m scripts.absorb_sector_capsule news_signals.json --apply; fi
