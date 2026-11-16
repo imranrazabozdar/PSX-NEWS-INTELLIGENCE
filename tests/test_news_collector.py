@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from urllib.parse import urlsplit
 
 from database.connection import SQLiteDatabase
 from engines import news_collector as nc
@@ -74,6 +75,10 @@ class Site:
         self.calls.append(url)
         status, body = self.pages.get(url, (404, ""))
         return status, body.encode()
+
+
+def host(url: str) -> str:
+    return urlsplit(url).hostname or ""
 
 
 def pages(**extra: tuple[int, str]) -> dict[str, tuple[int, str]]:
@@ -182,7 +187,8 @@ def test_second_run_is_idempotent_and_does_not_refetch_articles():
     again = nc.run(db, site, NOW, sleep=lambda _s: None)
     assert count(db, "news_item") == first_total
     assert again["mettis"].stored == 0 and again["tribune_business"].stored == 0
-    assert not any("story-1" in c or "story-2" in c for c in site.calls if "tribune" not in c)
+    assert not [c for c in site.calls if host(c) == "mettisglobal.news" and urlsplit(c).path in (
+        "/new-story-1", "/old-story-2")]  # stored and skipped articles are not fetched again
     assert not any(c.endswith("robots.txt") for c in site.calls)  # stored robots.txt is fresh
 
 
@@ -194,7 +200,7 @@ def test_daily_ceiling_stops_requests(monkeypatch):
     site.calls.clear()
     again = nc.run(db, site, NOW, sleep=lambda _s: None)["mettis"]
     assert again.notes == ["daily ceiling reached"] and again.requests == 0
-    assert not [c for c in site.calls if "mettisglobal" in c]
+    assert not [c for c in site.calls if host(c) == "mettisglobal.news"]
 
 
 def test_unreadable_robots_fails_closed():
@@ -256,8 +262,9 @@ def test_hourly_sources_are_not_read_twice_within_the_hour():
     soon = nc.run(db, site, NOW + timedelta(minutes=30), sleep=lambda _s: None)
     assert soon["dawn_business"].notes == ["not due yet (read hourly)"]
     assert soon["dawn_business"].requests == 0
-    assert not [c for c in site.calls if "dawn.com" in c or "brecorder" in c or "profit" in c]
-    assert [c for c in site.calls if "tribune.com.pk/feed" in c]  # Tribune is read every run
+    hourly_hosts = {"www.dawn.com", "www.brecorder.com", "profit.pakistantoday.com.pk"}
+    assert not [c for c in site.calls if host(c) in hourly_hosts]
+    assert "https://tribune.com.pk/feed/business" in site.calls  # Tribune is read every run
     site.calls.clear()
     later = nc.run(db, site, NOW + timedelta(minutes=56), sleep=lambda _s: None)
     assert later["dawn_business"].requests == 1 and "https://www.dawn.com/feeds/business" in site.calls
@@ -283,4 +290,6 @@ def test_profit_new_articles_come_from_the_front_page_and_are_read_once():
         "Profit A", "Profit B"}
     site.calls.clear()
     nc.run(db, site, NOW + timedelta(minutes=56), sleep=lambda _s: None)
-    assert not [c for c in site.calls if "profit-story" in c or "old-profit" in c]  # nothing is fetched twice
+    profit_pages = [c for c in site.calls
+                    if host(c) == "profit.pakistantoday.com.pk" and urlsplit(c).path != "/"]
+    assert not profit_pages  # known and skipped articles are never fetched twice
