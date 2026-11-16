@@ -1,0 +1,34 @@
+# News collector (Mettis backfill and new articles, Express Tribune business feed) into psx-library.
+# No schedule of its own: it is started by the external timer (docs/ops/NEWS_COLLECTOR.md), the same way as
+# psx_fetch.yml, because GitHub's own cron has not been reliable for this repository. Every run checks each
+# site's robots.txt before any request and is capped per run and per day (engines/news_collector.py).
+name: News collector
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: news-collect
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PSXNI_LIBRARY_TURSO_DATABASE_URL: ${{ secrets.PSXNI_LIBRARY_TURSO_DATABASE_URL }}
+      PSXNI_LIBRARY_TURSO_AUTH_TOKEN: ${{ secrets.PSXNI_LIBRARY_TURSO_AUTH_TOKEN }}
+      PSXNI_CONTACT_EMAIL: ${{ vars.PSXNI_CONTACT_EMAIL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Collect news
+        run: python -m engines.news_collector
