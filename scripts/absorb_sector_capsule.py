@@ -89,11 +89,9 @@ def _existing(db: Any, companies: set[str]) -> tuple[set[tuple[str, str, str]],
     """What is already stored for these companies, read once: exact keys, and word bags per topic family."""
     exact: set[tuple[str, str, str]] = set()
     known: dict[tuple[str, str], list[frozenset[str]]] = {}
-    # One scan, filtered here: the table has no index on company, so a query per batch of entities rescans
-    # all of it and, as the table grows, runs a loader out of its per-process row-read budget.
-    for row in db.execute("SELECT company, topic, fact_text FROM research_fact"):
-        if row["company"] not in companies:
-            continue
+    # Only these entities are read, through idx_research_fact_company (database/library/0010): the rows read
+    # are the matching rows, so a loader no longer runs out of its row-read budget as the table grows.
+    for row in rf.facts_for(db, companies, "company, topic, fact_text"):
         exact.add((row["company"], row["topic"], row["fact_text"]))
         known.setdefault((row["company"], str(row["topic"]).split(".", 1)[0]), []).append(
             normalise(str(row["fact_text"])))

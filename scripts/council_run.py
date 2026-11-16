@@ -18,6 +18,7 @@ from typing import Any
 
 from engines import analyst_council as council
 from engines import freshness, library_db, llm
+from engines import research_facts as rf
 
 SCHEMA = Path(__file__).resolve().parents[1] / "database" / "library" / "0003_council_verdict.sql"
 INSERT = ("INSERT INTO council_verdict (event, created_at, lenses_answered, conflict_count, "
@@ -74,7 +75,7 @@ def kind_for(topic: str) -> str | None:
 
 
 def sectors_for(companies: list[str], db: Any, extra: list[str] | None = None,
-                by_company: dict[str, list[dict]] | None = None) -> list[str]:
+                by_company: dict[str, list[dict]] | None = None, known: set[str] | None = None) -> list[str]:
     """Which SECTOR:* knowledge belongs with these companies.
 
     A sector is included when it was asked for, or when its name is one of the dotted segments of a
@@ -85,13 +86,12 @@ def sectors_for(companies: list[str], db: Any, extra: list[str] | None = None,
     Without this the macro lens has nothing to cite, every assessment it makes is discarded for citing
     no evidence, and the council loses the one lens that looks for second-order effects.
 
-    `by_company` is the facts table already read once by build_pack; without it this queries the database.
+    `by_company` holds the facts build_pack already read; `known` is the set of SECTOR:* entities. Without
+    them this queries the database (by index).
     """
-    if by_company is not None:
-        known = {c for c in by_company if c.startswith("SECTOR:")}
-    else:
-        known = {str(r["company"]) for r in
-                 db.execute("SELECT DISTINCT company FROM research_fact WHERE company LIKE 'SECTOR:%'")}
+    if known is None:
+        known = ({c for c in by_company if c.startswith("SECTOR:")} if by_company is not None
+                 else rf.sector_names(db))
     wanted = {f"SECTOR:{s.strip().upper()}" for s in (extra or []) if s.strip()} & known
     segments: set[str] = set()
     for company in companies:
@@ -204,18 +204,26 @@ def build_pack(event: str, companies: list[str], db: Any, *, limit_per_company: 
     if not items:
         items.append(council.Evidence("n1", "news", event[:500], "Owner-supplied event text", ""))
     seq = 0
-    # The facts table is read ONCE: it has no index on company, so a query per company would rescan it all.
+    # Only this pack's entities are read (idx_research_fact_company), then the sectors that belong to them.
+    columns = "id, company, topic, fact_text, source_name, source_url, source_date, confidence"
     by_company: dict[str, list[dict]] = {}
-    for r in db.execute("SELECT id, company, topic, fact_text, source_name, source_url, source_date, "
-                        "confidence FROM research_fact"):
-        by_company.setdefault(str(r["company"]), []).append(dict(r))
+
+    def read(names: list[str]) -> None:
+        for r in rf.facts_for(db, [n for n in names if n not in by_company], columns):
+            by_company.setdefault(str(r["company"]), []).append(dict(r))
+        for n in names:
+            by_company.setdefault(n, [])
+
+    read(list(companies) + ["MACRO:PAKISTAN"])
     for company in companies:
         items.append(council.Evidence(f"b{company}", "note", _brief(by_company.get(company, []), company),
                                       "Brain summary (computed)", "", company=company))
     wanted = freshness.factors_in(event + " " + " ".join(news or []))
     dates = _date_map(db)
     # MACRO:PAKISTAN is always in the pack: the macro lens needs the country backdrop for any event.
-    entities = list(companies) + sectors_for(companies, db, sectors, by_company) + ["MACRO:PAKISTAN"]
+    chosen = sectors_for(companies, db, sectors, by_company, known=rf.sector_names(db))
+    read(chosen)
+    entities = list(companies) + chosen + ["MACRO:PAKISTAN"]
     for company in entities:
         rows = _dated_rows(by_company.get(company, []), dates)
         # Facts about the factors this event touches first, then the rest, each newest-first.

@@ -498,3 +498,8 @@ Mettis Dec 2025 to Nov 2026 remains a gap; no emails to outlets (owner, 16 Nov 2
 ## News facts, rollup and signals - LOADED and AUTOMATED (16 Nov 2026)
 168 `research_fact` rows (company, sector, `MACRO:PAKISTAN`) and 41 `news_rollup` rows loaded with owner approval;
 `news_collect.yml` repeats the steps after every collector run. Signals appear once there are 14+ days of history.
+
+## research_fact company index - IMPLEMENTED, TESTED (offline); not yet applied to Turso
+`database/library/0010_research_fact_index.sql`, `scripts/apply_research_fact_index.py` (one allowed statement),
+`research_facts.facts_for` / `sector_names`; the absorb loader and the council pack read only the entities they need.
+Apply once, right after a collector run, after the PR merges; then measure rows read.
