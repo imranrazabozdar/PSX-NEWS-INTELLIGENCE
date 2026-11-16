@@ -69,7 +69,7 @@ through `scripts/absorb_sector_capsule.py` (exact and near-duplicate rows are sk
 stored once). Command: `python -m scripts.build_news_capsule --out capsule.json --days 3`, then
 `python -m scripts.absorb_sector_capsule capsule.json --apply`.
 
-## Macro copy, rollup and signals (owner-approved 16 Nov 2026; built, dry run only, not yet loaded)
+## Macro copy, rollup and signals (owner-approved 16 Nov 2026; LOADED 16 Nov: 168 fact rows, 41 rollup rows)
 - A headline that gets a company or sector row is also filed once under `MACRO:PAKISTAN` as `market.news`
   (unless it already has its own `market.*` topic), so the macro entity holds the Pakistan news flow.
 - `news_rollup` (migration `0009_news_rollup.sql`): one small row per day per entity (company, `SECTOR:<X>`,
@@ -83,3 +83,5 @@ stored once). Command: `python -m scripts.build_news_capsule --out capsule.json 
   rows, 36 rollup rows and 0 signals, correctly: there is not yet enough history.
 - Space: `news_item` is headlines only (about 300 characters a row); facts are made only for headlines that name
   a company, a sector or the Pakistan market.
+- Automatic: the "News collector" workflow now also runs, after each collection, the headlines-to-facts step
+  (last 2 days), the rollup upsert (last 60 days) and the signals load. No model; all steps skip repeats.

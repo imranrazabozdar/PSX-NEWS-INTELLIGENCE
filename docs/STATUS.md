@@ -494,3 +494,7 @@ Mettis Dec 2025 to Nov 2026 remains a gap; no emails to outlets (owner, 16 Nov 2
 ## News rollup and signals - IMPLEMENTED, TESTED (offline); dry run only, load and Actions step await owner OK
 `engines/news_rollup.py`, `scripts/build_news_rollup.py`, `database/library/0009_news_rollup.sql`, macro copy in
 `engines/news_facts.py`. Not loaded into Turso; no workflow added yet.
+
+## News facts, rollup and signals - LOADED and AUTOMATED (16 Nov 2026)
+168 `research_fact` rows (company, sector, `MACRO:PAKISTAN`) and 41 `news_rollup` rows loaded with owner approval;
+`news_collect.yml` repeats the steps after every collector run. Signals appear once there are 14+ days of history.
