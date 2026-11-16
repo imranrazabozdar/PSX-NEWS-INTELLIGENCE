@@ -476,3 +476,13 @@ Runbook: `docs/ops/AUTONOMOUS_FETCHER.md`.
   and Profit's history needs an owner decision (20 days of slow page fetches, or a URL-and-date index).
 - Not built: fact extraction from these headlines into `research_fact` (next phase, needs owner approval); the second
   cron-job.org job that starts `news_collect.yml` every 30 minutes (owner step in the runbook).
+
+### News headlines to facts: BUILT and TESTED; dry run only; GATE: owner approval to load and automate
+- `engines/news_facts.py`, `scripts/build_news_capsule.py`, `tests/test_news_facts.py` (17 tests). Dry run on 344 stored
+  headlines: 97 became rows (112: 42 company, 24 sector, 46 macro); the 42 company rows were checked by eye after tightening
+  (headline-only matching, sponsor mentions ignored, one-word names only from confirmed aliases).
+- Found and fixed on the way: the shared keyword matcher (`engines/freshness.py`) matched by prefix, so "ban" matched
+  "bank" and tagged bank headlines as regulation. Words under five letters now match whole words only; this also affects
+  the council's relevance ranking.
+- Not done: loading the rows into `research_fact`; running the build after each collector run in Actions; sending material
+  news to the council.

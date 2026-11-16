@@ -19,7 +19,8 @@ FACTORS: dict[str, tuple[str, ...]] = {
     "oil_energy": ("oil", "crude", "brent", "gas price", "lng", "furnace", "petrol", "diesel"),
     "power_tariff": ("electricity", "power tariff", "circular debt", "ipp", "capacity payment", "nepra"),
     "coal_fuel_cost": ("coal", "afghan coal", "fuel cost", "freight"),
-    "imf_fiscal": ("imf", "budget", "tax", "fbr", "levy", "subsidy", "fiscal", "tariff duty"),
+    "imf_fiscal": ("imf", "budget", "tax", "taxation", "fbr", "levy", "subsidy", "fiscal",
+                   "tariff duty"),
     "global_demand": ("export", "global demand", "china", "us tariff", "remittance"),
     "construction_cycle": ("cement", "construction", "housing", "psdp", "steel", "building"),
     "agri_cycle": ("wheat", "cotton", "sugar", "crop", "fertilizer", "urea", "dap"),
@@ -45,7 +46,14 @@ def age_text(source_date: str, today: date | None = None) -> str:
     return f"{str(source_date)[:10]} [{tag}]" if tag != "undated" else f"{source_date} [undated]"
 
 
+def _word_regex(word: str) -> str:
+    """A keyword as a pattern. Longer words also match their endings ("taxation", "devaluations"); words
+    under five letters must be whole words (a plural s is allowed), so "ban" does not match "bank"."""
+    stem = re.escape(word)
+    return rf"\b{stem}(?:s|es)?\b" if len(word.replace(" ", "")) < 5 else rf"\b{stem}"
+
+
 def factors_in(text: str) -> set[str]:
     low = text.lower()
     return {name for name, words in FACTORS.items()
-            if any(re.search(rf"\b{re.escape(w)}", low) for w in words)}
+            if any(re.search(_word_regex(w), low) for w in words)}

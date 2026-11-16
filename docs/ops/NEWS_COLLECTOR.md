@@ -44,3 +44,15 @@ Success is HTTP 204 and a `workflow_dispatch` run of "News collector" in the Act
 ## Pace
 Mettis publishes about 22 articles a day and `/latest` shows the 15 newest, so a poll every 30 minutes misses none.
 The sitemap slice (about 300 articles) takes about half a day at 25 articles a run, then each run mostly stores new items.
+
+## From headlines to facts (built, not yet loaded: owner gate)
+`engines/news_facts.py` and `scripts/build_news_capsule.py` turn stored headlines into dated `research_fact` rows with no
+model: a company row for each listed company the HEADLINE names (a company named only in the snippet is not tagged;
+sponsor mentions such as "HBL PMI" are ignored; at most three companies), a sector row when the headline is about a
+sector the library already has, and a `MACRO:PAKISTAN` `market.*` row for index moves and for rates, FX, inflation,
+energy, fiscal and trade headlines that have a Pakistan context. World news with no Pakistan link becomes no row.
+"today" and "yesterday" become dates; source_date is the publication date; the outlet and link are on every row.
+Dry run on 344 stored headlines (16 Nov 2026): 97 became rows (112 rows: 42 company, 24 sector, 46 macro). Loading goes
+through `scripts/absorb_sector_capsule.py` (exact and near-duplicate rows are skipped, so one story from two outlets is
+stored once). Command: `python -m scripts.build_news_capsule --out capsule.json --days 3`, then
+`python -m scripts.absorb_sector_capsule capsule.json --apply`.
