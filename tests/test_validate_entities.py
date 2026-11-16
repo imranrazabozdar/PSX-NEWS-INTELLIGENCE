@@ -1,4 +1,6 @@
-from scripts.validate_entities import classify, norm
+import json
+
+from scripts.validate_entities import classify, load_listing, norm
 
 LISTING = {
     "MEBL": "Meezan Bank Limited",
@@ -21,3 +23,12 @@ def test_classify_covers_every_class():
     assert out["bad_ticker"] == [("ZZZZ", 1)] and out["known"] == [("Old Co", 1)]
     assert out["name_only"] == [("Fooo Widgets", 1)]
     assert out["near"] == [("DG Khan Cement", "DGKC", 1)]
+
+
+def test_owner_confirmed_symbols_count_as_listed(tmp_path):
+    snap = tmp_path / "snap.json"
+    snap.write_text(json.dumps({"companies": {"MEBL": "Meezan Bank Limited"},
+                                "owner_confirmed": {"_note": "x", "SPSL": "Sitara Petroleum"}}))
+    listing = load_listing(snap)
+    assert set(listing) == {"MEBL", "SPSL"}
+    assert classify({"SPSL": 4}, listing, {})["ok"] == [("SPSL", 4)]

@@ -249,7 +249,14 @@
     "Gadoon Textile": "GADT",
     "Mehmood Textile": "MEHT",
     "Yousuf Weaving": "YOUW",
-    "Chirag Cement": "CHCC"
+    "Chirag Cement": "CHCC",
+    "Select Technologies": "SELECT",
+    "Sitara Petroleum": "SPSL",
+    "Sitara Petroleum Services": "SPSL",
+    "HBL Growth Fund": "HGFA",
+    "Parken Power": "PKGP",
+    "Askari Life Insurance": "ALAC",
+    "BF Agro": "BFAGRO"
   },
   "not_listed": [
     "Central Depository Company",
@@ -287,5 +294,10 @@
   "delisted": [
     "PSMC"
   ],
-  "_delisted_source": "PSX company page for PSMC shows a DELISTED tag (checked 2026-11-15)"
+  "_delisted_source": "PSX company page for PSMC shows a DELISTED tag (checked 2026-11-15)",
+  "keep_as_name": [
+    "Hero Textile Mills",
+    "Shatar Sugar Mills"
+  ],
+  "_keep_as_name_note": "Owner decision 2026-11-16: leave these as plain names (not folded onto a ticker)."
 }
