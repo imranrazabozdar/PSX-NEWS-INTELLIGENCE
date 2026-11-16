@@ -482,18 +482,21 @@ def _backfill_queue(s: _Session, result: Result, cutoff: datetime, known: set[st
         if not page or page[0] != 200:
             result.notes.append(f"sitemap not read: {loc.rsplit('/', 1)[-1]}")
             break
-        in_window = 0
+        in_window, reached_older = 0, False
         for url, mod in parse_sitemap(page[1].decode("utf-8", "replace")):
             day_of = profit_url_day(url) if name == "profit" else (mod or "")[:10]
-            if not day_of or day_of < cut_day:
+            if not day_of:
+                continue
+            if day_of < cut_day:
+                reached_older = True
                 continue
             in_window += 1
             if url in known:
                 continue
             if name == "profit" or tribune_slug_is_business(url):
                 queue.append(url)
-        if not in_window:
-            break  # this file is older than the window; later files are older still
+        if not in_window or reached_older:
+            break  # the window ends in this file (or it is all older); later files are older still
     queue = sorted(set(queue), key=lambda u: (profit_url_day(u) or "", u), reverse=True)
     if not queue:
         s.store.set_progress(name, "backfill_done", day, s.now)

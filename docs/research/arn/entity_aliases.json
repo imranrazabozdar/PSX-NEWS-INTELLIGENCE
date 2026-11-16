@@ -1,5 +1,5 @@
 {
-  "_source": "https://www.ksestocks.com/ListedCompanies/SortByName (owner-confirmed trusted, 2026-11-15); plus official PSX company pages dps.psx.com.pk/company/<SYMBOL> (2026-11-15); plus owner-supplied tickers (2026-11-15); plus ksestocks.com listing, verbatim matches (2026-11-15, Standard Capital capsule)",
+  "_source": "https://www.ksestocks.com/ListedCompanies/SortByName (owner-confirmed trusted, 2026-11-15); plus official PSX company pages dps.psx.com.pk/company/<SYMBOL> (2026-11-15); plus owner-supplied tickers (2026-11-15); plus ksestocks.com listing, verbatim matches (2026-11-15, Standard Capital capsule) ; plus owner confirmations of 16 Nov 2026 against the Investify KSE All list (screenshots): ALFH->BAFL, PEL->PAEL, GWCL->GWLC, SSOIL->SSOM, BMWM->BNWM, BWML->BNWM, BWMT->BNWM, PWC->POWER, PCL->POWER, POWC->POWER, CPAL->CEPB, ARL->ATRL, ADAMJEE->AICL, INTER->ILP, MBL->HMB, SITARA->SITC, Smile Industries->ISIL, Park Power->PKGP, Park Jan Power->PKGP, Park GL Leasing (transcribed name)->PGLC, Park Glen Leasing->PGLC",
   "aliases": {
     "Aisha Steel Mills": "ASL",
     "Atlas Battery": "ATBA",
@@ -261,7 +261,28 @@
     "Ghandhara Automobiles": "GAL",
     "Ghandarra Automobiles": "GAL",
     "Ghandhara Automobiles Limited": "GAL",
-    "Gandhara Automobiles Limited": "GAL"
+    "Gandhara Automobiles Limited": "GAL",
+    "ALFH": "BAFL",
+    "PEL": "PAEL",
+    "GWCL": "GWLC",
+    "SSOIL": "SSOM",
+    "BMWM": "BNWM",
+    "BWML": "BNWM",
+    "BWMT": "BNWM",
+    "PWC": "POWER",
+    "PCL": "POWER",
+    "POWC": "POWER",
+    "CPAL": "CEPB",
+    "ARL": "ATRL",
+    "ADAMJEE": "AICL",
+    "INTER": "ILP",
+    "MBL": "HMB",
+    "SITARA": "SITC",
+    "Smile Industries": "ISIL",
+    "Park Power": "PKGP",
+    "Park Jan Power": "PKGP",
+    "Park GL Leasing (transcribed name)": "PGLC",
+    "Park Glen Leasing": "PGLC"
   },
   "not_listed": [
     "Central Depository Company",
