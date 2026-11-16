@@ -22,8 +22,9 @@ Known data-quality limits:
   be confirmed were dropped, not guessed.
 - 11 KSE-100 rows with an index level that lost a digit (for example 16,257 for about 162,000) and 2 more with
   garbled support levels were removed by hand after a plausibility sweep. Weekly and daily point-change rows were kept.
-- Company names the agents could not map to a ticker stay as names (for example Hafco, FG); they are not
-  invented tickers.
+- Company names the agents could not map to a ticker stay as names (for example FG); they are not
+  invented tickers. "Hafco" was mapped to HUBC on the owner's identification (the price levels, about Rs 202 to 214,
+  fit Hub Power).
 - The 10 videos with no captions can be fetched with the transcript-API fallback (to do).
 
 Proof before scaling (same method as Standard Capital): Haiku with the figures sweep on an earnings segment and a

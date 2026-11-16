@@ -104,7 +104,8 @@
     "Pakistan Stock Exchange": "PSX",
     "Pakistan Oxygen": "PAKOXY",
     "Select Technology": "Select Technologies",
-    "method": "MACRO:PAKISTAN"
+    "method": "MACRO:PAKISTAN",
+    "Hafco": "HUBC"
   },
   "not_listed": [
     "Central Depository Company",
