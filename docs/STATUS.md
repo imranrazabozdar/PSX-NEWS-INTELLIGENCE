@@ -490,3 +490,7 @@ Runbook: `docs/ops/AUTONOMOUS_FETCHER.md`.
 ## News back-fill (Profit and Tribune, one month) - IMPLEMENTED, TESTED (offline), not yet run live
 Sitemap-based 30-day back-fill added to `engines/news_collector.py` (owner-approved 16 Nov 2026); 2 new tests.
 Mettis Dec 2025 to Nov 2026 remains a gap; no emails to outlets (owner, 16 Nov 2026).
+
+## News rollup and signals - IMPLEMENTED, TESTED (offline); dry run only, load and Actions step await owner OK
+`engines/news_rollup.py`, `scripts/build_news_rollup.py`, `database/library/0009_news_rollup.sql`, macro copy in
+`engines/news_facts.py`. Not loaded into Turso; no workflow added yet.

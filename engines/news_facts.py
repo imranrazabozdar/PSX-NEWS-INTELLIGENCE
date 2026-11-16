@@ -340,8 +340,11 @@ def macro_topic(title: str, context_text: str) -> str | None:
     return None
 
 
-def rows_for_item(vocab: Vocabulary, item: dict, *, created_at: str) -> list[dict]:
-    """Fact rows (research_fact columns) for one news_item row; [] when it names nothing relevant."""
+def rows_for_item(vocab: Vocabulary, item: dict, *, created_at: str, macro_copy: bool = True) -> list[dict]:
+    """Fact rows (research_fact columns) for one news_item row; [] when it names nothing relevant.
+
+    macro_copy (owner decision, 16 Nov 2026): a headline that already gets a company or sector row is also
+    filed once under MACRO:PAKISTAN as market.news, so the macro entity holds the full Pakistan news flow."""
     title, snippet = item["title"], item.get("snippet")
     published = datetime.fromisoformat(item["published_at"].replace("Z", "+00:00"))
     day = published.date()
@@ -360,6 +363,8 @@ def rows_for_item(vocab: Vocabulary, item: dict, *, created_at: str) -> list[dic
     market = macro_topic(title, text)
     if market:
         targets.append(("MACRO:PAKISTAN", market))
+    elif macro_copy and targets and (PAKISTAN_CONTEXT.search(text) or item["source"] != "brecorder"):
+        targets.append(("MACRO:PAKISTAN", "market.news"))
     rows = []
     for company, topic in dict.fromkeys(targets):
         rows.append(

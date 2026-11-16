@@ -32,7 +32,11 @@ def item(title, snippet=None, source="profit", published="2026-11-16T09:00:00Z",
 
 
 def rows(title, snippet=None, **kw):
-    return nf.rows_for_item(VOCAB, item(title, snippet, **kw), created_at="2026-11-16T10:00:00Z")
+    kw.setdefault("macro_copy", False)
+    mc = kw.pop("macro_copy")
+    return nf.rows_for_item(
+        VOCAB, item(title, snippet, **kw), created_at="2026-11-16T10:00:00Z", macro_copy=mc
+    )
 
 
 def test_company_by_name_alias_and_ticker():
@@ -150,3 +154,16 @@ def test_one_word_names_come_only_from_confirmed_aliases():
 def test_no_stray_period_after_a_question_headline():
     text = nf.fact_text("Is Hub Power reviving?", "It posted a profit.", date(2026, 11, 16))
     assert text == "Is Hub Power reviving? It posted a profit."
+
+
+def test_a_company_or_sector_headline_is_also_filed_once_under_macro_pakistan():
+    out = rows("Hub Power posts record profit in 2026", macro_copy=True)
+    assert [(r["company"], r["topic"]) for r in out] == [
+        ("HUBC", "news.results"),
+        ("MACRO:PAKISTAN", "market.news"),
+    ]
+    # a headline with its own market topic keeps that topic and gets no second macro row
+    out = rows("Hub Power shares rise as KSE-100 gains 300 points", macro_copy=True)
+    assert [r["topic"] for r in out if r["company"] == "MACRO:PAKISTAN"] == ["market.index"]
+    # nothing matched: no macro copy either
+    assert rows("Cricket final preview", macro_copy=True) == []

@@ -68,3 +68,18 @@ Dry run on 344 stored headlines (16 Nov 2026): 97 became rows (112 rows: 42 comp
 through `scripts/absorb_sector_capsule.py` (exact and near-duplicate rows are skipped, so one story from two outlets is
 stored once). Command: `python -m scripts.build_news_capsule --out capsule.json --days 3`, then
 `python -m scripts.absorb_sector_capsule capsule.json --apply`.
+
+## Macro copy, rollup and signals (owner-approved 16 Nov 2026; built, dry run only, not yet loaded)
+- A headline that gets a company or sector row is also filed once under `MACRO:PAKISTAN` as `market.news`
+  (unless it already has its own `market.*` topic), so the macro entity holds the Pakistan news flow.
+- `news_rollup` (migration `0009_news_rollup.sql`): one small row per day per entity (company, `SECTOR:<X>`,
+  `MACRO:PAKISTAN`, and `ALL` for the day's total): story count, topic mix, best headline and link.
+- `engines/news_rollup.py` `signals()`: an entity's share of all tracked news in the last 7 days against its own
+  previous 28 days. A `news.signal` fact is made only with 14+ days of history, 3+ stories, and a share at least
+  2x its baseline; a week with less than 20 tracked stories makes none. Shares, not counts, so a source that starts
+  reporting more is not mistaken for a spike. It states counts and dates only, never buy or sell.
+- Dry run: `python -m scripts.build_news_rollup --out signals.json --days 60`. `--apply` upserts `news_rollup`;
+  signals load through `scripts/absorb_sector_capsule.py`. On 16 Nov 2026 (176 headlines, 30 days) it made 88 fact
+  rows, 36 rollup rows and 0 signals, correctly: there is not yet enough history.
+- Space: `news_item` is headlines only (about 300 characters a row); facts are made only for headlines that name
+  a company, a sector or the Pakistan market.
