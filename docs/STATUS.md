@@ -460,3 +460,18 @@ Runbook: `docs/ops/AUTONOMOUS_FETCHER.md`.
 - Conflicts are recorded on both sides rather than resolved: SECMC stake (8% per CFO and brief vs 17.5% per analyst), CPHGC stake (47.5% / 46% / 50%), and whether the base plant is active in FY2027.
 - `scripts/load_research_facts.py` gained `--scope`, so a company can gain a new body of knowledge without reloading what is already there.
 
+
+## News collector (Mettis, Express Tribune business): IMPLEMENTED and TESTED; first live runs done; GATE: owner review
+
+- `engines/news_collector.py`, migration `database/library/0008_news_item.sql` (`news_item`, `news_progress`), workflow
+  `.github/workflows/news_collect.yml` (dispatch only; started by the external timer), runbook `docs/ops/NEWS_COLLECTOR.md`.
+- Tests (`tests/test_news_collector.py`, offline fake network): parsing, robots.txt (wildcards, longest match, a named
+  crawler beats `*`), a disallowed URL is never fetched, unreadable robots.txt fetches nothing, daily ceiling, idempotence,
+  request spacing, new articles first.
+- Live (16 Nov 2026, two manual runs): 70 rows in `news_item` (Mettis 45, Tribune business 25); every row has a title, a UTC
+  publication date, a link and a snippet.
+- Limits found: Mettis's sitemap stopped listing articles after about 1 Dec 2025 and `/latest` has no pagination, so its history
+  covers 16 Nov to 1 Dec 2025 plus everything from the first live run. Express Tribune history before the first run is not
+  collected (its business section has no deep feed). Dawn, Business Recorder and Profit are not collected (owner decision).
+- Not built: fact extraction from these headlines into `research_fact` (next phase, needs owner approval); the second
+  cron-job.org job that starts `news_collect.yml` every 30 minutes (owner step in the runbook).
