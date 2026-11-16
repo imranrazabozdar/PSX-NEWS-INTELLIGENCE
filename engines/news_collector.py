@@ -36,7 +36,8 @@ GAP_SECONDS = 8.0
 ROBOTS_MAX_AGE = timedelta(hours=24)
 FEED_MIN_INTERVAL = timedelta(minutes=55)  # feeds and listings that change slowly are read hourly
 DAILY_CEILING = {"mettis": 300, "tribune_business": 100, "dawn_business": 60, "brecorder": 120, "profit": 200}
-MAX_BODY = 5_000_000
+MAX_BODY = 15_000_000  # Tribune's post sitemap is about 5.6 MB
+BACKFILL_DAYS = 30  # owner-approved one-month back-fill (16 Nov 2026) for Profit and Tribune business
 SNIPPET_CHARS = 300
 
 METTIS = "https://mettisglobal.news"
@@ -50,13 +51,14 @@ SOURCES = {
     "mettis": {"kind": "mettis", "base": METTIS, "index": METTIS + "/sitemap_index.xml",
                "latest": METTIS + "/latest"},
     "tribune_business": {"kind": "feed", "base": TRIBUNE, "feeds": [TRIBUNE + "/feed/business"],
-                         "min_interval": None},
+                         "min_interval": None, "sitemap": TRIBUNE + "/sitemap.xml", "business_only": True},
     "dawn_business": {"kind": "feed", "base": DAWN, "feeds": [DAWN + "/feeds/business"],
                       "min_interval": FEED_MIN_INTERVAL},
     "brecorder": {"kind": "feed", "base": BRECORDER,
                   "feeds": [BRECORDER + "/feeds/latest-news", BRECORDER + "/feeds/business-finance"],
                   "min_interval": FEED_MIN_INTERVAL},
-    "profit": {"kind": "profit", "base": PROFIT, "latest": PROFIT + "/", "min_interval": FEED_MIN_INTERVAL},
+    "profit": {"kind": "profit", "base": PROFIT, "latest": PROFIT + "/", "min_interval": FEED_MIN_INTERVAL,
+               "sitemap": PROFIT + "/sitemap.xml"},
 }
 _CREATE = re.compile(r"^CREATE TABLE IF NOT EXISTS [a-z_]+ \(", re.IGNORECASE)
 
@@ -190,7 +192,7 @@ def parse_article(page: str, url: str, source: str) -> Item | None:
     when = to_utc_iso((node or {}).get("datePublished") or meta.get("article:published_time"))
     if not title or not when:
         return None
-    section = (node or {}).get("articleSection")
+    section = (node or {}).get("articleSection") or meta.get("article:section")
     snippet = meta.get("og:description") or (node or {}).get("description") or meta.get("description")
     return Item(source, url, clean_text(str(title), 400), when,
                 clean_text(section, 80) or None if isinstance(section, str) else None,
@@ -208,6 +210,27 @@ def parse_profit_listing(page: str) -> list[str]:
     for path in re.findall(pattern, page):
         seen.setdefault(PROFIT + path, None)
     return list(seen)
+
+
+# Tribune's sitemap has no section, so a story is only fetched when its slug looks business-related;
+# the page's own section then decides whether it is kept.
+BUSINESS_SLUG = re.compile(
+    r"psx|kse|stock|share|bank|sbp|rupee|dollar|inflation|econom|budget|tax|fbr|imf|gdp|oil|petrol|diesel|"
+    r"gas|power|electric|cement|steel|fertili|sugar|textile|export|import|trade|profit|loss|dividend|earning|"
+    r"revenue|price|market|invest|loan|debt|sukuk|bond|tariff|nepra|ogra|ecc|financ|business|compan|plant|"
+    r"refiner|auto|sales|growth|reserve|remittance|privati|airline|pia|telecom|crypto|gold|wheat|cotton|rice|"
+    r"fund|insurance|ipo|merger|acquisition|currency|forex|tbill|treasury|cpi|mpc|monetary|wage|salary|pension",
+    re.IGNORECASE)
+
+
+def profit_url_day(url: str) -> str | None:
+    m = re.match(r"https://profit\.pakistantoday\.com\.pk/(\d{4})/(\d{2})/(\d{2})/", url)
+    return "-".join(m.groups()) if m else None
+
+
+def tribune_slug_is_business(url: str) -> bool:
+    m = re.match(r"https://tribune\.com\.pk/story/\d+/([A-Za-z0-9%._~-]+)$", url)
+    return bool(m and BUSINESS_SLUG.search(m.group(1)))
 
 
 # ---------------------------------------------------------------- robots.txt
@@ -389,7 +412,7 @@ def _run_mettis(s: _Session, result: Result, cutoff: datetime, per_run: int) -> 
     result.notes.append(f"{max(len(queue) - per_run, 0)} article(s) still pending")
 
 
-def _run_feeds(s: _Session, result: Result) -> None:
+def _run_feeds(s: _Session, result: Result, per_run: int = PER_RUN_ARTICLES) -> None:
     """RSS sources: each item carries title, date and description, so no article page is fetched."""
     known = s.store.known_urls(s.name)
     for feed in SOURCES[s.name]["feeds"]:
@@ -402,6 +425,10 @@ def _run_feeds(s: _Session, result: Result) -> None:
                 known.add(item.url)  # the same article can appear in two feeds of one source
                 s.store.add_item(item, s.now)
                 result.stored += 1
+    if SOURCES[s.name].get("sitemap"):  # owner-approved one-month back-fill (business stories only)
+        cutoff = s.now - timedelta(days=BACKFILL_DAYS)
+        back = _backfill_queue(s, result, cutoff, s.store.known_urls(s.name))
+        _read_articles(s, result, back, cutoff, per_run)
 
 
 def _run_profit(s: _Session, result: Result, cutoff: datetime, per_run: int) -> None:
@@ -428,6 +455,73 @@ def _run_profit(s: _Session, result: Result, cutoff: datetime, per_run: int) -> 
             s.store.add_item(item, s.now)
             result.stored += 1
     result.notes.append(f"{max(len(queue) - per_run, 0)} article(s) still pending")
+    if len(queue) < per_run:  # the live articles come first; the back-fill uses what is left of the run
+        known = s.store.known_urls("profit")
+        back = _backfill_queue(s, result, s.now - timedelta(days=BACKFILL_DAYS), known)
+        _read_articles(s, result, back, s.now - timedelta(days=BACKFILL_DAYS), per_run - len(queue))
+
+
+def _backfill_queue(s: _Session, result: Result, cutoff: datetime, known: set[str]) -> list[str]:
+    """Back-fill candidates from the site's sitemaps, newest first; read at most once an hour."""
+    name = s.name
+    day = s.now.astimezone(UTC).strftime("%Y-%m-%d")
+    done = s.store.progress(name, "backfill_done")
+    if done and done[0] == day:
+        return []
+    cfg = SOURCES[name]
+    cut_day = cutoff.strftime("%Y-%m-%d")
+    index = s.get(cfg["sitemap"])
+    if not index or index[0] != 200:
+        result.notes.append("sitemap index not read")
+        return []
+    key = "sitemap-articles" if name == "profit" else "/posts-"
+    files = [loc for loc, _mod in parse_sitemap(index[1].decode("utf-8", "replace")) if key in loc]
+    queue: list[str] = []
+    for loc in files:
+        page = s.get(loc)
+        if not page or page[0] != 200:
+            result.notes.append(f"sitemap not read: {loc.rsplit('/', 1)[-1]}")
+            break
+        in_window = 0
+        for url, mod in parse_sitemap(page[1].decode("utf-8", "replace")):
+            day_of = profit_url_day(url) if name == "profit" else (mod or "")[:10]
+            if not day_of or day_of < cut_day:
+                continue
+            in_window += 1
+            if url in known:
+                continue
+            if name == "profit" or tribune_slug_is_business(url):
+                queue.append(url)
+        if not in_window:
+            break  # this file is older than the window; later files are older still
+    queue = sorted(set(queue), key=lambda u: (profit_url_day(u) or "", u), reverse=True)
+    if not queue:
+        s.store.set_progress(name, "backfill_done", day, s.now)
+    return queue
+
+
+def _read_articles(s: _Session, result: Result, urls: list[str], cutoff: datetime,
+                   per_run: int) -> None:
+    business_only = bool(SOURCES[s.name].get("business_only"))
+    for url in urls[:per_run]:
+        got = s.get(url)
+        if got is None:
+            break
+        if got[0] != 200:
+            result.notes.append(f"article {got[0]}")
+            continue
+        item = parse_article(got[1].decode("utf-8", "replace"), url, s.name)
+        if item is None:
+            s.store.set_progress(s.name, "skip:" + url, "unparsed", s.now)
+        elif datetime.fromisoformat(item.published_at.replace("Z", "+00:00")) < cutoff:
+            s.store.set_progress(s.name, "skip:" + url, "older than the window", s.now)
+        elif business_only and "business" not in (item.section or "").lower() \
+                and "econom" not in (item.section or "").lower():
+            s.store.set_progress(s.name, "skip:" + url, "not business", s.now)
+        else:
+            s.store.add_item(item, s.now)
+            result.stored += 1
+    result.notes.append(f"{max(len(urls) - per_run, 0)} back-fill article(s) still pending")
 
 
 def _due(store: Store, name: str, now: datetime) -> bool:
@@ -464,7 +558,7 @@ def run(db: Any, fetch: Fetch, now: datetime, *, sleep: Callable[[float], None] 
             elif kind == "profit":
                 _run_profit(session, result, cutoff, per_run)
             else:
-                _run_feeds(session, result)
+                _run_feeds(session, result, per_run)
             if SOURCES[name].get("min_interval"):
                 store.set_progress(name, "last_run", _stamp(now), now)
         result.requests = session.count

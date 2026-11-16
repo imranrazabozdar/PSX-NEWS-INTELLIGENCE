@@ -26,6 +26,18 @@ sitemaps cover all sections, about 185 stories a day). Profit's sitemaps list ab
 December 2025; a one-year history would be about 20 days of slow page fetches, or a URL-and-date index (titles from URLs
 are approximate). Not started: owner decision.
 
+## One-month back-fill (owner-approved 16 Nov 2026)
+Profit and Express Tribune business also fill in the last 30 days (`BACKFILL_DAYS`), using whatever is left of each
+run's 25 articles after the live ones, under the same robots check, 8 s gap and daily ceilings.
+- **Profit:** the dated article URLs in its sitemaps (`/sitemap.xml`, newest file first) give the day, so only the last
+  month is fetched; each page is read once. About 5 days at the 200-request daily ceiling.
+- **Tribune:** `/sitemap/posts-N.xml` has no section, so a story is fetched only if its slug looks business-related
+  (`BUSINESS_SLUG`); the page's own `article:section` must say Business or Economy, otherwise it is skipped and
+  remembered. Expect roughly 2 weeks at the 100-request ceiling.
+- Once a source's month is complete it records `backfill_done` for the day and stops reading its sitemaps.
+- Mettis: December 2025 to November 2026 cannot be discovered; only Mettis can fill it (draft email in
+  `docs/ops/EMAIL_MettisArchive.md`).
+
 ## Rules it enforces (engines/news_collector.py)
 - Every request is checked against the site's stored robots.txt first (refreshed daily). A disallowed URL is never
   fetched. If robots.txt cannot be read and no copy is stored, nothing is fetched.

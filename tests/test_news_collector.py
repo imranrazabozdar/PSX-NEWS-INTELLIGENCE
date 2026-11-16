@@ -291,5 +291,61 @@ def test_profit_new_articles_come_from_the_front_page_and_are_read_once():
     site.calls.clear()
     nc.run(db, site, NOW + timedelta(minutes=56), sleep=lambda _s: None)
     profit_pages = [c for c in site.calls
-                    if host(c) == "profit.pakistantoday.com.pk" and urlsplit(c).path != "/"]
+                    if host(c) == "profit.pakistantoday.com.pk"
+                    and urlsplit(c).path not in ("/", "/robots.txt", "/sitemap.xml")]
     assert not profit_pages  # known and skipped articles are never fetched twice
+
+
+PROFIT_INDEX = """<sitemapindex><sitemap><loc>https://profit.pakistantoday.com.pk/sitemaps/sitemap-misc.xml</loc></sitemap>
+<sitemap><loc>https://profit.pakistantoday.com.pk/sitemaps/sitemap-articles-1.xml</loc></sitemap>
+<sitemap><loc>https://profit.pakistantoday.com.pk/sitemaps/sitemap-articles-2.xml</loc></sitemap></sitemapindex>"""
+PROFIT_MAP_1 = """<urlset>
+<url><loc>https://profit.pakistantoday.com.pk/2026/11/10/month-old-ok</loc></url>
+<url><loc>https://profit.pakistantoday.com.pk/2026/09/01/too-old</loc></url></urlset>"""
+PROFIT_MAP_2 = """<urlset><url><loc>https://profit.pakistantoday.com.pk/2026/01/01/way-older</loc></url></urlset>"""
+
+
+def test_profit_backfill_reads_only_the_last_month_and_stops_at_older_files():
+    db = fresh_db()
+    site = Site(pages(**{
+        "https://profit.pakistantoday.com.pk/sitemap.xml": (200, PROFIT_INDEX),
+        "https://profit.pakistantoday.com.pk/sitemaps/sitemap-articles-1.xml": (200, PROFIT_MAP_1),
+        "https://profit.pakistantoday.com.pk/sitemaps/sitemap-articles-2.xml": (200, PROFIT_MAP_2),
+        "https://profit.pakistantoday.com.pk/2026/11/10/month-old-ok": (
+            200, article("Profit back-fill", "2026-11-10T08:00:00Z"))}))
+    nc.run(db, site, NOW, sleep=lambda _s: None)
+    titles = {r["title"] for r in db.execute("SELECT title FROM news_item WHERE source = 'profit'")}
+    assert "Profit back-fill" in titles
+    assert not [c for c in site.calls if "too-old" in c or "way-older" in c]
+
+
+TRIBUNE_INDEX = """<sitemapindex><sitemap><loc>https://tribune.com.pk/sitemap/sitemap_main.xml</loc></sitemap>
+<sitemap><loc>https://tribune.com.pk/sitemap/posts-1.xml</loc></sitemap></sitemapindex>"""
+TRIBUNE_POSTS = """<urlset>
+<url><loc>https://tribune.com.pk/story/10/psx-hits-record-high</loc><lastmod>2026-11-12</lastmod></url>
+<url><loc>https://tribune.com.pk/story/11/bank-robbery-trial-adjourned</loc><lastmod>2026-11-12</lastmod></url>
+<url><loc>https://tribune.com.pk/story/12/cricket-final-preview</loc><lastmod>2026-11-12</lastmod></url>
+<url><loc>https://tribune.com.pk/story/13/psx-old-record</loc><lastmod>2026-05-01</lastmod></url></urlset>"""
+
+
+def _tribune_page(title: str, section: str) -> str:
+    return article(title, "2026-11-12T08:00:00Z").replace(
+        "<head>", f'<head><meta property="article:section" content="{section}"/>')
+
+
+def test_tribune_backfill_keeps_business_section_only_and_skips_non_business_slugs():
+    db = fresh_db()
+    site = Site(pages(**{
+        "https://tribune.com.pk/sitemap.xml": (200, TRIBUNE_INDEX),
+        "https://tribune.com.pk/sitemap/posts-1.xml": (200, TRIBUNE_POSTS),
+        "https://tribune.com.pk/story/10/psx-hits-record-high": (
+            200, _tribune_page("PSX record", "Business")),
+        "https://tribune.com.pk/story/11/bank-robbery-trial-adjourned": (
+            200, _tribune_page("Bank robbery", "Pakistan"))}))
+    nc.run(db, site, NOW, sleep=lambda _s: None)
+    titles = {r["title"] for r in db.execute("SELECT title FROM news_item WHERE source = 'tribune_business'")}
+    assert "PSX record" in titles and "Bank robbery" not in titles
+    assert not [c for c in site.calls if "cricket" in c or "psx-old-record" in c]
+    site.calls.clear()  # the non-business page is remembered and not fetched again
+    nc.run(db, site, NOW, sleep=lambda _s: None)
+    assert not [c for c in site.calls if c.endswith("bank-robbery-trial-adjourned")]

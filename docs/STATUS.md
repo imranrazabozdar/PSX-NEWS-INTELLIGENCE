@@ -486,3 +486,7 @@ Runbook: `docs/ops/AUTONOMOUS_FETCHER.md`.
   the council's relevance ranking.
 - Not done: loading the rows into `research_fact`; running the build after each collector run in Actions; sending material
   news to the council.
+
+## News back-fill (Profit and Tribune, one month) - IMPLEMENTED, TESTED (offline), not yet run live
+Sitemap-based 30-day back-fill added to `engines/news_collector.py` (owner-approved 16 Nov 2026); 2 new tests.
+Mettis Dec 2025 to Nov 2026 remains a gap; archive request drafted in `docs/ops/EMAIL_MettisArchive.md`.
