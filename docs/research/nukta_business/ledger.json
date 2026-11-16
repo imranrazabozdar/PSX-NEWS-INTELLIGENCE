@@ -1,1727 +1,1986 @@
 {
  "-XG8AyiXzig": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c215"
+  "chunk": "c215",
+  "model": "haiku",
+  "rows": 56,
+  "status": "extracted"
  },
  "-oIgUThGfgc": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c088"
+  "chunk": "c088",
+  "model": "haiku",
+  "rows": 51,
+  "status": "extracted"
  },
  "-p-M7L_bDMI": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c085"
+  "chunk": "c085",
+  "model": "haiku",
+  "rows": 17,
+  "status": "extracted"
  },
  "071jk_0KTCA": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c075"
+  "chunk": "c075",
+  "model": "haiku",
+  "rows": 51,
+  "status": "extracted"
  },
  "0B2oZdkWbVY": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c047"
+  "chunk": "c047",
+  "model": "haiku",
+  "rows": 20,
+  "status": "extracted"
  },
  "0GyZgcBtu2E": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c147"
+  "chunk": "c147",
+  "model": "haiku",
+  "rows": 91,
+  "status": "extracted"
  },
  "0OpkIkIbYeI": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c168"
+  "chunk": "c168",
+  "model": "haiku",
+  "rows": 89,
+  "status": "extracted"
  },
  "0cssuuRSR2M": {
-  "status": "extracted",
-  "rows": 13,
+  "chunk": "c044",
   "model": "haiku",
-  "chunk": "c044"
+  "rows": 13,
+  "status": "extracted"
  },
  "1-jc-hISxlk": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c117"
+  "chunk": "c117",
+  "model": "haiku",
+  "rows": 19,
+  "status": "extracted"
  },
  "10QmJxRbopI": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c070"
+  "chunk": "c070",
+  "model": "haiku",
+  "rows": 41,
+  "status": "extracted"
  },
  "1AOYx-jEQN8": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c155"
+  "chunk": "c155",
+  "model": "haiku",
+  "rows": 18,
+  "status": "extracted"
  },
  "1KjKkGSntcc": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c177"
+  "chunk": "c177",
+  "model": "haiku",
+  "rows": 20,
+  "status": "extracted"
  },
  "1MMN7Z0wEaA": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c139"
+  "chunk": "c139",
+  "model": "haiku",
+  "rows": 27,
+  "status": "extracted"
  },
  "1UFeD1kjlf4": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c252"
+  "chunk": "c252",
+  "model": "haiku",
+  "rows": 81,
+  "status": "extracted"
  },
  "1q6qDVkSgw8": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c151"
+  "chunk": "c151",
+  "model": "haiku",
+  "rows": 17,
+  "status": "extracted"
  },
  "1tTRk1szvtc": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c056"
+  "chunk": "c056",
+  "model": "haiku",
+  "rows": 57,
+  "status": "extracted"
  },
  "24Z_6UQuMd4": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c187"
+  "chunk": "c187",
+  "model": "haiku",
+  "rows": 30,
+  "status": "extracted"
  },
  "2IwIHQNHGUQ": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c047"
+  "chunk": "c047",
+  "model": "haiku",
+  "rows": 44,
+  "status": "extracted"
  },
  "2kexkRmoRTs": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c152"
+  "chunk": "c152",
+  "model": "haiku",
+  "rows": 16,
+  "status": "extracted"
  },
  "2s-CTKyagOI": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c221"
+  "chunk": "c221",
+  "model": "haiku",
+  "rows": 82,
+  "status": "extracted"
  },
  "3IRsCJWoZWI": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c103"
+  "chunk": "c103",
+  "model": "haiku",
+  "rows": 85,
+  "status": "extracted"
  },
  "3dUo6n7VQZ0": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c130"
+  "chunk": "c130",
+  "model": "haiku",
+  "rows": 47,
+  "status": "extracted"
  },
  "3gmAZeZmSLw": {
-  "status": "no_captions",
-  "rows": 0
+  "rows": 0,
+  "status": "no_captions"
  },
  "3zQZ8J-ssZE": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c084"
+  "chunk": "c084",
+  "model": "haiku",
+  "rows": 71,
+  "status": "extracted"
  },
  "47vhpb2Y4YQ": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c145"
+  "chunk": "c145",
+  "model": "haiku",
+  "rows": 38,
+  "status": "extracted"
  },
  "4GRQA7dntzk": {
-  "status": "extracted",
-  "rows": 20,
+  "chunk": "c019",
   "model": "haiku",
-  "chunk": "c019"
+  "rows": 20,
+  "status": "extracted"
  },
  "4TfNsMOVzbE": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c060"
+  "chunk": "c060",
+  "model": "haiku",
+  "rows": 58,
+  "status": "extracted"
  },
  "4ZUccur5_X0": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c092"
+  "chunk": "c092",
+  "model": "haiku",
+  "rows": 25,
+  "status": "extracted"
  },
  "5780bigiHFI": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c107"
+  "chunk": "c107",
+  "model": "haiku",
+  "rows": 33,
+  "status": "extracted"
  },
  "5Bl83yGxYTw": {
-  "status": "reviewed_empty",
-  "rows": 0,
+  "chunk": "c020",
   "model": "haiku",
-  "chunk": "c020"
+  "rows": 0,
+  "status": "no_rows"
  },
  "5G65jS9blsc": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c152"
+  "chunk": "c152",
+  "model": "haiku",
+  "rows": 38,
+  "status": "extracted"
  },
  "5KZEtw8cyVA": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c078"
+  "chunk": "c078",
+  "model": "haiku",
+  "rows": 18,
+  "status": "extracted"
  },
  "5X5EMIkMkCo": {
-  "status": "no_captions",
-  "rows": 0
+  "rows": 0,
+  "status": "no_captions"
  },
  "5XJRKAqOMaI": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c118"
+  "chunk": "c118",
+  "model": "haiku",
+  "rows": 94,
+  "status": "extracted"
  },
  "5fGMMDI4Cwc": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c095"
+  "chunk": "c095",
+  "model": "haiku",
+  "rows": 11,
+  "status": "extracted"
  },
  "5i_GaAYqqLk": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c149"
+  "chunk": "c149",
+  "model": "haiku",
+  "rows": 2,
+  "status": "extracted"
  },
  "5mUx7qMd1po": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c120"
+  "chunk": "c120",
+  "model": "haiku",
+  "rows": 62,
+  "status": "extracted"
  },
  "69P3Kcg24zU": {
-  "status": "extracted",
-  "rows": 11,
+  "chunk": "c039",
   "model": "haiku",
-  "chunk": "c039"
+  "rows": 11,
+  "status": "extracted"
  },
  "6Pz_fm1vTQE": {
-  "status": "extracted",
-  "rows": 20,
+  "chunk": "c034",
   "model": "haiku",
-  "chunk": "c034"
+  "rows": 23,
+  "status": "extracted"
  },
  "6iZ-9gXHk2Q": {
-  "status": "no_captions",
-  "rows": 0
+  "rows": 0,
+  "status": "no_captions"
  },
  "6rYchySLWcg": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c107"
+  "chunk": "c107",
+  "model": "haiku",
+  "rows": 50,
+  "status": "extracted"
  },
  "6wh9wSYsJ8s": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c144"
+  "chunk": "c144",
+  "model": "haiku",
+  "rows": 20,
+  "status": "extracted"
  },
  "7L0mKHyVcYI": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c082"
+  "chunk": "c082",
+  "model": "haiku",
+  "rows": 2,
+  "status": "extracted"
  },
  "7oKd6UEmmbQ": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c065"
+  "chunk": "c065",
+  "model": "haiku",
+  "rows": 14,
+  "status": "extracted"
  },
  "7pQF3vCl2hY": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c162"
+  "chunk": "c162",
+  "model": "haiku",
+  "rows": 35,
+  "status": "extracted"
  },
  "8-D9PCUmHLk": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c038"
+  "chunk": "c038",
+  "model": "haiku",
+  "rows": 118,
+  "status": "extracted"
  },
  "8BreLTYNcFA": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c243"
+  "chunk": "c243",
+  "model": "haiku",
+  "rows": 96,
+  "status": "extracted"
  },
  "8JMVrGiX74Y": {
-  "status": "extracted",
-  "rows": 18,
+  "chunk": "c014",
   "model": "haiku",
-  "chunk": "c014"
+  "rows": 18,
+  "status": "extracted"
  },
  "8M-Bjt5yEw8": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c051"
+  "chunk": "c051",
+  "model": "haiku",
+  "rows": 76,
+  "status": "extracted"
  },
  "8_WuKPtIZyg": {
-  "status": "extracted",
-  "rows": 14,
+  "chunk": "c011",
   "model": "haiku",
-  "chunk": "c011"
+  "rows": 14,
+  "status": "extracted"
  },
  "8ouKALvIIAY": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c216"
+  "chunk": "c216",
+  "model": "haiku",
+  "rows": 29,
+  "status": "extracted"
  },
  "8q12QlSZEAY": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c225"
+  "chunk": "c225",
+  "model": "haiku",
+  "rows": 81,
+  "status": "extracted"
  },
  "8wwFfnl0nuI": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c055"
+  "chunk": "c055",
+  "model": "haiku",
+  "rows": 26,
+  "status": "extracted"
  },
  "8zpas1nWrs8": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c210"
+  "chunk": "c210",
+  "model": "haiku",
+  "rows": 51,
+  "status": "extracted"
  },
  "9PWKk1iPNTQ": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c179"
+  "chunk": "c179",
+  "model": "haiku",
+  "rows": 16,
+  "status": "extracted"
  },
  "9oY2BgPnWFs": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c172"
+  "chunk": "c172",
+  "model": "haiku",
+  "rows": 29,
+  "status": "extracted"
  },
  "9p0DnOb6VwM": {
-  "status": "extracted",
-  "rows": 63,
+  "chunk": "c018",
   "model": "haiku",
-  "chunk": "c018"
+  "rows": 63,
+  "status": "extracted"
  },
  "A-UW2C--71k": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c246"
+  "chunk": "c246",
+  "model": "haiku",
+  "rows": 74,
+  "status": "extracted"
  },
  "ABG3LUK4N10": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c228"
+  "chunk": "c228",
+  "model": "haiku",
+  "rows": 86,
+  "status": "extracted"
  },
  "ABKgbpc_FoU": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c129"
+  "chunk": "c129",
+  "model": "haiku",
+  "rows": 33,
+  "status": "extracted"
  },
  "ACfzYdPyvf4": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c085"
+  "chunk": "c085",
+  "model": "haiku",
+  "rows": 18,
+  "status": "extracted"
  },
  "AKZVg1vor30": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c052"
+  "chunk": "c052",
+  "model": "haiku",
+  "rows": 19,
+  "status": "extracted"
  },
  "AwH7BBjmENY": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c046"
+  "chunk": "c046",
+  "model": "haiku",
+  "rows": 31,
+  "status": "extracted"
  },
  "BBbiNnGEr_I": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c054"
+  "chunk": "c054",
+  "model": "haiku",
+  "rows": 65,
+  "status": "extracted"
  },
  "BZvUhru1z-Y": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c173"
+  "chunk": "c173",
+  "model": "haiku",
+  "rows": 43,
+  "status": "extracted"
  },
  "Bascxu0vwgw": {
-  "status": "extracted",
-  "rows": 25,
+  "chunk": "c022",
   "model": "haiku",
-  "chunk": "c022"
+  "rows": 25,
+  "status": "extracted"
  },
  "BgTdkAUMwX8": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c087"
+  "chunk": "c087",
+  "model": "haiku",
+  "rows": 86,
+  "status": "extracted"
  },
  "Bk7fRVlQG3E": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c247"
+  "chunk": "c247",
+  "model": "haiku",
+  "rows": 9,
+  "status": "extracted"
  },
  "BrUWIb4qHYI": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c186"
+  "chunk": "c186",
+  "model": "haiku",
+  "rows": 89,
+  "status": "extracted"
  },
  "C3Ms7MTn5Xk": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c231"
+  "chunk": "c231",
+  "model": "haiku",
+  "rows": 42,
+  "status": "extracted"
  },
  "C7ISpNkxUQY": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c119"
+  "chunk": "c119",
+  "model": "haiku",
+  "rows": 19,
+  "status": "extracted"
  },
  "CPiLfPupDEU": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c073"
+  "chunk": "c073",
+  "model": "haiku",
+  "rows": 47,
+  "status": "extracted"
  },
  "CRo8pq-Fem4": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c064"
+  "chunk": "c064",
+  "model": "haiku",
+  "rows": 30,
+  "status": "extracted"
  },
  "CYw_ztElab0": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c236"
+  "chunk": "c236",
+  "model": "haiku",
+  "rows": 75,
+  "status": "extracted"
  },
  "Crz5b_X1f6k": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c151"
+  "chunk": "c151",
+  "model": "haiku",
+  "rows": 17,
+  "status": "extracted"
  },
  "D6v1jfvNL4g": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c074"
+  "chunk": "c074",
+  "model": "haiku",
+  "rows": 52,
+  "status": "extracted"
  },
  "DJz44ls6upM": {
-  "status": "extracted",
-  "rows": 17,
+  "chunk": "c024",
   "model": "haiku",
-  "chunk": "c024"
+  "rows": 19,
+  "status": "extracted"
  },
  "DUr8GyC4SuQ": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c099"
+  "chunk": "c099",
+  "model": "haiku",
+  "rows": 56,
+  "status": "extracted"
  },
  "Daa-X5lhFQs": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c188"
+  "chunk": "c188",
+  "model": "haiku",
+  "rows": 50,
+  "status": "extracted"
  },
  "DfZFGCN9R_Q": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c170"
+  "chunk": "c170",
+  "model": "haiku",
+  "rows": 41,
+  "status": "extracted"
  },
  "DpPc_ZcM6fM": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c244"
+  "chunk": "c244",
+  "model": "haiku",
+  "rows": 48,
+  "status": "extracted"
  },
  "DxaC2iKg5H8": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c057"
+  "chunk": "c057",
+  "model": "haiku",
+  "rows": 22,
+  "status": "extracted"
  },
  "EE0gmdrWOLg": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c226"
+  "chunk": "c226",
+  "model": "haiku",
+  "rows": 59,
+  "status": "extracted"
  },
  "EOWB_cjtT_M": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c194"
+  "chunk": "c194",
+  "model": "haiku",
+  "rows": 12,
+  "status": "extracted"
  },
  "EcU19kv8Mfs": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c110"
+  "chunk": "c110",
+  "model": "haiku",
+  "rows": 27,
+  "status": "extracted"
  },
  "EjTHaFlvGMI": {
-  "status": "extracted",
-  "rows": 9,
+  "chunk": "c032",
   "model": "haiku",
-  "chunk": "c032"
+  "rows": 9,
+  "status": "extracted"
  },
  "Ek1LR0Hxn7g": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c050"
+  "chunk": "c050",
+  "model": "haiku",
+  "rows": 17,
+  "status": "extracted"
  },
  "ExR-Lojn9TM": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c102"
+  "chunk": "c102",
+  "model": "haiku",
+  "rows": 4,
+  "status": "extracted"
  },
  "FBkOOgyPB8g": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c134"
+  "chunk": "c134",
+  "model": "haiku",
+  "rows": 23,
+  "status": "extracted"
  },
  "FGnyyAfOJ_0": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c113"
+  "chunk": "c113",
+  "model": "haiku",
+  "rows": 77,
+  "status": "extracted"
  },
  "FRhgQ0_tj18": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c165"
+  "chunk": "c165",
+  "model": "haiku",
+  "rows": 71,
+  "status": "extracted"
  },
  "Fx3p-8VH578": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c095"
+  "chunk": "c095",
+  "model": "haiku",
+  "rows": 15,
+  "status": "extracted"
  },
  "FzO3Easw92U": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c190"
+  "chunk": "c190",
+  "model": "haiku",
+  "rows": 20,
+  "status": "extracted"
  },
  "G-Az9ycYCfo": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c123"
+  "chunk": "c123",
+  "model": "haiku",
+  "rows": 16,
+  "status": "extracted"
  },
  "G7QjHqzWGoo": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c142"
+  "chunk": "c142",
+  "model": "haiku",
+  "rows": 21,
+  "status": "extracted"
  },
  "G80Ejl-W4vo": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c077"
+  "chunk": "c077",
+  "model": "haiku",
+  "rows": 89,
+  "status": "extracted"
  },
  "GR7bVVC63js": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c183"
+  "chunk": "c183",
+  "model": "haiku",
+  "rows": 41,
+  "status": "extracted"
  },
  "Go6JhaG0kPQ": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c224"
+  "chunk": "c224",
+  "model": "haiku",
+  "rows": 63,
+  "status": "extracted"
  },
  "GsbEiBbOAug": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c148"
+  "chunk": "c148",
+  "model": "haiku",
+  "rows": 33,
+  "status": "extracted"
  },
  "Gy3RJYTNwpE": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c263"
+  "chunk": "c263",
+  "model": "haiku",
+  "rows": 20,
+  "status": "extracted"
  },
  "HDEPSAMcags": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c238"
+  "chunk": "c238",
+  "model": "haiku",
+  "rows": 34,
+  "status": "extracted"
  },
  "HUdoYd0wJwk": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c134"
+  "chunk": "c134",
+  "model": "haiku",
+  "rows": 39,
+  "status": "extracted"
  },
  "HlDlKgFfqy0": {
-  "status": "reviewed_empty",
-  "rows": 0,
+  "chunk": "c017",
   "model": "haiku",
-  "chunk": "c017"
+  "rows": 0,
+  "status": "no_rows"
  },
  "HzTQbMR74w0": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c155"
+  "chunk": "c155",
+  "model": "haiku",
+  "rows": 20,
+  "status": "extracted"
  },
  "IOq0sUWEtpI": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c180"
+  "chunk": "c180",
+  "model": "haiku",
+  "rows": 44,
+  "status": "extracted"
  },
  "IX7lXSIUQlw": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c101"
+  "chunk": "c101",
+  "model": "haiku",
+  "rows": 72,
+  "status": "extracted"
  },
  "IfhLE0Akf7A": {
-  "status": "extracted",
-  "rows": 36,
+  "chunk": "c002",
   "model": "haiku",
-  "chunk": "c002"
+  "rows": 36,
+  "status": "extracted"
  },
  "JILbHVTu4UU": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c255"
+  "chunk": "c255",
+  "model": "haiku",
+  "rows": 44,
+  "status": "extracted"
  },
  "Jb5KO9DAe08": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c185"
+  "chunk": "c185",
+  "model": "haiku",
+  "rows": 42,
+  "status": "extracted"
  },
  "JcRBkUKDSnA": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c138"
+  "chunk": "c138",
+  "model": "haiku",
+  "rows": 36,
+  "status": "extracted"
  },
  "Jqzw1V3f0nY": {
-  "status": "extracted",
-  "rows": 13,
+  "chunk": "c010",
   "model": "haiku",
-  "chunk": "c010"
+  "rows": 14,
+  "status": "extracted"
  },
  "KIii4TStI7g": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c121"
+  "chunk": "c121",
+  "model": "haiku",
+  "rows": 19,
+  "status": "extracted"
  },
  "KaSNsa1qgro": {
-  "status": "no_captions",
-  "rows": 0
+  "rows": 0,
+  "status": "no_captions"
  },
  "L37FYUaYXdw": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c096"
+  "chunk": "c096",
+  "model": "haiku",
+  "rows": 34,
+  "status": "extracted"
  },
  "LC1ejMa70sE": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c151"
+  "chunk": "c151",
+  "model": "haiku",
+  "rows": 6,
+  "status": "extracted"
  },
  "LD9fLfNWdkA": {
-  "status": "extracted",
-  "rows": 18,
+  "chunk": "c035",
   "model": "haiku",
-  "chunk": "c035"
+  "rows": 18,
+  "status": "extracted"
  },
  "LWzwDICcMGA": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c235"
+  "chunk": "c235",
+  "model": "haiku",
+  "rows": 125,
+  "status": "extracted"
  },
  "LbLcicnYheQ": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c193"
+  "chunk": "c193",
+  "model": "haiku",
+  "rows": 93,
+  "status": "extracted"
  },
  "Lngs2prpIiQ": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c072"
+  "chunk": "c072",
+  "model": "haiku",
+  "rows": 19,
+  "status": "extracted"
  },
  "LnsHVLFVHTU": {
-  "status": "extracted",
-  "rows": 19,
+  "chunk": "c019",
   "model": "haiku",
-  "chunk": "c019"
+  "rows": 19,
+  "status": "extracted"
  },
  "MEx9uxVcqVY": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c100"
+  "chunk": "c100",
+  "model": "haiku",
+  "rows": 46,
+  "status": "extracted"
  },
  "MHQ9uTLGA6c": {
-  "status": "extracted",
-  "rows": 9,
+  "chunk": "c005",
   "model": "haiku",
-  "chunk": "c005"
+  "rows": 12,
+  "status": "extracted"
  },
  "MW1Ujw8yhOM": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c227"
+  "chunk": "c227",
+  "model": "haiku",
+  "rows": 83,
+  "status": "extracted"
  },
  "MZkQz_SsVtg": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c104"
+  "chunk": "c104",
+  "model": "haiku",
+  "rows": 46,
+  "status": "extracted"
  },
  "NAnPX9glJ1I": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c066"
+  "chunk": "c066",
+  "model": "haiku",
+  "rows": 51,
+  "status": "extracted"
  },
  "NCJNN2tzS6E": {
-  "status": "extracted",
-  "rows": 47,
+  "chunk": "c040",
   "model": "haiku",
-  "chunk": "c040"
+  "rows": 47,
+  "status": "extracted"
  },
  "NGLmpYNSdVg": {
-  "status": "extracted",
-  "rows": 14,
+  "chunk": "c019",
   "model": "haiku",
-  "chunk": "c019"
+  "rows": 14,
+  "status": "extracted"
  },
  "NKaltgDMiMU": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c196"
+  "chunk": "c196",
+  "model": "haiku",
+  "rows": 88,
+  "status": "extracted"
  },
  "NZg8_PrgV84": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c209"
+  "chunk": "c209",
+  "model": "haiku",
+  "rows": 95,
+  "status": "extracted"
  },
  "OAHSDWZqzs8": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c049"
+  "chunk": "c049",
+  "model": "haiku",
+  "rows": 40,
+  "status": "extracted"
  },
  "ObXm_2W00Ys": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c115"
+  "chunk": "c115",
+  "model": "haiku",
+  "rows": 21,
+  "status": "extracted"
  },
  "OvxU4Y8ebBs": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c213"
+  "chunk": "c213",
+  "model": "haiku",
+  "rows": 76,
+  "status": "extracted"
  },
  "P3O_xZx46FQ": {
-  "status": "extracted",
-  "rows": 43,
+  "chunk": "c007",
   "model": "haiku",
-  "chunk": "c007"
+  "rows": 43,
+  "status": "extracted"
  },
  "PE-OSIc6ODM": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c237"
+  "chunk": "c237",
+  "model": "haiku",
+  "rows": 116,
+  "status": "extracted"
  },
  "PEkqmov_lWA": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c181"
+  "chunk": "c181",
+  "model": "haiku",
+  "rows": 13,
+  "status": "extracted"
  },
  "PLLvZcQonrs": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c203"
+  "chunk": "c203",
+  "model": "haiku",
+  "rows": 30,
+  "status": "extracted"
  },
  "PcP8RPDv_qE": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c157"
+  "chunk": "c157",
+  "model": "haiku",
+  "rows": 32,
+  "status": "extracted"
  },
  "Ph32LWHitfY": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c160"
+  "chunk": "c160",
+  "model": "haiku",
+  "rows": 42,
+  "status": "extracted"
  },
  "PnyPx82bnFY": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c114"
+  "chunk": "c114",
+  "model": "haiku",
+  "rows": 19,
+  "status": "extracted"
  },
  "Pv-Zuti3HFQ": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c251"
+  "chunk": "c251",
+  "model": "haiku",
+  "rows": 64,
+  "status": "extracted"
  },
  "PvUgJsERIVY": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c197"
+  "chunk": "c197",
+  "model": "haiku",
+  "rows": 72,
+  "status": "extracted"
  },
  "Q0nPwjZYqP0": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c214"
+  "chunk": "c214",
+  "model": "haiku",
+  "rows": 49,
+  "status": "extracted"
  },
  "Q5zRjH7lRkg": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c205"
+  "chunk": "c205",
+  "model": "haiku",
+  "rows": 25,
+  "status": "extracted"
  },
  "QZC0HGU-FLA": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c181"
+  "chunk": "c181",
+  "model": "haiku",
+  "rows": 30,
+  "status": "extracted"
  },
  "RDrphhxmnfw": {
-  "status": "extracted",
-  "rows": 7,
+  "chunk": "c014",
   "model": "haiku",
-  "chunk": "c014"
+  "rows": 7,
+  "status": "extracted"
  },
  "RG5cBFsl24Q": {
-  "status": "extracted",
-  "rows": 43,
+  "chunk": "c042",
   "model": "haiku",
-  "chunk": "c042"
+  "rows": 42,
+  "status": "extracted"
  },
  "Rb1barVjLqA": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c127"
+  "chunk": "c127",
+  "model": "haiku",
+  "rows": 82,
+  "status": "extracted"
  },
  "RlzynPySn70": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c241"
+  "chunk": "c241",
+  "model": "haiku",
+  "rows": 69,
+  "status": "extracted"
  },
  "Rord-JrMAFQ": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c114"
+  "chunk": "c114",
+  "model": "haiku",
+  "rows": 33,
+  "status": "extracted"
  },
  "RyYjfaNTjak": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c111"
+  "chunk": "c111",
+  "model": "haiku",
+  "rows": 40,
+  "status": "extracted"
  },
  "S3cD6WYBUbc": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c155"
+  "chunk": "c155",
+  "model": "haiku",
+  "rows": 31,
+  "status": "extracted"
  },
  "SKnPGMWjpFY": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c175"
+  "chunk": "c175",
+  "model": "haiku",
+  "rows": 84,
+  "status": "extracted"
  },
  "SPEDeVU8KCA": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c262"
+  "chunk": "c262",
+  "model": "haiku",
+  "rows": 19,
+  "status": "extracted"
  },
  "SiyWJd229nU": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c156"
+  "chunk": "c156",
+  "model": "haiku",
+  "rows": 102,
+  "status": "extracted"
  },
  "SpJ4czqnUkQ": {
-  "status": "extracted",
-  "rows": 4,
+  "chunk": "c027",
   "model": "haiku",
-  "chunk": "c027"
+  "rows": 7,
+  "status": "extracted"
  },
  "T-8EyS3ol6o": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c053"
+  "chunk": "c053",
+  "model": "haiku",
+  "rows": 29,
+  "status": "extracted"
  },
  "TD3L6xswcPU": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c207"
+  "chunk": "c207",
+  "model": "haiku",
+  "rows": 55,
+  "status": "extracted"
  },
  "TDoO8bmhsSU": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c259"
+  "chunk": "c259",
+  "model": "haiku",
+  "rows": 50,
+  "status": "extracted"
  },
  "TS48UudfLjY": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c059"
+  "chunk": "c059",
+  "model": "haiku",
+  "rows": 10,
+  "status": "extracted"
  },
  "TYRHHSIM4ZM": {
-  "status": "extracted",
-  "rows": 45,
+  "chunk": "c033",
   "model": "haiku",
-  "chunk": "c033"
+  "rows": 50,
+  "status": "extracted"
  },
  "TZsudRLffdk": {
-  "status": "extracted",
-  "rows": 17,
+  "chunk": "c003",
   "model": "haiku",
-  "chunk": "c003"
+  "rows": 17,
+  "status": "extracted"
  },
  "TjsSC4aE1gY": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c211"
+  "chunk": "c211",
+  "model": "haiku",
+  "rows": 24,
+  "status": "extracted"
  },
  "ToX4M7ffjNY": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c245"
+  "chunk": "c245",
+  "model": "haiku",
+  "rows": 28,
+  "status": "extracted"
  },
  "Tw10L058nOo": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c112"
+  "chunk": "c112",
+  "model": "haiku",
+  "rows": 41,
+  "status": "extracted"
  },
  "Uq6gXGTPn6M": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c079"
+  "chunk": "c079",
+  "model": "haiku",
+  "rows": 36,
+  "status": "extracted"
  },
  "UyTQxIlXApU": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c174"
+  "chunk": "c174",
+  "model": "haiku",
+  "rows": 25,
+  "status": "extracted"
  },
  "VUgoNcLLjlI": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c124"
+  "chunk": "c124",
+  "model": "haiku",
+  "rows": 60,
+  "status": "extracted"
  },
  "VeTgPThVXpA": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c153"
+  "chunk": "c153",
+  "model": "haiku",
+  "rows": 36,
+  "status": "extracted"
  },
  "W6cjIcwgd-U": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c068"
+  "chunk": "c068",
+  "model": "haiku",
+  "rows": 99,
+  "status": "extracted"
  },
  "WLND-GztcSM": {
-  "status": "extracted",
-  "rows": 62,
+  "chunk": "c028",
   "model": "haiku",
-  "chunk": "c028"
+  "rows": 62,
+  "status": "extracted"
  },
  "WQUB51QQZMs": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c253"
+  "chunk": "c253",
+  "model": "haiku",
+  "rows": 93,
+  "status": "extracted"
  },
  "WUw0KY1Itb0": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c106"
+  "chunk": "c106",
+  "model": "haiku",
+  "rows": 29,
+  "status": "extracted"
  },
  "WkFfdYcul0c": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c078"
+  "chunk": "c078",
+  "model": "haiku",
+  "rows": 23,
+  "status": "extracted"
  },
  "X7MjR9IihVU": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c125"
+  "chunk": "c125",
+  "model": "haiku",
+  "rows": 49,
+  "status": "extracted"
  },
  "XS_Y20MmQKA": {
-  "status": "extracted",
-  "rows": 2,
+  "chunk": "c010",
   "model": "haiku",
-  "chunk": "c010"
+  "rows": 2,
+  "status": "extracted"
  },
  "XUZQrBV7KXk": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c171"
+  "chunk": "c171",
+  "model": "haiku",
+  "rows": 80,
+  "status": "extracted"
  },
  "Xh3cmUWraLw": {
-  "status": "extracted",
-  "rows": 25,
+  "chunk": "c046",
   "model": "haiku",
-  "chunk": "c046"
+  "rows": 25,
+  "status": "extracted"
  },
  "XrXIU2aCKEw": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c164"
+  "chunk": "c164",
+  "model": "haiku",
+  "rows": 40,
+  "status": "extracted"
  },
  "YZc5npjZAaA": {
-  "status": "extracted",
-  "rows": 46,
+  "chunk": "c021",
   "model": "haiku",
-  "chunk": "c021"
+  "rows": 52,
+  "status": "extracted"
  },
  "Y_mke1HqRcw": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c081"
+  "chunk": "c081",
+  "model": "haiku",
+  "rows": 33,
+  "status": "extracted"
  },
  "Ypa6LYc2TJo": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c059"
+  "chunk": "c059",
+  "model": "haiku",
+  "rows": 28,
+  "status": "extracted"
  },
  "Z32-YLTTwIE": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c250"
+  "chunk": "c250",
+  "model": "haiku",
+  "rows": 89,
+  "status": "extracted"
  },
  "ZN-YlyuUdr0": {
-  "status": "extracted",
-  "rows": 54,
+  "chunk": "c031",
   "model": "haiku",
-  "chunk": "c031"
+  "rows": 54,
+  "status": "extracted"
  },
  "ZSGrgchkcF8": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c141"
+  "chunk": "c141",
+  "model": "haiku",
+  "rows": 33,
+  "status": "extracted"
  },
  "ZrUS7pf2pCs": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c261"
+  "chunk": "c261",
+  "model": "haiku",
+  "rows": 83,
+  "status": "extracted"
  },
  "ZuZNZvtm0K0": {
-  "status": "extracted",
-  "rows": 52,
+  "chunk": "c015",
   "model": "haiku",
-  "chunk": "c015"
+  "rows": 53,
+  "status": "extracted"
  },
  "ZvrDhP0N5DQ": {
-  "status": "extracted",
-  "rows": 51,
+  "chunk": "c004",
   "model": "haiku",
-  "chunk": "c004"
+  "rows": 51,
+  "status": "extracted"
  },
  "_5RRNcYhsPM": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c257"
+  "chunk": "c257",
+  "model": "haiku",
+  "rows": 46,
+  "status": "extracted"
  },
  "_AXsO3R4GpU": {
-  "status": "pending",
+  "chunk": "c079",
+  "model": "haiku",
   "rows": 0,
-  "chunk": "c079"
+  "status": "no_rows"
  },
  "_n5XCgXT7CQ": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c098"
+  "chunk": "c098",
+  "model": "haiku",
+  "rows": 15,
+  "status": "extracted"
  },
  "_qx2Mn45gSM": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c202"
+  "chunk": "c202",
+  "model": "haiku",
+  "rows": 77,
+  "status": "extracted"
  },
  "_r7GmDw10X4": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c123"
+  "chunk": "c123",
+  "model": "haiku",
+  "rows": 14,
+  "status": "extracted"
  },
  "_rmDlHPA0cc": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c208"
+  "chunk": "c208",
+  "model": "haiku",
+  "rows": 30,
+  "status": "extracted"
  },
  "a-ghMGmclrA": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c194"
+  "chunk": "c194",
+  "model": "haiku",
+  "rows": 12,
+  "status": "extracted"
  },
  "afQjDNqsdYg": {
-  "status": "extracted",
-  "rows": 39,
+  "chunk": "c013",
   "model": "haiku",
-  "chunk": "c013"
+  "rows": 42,
+  "status": "extracted"
  },
  "atiXj0a8mpE": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c080"
+  "chunk": "c080",
+  "model": "haiku",
+  "rows": 99,
+  "status": "extracted"
  },
  "b0Cp0ngN7hc": {
-  "status": "extracted",
-  "rows": 13,
+  "chunk": "c044",
   "model": "haiku",
-  "chunk": "c044"
+  "rows": 13,
+  "status": "extracted"
  },
  "b0rO8mxS7HE": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c242"
+  "chunk": "c242",
+  "model": "haiku",
+  "rows": 16,
+  "status": "extracted"
  },
  "b4cPginpmgc": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c091"
+  "chunk": "c091",
+  "model": "haiku",
+  "rows": 31,
+  "status": "extracted"
  },
  "bBH0pcttbx4": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c128"
+  "chunk": "c128",
+  "model": "haiku",
+  "rows": 38,
+  "status": "extracted"
  },
  "bT82-LgIxi0": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c233"
+  "chunk": "c233",
+  "model": "haiku",
+  "rows": 75,
+  "status": "extracted"
  },
  "bUvqKyJs04k": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c135"
+  "chunk": "c135",
+  "model": "haiku",
+  "rows": 7,
+  "status": "extracted"
  },
  "bW0Zs0A-wvc": {
-  "status": "no_captions",
-  "rows": 0
+  "rows": 0,
+  "status": "no_captions"
  },
  "buDaV5cKoCI": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c262"
+  "chunk": "c262",
+  "model": "haiku",
+  "rows": 56,
+  "status": "extracted"
  },
  "c-wGVkrG0ic": {
-  "status": "no_captions",
-  "rows": 0
+  "rows": 0,
+  "status": "no_captions"
  },
  "cJPL8anzrL4": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c200"
+  "chunk": "c200",
+  "model": "haiku",
+  "rows": 70,
+  "status": "extracted"
  },
  "cLrXABfxabY": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c206"
+  "chunk": "c206",
+  "model": "haiku",
+  "rows": 57,
+  "status": "extracted"
  },
  "cVcFIK745ig": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c091"
+  "chunk": "c091",
+  "model": "haiku",
+  "rows": 18,
+  "status": "extracted"
  },
  "cbkN_PZ5uQg": {
-  "status": "extracted",
-  "rows": 34,
+  "chunk": "c001",
   "model": "haiku",
-  "chunk": "c001"
+  "rows": 34,
+  "status": "extracted"
  },
  "coKS0VO4OrQ": {
-  "status": "extracted",
-  "rows": 14,
+  "chunk": "c006",
   "model": "haiku",
-  "chunk": "c006"
+  "rows": 14,
+  "status": "extracted"
  },
  "csgXJ95Tw2E": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c122"
+  "chunk": "c122",
+  "model": "haiku",
+  "rows": 76,
+  "status": "extracted"
  },
  "d1nbXwJH6OM": {
-  "status": "extracted",
-  "rows": 53,
+  "chunk": "c016",
   "model": "haiku",
-  "chunk": "c016"
+  "rows": 53,
+  "status": "extracted"
  },
  "d6vUDUrtY4o": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c117"
+  "chunk": "c117",
+  "model": "haiku",
+  "rows": 51,
+  "status": "extracted"
  },
  "dT5Wg8eToSA": {
-  "status": "extracted",
-  "rows": 67,
+  "chunk": "c045",
   "model": "haiku",
-  "chunk": "c045"
+  "rows": 78,
+  "status": "extracted"
  },
  "dgewWN27Cgg": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c191"
+  "chunk": "c191",
+  "model": "haiku",
+  "rows": 48,
+  "status": "extracted"
  },
  "e5xIMHLeTqs": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c166"
+  "chunk": "c166",
+  "model": "haiku",
+  "rows": 70,
+  "status": "extracted"
  },
  "eFRtT03v1fo": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c082"
+  "chunk": "c082",
+  "model": "haiku",
+  "rows": 38,
+  "status": "extracted"
  },
  "eInvAZnriMc": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c167"
+  "chunk": "c167",
+  "model": "haiku",
+  "rows": 36,
+  "status": "extracted"
  },
  "ee1fTY_Tj5o": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c219"
+  "chunk": "c219",
+  "model": "haiku",
+  "rows": 67,
+  "status": "extracted"
  },
  "f5OTLb5dTmE": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c146"
+  "chunk": "c146",
+  "model": "haiku",
+  "rows": 25,
+  "status": "extracted"
  },
  "fB-YcyWYd_Y": {
-  "status": "extracted",
-  "rows": 33,
+  "chunk": "c011",
   "model": "haiku",
-  "chunk": "c011"
+  "rows": 39,
+  "status": "extracted"
  },
  "fIYyf0psw-k": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c109"
+  "chunk": "c109",
+  "model": "haiku",
+  "rows": 85,
+  "status": "extracted"
  },
  "fNTqVSPDSc8": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c256"
+  "chunk": "c256",
+  "model": "haiku",
+  "rows": 49,
+  "status": "extracted"
  },
  "fWJXYnaS1t4": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c112"
+  "chunk": "c112",
+  "model": "haiku",
+  "rows": 15,
+  "status": "extracted"
  },
  "fenI6Dl3FQI": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c133"
+  "chunk": "c133",
+  "model": "haiku",
+  "rows": 71,
+  "status": "extracted"
  },
  "fvk6cZ1qGUQ": {
-  "status": "no_captions",
-  "rows": 0
+  "rows": 0,
+  "status": "no_captions"
  },
  "g2fhtBLGl7g": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c036"
+  "chunk": "c036",
+  "model": "haiku",
+  "rows": 70,
+  "status": "extracted"
  },
  "g9JloyA4Q_E": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c063"
+  "chunk": "c063",
+  "model": "haiku",
+  "rows": 47,
+  "status": "extracted"
  },
  "gohYPLKQX_g": {
-  "status": "extracted",
-  "rows": 19,
+  "chunk": "c024",
   "model": "haiku",
-  "chunk": "c024"
+  "rows": 20,
+  "status": "extracted"
  },
  "h2-V_PBpI6Y": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c137"
+  "chunk": "c137",
+  "model": "haiku",
+  "rows": 37,
+  "status": "extracted"
  },
  "h9uSaNhFJ-I": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c150"
+  "chunk": "c150",
+  "model": "haiku",
+  "rows": 75,
+  "status": "extracted"
  },
  "hHQy1xaFtKg": {
-  "status": "extracted",
-  "rows": 31,
+  "chunk": "c037",
   "model": "haiku",
-  "chunk": "c037"
+  "rows": 31,
+  "status": "extracted"
  },
  "hWVgqLkSHFU": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c184"
+  "chunk": "c184",
+  "model": "haiku",
+  "rows": 28,
+  "status": "extracted"
  },
  "i1hWEdG_rLw": {
-  "status": "extracted",
-  "rows": 11,
+  "chunk": "c032",
   "model": "haiku",
-  "chunk": "c032"
+  "rows": 11,
+  "status": "extracted"
  },
  "i4CJXWhRRss": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c093"
+  "chunk": "c093",
+  "model": "haiku",
+  "rows": 59,
+  "status": "extracted"
  },
  "i61zmaFL7yQ": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c222"
+  "chunk": "c222",
+  "model": "haiku",
+  "rows": 44,
+  "status": "extracted"
  },
  "iFFskc8nqMY": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c176"
+  "chunk": "c176",
+  "model": "haiku",
+  "rows": 48,
+  "status": "extracted"
  },
  "iPYpaPJPdKQ": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c086"
+  "chunk": "c086",
+  "model": "haiku",
+  "rows": 22,
+  "status": "extracted"
  },
  "iRboh-RQLLk": {
-  "status": "extracted",
-  "rows": 53,
+  "chunk": "c006",
   "model": "haiku",
-  "chunk": "c006"
+  "rows": 59,
+  "status": "extracted"
  },
  "ijLilpCe4gM": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c071"
+  "chunk": "c071",
+  "model": "haiku",
+  "rows": 86,
+  "status": "extracted"
  },
  "im58j3whBYo": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c083"
+  "chunk": "c083",
+  "model": "haiku",
+  "rows": 30,
+  "status": "extracted"
  },
  "iqWdMABEGlI": {
-  "status": "extracted",
-  "rows": 17,
+  "chunk": "c041",
   "model": "haiku",
-  "chunk": "c041"
+  "rows": 17,
+  "status": "extracted"
  },
  "iyh5Fz35WXA": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c094"
+  "chunk": "c094",
+  "model": "haiku",
+  "rows": 101,
+  "status": "extracted"
  },
  "j-QI_wydEgg": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c132"
+  "chunk": "c132",
+  "model": "haiku",
+  "rows": 19,
+  "status": "extracted"
  },
  "j1ZqTiOmtO4": {
-  "status": "extracted",
-  "rows": 8,
+  "chunk": "c032",
   "model": "haiku",
-  "chunk": "c032"
+  "rows": 46,
+  "status": "extracted"
  },
  "j8Gaw4hhvCc": {
-  "status": "extracted",
-  "rows": 16,
+  "chunk": "c029",
   "model": "haiku",
-  "chunk": "c029"
+  "rows": 18,
+  "status": "extracted"
  },
  "jIJiIBv0U4w": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c058"
+  "chunk": "c058",
+  "model": "haiku",
+  "rows": 65,
+  "status": "extracted"
  },
  "jVD8B3cMW-w": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c201"
+  "chunk": "c201",
+  "model": "haiku",
+  "rows": 36,
+  "status": "extracted"
  },
  "jpAr41g0h-E": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c097"
+  "chunk": "c097",
+  "model": "haiku",
+  "rows": 30,
+  "status": "extracted"
  },
  "jq2RR_YUb5k": {
-  "status": "pending",
+  "chunk": "c086",
+  "model": "haiku",
   "rows": 0,
-  "chunk": "c086"
+  "status": "no_rows"
  },
  "jqVzhWHVzxY": {
-  "status": "no_captions",
-  "rows": 0
+  "rows": 0,
+  "status": "no_captions"
  },
  "jx-W3CUmxco": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c085"
+  "chunk": "c085",
+  "model": "haiku",
+  "rows": 47,
+  "status": "extracted"
  },
  "kCSbXjM4w-c": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c069"
+  "chunk": "c069",
+  "model": "haiku",
+  "rows": 39,
+  "status": "extracted"
  },
  "kOB4fXqN2PQ": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c136"
+  "chunk": "c136",
+  "model": "haiku",
+  "rows": 93,
+  "status": "extracted"
  },
  "kf9qovaJyeM": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c108"
+  "chunk": "c108",
+  "model": "haiku",
+  "rows": 46,
+  "status": "extracted"
  },
  "krrpFZeeUiI": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c264"
+  "chunk": "c264",
+  "model": "haiku",
+  "rows": 83,
+  "status": "extracted"
  },
  "kv9MlcRkqXg": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c230"
+  "chunk": "c230",
+  "model": "haiku",
+  "rows": 66,
+  "status": "extracted"
  },
  "l7KqPTmXypA": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c217"
+  "chunk": "c217",
+  "model": "haiku",
+  "rows": 55,
+  "status": "extracted"
  },
  "lFlaFjjJSoU": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c116"
+  "chunk": "c116",
+  "model": "haiku",
+  "rows": 103,
+  "status": "extracted"
  },
  "lWbVItN2f4M": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c220"
+  "chunk": "c220",
+  "model": "haiku",
+  "rows": 73,
+  "status": "extracted"
  },
  "l_S9DyjMySs": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c223"
+  "chunk": "c223",
+  "model": "haiku",
+  "rows": 99,
+  "status": "extracted"
  },
  "llGJWHKhnyo": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c154"
+  "chunk": "c154",
+  "model": "haiku",
+  "rows": 63,
+  "status": "extracted"
  },
  "lpyWcnu27LI": {
-  "status": "extracted",
-  "rows": 26,
+  "chunk": "c008",
   "model": "haiku",
-  "chunk": "c008"
+  "rows": 26,
+  "status": "extracted"
  },
  "lxrsaThQvIw": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c182"
+  "chunk": "c182",
+  "model": "haiku",
+  "rows": 67,
+  "status": "extracted"
  },
  "m31MF322UK4": {
-  "status": "extracted",
-  "rows": 45,
+  "chunk": "c043",
   "model": "haiku",
-  "chunk": "c043"
+  "rows": 45,
+  "status": "extracted"
  },
  "mAyS-UCOG0k": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c067"
+  "chunk": "c067",
+  "model": "haiku",
+  "rows": 41,
+  "status": "extracted"
  },
  "mO_bNbxrpH0": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c232"
+  "chunk": "c232",
+  "model": "haiku",
+  "rows": 68,
+  "status": "extracted"
  },
  "mZ7Gy33gTRc": {
-  "status": "extracted",
-  "rows": 70,
+  "chunk": "c026",
   "model": "haiku",
-  "chunk": "c026"
+  "rows": 70,
+  "status": "extracted"
  },
  "mvL_Mf3TDDU": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c194"
+  "chunk": "c194",
+  "model": "haiku",
+  "rows": 16,
+  "status": "extracted"
  },
  "nHsEmNc1baU": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c049"
+  "chunk": "c049",
+  "model": "haiku",
+  "rows": 17,
+  "status": "extracted"
  },
  "nQ2i_nUtmKs": {
-  "status": "extracted",
-  "rows": 15,
+  "chunk": "c029",
   "model": "haiku",
-  "chunk": "c029"
+  "rows": 15,
+  "status": "extracted"
  },
  "nUGCkcXp-kk": {
-  "status": "extracted",
-  "rows": 50,
+  "chunk": "c025",
   "model": "haiku",
-  "chunk": "c025"
+  "rows": 50,
+  "status": "extracted"
  },
  "nY10JXaRmSw": {
-  "status": "no_captions",
-  "rows": 0
+  "rows": 0,
+  "status": "no_captions"
  },
  "ndZ6h4j1ILU": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c204"
+  "chunk": "c204",
+  "model": "haiku",
+  "rows": 78,
+  "status": "extracted"
  },
  "ndvCengrbQQ": {
-  "status": "no_captions",
-  "rows": 0
+  "rows": 0,
+  "status": "no_captions"
  },
  "ny1e2n4P6b4": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c061"
+  "chunk": "c061",
+  "model": "haiku",
+  "rows": 22,
+  "status": "extracted"
  },
  "oAhCUg5R7YU": {
-  "status": "extracted",
-  "rows": 31,
+  "chunk": "c030",
   "model": "haiku",
-  "chunk": "c030"
+  "rows": 31,
+  "status": "extracted"
  },
  "oN3SD6f2HQg": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c052"
+  "chunk": "c052",
+  "model": "haiku",
+  "rows": 39,
+  "status": "extracted"
  },
  "ovUI8AVli70": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c212"
+  "chunk": "c212",
+  "model": "haiku",
+  "rows": 40,
+  "status": "extracted"
  },
  "pBLUwgSiUVg": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c148"
+  "chunk": "c148",
+  "model": "haiku",
+  "rows": 22,
+  "status": "extracted"
  },
  "pCIiuhBNai4": {
-  "status": "extracted",
-  "rows": 19,
+  "chunk": "c039",
   "model": "haiku",
-  "chunk": "c039"
+  "rows": 19,
+  "status": "extracted"
  },
  "pJj-TVrVO7w": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c131"
+  "chunk": "c131",
+  "model": "haiku",
+  "rows": 37,
+  "status": "extracted"
  },
  "ppc6kLE9Qwk": {
-  "status": "extracted",
-  "rows": 50,
+  "chunk": "c023",
   "model": "haiku",
-  "chunk": "c023"
+  "rows": 50,
+  "status": "extracted"
  },
  "q-tB0u14as8": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c248"
+  "chunk": "c248",
+  "model": "haiku",
+  "rows": 30,
+  "status": "extracted"
  },
  "qBZtRMAj1jE": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c258"
+  "chunk": "c258",
+  "model": "haiku",
+  "rows": 79,
+  "status": "extracted"
  },
  "qREv5QPTj1w": {
-  "status": "extracted",
-  "rows": 11,
+  "chunk": "c010",
   "model": "haiku",
-  "chunk": "c010"
+  "rows": 11,
+  "status": "extracted"
  },
  "qSbEpZ6jeS4": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c260"
+  "chunk": "c260",
+  "model": "haiku",
+  "rows": 38,
+  "status": "extracted"
  },
  "qSoWIwVyzYU": {
-  "status": "extracted",
-  "rows": 19,
+  "chunk": "c037",
   "model": "haiku",
-  "chunk": "c037"
+  "rows": 19,
+  "status": "extracted"
  },
  "qc1FCWIRgAk": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c234"
+  "chunk": "c234",
+  "model": "haiku",
+  "rows": 72,
+  "status": "extracted"
  },
  "qnW-_Yhpef8": {
-  "status": "pending",
+  "chunk": "c057",
+  "model": "haiku",
   "rows": 0,
-  "chunk": "c057"
+  "status": "no_rows"
  },
  "qoQg-mxMZ_I": {
-  "status": "extracted",
-  "rows": 17,
+  "chunk": "c032",
   "model": "haiku",
-  "chunk": "c032"
+  "rows": 17,
+  "status": "extracted"
  },
  "qtxaViMoHNQ": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c088"
+  "chunk": "c088",
+  "model": "haiku",
+  "rows": 5,
+  "status": "extracted"
  },
  "rV7XPIA3YTU": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c062"
+  "chunk": "c062",
+  "model": "haiku",
+  "rows": 99,
+  "status": "extracted"
  },
  "rWJpe5KJ52A": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c178"
+  "chunk": "c178",
+  "model": "haiku",
+  "rows": 108,
+  "status": "extracted"
  },
  "redbcYFXPYI": {
-  "status": "extracted",
-  "rows": 12,
+  "chunk": "c029",
   "model": "haiku",
-  "chunk": "c029"
+  "rows": 12,
+  "status": "extracted"
  },
  "sUHZ9zW7o0Q": {
-  "status": "extracted",
-  "rows": 13,
+  "chunk": "c005",
   "model": "haiku",
-  "chunk": "c005"
+  "rows": 13,
+  "status": "extracted"
  },
  "sutI2aTdzqw": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c247"
+  "chunk": "c247",
+  "model": "haiku",
+  "rows": 51,
+  "status": "extracted"
  },
  "swIVtKNoc_w": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c229"
+  "chunk": "c229",
+  "model": "haiku",
+  "rows": 26,
+  "status": "extracted"
  },
  "t0i54PtZEOs": {
-  "status": "extracted",
-  "rows": 27,
+  "chunk": "c035",
   "model": "haiku",
-  "chunk": "c035"
+  "rows": 29,
+  "status": "extracted"
  },
  "t3TnHKHHFBk": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c218"
+  "chunk": "c218",
+  "model": "haiku",
+  "rows": 55,
+  "status": "extracted"
  },
  "tNp9guZ0Jvw": {
-  "status": "extracted",
-  "rows": 52,
+  "chunk": "c009",
   "model": "haiku",
-  "chunk": "c009"
+  "rows": 63,
+  "status": "extracted"
  },
  "tS82uRZQT6Q": {
-  "status": "extracted",
-  "rows": 15,
+  "chunk": "c020",
   "model": "haiku",
-  "chunk": "c020"
+  "rows": 15,
+  "status": "extracted"
  },
  "tYtimrBp16A": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c198"
+  "chunk": "c198",
+  "model": "haiku",
+  "rows": 52,
+  "status": "extracted"
  },
  "thGJ6ZVl23A": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c199"
+  "chunk": "c199",
+  "model": "haiku",
+  "rows": 55,
+  "status": "extracted"
  },
  "tpftRtuB0rU": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c090"
+  "chunk": "c090",
+  "model": "haiku",
+  "rows": 79,
+  "status": "extracted"
  },
  "uWULBS4mlxo": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c169"
+  "chunk": "c169",
+  "model": "haiku",
+  "rows": 50,
+  "status": "extracted"
  },
  "uZ5Cck-t4rw": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c240"
+  "chunk": "c240",
+  "model": "haiku",
+  "rows": 76,
+  "status": "extracted"
  },
  "ug3BJMNTHco": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c089"
+  "chunk": "c089",
+  "model": "haiku",
+  "rows": 19,
+  "status": "extracted"
  },
  "uhoCxGU3Oh4": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c254"
+  "chunk": "c254",
+  "model": "haiku",
+  "rows": 56,
+  "status": "extracted"
  },
  "uijebcZY1as": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c192"
+  "chunk": "c192",
+  "model": "haiku",
+  "rows": 42,
+  "status": "extracted"
  },
  "v0kwM0aWIME": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c249"
+  "chunk": "c249",
+  "model": "haiku",
+  "rows": 19,
+  "status": "extracted"
  },
  "v7bx_ZwIcHg": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c143"
+  "chunk": "c143",
+  "model": "haiku",
+  "rows": 67,
+  "status": "extracted"
  },
  "vJdaM3Y5NCs": {
-  "status": "extracted",
-  "rows": 13,
+  "chunk": "c012",
   "model": "haiku",
-  "chunk": "c012"
+  "rows": 13,
+  "status": "extracted"
  },
  "vSdPN2oYgvM": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c098"
+  "chunk": "c098",
+  "model": "haiku",
+  "rows": 48,
+  "status": "extracted"
  },
  "vWrpZBIGcIc": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c140"
+  "chunk": "c140",
+  "model": "haiku",
+  "rows": 100,
+  "status": "extracted"
  },
  "v_HBy4XXQBI": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c163"
+  "chunk": "c163",
+  "model": "haiku",
+  "rows": 101,
+  "status": "extracted"
  },
  "vdpuwwrBmEY": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c053"
+  "chunk": "c053",
+  "model": "haiku",
+  "rows": 17,
+  "status": "extracted"
  },
  "wASL1805TGE": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c126"
+  "chunk": "c126",
+  "model": "haiku",
+  "rows": 11,
+  "status": "extracted"
  },
  "x-9IdtbNKIE": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c158"
+  "chunk": "c158",
+  "model": "haiku",
+  "rows": 25,
+  "status": "extracted"
  },
  "x9aVEoD1ceI": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c189"
+  "chunk": "c189",
+  "model": "haiku",
+  "rows": 60,
+  "status": "extracted"
  },
  "xqACP7PzdCs": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c195"
+  "chunk": "c195",
+  "model": "haiku",
+  "rows": 64,
+  "status": "extracted"
  },
  "xqGYRz6xQr8": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c048"
+  "chunk": "c048",
+  "model": "haiku",
+  "rows": 102,
+  "status": "extracted"
  },
  "xw8udTW6UNU": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c137"
+  "chunk": "c137",
+  "model": "haiku",
+  "rows": 25,
+  "status": "extracted"
  },
  "xzNpbh2y4mU": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c164"
+  "chunk": "c164",
+  "model": "haiku",
+  "rows": 29,
+  "status": "extracted"
  },
  "y2suLl8NVqo": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c159"
+  "chunk": "c159",
+  "model": "haiku",
+  "rows": 39,
+  "status": "extracted"
  },
  "yCNHZVvOuIg": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c076"
+  "chunk": "c076",
+  "model": "haiku",
+  "rows": 20,
+  "status": "extracted"
  },
  "yHDR2XZqc4k": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c161"
+  "chunk": "c161",
+  "model": "haiku",
+  "rows": 79,
+  "status": "extracted"
  },
  "yKtlQQf3Rms": {
-  "status": "pending",
+  "chunk": "c070",
+  "model": "haiku",
   "rows": 0,
-  "chunk": "c070"
+  "status": "no_rows"
  },
  "yMnCc9VNTTk": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c096"
+  "chunk": "c096",
+  "model": "haiku",
+  "rows": 33,
+  "status": "extracted"
  },
  "yNWwLQI7YJc": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c180"
+  "chunk": "c180",
+  "model": "haiku",
+  "rows": 20,
+  "status": "extracted"
  },
  "yuxNolrmLsI": {
-  "status": "extracted",
-  "rows": 21,
+  "chunk": "c005",
   "model": "haiku",
-  "chunk": "c005"
+  "rows": 21,
+  "status": "extracted"
  },
  "ywXc-6qukcE": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c105"
+  "chunk": "c105",
+  "model": "haiku",
+  "rows": 29,
+  "status": "extracted"
  },
  "zKa7RWNpNeI": {
-  "status": "extracted",
-  "rows": 12,
+  "chunk": "c032",
   "model": "haiku",
-  "chunk": "c032"
+  "rows": 12,
+  "status": "extracted"
  },
  "zUdrzotzhUA": {
-  "status": "pending",
-  "rows": 0,
-  "chunk": "c239"
+  "chunk": "c239",
+  "model": "haiku",
+  "rows": 73,
+  "status": "extracted"
  }
 }
