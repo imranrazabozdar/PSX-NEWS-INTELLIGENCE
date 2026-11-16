@@ -547,5 +547,23 @@
   "SSOM": "S.S. Oil Mills Limited",
   "SURAJ": "Suraj Ghee Industries Limited",
   "BNWM": "Bannu Woollen Mills Limited"
+ },
+ "owner_confirmed": {
+  "_note": "Symbols the owner confirmed are registered on PSX but that the ksestocks snapshot does not show. Names are as the owner gave them.",
+  "BFBIO": "owner-confirmed 2026-11-16",
+  "BFAGRO": "owner-confirmed 2026-11-16",
+  "SELECT": "Select Technologies, owner-confirmed 2026-11-16",
+  "SPSL": "Sitara Petroleum, owner-confirmed 2026-11-16",
+  "HGFA": "HBL Growth Fund, owner-confirmed 2026-11-16",
+  "PKGP": "Pakgen Power, owner-confirmed 2026-11-16",
+  "ALAC": "Askari Life Assurance, owner-confirmed 2026-11-16",
+  "SLM": "Service Long March, owner-confirmed",
+  "GDL": "Ghani Dairies, owner-confirmed",
+  "TISL": "Tasdeeq, owner-confirmed",
+  "PIAHCLA": "PIA Holding, owner-confirmed",
+  "LSEFSL": "LSE Financial Services, owner-confirmed",
+  "NNAR": "Naya Nazimabad REIT, owner-confirmed",
+  "ENGROH": "Engro Holdings, owner-confirmed 2026-11-16",
+  "GAL": "Ghandhara Automobiles, owner-confirmed 2026-11-16"
  }
 }

@@ -23,6 +23,7 @@ def norm(name: str) -> str:
 
 def classify(entities: dict[str, int], listing: dict[str, str], aliases: dict) -> dict[str, list]:
     known = set(aliases.get("aliases", {})) | set(aliases.get("not_listed", []))
+    known |= set(aliases.get("keep_as_name", []))
     delisted = aliases.get("delisted", [])
     known |= set(delisted)
     by_name = {norm(v): k for k, v in listing.items()}
@@ -48,10 +49,20 @@ def classify(entities: dict[str, int], listing: dict[str, str], aliases: dict) -
     return out
 
 
+def load_listing(path: Path) -> dict[str, str]:
+    """Listed companies from the snapshot, plus symbols the owner confirmed are registered on PSX."""
+    data = json.loads(path.read_text("utf-8"))
+    listing = dict(data["companies"])
+    for symbol, note in data.get("owner_confirmed", {}).items():
+        if not symbol.startswith("_"):
+            listing.setdefault(symbol, note)
+    return listing
+
+
 def main() -> int:
     from engines import library_db
 
-    listing = json.loads((ROOT / "docs/research/psx_listed_companies.json").read_text("utf-8"))["companies"]
+    listing = load_listing(ROOT / "docs/research/psx_listed_companies.json")
     aliases = json.loads((ROOT / "docs/research/arn/entity_aliases.json").read_text("utf-8"))
     db = library_db.get_library_connection().db
     counts = collections.Counter(r["company"] for r in db.execute("SELECT company FROM research_fact"))

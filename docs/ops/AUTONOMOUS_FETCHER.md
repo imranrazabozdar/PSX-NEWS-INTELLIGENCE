@@ -52,6 +52,9 @@
 - `regular_hours` in `config/psx_calendar.json` is GRADING-ONLY (market-data quality checks, full pre-open-to-post-close
   window). It is left as-is. Fetching uses only `open_sessions`. The scheduled tick is the sole fetcher.
 
+- Status 16 Nov 2026: GitHub did not fire the scheduled ticks that morning (see `EXTERNAL_SCHEDULER.md`). The external
+  trigger described there is the backup; the in-repo cron stays.
+
 ## Contact address (optional, no setup needed)
 - The honest User-Agent contact defaults to the repository URL, `https://github.com/imranrazabozdar/psx-news-intelligence`
   (one constant: `DEFAULT_CONTACT` in `engines/autonomous_tick.py`). No GitHub variable is required.
