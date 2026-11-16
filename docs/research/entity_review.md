@@ -95,3 +95,13 @@ Other facts visible in the screenshots (not stored anywhere): KSE-100 closed at 
 | PIBC | PIBTL (Pakistan International Bulk Terminal) and PICT (Pakistan International Container Terminal) | two candidates; please choose |
 | ISIL | ISIL, Ismail Industries Ltd | exists; no evidence that Smile Industries is Ismail, so Smile Industries stays unmatched |
 | IBL, DHPL, SERG, SECMC, GHAI, DHCL, BYCO, DAPL, GAGL, IPAX, SRG, SSG, AGR, HPCO, Park..., Smile | not found in either set | still need your answer |
+
+## H. Third set of screenshots (13 images, mostly repeats of the first two sets)
+| Entity in the brain | Seen in the app | Reading |
+|---|---|---|
+| INTER | ILP, Interloop Ltd | confirmed: INTER -> ILP |
+| MBL | HMB, Habib Metropolitan Bank | confirmed: MBL -> HMB |
+| GHAI | GHNI, Ghandhara Industries (and GAL, Ghandhara Automobiles) | the fact says "Suzuki-linked auto maker, name not verified"; GHNI is Ghandhara Industries (trucks), not obviously Suzuki. Not folded; please say which, or leave |
+| HGFA, NNAR, GAL, BFBIO, BFAGRO, MIIETF, MZNPETF, JSMFETF, STL, BBFL, WAFI | all visible with the names already recorded | no change |
+Still not found on any of the 53 screenshots: DHPL, SERG, SECMC, DHCL, BYCO, DAPL, GAGL, IPAX, SRG, SSG, AGR, HPCO,
+Smile Industries, Park Power / Park Jan Power, Park GL / Glen Leasing.
