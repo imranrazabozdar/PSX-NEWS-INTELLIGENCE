@@ -349,3 +349,16 @@ def test_tribune_backfill_keeps_business_section_only_and_skips_non_business_slu
     site.calls.clear()  # the non-business page is remembered and not fetched again
     nc.run(db, site, NOW, sleep=lambda _s: None)
     assert not [c for c in site.calls if c.endswith("bank-robbery-trial-adjourned")]
+
+
+def test_backfill_stops_at_the_file_where_the_window_ends_and_never_reads_older_files():
+    posts2 = "https://tribune.com.pk/sitemap/posts-2.xml"
+    index = TRIBUNE_INDEX.replace("</sitemapindex>", f"<sitemap><loc>{posts2}</loc></sitemap></sitemapindex>")
+    db = fresh_db()
+    site = Site(pages(**{
+        "https://tribune.com.pk/sitemap.xml": (200, index),
+        # posts-1 holds an entry older than the window, so the window ends there
+        "https://tribune.com.pk/sitemap/posts-1.xml": (200, TRIBUNE_POSTS),
+        posts2: (200, TRIBUNE_POSTS)}))
+    nc.run(db, site, NOW, sleep=lambda _s: None)
+    assert posts2 not in site.calls

@@ -105,3 +105,13 @@ Other facts visible in the screenshots (not stored anywhere): KSE-100 closed at 
 | HGFA, NNAR, GAL, BFBIO, BFAGRO, MIIETF, MZNPETF, JSMFETF, STL, BBFL, WAFI | all visible with the names already recorded | no change |
 Still not found on any of the 53 screenshots: DHPL, SERG, SECMC, DHCL, BYCO, DAPL, GAGL, IPAX, SRG, SSG, AGR, HPCO,
 Smile Industries, Park Power / Park Jan Power, Park GL / Glen Leasing.
+
+
+## Resolution (owner answers, 16 Nov 2026) - APPLIED to psx-library
+Folded (alias file + Turso, rows unchanged at 25,763, entities 610 -> 590): ALFH -> BAFL, PEL -> PAEL, GWCL -> GWLC,
+SSOIL -> SSOM, BMWM/BWML/BWMT -> BNWM, PWC/PCL/POWC -> POWER, CPAL -> CEPB, ARL -> ATRL, ADAMJEE -> AICL,
+INTER -> ILP, MBL -> HMB, SITARA -> SITC, Smile Industries -> ISIL (Ismail Industries), Park Power and Park Jan Power
+-> PKGP (Pakgen Power), Park GL Leasing and Park Glen Leasing -> PGLC (Pak Gulf Leasing Company).
+Held for the owner: NIMIR ("NICL not registered separate": fold NIMIR into NICL, or leave NIMIR as it is?),
+SOYASUP (Apex Agro / Soya Supreme), IBL -> IBLHL, JBDC, PIBC, TRT, HPCO, GHAI, GHAL -> GAL, the three ETFs for
+owner_confirmed, and DHPL, SERG, SECMC, DHCL, BYCO, DAPL, GAGL, IPAX, SRG, SSG, AGR (not on any screen).

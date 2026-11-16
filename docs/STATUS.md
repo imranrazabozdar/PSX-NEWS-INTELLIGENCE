@@ -506,3 +506,8 @@ Apply once, right after a collector run, after the PR merges; then measure rows 
 Measured on the live table (25,752 rows): a read of HUBC + MACRO:PAKISTAN + NBP went from 25,752 rows read to 8,752
 (8,746 matching; HUBC is large); the SECTOR name list from 25,752 to 4,808. Building the index itself counted
 about 52,000 rows read and 25,753 written, once.
+
+## Entity folds from the owner's screenshot review - APPLIED (16 Nov 2026)
+21 names folded onto PSX tickers (BAFL, PAEL, GWLC, SSOM, BNWM, POWER, CEPB, ATRL, AICL, ILP, HMB, SITC, ISIL, PKGP,
+PGLC); rows unchanged (25,763), entities 610 -> 590. Held items are listed at the end of docs/research/entity_review.md.
+Collector: the back-fill stops at the sitemap file where its window ends (no wasted 5 MB read per run).
