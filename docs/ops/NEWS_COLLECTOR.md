@@ -35,8 +35,8 @@ run's 25 articles after the live ones, under the same robots check, 8 s gap and 
   (`BUSINESS_SLUG`); the page's own `article:section` must say Business or Economy, otherwise it is skipped and
   remembered. Expect roughly 2 weeks at the 100-request ceiling.
 - Once a source's month is complete it records `backfill_done` for the day and stops reading its sitemaps.
-- Mettis: December 2025 to November 2026 cannot be discovered; only Mettis can fill it (draft email in
-  `docs/ops/EMAIL_MettisArchive.md`).
+- Mettis: December 2025 to November 2026 cannot be discovered; it builds up from live runs.
+  The owner decided (16 Nov 2026) that no one is emailed: history is collected slowly, newest first.
 
 ## Rules it enforces (engines/news_collector.py)
 - Every request is checked against the site's stored robots.txt first (refreshed daily). A disallowed URL is never

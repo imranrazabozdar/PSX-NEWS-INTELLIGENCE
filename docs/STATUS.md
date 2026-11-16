@@ -489,4 +489,4 @@ Runbook: `docs/ops/AUTONOMOUS_FETCHER.md`.
 
 ## News back-fill (Profit and Tribune, one month) - IMPLEMENTED, TESTED (offline), not yet run live
 Sitemap-based 30-day back-fill added to `engines/news_collector.py` (owner-approved 16 Nov 2026); 2 new tests.
-Mettis Dec 2025 to Nov 2026 remains a gap; archive request drafted in `docs/ops/EMAIL_MettisArchive.md`.
+Mettis Dec 2025 to Nov 2026 remains a gap; no emails to outlets (owner, 16 Nov 2026).
