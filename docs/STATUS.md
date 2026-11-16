@@ -461,17 +461,18 @@ Runbook: `docs/ops/AUTONOMOUS_FETCHER.md`.
 - `scripts/load_research_facts.py` gained `--scope`, so a company can gain a new body of knowledge without reloading what is already there.
 
 
-## News collector (Mettis, Express Tribune business): IMPLEMENTED and TESTED; first live runs done; GATE: owner review
+## News collector (Mettis, Express Tribune, Dawn, Business Recorder, Profit): IMPLEMENTED and TESTED; live runs done; GATE: owner review
 
 - `engines/news_collector.py`, migration `database/library/0008_news_item.sql` (`news_item`, `news_progress`), workflow
   `.github/workflows/news_collect.yml` (dispatch only; started by the external timer), runbook `docs/ops/NEWS_COLLECTOR.md`.
 - Tests (`tests/test_news_collector.py`, offline fake network): parsing, robots.txt (wildcards, longest match, a named
   crawler beats `*`), a disallowed URL is never fetched, unreadable robots.txt fetches nothing, daily ceiling, idempotence,
   request spacing, new articles first.
-- Live (16 Nov 2026, two manual runs): 70 rows in `news_item` (Mettis 45, Tribune business 25); every row has a title, a UTC
-  publication date, a link and a snippet.
+- Live (16 Nov 2026, manual runs): 195 rows in `news_item` (Mettis 69, Business Recorder 44, Dawn business 30, Tribune
+  business 27, Profit 25); every row has a title, a UTC publication date and a link; snippets are at most 300 characters.
 - Limits found: Mettis's sitemap stopped listing articles after about 1 Dec 2025 and `/latest` has no pagination, so its history
-  covers 16 Nov to 1 Dec 2025 plus everything from the first live run. Express Tribune history before the first run is not
-  collected (its business section has no deep feed). Dawn, Business Recorder and Profit are not collected (owner decision).
+  covers 16 Nov to 1 Dec 2025 plus everything from the first live run. Express Tribune, Dawn, Business Recorder and Profit
+  are collected forward only: Dawn's archive paths are blocked by its robots.txt, Business Recorder's feeds hold hours,
+  and Profit's history needs an owner decision (20 days of slow page fetches, or a URL-and-date index).
 - Not built: fact extraction from these headlines into `research_fact` (next phase, needs owner approval); the second
   cron-job.org job that starts `news_collect.yml` every 30 minutes (owner step in the runbook).

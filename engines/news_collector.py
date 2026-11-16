@@ -34,15 +34,29 @@ CUTOFF_DAYS = 365
 PER_RUN_ARTICLES = 25
 GAP_SECONDS = 8.0
 ROBOTS_MAX_AGE = timedelta(hours=24)
-DAILY_CEILING = {"mettis": 300, "tribune_business": 100}
+FEED_MIN_INTERVAL = timedelta(minutes=55)  # feeds and listings that change slowly are read hourly
+DAILY_CEILING = {"mettis": 300, "tribune_business": 100, "dawn_business": 60, "brecorder": 120, "profit": 200}
 MAX_BODY = 5_000_000
 SNIPPET_CHARS = 300
 
 METTIS = "https://mettisglobal.news"
 TRIBUNE = "https://tribune.com.pk"
+DAWN = "https://www.dawn.com"
+BRECORDER = "https://www.brecorder.com"
+PROFIT = "https://profit.pakistantoday.com.pk"
+# kind "feed": RSS feeds that carry title, date and description (no article page is fetched).
+# kind "mettis" / "profit": new articles found through a listing page, each article page read once.
 SOURCES = {
-    "mettis": {"base": METTIS, "index": METTIS + "/sitemap_index.xml", "latest": METTIS + "/latest"},
-    "tribune_business": {"base": TRIBUNE, "feed": TRIBUNE + "/feed/business"},
+    "mettis": {"kind": "mettis", "base": METTIS, "index": METTIS + "/sitemap_index.xml",
+               "latest": METTIS + "/latest"},
+    "tribune_business": {"kind": "feed", "base": TRIBUNE, "feeds": [TRIBUNE + "/feed/business"],
+                         "min_interval": None},
+    "dawn_business": {"kind": "feed", "base": DAWN, "feeds": [DAWN + "/feeds/business"],
+                      "min_interval": FEED_MIN_INTERVAL},
+    "brecorder": {"kind": "feed", "base": BRECORDER,
+                  "feeds": [BRECORDER + "/feeds/latest-news", BRECORDER + "/feeds/business-finance"],
+                  "min_interval": FEED_MIN_INTERVAL},
+    "profit": {"kind": "profit", "base": PROFIT, "latest": PROFIT + "/", "min_interval": FEED_MIN_INTERVAL},
 }
 _CREATE = re.compile(r"^CREATE TABLE IF NOT EXISTS [a-z_]+ \(", re.IGNORECASE)
 
@@ -70,8 +84,8 @@ class Result:
 
 def clean_text(value: str | None, limit: int = SNIPPET_CHARS) -> str:
     """Plain text: tags removed, entities decoded, whitespace collapsed, cut at a word boundary."""
-    text = re.sub(r"<[^>]+>", " ", value or "")
-    text = re.sub(r"\s+", " ", html.unescape(text)).strip()
+    text = re.sub(r"<[^>]+>", " ", html.unescape(value or ""))
+    text = re.sub(r"\s+", " ", text).strip()
     if len(text) <= limit:
         return text
     cut = text[:limit].rsplit(" ", 1)[0]
@@ -131,7 +145,7 @@ def _tag(block: str, name: str) -> str | None:
 
 def parse_rss(xml: str, source: str) -> list[Item]:
     items = []
-    for block in re.findall(r"<item>(.*?)</item>", xml, re.S):
+    for block in re.findall(r"<item[\s>](.*?)</item>", xml, re.S):
         title, link = _tag(block, "title"), _tag(block, "link")
         when = to_utc_iso(html.unescape(_tag(block, "pubDate") or ""))
         if not (title and link and when):
@@ -167,7 +181,7 @@ def _meta(page: str) -> dict[str, str]:
     return out
 
 
-def parse_mettis_article(page: str, url: str) -> Item | None:
+def parse_article(page: str, url: str, source: str) -> Item | None:
     """Headline, date and snippet from the page's NewsArticle metadata; None if either is missing."""
     node = next((n for n in _ld_nodes(page)
                  if n.get("@type") in ("NewsArticle", "Article", "BlogPosting")), None)
@@ -177,10 +191,23 @@ def parse_mettis_article(page: str, url: str) -> Item | None:
     if not title or not when:
         return None
     section = (node or {}).get("articleSection")
-    snippet = meta.get("og:description") or (node or {}).get("description")
-    return Item("mettis", url, clean_text(str(title), 400), when,
+    snippet = meta.get("og:description") or (node or {}).get("description") or meta.get("description")
+    return Item(source, url, clean_text(str(title), 400), when,
                 clean_text(section, 80) or None if isinstance(section, str) else None,
                 clean_text(snippet) or None if isinstance(snippet, str) else None)
+
+
+def parse_mettis_article(page: str, url: str) -> Item | None:
+    return parse_article(page, url, "mettis")
+
+
+def parse_profit_listing(page: str) -> list[str]:
+    """Dated article links (/YYYY/MM/DD/slug), relative or absolute, as absolute URLs in page order."""
+    pattern = r'href=["\'](?:https://profit\.pakistantoday\.com\.pk)?(/\d{4}/\d{2}/\d{2}/[A-Za-z0-9%._~-]+)/?["\']'
+    seen: dict[str, None] = {}
+    for path in re.findall(pattern, page):
+        seen.setdefault(PROFIT + path, None)
+    return list(seen)
 
 
 # ---------------------------------------------------------------- robots.txt
@@ -362,16 +389,51 @@ def _run_mettis(s: _Session, result: Result, cutoff: datetime, per_run: int) -> 
     result.notes.append(f"{max(len(queue) - per_run, 0)} article(s) still pending")
 
 
-def _run_tribune(s: _Session, result: Result) -> None:
-    got = s.get(SOURCES["tribune_business"]["feed"])
-    if not got or got[0] != 200:
-        result.notes.append("feed not read")
+def _run_feeds(s: _Session, result: Result) -> None:
+    """RSS sources: each item carries title, date and description, so no article page is fetched."""
+    known = s.store.known_urls(s.name)
+    for feed in SOURCES[s.name]["feeds"]:
+        got = s.get(feed)
+        if not got or got[0] != 200:
+            result.notes.append(f"feed not read: {feed.rsplit('/', 1)[-1]}")
+            continue
+        for item in parse_rss(got[1].decode("utf-8", "replace"), s.name):
+            if item.url not in known:
+                known.add(item.url)  # the same article can appear in two feeds of one source
+                s.store.add_item(item, s.now)
+                result.stored += 1
+
+
+def _run_profit(s: _Session, result: Result, cutoff: datetime, per_run: int) -> None:
+    """New Profit articles: the front page lists them, each article page is read once for its metadata."""
+    listing = s.get(SOURCES["profit"]["latest"])
+    if not listing or listing[0] != 200:
+        result.notes.append("front page not read")
         return
-    known = s.store.known_urls("tribune_business")
-    for item in parse_rss(got[1].decode("utf-8", "replace"), "tribune_business"):
-        if item.url not in known:
+    known = s.store.known_urls("profit")
+    queue = [u for u in parse_profit_listing(listing[1].decode("utf-8", "replace")) if u not in known]
+    for url in queue[:per_run]:
+        got = s.get(url)
+        if got is None:
+            break
+        if got[0] != 200:
+            result.notes.append(f"article {got[0]}")
+            continue
+        item = parse_article(got[1].decode("utf-8", "replace"), url, "profit")
+        if item is None:
+            s.store.set_progress("profit", "skip:" + url, "unparsed", s.now)
+        elif datetime.fromisoformat(item.published_at.replace("Z", "+00:00")) < cutoff:
+            s.store.set_progress("profit", "skip:" + url, "older than the window", s.now)
+        else:
             s.store.add_item(item, s.now)
             result.stored += 1
+    result.notes.append(f"{max(len(queue) - per_run, 0)} article(s) still pending")
+
+
+def _due(store: Store, name: str, now: datetime) -> bool:
+    gap = SOURCES[name].get("min_interval")
+    last = store.progress(name, "last_run") if gap else None
+    return not (last and last[0] and now - datetime.fromisoformat(last[0].replace("Z", "+00:00")) < gap)
 
 
 def run(db: Any, fetch: Fetch, now: datetime, *, sleep: Callable[[float], None] = time.sleep,
@@ -389,13 +451,22 @@ def run(db: Any, fetch: Fetch, now: datetime, *, sleep: Callable[[float], None] 
         if budget <= 0:
             result.notes.append("daily ceiling reached")
             continue
+        if not _due(store, name, now):
+            result.notes.append("not due yet (read hourly)")
+            continue
         session = _Session(name, store, fetch, now, sleep, budget)
         if not session.load_robots():
             result.notes.append("robots.txt unreadable: nothing fetched")
-        elif name == "mettis":
-            _run_mettis(session, result, cutoff, per_run)
         else:
-            _run_tribune(session, result)
+            kind = SOURCES[name]["kind"]
+            if kind == "mettis":
+                _run_mettis(session, result, cutoff, per_run)
+            elif kind == "profit":
+                _run_profit(session, result, cutoff, per_run)
+            else:
+                _run_feeds(session, result)
+            if SOURCES[name].get("min_interval"):
+                store.set_progress(name, "last_run", _stamp(now), now)
         result.requests = session.count
         store.set_progress(name, f"day:{day}", str(used + session.count), now)
         store.log("news_stored" if result.stored else "news_noop",
