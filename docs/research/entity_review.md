@@ -80,3 +80,18 @@ of the name. Nothing has been changed in the alias file or Turso from this.
 
 Other facts visible in the screenshots (not stored anywhere): KSE-100 closed at 178,183, up 309 points (+0.17%),
 16 Nov 2026 5:30 PM.
+
+## G. More evidence from the second set of 20 screenshots (the lower-volume names, same close)
+| Entity in the brain | Seen in the app | Reading |
+|---|---|---|
+| GWCL | GWLC, Gharibwal Cement | confirmed: GWCL -> GWLC |
+| NIMIR | NICL, Nimir Industrial Che... (NRSL is Nimir Resins, seen earlier) | confirmed: NIMIR -> NICL |
+| SSOIL | SSOM, SS Oil Mills Ltd | confirmed: SSOIL -> SSOM |
+| BMWM, BWML, BWMT | BNWM, Bannu Woollen Mills | confirmed: all three -> BNWM |
+| SITARA | SITC, Sitara Chemical Ind... | confirmed that SITC exists; the 9 rows describe Sitara Chemicals, so SITARA -> SITC |
+| WAFI | WAFI, Wafi Energy Pakista... | WAFI is a listed ticker as written |
+| IBL | IBLHL, IBL HealthCare Ltd; FIBLM = First IBL Modaraba | possible: IBL -> IBLHL. The stake fact (PKR 81 a share) does not match today's price of 40.92, so please confirm |
+| JBDC | JVDC, Javedan Corporation; JDMT = Janana-de-Malucho | still unclear; JVDC is the closest |
+| PIBC | PIBTL (Pakistan International Bulk Terminal) and PICT (Pakistan International Container Terminal) | two candidates; please choose |
+| ISIL | ISIL, Ismail Industries Ltd | exists; no evidence that Smile Industries is Ismail, so Smile Industries stays unmatched |
+| IBL, DHPL, SERG, SECMC, GHAI, DHCL, BYCO, DAPL, GAGL, IPAX, SRG, SSG, AGR, HPCO, Park..., Smile | not found in either set | still need your answer |
