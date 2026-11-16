@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from urllib.parse import urlsplit
 
 from database.connection import SQLiteDatabase
 from engines import news_collector as nc
@@ -35,6 +36,29 @@ LATEST = """<html><body>
 </body></html>"""
 
 
+LONG = "Body sentence. " * 40  # about 600 characters of body text
+
+DAWN_RSS = """<rss><channel>
+<item xmlns:default="http://purl.org/rss/1.0/modules/content/"><title>Dawn business story</title>
+<link>https://www.dawn.com/news/1</link><pubDate>Mon, 16 Nov 2026 19:00:00 +0500</pubDate>
+<description>Dawn summary.</description></item></channel></rss>"""
+
+BR_ITEM = """<item xmlns:default="http://purl.org/rss/1.0/modules/content/"><title>{t}</title>
+<link>{u}</link><pubDate>Mon, 16 Nov 2026 18:00:00 +0500</pubDate>
+<description>&lt;p&gt;&lt;strong&gt;KARACHI:&lt;/strong&gt; {body} FULLBODY-MARKER&lt;/p&gt;</description>
+<content:encoded><![CDATA[<p>{body} FULLBODY-MARKER</p>]]></content:encoded></item>"""
+BR_ONE = BR_ITEM.format(t="BR one", u="https://www.brecorder.com/news/1", body=LONG)
+BR_TWO = BR_ITEM.format(t="BR two", u="https://www.brecorder.com/news/2", body="short")
+BR_LATEST = "<rss><channel>" + BR_ONE + BR_TWO + "</channel></rss>"
+BR_BUSINESS = "<rss><channel>" + BR_ONE + "</channel></rss>"
+
+PROFIT_HOME = """<html><body><a href="https://profit.pakistantoday.com.pk/2026/11/16/profit-story-a">a</a>
+<a href="/2026/11/16/profit-story-b/">b</a>
+<a href="/2024/02/04/old-profit-piece">old</a>
+<a href="https://profit.pakistantoday.com.pk/category/headlines">nav</a>
+<a href="https://profit.pakistantoday.com.pk/2026/11/16/profit-story-a">again</a></body></html>"""
+
+
 def article(title: str, published: str) -> str:
     return ('<html><head><meta property="og:description" content="A short &amp; useful summary." />'
             '<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"NewsArticle",'
@@ -53,6 +77,10 @@ class Site:
         return status, body.encode()
 
 
+def host(url: str) -> str:
+    return urlsplit(url).hostname or ""
+
+
 def pages(**extra: tuple[int, str]) -> dict[str, tuple[int, str]]:
     base = {
         "https://mettisglobal.news/robots.txt": (200, "User-agent: *\nAllow: /\n"),
@@ -65,6 +93,21 @@ def pages(**extra: tuple[int, str]) -> dict[str, tuple[int, str]]:
         "https://mettisglobal.news/new-story-1": (200, article("New story", "2026-11-16T09:00:00Z")),
         "https://mettisglobal.news/old-story-2": (200, article("Old story", "2024-01-01T09:00:00Z")),
         "https://tribune.com.pk/feed/business": (200, RSS),
+        "https://www.dawn.com/robots.txt": (
+            200, "User-agent: GPTBot\nDisallow: /\n\nUser-agent: *\nDisallow: /archive/\n"),
+        "https://www.dawn.com/feeds/business": (200, DAWN_RSS),
+        "https://www.brecorder.com/robots.txt": (200, "User-agent: *\nDisallow: */print\n"),
+        "https://www.brecorder.com/feeds/latest-news": (200, BR_LATEST),
+        "https://www.brecorder.com/feeds/business-finance": (200, BR_BUSINESS),
+        "https://profit.pakistantoday.com.pk/robots.txt": (
+            200, "User-agent: *\nAllow: /\nDisallow: /admin/\n"),
+        "https://profit.pakistantoday.com.pk/": (200, PROFIT_HOME),
+        "https://profit.pakistantoday.com.pk/2026/11/16/profit-story-a": (
+            200, article("Profit A", "2026-11-16T09:25:40.489Z")),
+        "https://profit.pakistantoday.com.pk/2024/02/04/old-profit-piece": (
+            200, article("Old Profit", "2024-02-04T10:00:00Z")),
+        "https://profit.pakistantoday.com.pk/2026/11/16/profit-story-b": (
+            200, article("Profit B", "2026-11-16T10:00:00Z")),
     }
     base.update(extra)
     return base
@@ -125,12 +168,15 @@ def test_run_stores_new_items_skips_old_and_never_fetches_disallowed():
         "https://mettisglobal.news/blocked/story-3": (200, article("Blocked", "2026-11-14T09:00:00Z"))}))
     results = nc.run(db, site, NOW, sleep=lambda _s: None)
     assert results["mettis"].stored == 3 and results["tribune_business"].stored == 1
-    titles = {r["title"] for r in db.execute("SELECT title FROM news_item")}
+    titles = {r["title"] for r in db.execute(
+        "SELECT title FROM news_item WHERE source IN ('mettis', 'tribune_business')")}
     assert titles == {"New story", "Fresh one", "Fresh two", "SBP holds rate & outlook"}
     assert "https://mettisglobal.news/blocked/story-3" not in site.calls  # robots.txt disallows it
     assert "https://mettisglobal.news/post-sitemap9.xml" not in site.calls  # outside the one-year window
-    skipped = db.execute("SELECT key FROM news_progress WHERE key LIKE 'skip:%'")
-    assert [r["key"] for r in skipped] == ["skip:https://mettisglobal.news/old-story-2"]
+    skipped = db.execute("SELECT source, key FROM news_progress WHERE key LIKE 'skip:%' ORDER BY source")
+    assert [(r["source"], r["key"]) for r in skipped] == [
+        ("mettis", "skip:https://mettisglobal.news/old-story-2"),
+        ("profit", "skip:https://profit.pakistantoday.com.pk/2024/02/04/old-profit-piece")]
 
 
 def test_second_run_is_idempotent_and_does_not_refetch_articles():
@@ -141,7 +187,8 @@ def test_second_run_is_idempotent_and_does_not_refetch_articles():
     again = nc.run(db, site, NOW, sleep=lambda _s: None)
     assert count(db, "news_item") == first_total
     assert again["mettis"].stored == 0 and again["tribune_business"].stored == 0
-    assert not any("story-1" in c or "story-2" in c for c in site.calls if "tribune" not in c)
+    assert not [c for c in site.calls if host(c) == "mettisglobal.news" and urlsplit(c).path in (
+        "/new-story-1", "/old-story-2")]  # stored and skipped articles are not fetched again
     assert not any(c.endswith("robots.txt") for c in site.calls)  # stored robots.txt is fresh
 
 
@@ -153,17 +200,17 @@ def test_daily_ceiling_stops_requests(monkeypatch):
     site.calls.clear()
     again = nc.run(db, site, NOW, sleep=lambda _s: None)["mettis"]
     assert again.notes == ["daily ceiling reached"] and again.requests == 0
-    assert not [c for c in site.calls if "mettisglobal" in c]
+    assert not [c for c in site.calls if host(c) == "mettisglobal.news"]
 
 
 def test_unreadable_robots_fails_closed():
     db = fresh_db()
-    site = Site({"https://mettisglobal.news/robots.txt": (500, ""),
-                 "https://tribune.com.pk/robots.txt": (500, "")})
+    hosts = [cfg["base"] for cfg in nc.SOURCES.values()]
+    site = Site({h + "/robots.txt": (500, "") for h in hosts})
     results = nc.run(db, site, NOW, sleep=lambda _s: None)
     assert all(r.stored == 0 for r in results.values())
     assert all(r.notes == ["robots.txt unreadable: nothing fetched"] for r in results.values())
-    assert site.calls == ["https://mettisglobal.news/robots.txt", "https://tribune.com.pk/robots.txt"]
+    assert site.calls == [h + "/robots.txt" for h in hosts]  # nothing but robots.txt was asked for
 
 
 def test_requests_are_spaced_and_log_rows_written():
@@ -171,7 +218,7 @@ def test_requests_are_spaced_and_log_rows_written():
     nc.run(db, site, NOW, sleep=waits.append)
     assert waits and all(w == nc.GAP_SECONDS for w in waits)
     events = {r["event"] for r in db.execute("SELECT event FROM fetch_log")}
-    assert events == {"news_stored"}
+    assert "news_stored" in events
 
 
 def test_listing_parser_orders_newest_first_and_ignores_navigation():
@@ -186,3 +233,63 @@ def test_new_articles_come_first_and_survive_an_unreadable_sitemap_index():
     assert "sitemap index not read" in result.notes and result.stored == 2
     assert {r["title"] for r in db.execute("SELECT title FROM news_item WHERE source = 'mettis'")} == {
         "Fresh one", "Fresh two"}
+
+
+def test_feed_items_with_attributes_are_parsed_and_only_a_short_snippet_is_kept():
+    items = nc.parse_rss(BR_LATEST, "brecorder")
+    assert [i.title for i in items] == ["BR one", "BR two"]
+    assert len(items[0].snippet) <= nc.SNIPPET_CHARS and "<" not in items[0].snippet
+    assert items[0].snippet.startswith("KARACHI: Body sentence.")
+    assert "FULLBODY-MARKER" not in items[0].snippet  # the full text in content:encoded is never read
+    assert items[1].snippet == "KARACHI: short FULLBODY-MARKER"  # a short description is kept whole
+
+
+def test_new_sources_store_one_row_per_article_even_across_two_feeds():
+    db, site = fresh_db(), Site(pages())
+    nc.run(db, site, NOW, sleep=lambda _s: None)
+    rows = db.execute("SELECT source, title FROM news_item WHERE source IN ('brecorder', 'dawn_business')")
+    assert sorted((r["source"], r["title"]) for r in rows) == [
+        ("brecorder", "BR one"), ("brecorder", "BR two"), ("dawn_business", "Dawn business story")]
+    assert all(len(r["snippet"] or "") <= nc.SNIPPET_CHARS
+               for r in db.execute("SELECT snippet FROM news_item"))
+
+
+def test_hourly_sources_are_not_read_twice_within_the_hour():
+    from datetime import timedelta
+    db, site = fresh_db(), Site(pages())
+    nc.run(db, site, NOW, sleep=lambda _s: None)
+    site.calls.clear()
+    soon = nc.run(db, site, NOW + timedelta(minutes=30), sleep=lambda _s: None)
+    assert soon["dawn_business"].notes == ["not due yet (read hourly)"]
+    assert soon["dawn_business"].requests == 0
+    hourly_hosts = {"www.dawn.com", "www.brecorder.com", "profit.pakistantoday.com.pk"}
+    assert not [c for c in site.calls if host(c) in hourly_hosts]
+    assert "https://tribune.com.pk/feed/business" in site.calls  # Tribune is read every run
+    site.calls.clear()
+    later = nc.run(db, site, NOW + timedelta(minutes=56), sleep=lambda _s: None)
+    assert later["dawn_business"].requests == 1 and "https://www.dawn.com/feeds/business" in site.calls
+
+
+def test_a_feed_that_robots_txt_disallows_is_never_fetched():
+    db = fresh_db()
+    site = Site(pages(**{"https://www.dawn.com/robots.txt": (200, "User-agent: *\nDisallow: /feeds/\n")}))
+    result = nc.run(db, site, NOW, sleep=lambda _s: None)["dawn_business"]
+    assert result.stored == 0 and "https://www.dawn.com/feeds/business" not in site.calls
+
+
+def test_profit_new_articles_come_from_the_front_page_and_are_read_once():
+    from datetime import timedelta
+    assert nc.parse_profit_listing(PROFIT_HOME) == [
+        "https://profit.pakistantoday.com.pk/2026/11/16/profit-story-a",
+        "https://profit.pakistantoday.com.pk/2026/11/16/profit-story-b",
+        "https://profit.pakistantoday.com.pk/2024/02/04/old-profit-piece"]
+    db, site = fresh_db(), Site(pages())
+    result = nc.run(db, site, NOW, sleep=lambda _s: None)["profit"]
+    assert result.stored == 2
+    assert {r["title"] for r in db.execute("SELECT title FROM news_item WHERE source = 'profit'")} == {
+        "Profit A", "Profit B"}
+    site.calls.clear()
+    nc.run(db, site, NOW + timedelta(minutes=56), sleep=lambda _s: None)
+    profit_pages = [c for c in site.calls
+                    if host(c) == "profit.pakistantoday.com.pk" and urlsplit(c).path != "/"]
+    assert not profit_pages  # known and skipped articles are never fetched twice
