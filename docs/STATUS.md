@@ -499,7 +499,10 @@ Mettis Dec 2025 to Nov 2026 remains a gap; no emails to outlets (owner, 16 Nov 2
 168 `research_fact` rows (company, sector, `MACRO:PAKISTAN`) and 41 `news_rollup` rows loaded with owner approval;
 `news_collect.yml` repeats the steps after every collector run. Signals appear once there are 14+ days of history.
 
-## research_fact company index - IMPLEMENTED, TESTED (offline); not yet applied to Turso
+## research_fact company index - APPLIED to psx-library 16 Nov 2026 (PR #111)
 `database/library/0010_research_fact_index.sql`, `scripts/apply_research_fact_index.py` (one allowed statement),
 `research_facts.facts_for` / `sector_names`; the absorb loader and the council pack read only the entities they need.
 Apply once, right after a collector run, after the PR merges; then measure rows read.
+Measured on the live table (25,752 rows): a read of HUBC + MACRO:PAKISTAN + NBP went from 25,752 rows read to 8,752
+(8,746 matching; HUBC is large); the SECTOR name list from 25,752 to 4,808. Building the index itself counted
+about 52,000 rows read and 25,753 written, once.
