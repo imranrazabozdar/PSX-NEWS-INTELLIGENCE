@@ -1,0 +1,57 @@
+# ADR-0008: sync from the technical engine (read only) into psx-library. Dispatch only for now.
+# Steps: price_daily (needs migration 0012, applied by the first step), then the facts capsule is loaded.
+# `apply` false = dry run (nothing written). `symbols` empty = every symbol the technical engine covers.
+name: Technical link sync
+
+on:
+  workflow_dispatch:
+    inputs:
+      symbols:
+        description: "Comma-separated symbols for a small first load (empty = all)"
+        required: false
+        default: ""
+      apply:
+        description: "Write to psx-library (false = dry run)"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tech-link-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PSXNI_TECH_LINK_URL: ${{ secrets.PSXNI_TECH_LINK_URL }}
+      PSXNI_TECH_LINK_TOKEN: ${{ secrets.PSXNI_TECH_LINK_TOKEN }}
+      PSXNI_LIBRARY_TURSO_DATABASE_URL: ${{ secrets.PSXNI_LIBRARY_TURSO_DATABASE_URL }}
+      PSXNI_LIBRARY_TURSO_AUTH_TOKEN: ${{ secrets.PSXNI_LIBRARY_TURSO_AUTH_TOKEN }}
+      PSXNI_DB_MAX_ROWS_READ: "400000"
+      PSXNI_DB_MAX_ROWS_WRITTEN: "6000"
+      PSXNI_DB_MAX_REQUESTS: "400"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Create the price table (one approved CREATE TABLE IF NOT EXISTS)
+        if: ${{ inputs.apply }}
+        run: python -m scripts.apply_price_table
+      - name: Sync prices and build the facts capsule
+        run: |
+          args=(--out tech_facts.json --symbols "${{ inputs.symbols }}")
+          if [ "${{ inputs.apply }}" = "true" ]; then args+=(--apply); fi
+          python -m scripts.tech_link_sync "${args[@]}"
+      - name: Load the facts (dry run unless apply)
+        run: |
+          args=(tech_facts.json --since-days 200)
+          if [ "${{ inputs.apply }}" = "true" ]; then args+=(--apply); fi
+          python -m scripts.absorb_sector_capsule "${args[@]}"
