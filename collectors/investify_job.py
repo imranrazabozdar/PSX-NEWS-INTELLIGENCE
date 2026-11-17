@@ -311,7 +311,8 @@ def _page_cycle(*, send, state, state_path, transport, cfg, jitter, audit, db, d
                          http_requests=1, duplicates=result.skipped_duplicates)
     if dry_run:
         outcome.records = [{"symbol": r.symbol, "title": r.title, "category": r.category,
-                            "announced_at_utc": r.announced_at_utc, "pdf_access": r.pdf_access}
+                            "announced_at_utc": r.announced_at_utc, "pdf_access": r.pdf_access,
+                            "announced_on_pkt": r.announced_on_pkt, "investify_label": r.investify_label}
                            for r in result.records]
     else:
         for rec in result.records:
