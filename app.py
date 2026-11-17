@@ -26,12 +26,16 @@ PHASES = [  # master programme (docs/PROJECT_ROADMAP.md); code status only, noth
 
 PAGE_OVERVIEW = "Overview"
 PAGE_COMPANY = "Company intelligence"
+PAGE_BRIEF = "Company brief"
 
 
 def main() -> None:
     st.set_page_config(page_title="PSX News Intelligence", layout="wide")
     settings = load_settings()
-    page = st.sidebar.radio("Page", [PAGE_OVERVIEW, PAGE_COMPANY], key="app_page")
+    page = st.sidebar.radio("Page", [PAGE_OVERVIEW, PAGE_COMPANY, PAGE_BRIEF], key="app_page")
+    if page == PAGE_BRIEF:
+        _brief_page()
+        return
     if page == PAGE_COMPANY:
         _company_page(settings)
         return
@@ -72,6 +76,118 @@ def _company_page(settings) -> None:
         company_intelligence_view(db)
     finally:
         db.close()
+
+
+def _library():
+    """A fresh handle on psx-library. Only SELECT is ever issued; the write cap of 1 is a guard."""
+    from engines import library_db
+
+    db = library_db.get_library_connection().db
+    if hasattr(db, "max_rows_read"):  # the Turso client; other backends have no per-process budget
+        db.max_rows_read = max(db.max_rows_read, 150_000)
+        db.max_rows_written = 1
+    return db
+
+
+@st.cache_data(ttl=1800, show_spinner="Reading the brain (cached for 30 minutes)...")
+def _brief_context(today_iso: str) -> dict:
+    from datetime import date
+
+    from engines import company_brief
+
+    return company_brief.market_context(_library(), date.fromisoformat(today_iso))
+
+
+@st.cache_data(ttl=1800, show_spinner="Loading this company...")
+def _brief_company(symbol: str, today_iso: str) -> dict:
+    from datetime import date
+
+    from engines import company_brief
+
+    ctx = _brief_context(today_iso)
+    return company_brief.load(_library(), symbol, date.fromisoformat(today_iso), ctx)
+
+
+def _brief_page() -> None:
+    """Everything the brain holds on one company. Read only. Not advice: no buy, sell or price view."""
+    import os
+    from datetime import UTC, datetime
+
+    st.title("Company brief")
+    st.caption(
+        "What the brain holds on one company: price, moves and what may explain them, results, "
+        "corporate actions, news and the technical engine's heuristics. Evidence on file only; "
+        "not proof of cause, no buy or sell view."
+    )
+    if not (
+        os.environ.get("PSXNI_LIBRARY_TURSO_DATABASE_URL")
+        and os.environ.get("PSXNI_LIBRARY_TURSO_AUTH_TOKEN")
+    ):
+        st.info("The library is not configured here (set PSXNI_LIBRARY_TURSO_DATABASE_URL and _AUTH_TOKEN).")
+        return
+    today = datetime.now(UTC).date().isoformat()
+    try:
+        ctx = _brief_context(today)
+    except Exception as exc:  # noqa: BLE001 - show the reason, never a half page
+        st.error(f"Could not read the library: {exc}")
+        return
+    tracked = sorted(ctx["bars"])
+    choice = st.selectbox(
+        "Company (symbols with a price series)", tracked, index=None, placeholder="Pick a symbol"
+    )
+    typed = st.text_input("...or type any symbol the brain tracks", "").strip().upper()
+    symbol = typed or choice
+    if not symbol:
+        st.write(f"{len(tracked)} symbols have a price series. Pick one above.")
+        return
+    brief = _brief_company(symbol, today)
+    _render_brief(brief)
+
+
+def _render_brief(b: dict) -> None:
+    st.header(b["symbol"])
+    st.caption(f"Sector: {b['sector']}" if b["sector"] else "Sector: unknown")
+    p = b["price"]
+    if p:
+        c1, c2, c3, c4 = st.columns(4)
+        fmt = lambda v: "n/a" if v is None else f"{v:+.1f}%"  # noqa: E731
+        c1.metric(f"Close ({p['date']})", f"{p['close']:g}")
+        c2.metric("1 day", fmt(p["change_1d"]))
+        c3.metric("5 days", fmt(p["change_5d"]))
+        c4.metric("20 days", fmt(p["change_20d"]))
+        st.line_chart({d: c for d, c in p["series"]}, height=220)
+    st.subheader("Notable moves and what may explain them")
+    if not b["moves"]:
+        st.write("No notable move (5% or more, or heavy volume) in the last 30 days.")
+    for m in b["moves"]:
+        vol = f", volume {m['volume_x']:.1f}x" if m.get("volume_x") else ""
+        st.markdown(f"**{m['day']}: {m['move']:+.1f}%{vol}** - {m['verdict']}")
+        for e in m["evidence"]:
+            st.markdown(f"- [{e['kind']}] {e['text']} ({e['date']}; {e['source']})")
+        for c in m.get("macro_context", []):
+            st.markdown(f"- market context (not shown to cause this move): {c}")
+    st.subheader("Results")
+    if b["eps_change"] and b["eps_change"].get("pct") is not None:
+        c = b["eps_change"]
+        st.write(f"Like-for-like EPS, {c['label']}: {c['prev']:g} -> {c['cur']:g} ({c['pct']:+.0f}%)")
+    for f in b["results"]:
+        st.markdown(f"- {f['event_date']}: {f['fact_text']}")
+    st.subheader("Corporate actions (last 12 months)")
+    for f in b["actions"]:
+        st.markdown(f"- {f['event_date']}: {f['fact_text']}")
+    st.subheader("News (last month)")
+    for r in b["news"]:
+        link = f" ([link]({r['top_url']}))" if r.get("top_url") else ""
+        st.markdown(f"- {r['day']}: {r['stories']} stories; {str(r['top_title'] or '')[:160]}{link}")
+    st.subheader("Technical engine signals (heuristics, not probabilities)")
+    for f in b["technical"]:
+        st.markdown(f"- {f['event_date']}: {f['fact_text']}")
+    st.subheader("Fundamentals snapshot")
+    for f in b["fundamentals"]:
+        st.markdown(f"- {f['text']} (as of {f['as_of']}; {f['source']})")
+    with st.expander("What we do not know"):
+        for u in b["unknown"] or ["Nothing flagged."]:
+            st.write(f"- {u}")
 
 
 @st.cache_resource
