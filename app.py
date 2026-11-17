@@ -177,8 +177,10 @@ def _render_brief(b: dict) -> None:
     st.subheader("Announcements (last month)")
     shown = [x for x in b["announcements"] if x["weight"] != "routine"]
     for x in shown:
-        tag = "material" if x["weight"] == "material" else "scheduled notice"
+        tag = f"size: {x['tier']}" if x["weight"] == "material" else "scheduled notice"
         st.markdown(f"- {x['date']} [{x['label']}, {tag}] {x['text']} ({x['source']})")
+        for line in x.get("basis") or []:
+            st.caption(f"basis: {line}")
     routine = len(b["announcements"]) - len(shown)
     if routine:
         st.caption(f"{routine} routine filings not listed (transmissions, briefings, insiders).")

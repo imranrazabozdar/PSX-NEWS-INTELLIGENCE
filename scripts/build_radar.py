@@ -16,7 +16,8 @@ from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from engines import library_db, materiality, news_rollup
+from engines import announcement_substance as asub
+from engines import company_names, library_db, materiality, news_rollup
 from engines import research_facts as rf
 
 _ISO = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -93,6 +94,22 @@ def build(db: Any, today: date, days: int = 3, top: int = 25) -> tuple[list[dict
     history: dict[str, list[dict[str, Any]]] = {}
     for r in rf.facts_for(db, with_results, FACT_COLS, since=(today - timedelta(days=800)).isoformat()):
         history.setdefault(r["company"], []).append(dict(r))
+    # company size for the announcements' size bands (only companies with an announcement in the window)
+    announcing = [
+        c for c, fs in by_company.items() if any(str(f["topic"]).startswith("announcements.") for f in fs)
+    ]
+    mcaps: dict[str, float | None] = {}
+    caps_by_company: dict[str, list[dict[str, Any]]] = {}
+    for r in rf.facts_for(
+        db,
+        announcing,
+        "company, topic, fact_text, source_date",
+        since=(today - timedelta(days=120)).isoformat(),
+    ):
+        if r["topic"] == "fundamentals.market_cap":
+            caps_by_company.setdefault(r["company"], []).append(dict(r))
+    for c in announcing:
+        mcaps[c] = asub.market_cap(caps_by_company.get(c, []))
     scored = [
         materiality.score_company(
             c,
@@ -101,6 +118,8 @@ def build(db: Any, today: date, days: int = 3, top: int = 25) -> tuple[list[dict
             price=moves.get(c),
             news_signal=signals.get(c),
             has_prices=c in price_symbols,
+            company_names=company_names.names_for(c),
+            mcap=mcaps.get(c),
         )
         for c in candidates
     ]

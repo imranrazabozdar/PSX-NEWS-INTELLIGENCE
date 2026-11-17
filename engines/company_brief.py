@@ -10,7 +10,8 @@ from __future__ import annotations
 from datetime import date, timedelta
 from typing import Any
 
-from engines import materiality, move_explainer
+from engines import announcement_substance as asub
+from engines import company_names, materiality, move_explainer
 from engines import research_facts as rf
 from scripts import explain_moves as ex
 from scripts.build_radar import FACT_COLS, event_date
@@ -129,6 +130,8 @@ def load(db: Any, symbol: str, today: date, ctx: dict[str, Any], days: int = 30)
     )[:10]
     cutoff = (today - timedelta(days=days)).isoformat()
     announcements = []
+    mcap = asub.market_cap(facts)
+    names = company_names.names_for(symbol)
     for f in sorted(facts, key=lambda f: f["event_date"], reverse=True):
         topic = str(f["topic"])
         if not topic.startswith("announcements.") or f["event_date"] < cutoff:
@@ -141,6 +144,11 @@ def load(db: Any, symbol: str, today: date, ctx: dict[str, Any], days: int = 30)
             if label in materiality.SCHEDULED_LABELS
             else "routine"
         )
+        size = (
+            asub.assess(label, f["fact_text"], company_names=names, mcap=mcap)
+            if weight == "material"
+            else None
+        )
         announcements.append(
             {
                 "date": f["event_date"],
@@ -148,10 +156,14 @@ def load(db: Any, symbol: str, today: date, ctx: dict[str, Any], days: int = 30)
                 "weight": weight,
                 "text": f["fact_text"],
                 "source": f["source_name"],
+                "tier": size["tier"] if size else None,
+                "points": size["points"] if size else None,
+                "basis": size["basis"] if size else [],
             }
         )
-    # newest first, then material before scheduled before routine (the sort is stable)
+    # newest first, then material (largest size first), then scheduled, then routine (the sort is stable)
     announcements.sort(key=lambda a: a["date"], reverse=True)
+    announcements.sort(key=lambda a: -(a["points"] or 0))
     announcements.sort(key=lambda a: {"material": 0, "scheduled": 1, "routine": 2}[a["weight"]])
     news = sorted(news_rows, key=lambda r: r["day"], reverse=True)[:10]
     if not news:

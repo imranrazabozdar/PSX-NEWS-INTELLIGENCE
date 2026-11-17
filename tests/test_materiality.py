@@ -321,13 +321,31 @@ def _ann(label, day="2026-11-16", text="x"):
     }
 
 
-def test_a_material_announcement_is_an_attention_driver_and_routine_ones_are_not():
+def test_a_material_announcement_is_sized_from_its_numbers_and_routine_ones_are_not():
     base = dict(history_facts=[], price=None, news_signal=None, has_prices=True)
-    material = m.score_company("HUBC", window_facts=[_ann("Operations Update", text="smelter study")], **base)
-    assert [d["kind"] for d in material["drivers"]] == ["announcement"]
-    assert material["score"] == 15.0 and "smelter study" in material["drivers"][0]["text"]
+    vague = m.score_company("HUBC", window_facts=[_ann("Operations Update", text="smelter study")], **base)
+    assert [d["kind"] for d in vague["drivers"]] == ["announcement"]
+    assert vague["score"] == 8.0 and "unquantified" in vague["drivers"][0]["text"]
+    assert any("announcement size unknown" in u for u in vague["unknown"])
+    deal = m.score_company(
+        "NRSL",
+        window_facts=[
+            _ann("M&A / Public Offer", text="IGI Investments intends to acquire up to 60% of Nimir Resins")
+        ],
+        company_names=["Nimir Resins"],
+        **base,
+    )
+    assert deal["score"] == 25.0 and "major" in deal["drivers"][0]["text"] and deal["unknown"] == []
+    big = m.score_company(
+        "X",
+        window_facts=[_ann("Financing / Restructuring", text="X secures Rs 15 billion loan")],
+        company_names=["X"],
+        mcap=100e9,
+        **base,
+    )
+    assert big["score"] == 25.0 and "15.0% of market cap" in big["drivers"][0]["text"]
     scheduled = m.score_company("HUBC", window_facts=[_ann("Board Meeting")], **base)
-    assert scheduled["score"] == 5.0 and scheduled["drivers"][0]["text"].startswith("routine notice")
+    assert scheduled["score"] == 3.0 and scheduled["drivers"][0]["text"].startswith("routine notice")
     routine = m.score_company(
         "HUBC", window_facts=[_ann("Report Transmission"), _ann("Insider Sell")], **base
     )
@@ -335,4 +353,4 @@ def test_a_material_announcement_is_an_attention_driver_and_routine_ones_are_not
     several = m.score_company(
         "HUBC", window_facts=[_ann("Operations Update"), _ann("Management Change")], **base
     )
-    assert several["score"] == 15.0 and "2 material announcements" in several["drivers"][0]["text"]
+    assert several["score"] == 8.0 and "2 material announcements" in several["drivers"][0]["text"]
