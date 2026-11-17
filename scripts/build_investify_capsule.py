@@ -1,9 +1,10 @@
 """Turn the owner's Investify export (investify_psx.db, a read-only SQLite file) into a research_fact capsule.
 
 Dry run only: it writes a JSON capsule that scripts/absorb_sector_capsule.py can load. Nothing is loaded here.
-Follows the existing Investify policy (engines/research_facts.rows_from_fields): distilled facts only. Investify's
-own summary text, sentiment and materiality labels, and its technical buy/sell votes are never stored; price and
-volume belong to the separate price system. Every row names the source, the page URL and the export date.
+Follows the existing Investify policy (engines/research_facts.rows_from_fields): distilled facts only.
+Investify's own summary text, sentiment and materiality labels, and its technical buy/sell votes are never
+stored; price and volume belong to the separate price system. Every row names the source, the page URL and
+the export date.
 
     python -m scripts.build_investify_capsule /path/to/investify_psx.db --out capsule.json [--examples 5]
 """
