@@ -66,7 +66,9 @@ def test_the_dashboard_page_renders_from_a_seeded_library(monkeypatch):
     assert not at.exception
     text = " ".join([m.value for m in at.markdown] + [c.value for c in at.caption]).lower()
     assert "not a buy or sell view" in text or "nothing here is a buy or sell view" in text
-    assert "prices to" in text and "symbols with prices" in text
+    html = " ".join(m.value for m in at.markdown).lower()
+    assert "prices to" in html and "market breadth" in html and "pi-card" in html
+    assert [t.label for t in at.tabs] == ["Market", "Watch list", "Why it moved"]
 
 
 def test_the_readonly_client_sends_no_pragma_and_refuses_writes(monkeypatch):
@@ -123,3 +125,19 @@ def test_cards_carry_every_driver_and_unexplained_moves_are_listed_by_size():
     ]
     assert md.unexplained_lines(moves)[0].startswith("- **B**")
     assert md.move_cards(moves)[1]["title"].startswith("B -9.0% on d")
+
+
+def test_html_is_escaped_and_colours_follow_the_sign():
+    from engines import dashboard_html as ui
+
+    movers = [
+        {"symbol": "A<b>", "name": "X & Y", "close": 10.0, "move": 5.0, "volume": 2.5e6, "volume_x": 3.0},
+        {"symbol": "B", "name": "", "close": 5.0, "move": -2.0, "volume": 900.0, "volume_x": None},
+    ]
+    html = ui.mover_rows(movers)
+    assert "A&lt;b&gt;" in html and "X &amp; Y" in html and "<b>A<b>" not in html
+    assert 'class="g"' in html and 'class="r"' in html and "2.50M" in html and "3.0x usual" in html
+    b = {"symbols": 10, "up": 5, "down": 4, "flat": 1, "median": 0.1, "top_up": [("A", 9.0)], "top_down": []}
+    assert "width:50.0%" in ui.breadth_card(b) and "5 advanced" in ui.breadth_card(b)
+    assert md.order_movers(movers, "Losers")[0]["symbol"] == "B"
+    assert md.order_movers(movers, "Most active")[0]["symbol"] == "A<b>"

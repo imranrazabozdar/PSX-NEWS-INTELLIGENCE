@@ -127,36 +127,28 @@ def _market_dashboard() -> None:
     except Exception as exc:  # noqa: BLE001 - show the reason, never a half page
         st.error(f"Could not read the library: {exc}")
         return
-    st.markdown(
-        f"**Prices to** {d['price_day'] or 'unknown'} · **news to** {d['news_day'] or 'unknown'} · "
-        f"**{d['universe']}** symbols with prices"
-    )
-    st.subheader("Market breadth")
-    st.write(market_dashboard.breadth_line(d["breadth"]))
-    if d["breadth"]:
-        up, down = d["breadth"]["top_up"], d["breadth"]["top_down"]
-        st.write("Biggest rises: " + ", ".join(f"{s} {v:+.1f}%" for s, v in up))
-        st.write("Biggest falls: " + ", ".join(f"{s} {v:+.1f}%" for s, v in down))
-    st.subheader("Companies to look at")
-    st.caption("Ordered by the evidence on file in the last few days. Tap a company for the detail.")
-    cards = market_dashboard.radar_cards(d["radar"])
-    if not cards:
-        st.write("Nothing scored.")
-    for c in cards:
-        with st.expander(c["title"]):
-            for line in c["lines"]:
-                st.markdown(line)
-    with_cause, no_cause = market_dashboard.explained(d["moves"])
-    st.subheader("Big moves with something on file")
-    if not with_cause:
-        st.write("None.")
-    for c in market_dashboard.move_cards(with_cause):
-        with st.expander(c["title"]):
-            for line in c["lines"]:
-                st.markdown(line)
-    st.subheader("Big moves with no cause on file")
-    st.caption(f"{len(no_cause)} of {len(d['moves'])} notable moves. Absence of evidence on file, not proof.")
-    st.markdown("\n".join(market_dashboard.unexplained_lines(no_cause)) or "None.")
+    from engines import company_names
+    from engines import dashboard_html as ui
+
+    st.markdown(ui.CSS, unsafe_allow_html=True)
+    st.markdown(ui.status_bar(d["price_day"], d["news_day"], d["universe"]), unsafe_allow_html=True)
+    market_tab, radar_tab, moves_tab = st.tabs(["Market", "Watch list", "Why it moved"])
+    with market_tab:
+        st.markdown(ui.breadth_card(d["breadth"]), unsafe_allow_html=True)
+        mode = st.segmented_control(
+            "Top movers", ["Most active", "Gainers", "Losers"], default="Most active", key="mover_mode"
+        )
+        shown = market_dashboard.order_movers(d["movers"], mode or "Most active")
+        st.markdown(ui.mover_rows(shown), unsafe_allow_html=True)
+    with radar_tab:
+        st.caption("Companies with the most recent evidence on file. Tap one for the detail.")
+        names = {r["symbol"]: company_names.official_name(r["symbol"]) for r in d["radar"]}
+        st.markdown(ui.radar_cards_html(d["radar"], names), unsafe_allow_html=True)
+    with moves_tab:
+        with_cause, no_cause = market_dashboard.explained(d["moves"])
+        st.caption("Big recent moves and what the evidence on file may explain. Candidates, not proof.")
+        st.markdown(ui.move_cards_html(with_cause), unsafe_allow_html=True)
+        st.markdown(ui.unexplained_card(no_cause, len(d["moves"])), unsafe_allow_html=True)
     st.caption(f"Built {d['built_utc']} UTC; refreshes every 30 minutes.")
 
 
