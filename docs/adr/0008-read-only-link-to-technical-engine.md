@@ -29,19 +29,23 @@ Nothing flows the other way.
 | Rule check | `scripts/check_independence.py` gets exactly two narrow allowances, added in the same pull request that implements the link: the two secret names above and the single module name. Its other rules, and the base-branch guard, stay unchanged. |
 | Review and expiry | Reviewed on 2027-02-17 or after any schema change in the technical engine. Ends on revocation of the token. |
 
-## Schedule A: allowlisted objects (owner to complete before signing)
-The author of this ADR has not opened the technical engine and does not know its schema. The owner lists here, for each
-object: name, one-line meaning, key columns (symbol, date), and how often it refreshes.
+## Schedule A: allowlisted objects (APPROVED by the owner 2026-11-17: "approve Schedule A as proposed")
+Database identity: `psx-intelligence-v2-imranraza054.aws-ap-northeast-1.turso.io` (host only; found by schema discovery, 27 tables).
 
-| Object (table or view) | Module / meaning | Key columns | Refresh | Allowed |
-|---|---|---|---|---|
-| (owner to fill) | e.g. Wyckoff accumulation scan | symbol, scan_date, class, score | daily | |
-| (owner to fill) | e.g. volatility intelligence | symbol, session_date, stage, score | daily | |
-| (owner to fill) | e.g. chart and candlestick patterns | symbol, signal_date, pattern, direction | daily | |
-| (owner to fill) | e.g. FIRE engine setups | symbol, scan_date, score | daily | |
-| (owner to fill) | OHLCV daily bars, if it is to be read here | symbol, date, o/h/l/c/volume | daily | |
+| Object | Meaning | Key columns | Use here |
+|---|---|---|---|
+| `stocks` | symbol list | symbol, name | map symbols to our companies |
+| `daily_ohlc` | daily prices | symbol, trade_date, open, high, low, close, volume | the price series |
+| `wyckoff_accumulation`, `wyckoff_scans` | Wyckoff accumulation | symbol, scan_date, accumulation_score, signal_type, component scores | technical signal |
+| `chart_patterns` | chart patterns | symbol, pattern_type, signal_date, confidence_score | technical signal |
+| `fire_events` | FIRE setups | symbol, event_date, event_type, fire_score | technical signal |
+| `snapshots` | latest quote and sector | symbol, sector, ldcp, price, pct, vol | sector and the day's move |
+| `backtest_pattern_stats`, `backtest_runs` | measured pattern win rates | pattern, horizon, n, win_rate, low_sample | reliability of each pattern |
 
-Database identity (host name only, no secrets): (owner to fill).
+Excluded on purpose: `predictions`, `runs`, `dss_history` (entry, stop, target and final-action language), the engine's own `news`,
+intraday and candle tables (`intraday_bars`, `intraday_alert`, `market_candles`, `ohlcv_4h`), `analysis_cache`, `daily_reports`,
+`config`, `sentiment`, `volume_baseline`, `indicator_accuracy` and the rest. No table for the volatility intelligence engine was
+found; it may be inside `analysis_cache` and needs a separate discovery and approval.
 
 ## Consequences
 * The two systems become coupled by one schema: a column rename in the technical engine breaks the link here. The link must fail visibly, and does.

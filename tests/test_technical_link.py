@@ -27,12 +27,14 @@ def test_writes_are_refused():
     assert link.db.execute("SELECT COUNT(*) AS n FROM wyckoff_scan")[0]["n"] == 1
 
 
-def test_data_is_refused_until_the_owner_allowlists_it():
+def test_data_is_refused_outside_the_allowlist():
     with pytest.raises(tl.NotAllowed):
-        make().select_from("wyckoff_scan", "SELECT * FROM wyckoff_scan")
+        make().select_from("predictions", "SELECT * FROM predictions")
     rows = make(frozenset({"wyckoff_scan"})).select_from("wyckoff_scan", "SELECT symbol FROM wyckoff_scan")
     assert rows[0]["symbol"] == "ABC"
-    assert tl.ALLOWED_OBJECTS == frozenset()
+    assert "daily_ohlc" in tl.ALLOWED_OBJECTS
+    for banned in ("predictions", "runs", "dss_history", "news", "analysis_cache", "intraday_bars"):
+        assert banned not in tl.ALLOWED_OBJECTS
 
 
 def test_unsafe_names_refused():

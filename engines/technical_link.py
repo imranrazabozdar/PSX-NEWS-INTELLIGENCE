@@ -2,10 +2,8 @@
 
 Rules (all enforced here, not by convention):
 * READ ONLY: only SELECT/WITH statements pass; anything else raises before a request is made.
-* SCHEMA DISCOVERY FIRST: until the owner approves Schedule A, only schema questions are allowed
-  (table names and column names from sqlite_master / pragma_table_info). Data tables are not read.
-* ALLOWLIST: once approved, only the objects in `ALLOWED_OBJECTS` may be queried. It is empty until the
-  owner signs Schedule A, so no data read is possible yet.
+* SCHEMA DISCOVERY is names only (sqlite_master / pragma_table_info).
+* ALLOWLIST: data may be read only from the objects in `ALLOWED_OBJECTS` (Schedule A, approved 2026-11-17).
 * FAIL CLOSED: the target must not be the psx-library host and must be named explicitly in the environment.
 * Per-run caps: rows read and requests (see DISCOVERY_ROW_CAP / MAX_REQUESTS).
 Nothing is imported or copied from the technical engine's repository; only its database is read.
@@ -25,8 +23,13 @@ URL_VAR = "PSXNI_TECH_LINK_URL"
 TOKEN_VAR = "PSXNI_TECH_LINK_TOKEN"  # noqa: S105 - a variable name, not a secret
 LIBRARY_MARKER = "psx-library"
 
-# Schedule A of ADR-0008. Empty until the owner approves the data tables; discovery needs none.
-ALLOWED_OBJECTS: frozenset[str] = frozenset()
+# Schedule A of ADR-0008, approved by the owner on 2026-11-17 ("approve Schedule A as proposed").
+# Excluded on purpose: predictions, runs, dss_history (entry/stop/target/final-action language), the technical
+# engine's own news table, intraday and candle tables, analysis_cache, daily_reports, config, sentiment.
+ALLOWED_OBJECTS: frozenset[str] = frozenset({
+    "stocks", "daily_ohlc", "wyckoff_accumulation", "wyckoff_scans", "chart_patterns", "fire_events",
+    "snapshots", "backtest_pattern_stats", "backtest_runs",
+})
 
 DISCOVERY_ROW_CAP = 5_000
 MAX_REQUESTS = 60
@@ -112,7 +115,7 @@ class TechnicalLink:
         return self._select(sql, params)
 
 
-def connect(environ: Mapping[str, str] | None = None) -> TechnicalLink:
+def connect(environ: Mapping[str, str] | None = None, *, row_cap: int = DISCOVERY_ROW_CAP) -> TechnicalLink:
     env = os.environ if environ is None else environ
     url = (env.get(URL_VAR) or "").strip()
     token = (env.get(TOKEN_VAR) or "").strip()
@@ -120,6 +123,6 @@ def connect(environ: Mapping[str, str] | None = None) -> TechnicalLink:
         raise LinkError(f"{URL_VAR} and {TOKEN_VAR} must both be set")
     host = check_target(url)
     db = ReadOnlyTurso(url, token)
-    db.max_rows_read = min(db.max_rows_read, DISCOVERY_ROW_CAP)
+    db.max_rows_read = min(db.max_rows_read, row_cap)
     db.max_requests = min(db.max_requests, MAX_REQUESTS)
     return TechnicalLink(db=db, host=host)
