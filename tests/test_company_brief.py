@@ -121,7 +121,7 @@ def test_the_page_renders_for_a_symbol_and_gives_no_advice(monkeypatch):
     monkeypatch.setenv("PSXNI_LIBRARY_TURSO_AUTH_TOKEN", "x")
     from engines import library_db
 
-    monkeypatch.setattr(library_db, "get_library_connection", lambda *a, **k: SimpleNamespace(db=db))
+    monkeypatch.setattr(library_db, "get_library_readonly_connection", lambda *a, **k: SimpleNamespace(db=db))
     import app
 
     app._brief_context.clear()

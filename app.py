@@ -86,7 +86,7 @@ def _library():
     """A fresh handle on psx-library. Only SELECT is ever issued; the write cap of 1 is a guard."""
     from engines import library_db
 
-    db = library_db.get_library_connection().db
+    db = library_db.get_library_readonly_connection().db
     if hasattr(db, "max_rows_read"):  # the Turso client; other backends have no per-process budget
         db.max_rows_read = max(db.max_rows_read, 150_000)
         db.max_rows_written = 1
