@@ -40,3 +40,11 @@ stays in full force.
   job stores Highlights only when the consent record file exists and the run is on or after the effective time.
 - Highlights facts are written to private psx-library only (topic `announcement_highlights`); reports and artifacts
   quote numbers and size bands, not Investify's text.
+
+## Owner decision, 2026-11-17: the Highlights may go to the council
+The owner confirmed in the session that the Highlights text may be included in the council's evidence packs
+(`announcement_highlights` is mapped to the "announcement" lens in `scripts/council_run.py`). The council sends its
+evidence to third-party free-tier model providers (Groq, Gemini, OpenRouter) for private analysis only; nothing is
+published. The source name on every item carries the attribution to Investify. Caveat recorded for the owner: free-tier
+terms differ by provider and some allow inputs to be used to improve their products; each provider's current terms
+have not been verified here. To withhold the text again, remove the mapping line.

@@ -545,5 +545,5 @@ def test_mapped_first_keeps_the_pack_slots_for_facts_a_lens_can_weigh():
 
     assert cr.kind_for("price.move") is None and cr.kind_for("technical.wyckoff") is None
     assert cr.kind_for("results.quarterly") == "figure" and cr.kind_for("fundamentals.market_cap") == "figure"
-    # announcement_highlights has no lens on purpose: Investify's Highlights text is not sent to LLM providers
-    assert cr.kind_for("announcement_highlights") is None
+    # the owner allowed Investify's Highlights text into the council's pack on 2026-11-17 (private use)
+    assert cr.kind_for("announcement_highlights") == "announcement"
