@@ -19,6 +19,7 @@ from pathlib import Path
 
 from engines import library_db
 from engines import news_facts as nf
+from engines import research_facts as rf
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -30,10 +31,7 @@ def load_vocabulary(db) -> nf.Vocabulary:
         if not sym.startswith("_"):
             companies.setdefault(sym, note)
     aliases = json.loads((ROOT / "docs/research/arn/entity_aliases.json").read_text("utf-8"))["aliases"]
-    names = {
-        r["company"][7:]
-        for r in db.execute("SELECT DISTINCT company FROM research_fact WHERE company LIKE 'SECTOR:%'")
-    }
+    names = {company[7:] for company in rf.sector_names(db)}  # an index range, not a scan of the whole table
     return nf.build_vocabulary(companies, aliases, names)
 
 

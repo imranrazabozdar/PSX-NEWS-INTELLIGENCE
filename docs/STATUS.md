@@ -512,6 +512,9 @@ about 52,000 rows read and 25,753 written, once.
 PGLC); rows unchanged (25,763), entities 610 -> 590. Held items are listed at the end of docs/research/entity_review.md.
 Collector: the back-fill stops at the sitemap file where its window ends (no wasted 5 MB read per run).
 
-## Investify export (owner's investify_psx.db, 17 Nov 2026) - converter IMPLEMENTED, TESTED; dry run only, NOT loaded
+## Investify export (owner's investify_psx.db, 17 Nov 2026) - LOADED (owner approved)
 `scripts/build_investify_capsule.py`: 20,899 distilled rows for 566 companies (11,768 fundamentals metrics, 4,070 dated
-announcements, 5,061 profile facts incl. sector for 562 companies). Awaiting the owner's approval to load.
+announcements, 5,061 profile facts incl. sector for 562 companies). Loaded 17 Nov 2026: 20,613 new rows written, 329
+near-duplicates skipped; research_fact is now 46,376 rows across 914 entities. News headlines (1,217) and the 60 symbols
+not in the listing snapshot are not yet added. Full-table scans now cost about 46,000 of the 50,000-row read budget, so every
+read must go through the company index (the news step's sector list was fixed to use an index range).
