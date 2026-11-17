@@ -86,6 +86,10 @@ class AnnouncementRecord:
     pdf_access: str  # "gated_dps" (PSX host, browser fetch only) | "none"
     retrieved_at_utc: str
     content_sha256: str
+    # The card's short Highlights text: the key-facts line and the summary paragraph under the title. Stored
+    # only under the 17 Nov 2026 addendum (docs/consent/investify-2026-11-17-highlights.md); not in the hash.
+    highlights: str = ""
+    summary: str = ""
 
 
 @dataclass(frozen=True)
@@ -122,6 +126,17 @@ def _content_hash(symbol: str, announced_at_utc: str, title: str, source_url: st
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
+_KEYLINE = re.compile(
+    r'<p class="mt-1 flex min-w-0[^"]*">\s*<span class="truncate">(.*?)</span>\s*</p>', re.S
+)
+_SUMMARY = re.compile(r'<p class="mt-1 line-clamp-1[^"]*">(.*?)</p>', re.S)
+_TAGS = re.compile(r"<[^>]+>")
+
+
+def _plain(fragment: str) -> str:
+    return " ".join(html.unescape(_TAGS.sub(" ", fragment)).split())
+
+
 def _parse_cards(page: str, retrieved_at_utc: str, problems: list[str]) -> list[AnnouncementRecord]:
     records: list[AnnouncementRecord] = []
     times = list(_TIME.finditer(page))
@@ -144,6 +159,10 @@ def _parse_cards(page: str, retrieved_at_utc: str, problems: list[str]) -> list[
             problems.append(f"card {i} ({symbol}): no matching announcement heading")
             continue
         href, title = heading.group(1), html.unescape(heading.group(3)).strip()
+        key_match = _KEYLINE.search(page, heading.end(), end)
+        sum_match = _SUMMARY.search(page, heading.end(), end)
+        highlights = _plain(key_match.group(1)) if key_match else ""
+        summary = _plain(sum_match.group(1)) if sum_match else ""
         pdf_match = _PSX_PDF.search(page, heading.end(), end)
         pdf_url = html.unescape(pdf_match.group(1)) if pdf_match else None
         try:
@@ -168,6 +187,8 @@ def _parse_cards(page: str, retrieved_at_utc: str, problems: list[str]) -> list[
             pdf_access=_pdf_access(pdf_url),
             retrieved_at_utc=retrieved_at_utc,
             content_sha256=_content_hash(symbol, at_utc, title, source_url, pdf_url),
+            highlights=highlights,
+            summary=summary,
         ))
     return records
 

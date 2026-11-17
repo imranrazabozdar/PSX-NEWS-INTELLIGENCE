@@ -39,6 +39,7 @@ def _all_symbols() -> frozenset[str]:
 
 # ------------------------------------------------------------------ fixture is marked point-in-time
 
+
 def test_fixture_is_marked_point_in_time_and_is_not_the_live_page():
     head = _page()[:600]
     assert "POINT-IN-TIME FIXTURE" in head and "Not live data" in head
@@ -46,6 +47,7 @@ def test_fixture_is_marked_point_in_time_and_is_not_the_live_page():
 
 
 # ------------------------------------------------------------------ parser
+
 
 def test_parser_reads_every_card_with_no_problems():
     res = ic.collect(_page(), watchlist=_all_symbols(), retrieved_at_utc=RETRIEVED)
@@ -85,13 +87,18 @@ def test_pdf_access_is_gated_when_the_pdf_is_on_the_psx_host():
     assert all(r.pdf_url.startswith("https://dps.psx.com.pk/download/") for r in gated)
 
 
-def test_the_summary_paragraph_is_not_stored():
+def test_the_highlights_text_is_on_the_record_but_never_in_the_dedup_hash():
     res = ic.collect(_page(), watchlist=_all_symbols(), retrieved_at_utc=RETRIEVED)
-    fields = " ".join(str(v) for r in res.records for v in vars(r).values())
-    assert "are not assessed" not in fields and "has published the Fund Manager" not in fields
+    assert all(r.summary for r in res.records) and any(r.highlights for r in res.records)
+    # the hash covers symbol, time, title, URL and PDF only: the summary never changes the identity
+    r = res.records[0]
+    assert r.content_sha256 == ic._content_hash(
+        r.symbol, r.announced_at_utc, r.title, r.source_url, r.pdf_url
+    )
 
 
 # ------------------------------------------------------------------ watchlist filter
+
 
 def test_only_watchlist_symbols_are_kept_using_the_real_watchlist():
     res = ic.collect(_page(), watchlist=ic.load_watchlist_symbols(), retrieved_at_utc=RETRIEVED)
@@ -132,15 +139,18 @@ def test_each_fixture_title_is_classified_as_expected():
         assert got[symbol] == expected, symbol
 
 
-@pytest.mark.parametrize("title,label,expected", [
-    ("Company X to hold board meeting on 20 November", "", "board_meeting"),
-    ("Material information: sale of subsidiary", "", "material_information"),
-    ("Bank announces merger with another bank", "", "merger_acquisition"),
-    ("Chief Executive resigns", "", "management_change"),
-    ("Net profit for the quarter ended September 30", "", "financial_results"),
-    ("Some company update", "Insider Buy", "directors_dealing"),
-    ("Some company update", "", "other"),
-])
+@pytest.mark.parametrize(
+    "title,label,expected",
+    [
+        ("Company X to hold board meeting on 20 November", "", "board_meeting"),
+        ("Material information: sale of subsidiary", "", "material_information"),
+        ("Bank announces merger with another bank", "", "merger_acquisition"),
+        ("Chief Executive resigns", "", "management_change"),
+        ("Net profit for the quarter ended September 30", "", "financial_results"),
+        ("Some company update", "Insider Buy", "directors_dealing"),
+        ("Some company update", "", "other"),
+    ],
+)
 def test_keyword_rules(title, label, expected):
     assert ic.classify(title, label) == expected
 
@@ -155,6 +165,7 @@ def test_category_filter_restricts_output():
 
 
 # ------------------------------------------------------------------ dedup
+
 
 def test_duplicate_cards_are_collapsed_on_symbol_date_and_title():
     doubled = _page() + _page().split("<main>", 1)[1]  # every card appears twice
@@ -171,6 +182,7 @@ def test_content_hash_is_stable_and_changes_with_the_title():
 
 # ------------------------------------------------------------------ provenance
 
+
 def test_every_record_carries_provenance():
     res = ic.collect(_page(), watchlist=_all_symbols(), retrieved_at_utc=RETRIEVED)
     for r in res.records:
@@ -182,6 +194,7 @@ def test_every_record_carries_provenance():
 
 
 # ------------------------------------------------------------------ registration (disabled by default)
+
 
 def _entry() -> dict:
     data = json.loads((ROOT / "database" / "seed" / "sources.json").read_text(encoding="utf-8"))

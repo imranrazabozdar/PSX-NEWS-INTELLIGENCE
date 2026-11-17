@@ -195,9 +195,12 @@ def score_company(
     for f in ann:
         label = str(f["topic"])[len("announcements.") :]
         if label in MATERIAL_LABELS:
-            graded.append(
-                (asub.assess(label, f["fact_text"], company_names=company_names or [], mcap=mcap), f)
+            title = str(f["fact_text"]).split(": ", 1)[-1]
+            highlights = asub.highlight_text(window_facts, str(f.get("period")), title)
+            result = asub.assess(
+                label, f["fact_text"], company_names=company_names or [], mcap=mcap, highlights=highlights
             )
+            graded.append((result, f))
     scheduled = [f for f in ann if str(f["topic"])[len("announcements.") :] in SCHEDULED_LABELS]
     if graded:
         result, top = max(graded, key=lambda g: (g[0]["points"], g[1]["source_date"]))
