@@ -154,7 +154,7 @@ def explain(
                 {"kind": kind, "date": d, "text": f["fact_text"][:220], "source": f["source_name"]}
             )
     if any(e.get("is_result") for e in evidence):
-        change, why = materiality.eps_change(materiality.eps_history(history))
+        change, why = materiality.eps_pair(history)
         if change and change.get("pct") is not None:
             evidence.append(
                 {

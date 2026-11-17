@@ -179,3 +179,133 @@ def test_the_most_recent_period_is_compared_first():
     ]
     change, _ = m.eps_change(m.eps_history(facts))
     assert change["label"].startswith("Q 09-30") and round(change["pct"]) == -20
+
+
+# ---- pairing Investify's newest EPS with the PSX history (like-for-like only when proven) ----------------
+
+
+def _psx(kind_text, period, value, basis="consolidated"):
+    return {
+        "topic": "results.quarterly",
+        "fact_text": f"Financial result, {kind_text} ({basis}): EPS {value}.",
+        "value": value,
+        "unit": "PKR/share",
+        "period": period,
+        "source_name": "PSX",
+        "source_date": "2025-11-01",
+    }
+
+
+def _inv(topic, period, value):
+    return {
+        "topic": topic,
+        "fact_text": f"EPS: Rs. {value} ({period})",
+        "value": value,
+        "unit": "PKR",
+        "period": period,
+        "source_name": "Investify fundamentals (investify.pk)",
+        "source_date": "2026-11-16",
+    }
+
+
+def single_basis_company():
+    return [
+        _psx("year ended 2025-12-31", "year ended 2025-12-31", 10.0),
+        _psx("third quarter ended 2025-09-30", "third quarter ended 2025-09-30", 2.0),
+    ]
+
+
+def test_investify_periods_map_onto_psx_period_ends_for_any_fiscal_year():
+    assert m.investify_key("fundamentals.latest_quarter_eps", "2026 3Q", (12, 31)) == ("Q@09-30", 2026)
+    assert m.investify_key("fundamentals.year_to_date_eps", "UPTO 2026 3Q", (12, 31)) == ("9M@09-30", 2026)
+    assert m.investify_key("fundamentals.annual_eps", "2025 FY", (12, 31)) == ("FY@12-31", 2025)
+    # a June year end: fiscal 2027 Q1 is July-September 2026
+    assert m.investify_key("fundamentals.latest_quarter_eps", "2027 1Q", (6, 30)) == ("Q@09-30", 2026)
+    assert m.investify_key("fundamentals.year_to_date_eps", "UPTO 2027 2Q", (6, 30)) == ("H@12-31", 2026)
+    assert m.investify_key("fundamentals.latest_quarter_eps", "2026 4Q", (12, 31)) is None
+    assert m.investify_key("fundamentals.annual_eps", "garbage", (12, 31)) is None
+
+
+def test_the_newest_investify_figure_pairs_with_last_year_only_when_validated():
+    facts = single_basis_company() + [
+        _inv("fundamentals.annual_eps", "2025 FY", 10.0),
+        _inv("fundamentals.latest_quarter_eps", "2026 3Q", 3.0),
+    ]
+    change, why = m.eps_pair(facts)
+    assert why is None and round(change["pct"]) == 50
+    assert "latest figure from Investify" in change["label"] and "consolidated" in change["label"]
+
+
+def test_a_disagreement_on_an_overlapping_period_blocks_the_pairing():
+    facts = single_basis_company() + [
+        _inv("fundamentals.annual_eps", "2025 FY", 14.0),
+        _inv("fundamentals.latest_quarter_eps", "2026 3Q", 3.0),
+    ]
+    change, why = m.eps_pair(facts)
+    assert change is None and "no like-for-like" in why
+
+
+def test_no_overlap_to_prove_the_basis_means_no_pairing():
+    facts = single_basis_company() + [_inv("fundamentals.latest_quarter_eps", "2026 3Q", 3.0)]
+    assert m.eps_pair(facts)[0] is None
+
+
+def test_a_company_reporting_two_bases_is_never_paired_with_investify():
+    facts = [
+        _psx("year ended 2025-12-31", "year ended 2025-12-31", 45.48),
+        _psx("year ended 2025-12-31", "year ended 2025-12-31", 42.6, "unconsolidated"),
+        _psx("third quarter ended 2025-09-30", "third quarter ended 2025-09-30", 12.0),
+        _psx("third quarter ended 2025-09-30", "third quarter ended 2025-09-30", 11.0, "unconsolidated"),
+        _inv("fundamentals.annual_eps", "2025 FY", 42.6),
+        _inv("fundamentals.latest_quarter_eps", "2026 3Q", 12.36),
+    ]
+    assert m.eps_pair(facts)[0] is None
+
+
+def test_when_psx_already_has_the_period_its_figure_stands_and_nothing_is_overridden():
+    facts = single_basis_company() + [
+        _psx("third quarter ended 2026-09-30", "third quarter ended 2026-09-30", 2.5),
+        _inv("fundamentals.annual_eps", "2025 FY", 10.0),
+        _inv("fundamentals.latest_quarter_eps", "2026 3Q", 99.0),
+    ]
+    change, _ = m.eps_pair(facts)
+    assert change["cur"] == 2.5 and "Investify" not in change["label"]
+
+
+def test_unlabelled_psx_results_are_a_single_basis_and_can_pair():
+    def u(period, value):
+        return {
+            "topic": "results.quarterly",
+            "fact_text": f"Financial result, {period}: EPS {value}.",
+            "value": value,
+            "unit": "PKR/share",
+            "period": period,
+            "source_name": "PSX",
+            "source_date": "2025-11-01",
+        }
+
+    facts = [
+        u("year ended 2025-06-30", 10.0),
+        u("first quarter ended 2025-09-30", 2.0),
+        _inv("fundamentals.annual_eps", "2025 FY", 10.0),
+        _inv("fundamentals.latest_quarter_eps", "2027 1Q", 3.0),
+    ]
+    change, why = m.eps_pair(facts)
+    assert why is None and round(change["pct"]) == 50 and "Investify" in change["label"]
+    # one labelled and one unlabelled figure for the same period is two bases: never paired
+    both = [
+        *facts,
+        {
+            **u("first quarter ended 2025-09-30", 9.0),
+            "fact_text": "Financial result, first quarter ended 2025-09-30 (consolidated): EPS 9.0.",
+        },
+    ]
+    assert m.eps_pair(both)[0] is None
+
+
+def test_an_implausible_jump_in_the_investify_figure_is_not_used():
+    facts = single_basis_company() + [
+        _inv("fundamentals.annual_eps", "2025 FY", 10.0),
+        _inv("fundamentals.latest_quarter_eps", "2026 3Q", 25.0),
+    ]  # 12.5x last year
+    assert m.eps_pair(facts)[0] is None
