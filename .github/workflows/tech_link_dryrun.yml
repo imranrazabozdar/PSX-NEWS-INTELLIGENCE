@@ -1,0 +1,25 @@
+# ADR-0008: dry run of the approved Schedule A reads (counts, date ranges, two sample rows). Dispatch only. Read only; stores nothing.
+name: Technical link dry run
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PSXNI_TECH_LINK_URL: ${{ secrets.PSXNI_TECH_LINK_URL }}
+      PSXNI_TECH_LINK_TOKEN: ${{ secrets.PSXNI_TECH_LINK_TOKEN }}
+      PSXNI_DB_MAX_ROWS_READ: "3000000"
+      PSXNI_DB_MAX_REQUESTS: "60"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Dry-run the approved reads
+        run: python -m scripts.tech_link_dryrun
