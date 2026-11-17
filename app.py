@@ -119,11 +119,10 @@ def _brief_page() -> None:
         "corporate actions, news and the technical engine's heuristics. Evidence on file only; "
         "not proof of cause, no buy or sell view."
     )
-    if not (
-        os.environ.get("PSXNI_LIBRARY_TURSO_DATABASE_URL")
-        and os.environ.get("PSXNI_LIBRARY_TURSO_AUTH_TOKEN")
-    ):
-        st.info("The library is not configured here (set PSXNI_LIBRARY_TURSO_DATABASE_URL and _AUTH_TOKEN).")
+    from engines import library_db
+
+    if not (os.environ.get(library_db.URL_VAR) and os.environ.get(library_db.TOKEN_VAR)):
+        st.info(f"The library is not configured here (set {library_db.URL_VAR} and {library_db.TOKEN_VAR}).")
         return
     today = datetime.now(UTC).date().isoformat()
     try:
