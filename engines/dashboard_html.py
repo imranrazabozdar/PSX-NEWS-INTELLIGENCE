@@ -35,6 +35,8 @@ CSS = """
 details.pi-d{background:#121316;border:1px solid #26282d;border-radius:14px;margin:.55rem 0;padding:.1rem .9rem}
 details.pi-d summary{cursor:pointer;list-style:none;padding:.75rem 0;display:flex;gap:.6rem;align-items:center}
 details.pi-d summary::-webkit-details-marker{display:none}
+details.pi-d summary::after{content:"\\25BE";color:#6b7280;font-size:1rem;margin-left:auto}
+details.pi-d[open] summary::after{content:"\\25B4"}
 .pi-score{background:#16323a;color:#4fd8e0;border-radius:8px;padding:.15rem .5rem;font-weight:800;
  font-size:.85rem;min-width:2.3rem;text-align:center}
 .pi-st{flex:1}.pi-st b{font-size:1rem}.pi-st div{font-size:.76rem;color:#9aa0a6}
