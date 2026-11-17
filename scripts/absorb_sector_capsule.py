@@ -13,6 +13,7 @@ import argparse
 import json
 import sys
 from collections import Counter
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -37,7 +38,7 @@ def load_capsule(path: Path) -> list[dict[str, Any]]:
     return clean
 
 
-def absorb(path: Path, *, apply: bool, db: Any = None) -> int:
+def absorb(path: Path, *, apply: bool, db: Any = None, since_days: int | None = None) -> int:
     rows = load_capsule(path)
     print(f"capsule valid: {len(rows)} row(s)")
     for company, n in sorted(Counter(r["company"] for r in rows).items()):
@@ -52,7 +53,12 @@ def absorb(path: Path, *, apply: bool, db: Any = None) -> int:
     for stmt in _schema_statements():
         db.execute(stmt)
     written = skipped = near = 0
-    exact, known = _existing(db, {r["company"] for r in rows})
+    since = None
+    if since_days is not None:  # duplicate checks only need rows near the capsule's own dates
+        earliest = date.fromisoformat(min(str(r["source_date"]) for r in rows))
+        since = (earliest - timedelta(days=since_days)).isoformat()
+        print(f"duplicate check limited to rows dated {since} or later")
+    exact, known = _existing(db, {r["company"] for r in rows}, since)
     pending: list[tuple[Any, ...]] = []
     for r in rows:
         if (r["company"], r["topic"], r["fact_text"]) in exact:
@@ -84,14 +90,14 @@ def _schema_statements() -> list[str]:
 BATCH = 200  # statements per transactional batch: a few dozen round trips instead of thousands
 
 
-def _existing(db: Any, companies: set[str]) -> tuple[set[tuple[str, str, str]],
+def _existing(db: Any, companies: set[str], since: str | None = None) -> tuple[set[tuple[str, str, str]],
                                                       dict[tuple[str, str], list[frozenset[str]]]]:
     """What is already stored for these companies, read once: exact keys, and word bags per topic family."""
     exact: set[tuple[str, str, str]] = set()
     known: dict[tuple[str, str], list[frozenset[str]]] = {}
     # Only these entities are read, through idx_research_fact_company (database/library/0010): the rows read
     # are the matching rows, so a loader no longer runs out of its row-read budget as the table grows.
-    for row in rf.facts_for(db, companies, "company, topic, fact_text"):
+    for row in rf.facts_for(db, companies, "company, topic, fact_text", since=since):
         exact.add((row["company"], row["topic"], row["fact_text"]))
         known.setdefault((row["company"], str(row["topic"]).split(".", 1)[0]), []).append(
             normalise(str(row["fact_text"])))
@@ -107,9 +113,12 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("capsule", type=Path)
     parser.add_argument("--apply", action="store_true", help="write to psx-library (default: dry run)")
+    parser.add_argument("--since-days", type=int, default=None,
+                        help="duplicate-check only rows dated within N days before the capsule's earliest "
+                             "source_date (for frequent news loads; a full load leaves this off)")
     args = parser.parse_args(argv)
     try:
-        return absorb(args.capsule, apply=args.apply)
+        return absorb(args.capsule, apply=args.apply, since_days=args.since_days)
     except library_db.LibraryConfigError as exc:
         print(f"REFUSED: {exc}")
         return 2

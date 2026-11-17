@@ -17,7 +17,31 @@ from pathlib import Path
 from engines import library_db, news_rollup
 from scripts import build_news_capsule as bnc
 
+UPSERT = (
+    "INSERT INTO news_rollup (day, entity, stories, topics, top_title, top_url, updated_utc) "
+    "VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(day, entity) DO UPDATE SET stories = excluded.stories, "
+    "topics = excluded.topics, top_title = excluded.top_title, top_url = excluded.top_url, "
+    "updated_utc = excluded.updated_utc"
+)
 SCHEMA = Path(__file__).resolve().parents[1] / "database" / "library" / "0009_news_rollup.sql"
+
+
+def changed_rows(db, rows: list[dict]) -> list[dict]:
+    """Only the rollup rows that are new or differ from what is stored; a no-change re-run writes nothing.
+
+    One indexed range read of the stored window (the primary key starts with day), then a comparison."""
+    if not rows:
+        return []
+    first = min(r["day"] for r in rows)
+    stored = {
+        (r["day"], r["entity"]): (r["stories"], r["topics"], r["top_url"])
+        for r in db.execute(
+            "SELECT day, entity, stories, topics, top_url FROM news_rollup WHERE day >= ?", (first,)
+        )
+    }
+    return [
+        r for r in rows if stored.get((r["day"], r["entity"])) != (r["stories"], r["topics"], r["top_url"])
+    ]
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -40,16 +64,29 @@ def main(argv: list[str] | None = None) -> int:
     if args.apply:
         body = "\n".join(ln.split("--", 1)[0] for ln in SCHEMA.read_text("utf-8").splitlines())
         db.execute(body.split(";")[0].strip())
-        for r in rows:
-            db.execute(
-                "INSERT INTO news_rollup (day, entity, stories, topics, top_title, top_url, updated_utc) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(day, entity) DO UPDATE SET "
-                "stories = excluded.stories, "
-                "topics = excluded.topics, top_title = excluded.top_title, top_url = excluded.top_url, "
-                "updated_utc = excluded.updated_utc",
-                (r["day"], r["entity"], r["stories"], r["topics"], r["top_title"], r["top_url"], stamp),
+        changed = changed_rows(db, rows)
+        for i in range(
+            0, len(changed), 200
+        ):  # one request per 200 rows, and only rows that differ are written
+            db.batch(
+                [
+                    (
+                        UPSERT,
+                        (
+                            r["day"],
+                            r["entity"],
+                            r["stories"],
+                            r["topics"],
+                            r["top_title"],
+                            r["top_url"],
+                            stamp,
+                        ),
+                    )
+                    for r in changed[i : i + 200]
+                ],
+                transactional=True,
             )
-        print(f"news_rollup upserted: {len(rows)} rows")
+        print(f"news_rollup: {len(rows)} rows built, {len(changed)} new or changed rows written")
     else:
         print("dry run: nothing was written to the database")
     if sigs:

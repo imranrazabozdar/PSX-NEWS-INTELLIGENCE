@@ -37,8 +37,8 @@ jobs:
       - name: Headlines to facts (last 2 days)
         run: |
           python -m scripts.build_news_capsule --out news_capsule.json --days 2 --examples 0
-          if [ -f news_capsule.json ]; then python -m scripts.absorb_sector_capsule news_capsule.json --apply; fi
+          if [ -f news_capsule.json ]; then python -m scripts.absorb_sector_capsule news_capsule.json --apply --since-days 14; fi
       - name: Daily rollup and signals
         run: |
           python -m scripts.build_news_rollup --out news_signals.json --days 60 --apply
-          if [ -f news_signals.json ]; then python -m scripts.absorb_sector_capsule news_signals.json --apply; fi
+          if [ -f news_signals.json ]; then python -m scripts.absorb_sector_capsule news_signals.json --apply --since-days 30; fi

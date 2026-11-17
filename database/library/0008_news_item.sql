@@ -19,3 +19,6 @@ CREATE TABLE IF NOT EXISTS news_progress (
   updated_utc TEXT NOT NULL,
   PRIMARY KEY (source, key)
 );
+
+-- Lets the facts and rollup steps read only the last few days of headlines instead of the whole table.
+CREATE INDEX IF NOT EXISTS idx_news_item_published ON news_item (published_at);

@@ -10,6 +10,7 @@ from __future__ import annotations
 import collections
 import difflib
 import json
+import os
 import re
 from pathlib import Path
 
@@ -64,8 +65,12 @@ def main() -> int:
 
     listing = load_listing(ROOT / "docs/research/psx_listed_companies.json")
     aliases = json.loads((ROOT / "docs/research/arn/entity_aliases.json").read_text("utf-8"))
+    # An owner-run report that must see every entity: it reads the index once (one row per fact), so it gets a
+    # higher read cap for this process only. Nothing automatic runs it.
+    os.environ.setdefault("PSXNI_DB_MAX_ROWS_READ", "200000")
     db = library_db.get_library_connection().db
-    counts = collections.Counter(r["company"] for r in db.execute("SELECT company FROM research_fact"))
+    grouped = db.execute("SELECT company, COUNT(*) AS n FROM research_fact GROUP BY company")
+    counts = collections.Counter({r["company"]: r["n"] for r in grouped})
     result = classify(dict(counts), listing, aliases)
     for key, items in result.items():
         print(f"{key}: {len(items)}")
