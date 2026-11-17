@@ -36,6 +36,8 @@ SOURCE_ID = "investify_announcements"
 CONSENT_RECORD = "docs/consent/investify-2026-11-12.md"
 CONSENT_EFFECTIVE_UTC = datetime(2026, 11, 12, tzinfo=UTC)
 MIN_INTERVAL = timedelta(minutes=15)
+HIGHLIGHTS_CONSENT_RECORD = "docs/consent/investify-2026-11-17-highlights.md"
+HIGHLIGHTS_CONSENT_EFFECTIVE_UTC = datetime(2026, 11, 17, tzinfo=UTC)
 ANNOUNCEMENTS_URL = "https://www.investify.pk/announcements"
 ROBOTS_URL = "https://www.investify.pk/robots.txt"
 ROBOTS_MAX_AGE = timedelta(hours=24)
@@ -287,3 +289,9 @@ def finish_request(state: PollState, now: datetime, **changes) -> PollState:
 
 def trip_breaker(state: PollState, now: datetime) -> PollState:
     return replace(state, breaker_until_utc=_iso(next_pkt_midnight_utc(now)))
+
+
+def highlights_allowed(now: datetime) -> bool:
+    """Highlights text may be stored only under the 17 November 2026 addendum: the record must exist and the
+    consent must be in effect. Otherwise only metadata is kept (condition 7 of the 12 November permission)."""
+    return (REPO_ROOT / HIGHLIGHTS_CONSENT_RECORD).is_file() and now >= HIGHLIGHTS_CONSENT_EFFECTIVE_UTC

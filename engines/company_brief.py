@@ -144,8 +144,15 @@ def load(db: Any, symbol: str, today: date, ctx: dict[str, Any], days: int = 30)
             if label in materiality.SCHEDULED_LABELS
             else "routine"
         )
+        title = str(f["fact_text"]).split(": ", 1)[-1]
         size = (
-            asub.assess(label, f["fact_text"], company_names=names, mcap=mcap)
+            asub.assess(
+                label,
+                f["fact_text"],
+                company_names=names,
+                mcap=mcap,
+                highlights=asub.highlight_text(facts, str(f.get("period")), title),
+            )
             if weight == "material"
             else None
         )

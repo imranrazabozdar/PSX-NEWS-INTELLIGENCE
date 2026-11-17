@@ -6,9 +6,9 @@ backoff and the circuit breaker, an honest User-Agent). The only difference is w
 never touches the older news database. It calls the same `run_once` in its no-database mode, which gives what
 was parsed, and turns each announcement into a dated fact for psx-library.
 
-Metadata only (consent condition 7): the title as shown, the date, Investify's category. Never Investify's own
-summary text, never a PDF. Every fact carries the attribution. A fact states what was announced, not what it
-means: no figure is read from a headline, and nothing is said about the price.
+Metadata plus, from 17 Nov 2026 (consent addendum), the card's Highlights text, kept in private psx-library
+only and never quoted in reports. Never a PDF. Every fact carries the attribution. A fact states what was
+announced, not what it means: no figure is read from a headline, and nothing is said about the price.
 
 Usage:  python -m collectors.investify_library_job --state <state.json> --out <capsule.json>
 Then load the capsule with `python -m scripts.absorb_sector_capsule <capsule.json> --apply --since-days 60`.
@@ -25,9 +25,13 @@ from typing import Any
 
 from collectors import investify_job as job
 from collectors import investify_policy as pol
+from engines import announcement_substance as asub
 from engines import investify_collector as ic
 
 SOURCE_NAME = "Investify (investify.pk), announcements listing"
+HIGHLIGHTS_SOURCE = "Investify (investify.pk), announcement highlights"
+HIGHLIGHTS_TOPIC = asub.HIGHLIGHTS_TOPIC
+HIGHLIGHT_CHUNK = 285  # a fact holds 300 characters: the date and ": " take the rest
 # The registry entry values that the consent record encodes (docs/consent/investify-2026-11-12.md, "How the
 # registry encodes this consent"). The policy's own check still requires the consent record file to exist.
 ENTRY = {
@@ -53,7 +57,9 @@ def topic_for(record: dict[str, Any]) -> str:
     return f"announcements.{label}"
 
 
-def facts_from_records(records: list[dict[str, Any]], stamp: str) -> list[dict[str, Any]]:
+def facts_from_records(
+    records: list[dict[str, Any]], stamp: str, *, with_highlights: bool = False
+) -> list[dict[str, Any]]:
     """One fact per announcement, dated by the announcement day. The text format matches the earlier facts
     from the owner's Investify snapshot ('<date>: <title>'), so an announcement already stored is skipped."""
     out = []
@@ -79,6 +85,62 @@ def facts_from_records(records: list[dict[str, Any]], stamp: str) -> list[dict[s
                 "created_at": stamp,
             }
         )
+    if with_highlights:
+        out += highlight_facts(records, stamp)
+    return out
+
+
+def highlight_chunks(text: str, size: int = HIGHLIGHT_CHUNK, parts: int = 2) -> list[str]:
+    """The Highlights text in at most `parts` chunks of at most `size` characters, cut at word boundaries."""
+    words, chunks, cur = text.split(), [], ""
+    for w in words:
+        if len(cur) + len(w) + 1 > size:
+            chunks.append(cur)
+            cur = w
+            if len(chunks) == parts:
+                return chunks
+        else:
+            cur = f"{cur} {w}".strip()
+    if cur and len(chunks) < parts:
+        chunks.append(cur)
+    return chunks
+
+
+def highlight_fact_rows(sym: str, title: str, when: str, text: str, created_at: str) -> list[dict[str, Any]]:
+    """Private Highlights facts for one announcement: '<date>: <text>' in up to two chunks, linked to the
+    title fact by the title's key in the URL fragment, so no characters are spent repeating the title."""
+    key = asub.title_key(title)
+    out = []
+    for n, chunk in enumerate(highlight_chunks(text), start=1):
+        out.append(
+            {
+                "company": sym,
+                "topic": HIGHLIGHTS_TOPIC,
+                "fact_text": f"{when}: {chunk}",
+                "value": None,
+                "unit": None,
+                "period": when,
+                "source_name": HIGHLIGHTS_SOURCE,
+                "source_url": f"https://investify.pk/company/{sym}/announcements#{key}-{n}",
+                "source_date": when,
+                "as_of": when,
+                "confidence": "fact",
+                "created_at": created_at,
+            }
+        )
+    return out
+
+
+def highlight_facts(records: list[dict[str, Any]], stamp: str) -> list[dict[str, Any]]:
+    """The card's key-facts line and summary paragraph as private facts. Allowed only under the 17 Nov 2026
+    addendum."""
+    out = []
+    for r in records:
+        pkt = r.get("announced_on_pkt") or r["announced_at_utc"][:10]
+        title = " ".join(str(r["title"]).split())
+        extra = " ".join(" ".join(str(r.get(k) or "") for k in ("highlights", "summary")).split())
+        if title and extra and r.get("symbol"):
+            out += highlight_fact_rows(r["symbol"], title, pkt, extra, stamp)
     return out
 
 
@@ -113,7 +175,7 @@ def run(
     print(f"investify: {outcome.status}: {outcome.reason}")
     print(f"requests made this run: {outcome.http_requests}")
     stamp = now.strftime("%Y-%m-%dT%H:%M:%SZ")
-    facts = facts_from_records(outcome.records, stamp)
+    facts = facts_from_records(outcome.records, stamp, with_highlights=pol.highlights_allowed(now))
     print(f"announcements parsed: {len(outcome.records)}; facts built: {len(facts)}")
     for f in facts[:8]:
         print("  sample:", f["company"], f["topic"], "|", f["fact_text"][:150])

@@ -16,6 +16,7 @@ text shows to be the target; for any other company the result is "unquantified".
 
 from __future__ import annotations
 
+import hashlib
 import re
 from typing import Any
 
@@ -24,6 +25,9 @@ AMOUNT_BANDS = ((0.10, "major"), (0.03, "significant"), (0.01, "moderate"))
 STAKE_BANDS = ((50.0, "major"), (25.0, "significant"), (10.0, "moderate"))
 POINTS = {"major": 25.0, "significant": 18.0, "moderate": 10.0, "minor": 5.0, "unquantified": 8.0}
 SCHEDULED_POINTS = 3.0
+PRELIMINARY_FACTOR = (
+    0.6  # a deal or project the text itself calls early-stage counts for less than a firm one
+)
 
 MATERIAL_LABELS = {
     "Material Disclosure",
@@ -58,16 +62,37 @@ _UNITS = {
     "lakh": 1e5,
 }
 _PKR = re.compile(
-    r"(?:Rs\.?|PKR|Rupees)\s?([\d,]+(?:\.\d+)?)\s?(trillion|billion|million|crore|lakh|lac|tn|bn|mn|cr|b|m)?\b",
+    r"(?:Rs\.?|PKR|Rupees)\s?(\d[\d,]*(?:\.\d+)?)\s?(trillion|billion|million|crore|lakh|lac|tn|bn|mn|cr|b|m)?\b",
     re.I,
 )
-_USD = re.compile(r"(?:USD|US\$|\$)\s?([\d,]+(?:\.\d+)?)\s?(billion|million|bn|mn|b|m)?\b", re.I)
+_USD = re.compile(r"(?:USD|US\$|\$)\s?(\d[\d,]*(?:\.\d+)?)\s?(billion|million|bn|mn|b|m)?\b", re.I)
 _PCT = re.compile(r"(\d{1,3}(?:\.\d+)?)\s?(?:%|pc\b|per\s?cent)", re.I)
-_MCAP = re.compile(r"Market Cap:\s*Rs\.?\s*([\d,]+(?:\.\d+)?)\s*(T|B|M)\b", re.I)
+_MCAP = re.compile(r"Market Cap:\s*Rs\.?\s*(\d[\d,]*(?:\.\d+)?)\s*(T|B|M)\b", re.I)
 _PER_SHARE = re.compile(r"^\s*(?:per\s+(?:ordinary\s+)?share|/share|a share|each)", re.I)
 _TARGET = re.compile(
     r"\b(?:acquire|acquisition of|purchase of|purchase|stake in|sell|sale of|divest)\b", re.I
 )
+
+
+HIGHLIGHTS_TOPIC = "announcement_highlights"
+
+
+def title_key(title: str) -> str:
+    """A short stable key for an announcement title: links a Highlights fact to its title fact."""
+    return hashlib.sha256(" ".join(title.split()).encode("utf-8")).hexdigest()[:10]
+
+
+def highlight_text(facts: list[dict[str, Any]], period: str, title: str) -> str:
+    """The stored Highlights text for one announcement (its chunks in order), or '' if none is on file."""
+    key = title_key(title)
+    parts = []
+    for f in facts:
+        if f.get("topic") != HIGHLIGHTS_TOPIC or str(f.get("period")) != period:
+            continue
+        url = str(f.get("source_url") or "")
+        if f"#{key}-" in url:
+            parts.append((url.rsplit("-", 1)[-1], str(f["fact_text"]).split(": ", 1)[-1]))
+    return " ".join(text for _n, text in sorted(parts))
 
 
 def market_cap(facts: list[dict[str, Any]]) -> float | None:
@@ -128,6 +153,33 @@ def _is_target(text: str, names: list[str]) -> bool:
     return False
 
 
+# Stage, read from the words the announcement itself uses. Preliminary: the company says it is only
+# evaluating, studying or in principle. Definitive: it says it has agreed, signed, completed or approved.
+_PRELIMINARY = re.compile(
+    r"\b(evaluat\w*|due diligence|in-principle|in principle|non-binding|preliminary|feasibility study|"
+    r"letter of intent|memorandum of understanding|exploring|explore|are needed to determine|"
+    r"remains? to be determined|yet to be determined|early stage|proposes?|proposed|intends? to|"
+    r"plans? to|seeks? (?:\w+ ){0,2}approval)\b",
+    re.I,
+)
+_DEFINITIVE = re.compile(
+    r"\b(has agreed|have agreed|agrees? to|signed|executed|completed|completes|finali[sz]ed|"
+    r"share purchase agreement|approved the (?:acquisition|sale|merger|transaction))\b",
+    re.I,
+)
+
+
+def stage_of(text: str) -> tuple[str, str]:
+    """('preliminary' | 'definitive' | 'unclear', the phrase that decided it). A preliminary phrase wins when
+    both appear: 'agreed to evaluate' is still an evaluation."""
+    pre, dfn = _PRELIMINARY.search(text), _DEFINITIVE.search(text)
+    if pre:
+        return "preliminary", pre.group(0)
+    if dfn:
+        return "definitive", dfn.group(0)
+    return "unclear", ""
+
+
 def _band(value: float, bands: tuple[tuple[float, str], ...]) -> str:
     for floor, name in bands:
         if value >= floor:
@@ -135,12 +187,38 @@ def _band(value: float, bands: tuple[tuple[float, str], ...]) -> str:
     return "minor"
 
 
-def assess(label: str, text: str, *, company_names: list[str], mcap: float | None) -> dict[str, Any]:
-    """Size band and the numbers behind it for one announcement. `text` is the stored fact text."""
+def assess(
+    label: str, text: str, *, company_names: list[str], mcap: float | None, highlights: str = ""
+) -> dict[str, Any]:
+    """Size band and the numbers behind it for one announcement.
+
+    `text` is the stored title fact; `highlights` is the card's Highlights text when it is on file, which
+    often carries the figures the title leaves out."""
     body = text.split(": ", 1)[1] if ": " in text[:14] else text
+    if highlights:
+        body = f"{body} {highlights}"
     basis: list[str] = []
     if label not in MATERIAL_LABELS:
-        return {"tier": "routine", "points": SCHEDULED_POINTS, "quantified": False, "basis": []}
+        return {
+            "tier": "routine",
+            "points": SCHEDULED_POINTS,
+            "quantified": False,
+            "basis": [],
+            "stage": "n/a",
+        }
+    stage, phrase = stage_of(body)
+    result = _size(label, body, company_names, mcap, highlights, basis)
+    result["stage"] = stage
+    if stage != "unclear":
+        result["basis"].append(f"stage: {stage} (the text says '{phrase}')")
+    if stage == "preliminary":
+        result["points"] = round(result["points"] * PRELIMINARY_FACTOR, 1)
+    return result
+
+
+def _size(
+    label: str, body: str, company_names: list[str], mcap: float | None, highlights: str, basis: list[str]
+) -> dict[str, Any]:
     pct = stake_percent(body)
     if label in DEAL_LABELS and pct is not None:
         if _is_target(body, company_names):
@@ -161,10 +239,9 @@ def assess(label: str, text: str, *, company_names: list[str], mcap: float | Non
     if amounts:
         basis.append(f"amount Rs {max(amounts) / 1e9:.2f}bn stated, company size not on file")
     elif usd_amounts(body):
-        basis.append(
-            f"a US dollar amount (${max(usd_amounts()) if False else max(usd_amounts(body)) / 1e6:.0f}m) "
-            "is stated but not converted"
-        )
+        basis.append(f"a US dollar amount (${max(usd_amounts(body)) / 1e6:.0f}m) is stated but not converted")
+    elif highlights:
+        basis.append("no stake or rupee amount stated in the title or the Highlights text")
     else:
         basis.append("no quantity stated in the announcement text")
     return {"tier": "unquantified", "points": POINTS["unquantified"], "quantified": False, "basis": basis}

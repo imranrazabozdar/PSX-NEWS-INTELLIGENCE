@@ -12,6 +12,7 @@ import pytest
 
 from collectors import investify_library_job as lj
 from collectors import investify_policy as pol
+from engines import announcement_substance as asub
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "tests" / "fixtures" / "investify" / "announcements_point_in_time_2026-11-11.html"
@@ -44,19 +45,17 @@ class Jitter:
         return 1
 
 
-def seeded_state(path: Path) -> None:
+def seeded_state(path: Path, now: datetime = MONDAY_10AM) -> None:
     pol.save_state(
         path,
-        pol.PollState(
-            robots_txt="User-agent: *\nDisallow: /admin\n", robots_fetched_utc=pol._iso(MONDAY_10AM)
-        ),
+        pol.PollState(robots_txt="User-agent: *\nDisallow: /admin\n", robots_fetched_utc=pol._iso(now)),
     )
 
 
-def run(tmp_path, transport):
+def run(tmp_path, transport, now: datetime = MONDAY_10AM):
     state, out = tmp_path / "state.json", tmp_path / "facts.json"
-    seeded_state(state)
-    code = lj.run(state, out, now=MONDAY_10AM, transport=transport, sleep=lambda s: None, rng=Jitter())
+    seeded_state(state, now)
+    code = lj.run(state, out, now=now, transport=transport, sleep=lambda s: None, rng=Jitter())
     return code, out
 
 
@@ -74,11 +73,50 @@ def test_one_request_makes_dated_attributed_facts_without_any_database(tmp_path,
     assert "requests made this run: 1" in capsys.readouterr().out
 
 
-def test_no_investify_summary_text_is_stored(tmp_path):
+def test_highlights_are_stored_as_private_attributed_facts_when_the_consent_is_in_force(tmp_path):
     t = Transport((200, {}, FIXTURE.read_bytes()))
-    _, out = run(tmp_path, t)
-    text = out.read_text("utf-8")
-    assert "are not assessed" not in text  # appears only in Investify's own summary paragraphs
+    _, out = run(
+        tmp_path, t, now=datetime(2026, 11, 18, 5, 0, tzinfo=UTC)
+    )  # Wednesday 10:00 PKT, addendum in force
+    facts = json.loads(out.read_text("utf-8"))
+    high = [f for f in facts if f["topic"] == lj.HIGHLIGHTS_TOPIC]
+    titles = [f for f in facts if f["topic"].startswith("announcements.")]
+    keys = {asub.title_key(f["fact_text"].split(": ", 1)[1]) for f in titles}
+    assert (
+        high and {f["source_url"].split("#")[1].rsplit("-", 1)[0] for f in high} <= keys
+    )  # each links to a title
+    for f in high:
+        assert f["source_name"] == lj.HIGHLIGHTS_SOURCE and "investify" in f["source_name"].lower()
+        assert len(f["fact_text"]) <= 300 and f["value"] is None and "#" in f["source_url"]
+
+
+def test_before_the_addendum_is_in_force_no_highlights_are_stored():
+    from datetime import datetime as dt
+
+    assert not pol.highlights_allowed(dt(2026, 11, 16, 23, 59, tzinfo=UTC))
+    assert pol.highlights_allowed(dt(2026, 11, 17, 0, 0, tzinfo=UTC))
+    rec = {
+        "symbol": "X",
+        "title": "X news",
+        "announced_at_utc": "2026-11-16T10:00:00Z",
+        "announced_on_pkt": "2026-11-16",
+        "investify_label": "Other",
+        "highlights": "k",
+        "summary": "s",
+    }
+    assert [f["topic"] for f in lj.facts_from_records([rec], "t")] == ["announcements.Other"]
+    both = lj.facts_from_records([rec], "t", with_highlights=True)
+    assert [f["topic"] for f in both] == ["announcements.Other", lj.HIGHLIGHTS_TOPIC]
+    assert both[1]["fact_text"] == "2026-11-16: k s"
+    assert both[1]["source_url"].endswith(f"#{asub.title_key('X news')}-1")
+
+
+def test_long_highlights_are_cut_at_word_boundaries_into_at_most_two_chunks():
+    words = " ".join(f"word{i}" for i in range(200))
+    chunks = lj.highlight_chunks(words)
+    assert len(chunks) == 2 and all(len(c) <= lj.HIGHLIGHT_CHUNK for c in chunks)
+    assert all(not c.endswith(" ") and c.split()[0].startswith("word") for c in chunks)
+    assert lj.highlight_chunks("short text") == ["short text"] and lj.highlight_chunks("") == []
 
 
 def test_a_304_writes_nothing(tmp_path):

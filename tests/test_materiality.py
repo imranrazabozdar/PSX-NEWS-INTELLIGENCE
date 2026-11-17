@@ -330,7 +330,7 @@ def test_a_material_announcement_is_sized_from_its_numbers_and_routine_ones_are_
     deal = m.score_company(
         "NRSL",
         window_facts=[
-            _ann("M&A / Public Offer", text="IGI Investments intends to acquire up to 60% of Nimir Resins")
+            _ann("M&A / Public Offer", text="IGI Investments has agreed to acquire up to 60% of Nimir Resins")
         ],
         company_names=["Nimir Resins"],
         **base,
@@ -354,3 +354,36 @@ def test_a_material_announcement_is_sized_from_its_numbers_and_routine_ones_are_
         "HUBC", window_facts=[_ann("Operations Update"), _ann("Management Change")], **base
     )
     assert several["score"] == 8.0 and "2 material announcements" in several["drivers"][0]["text"]
+
+
+def test_the_highlights_text_can_carry_the_figures_the_title_leaves_out():
+    from engines import announcement_substance as asub
+
+    title = "X signs agreement with a Chinese partner"
+    window = [
+        {
+            "topic": "announcements.Operations Update",
+            "fact_text": f"2026-11-16: {title}",
+            "period": "2026-11-16",
+            "source_date": "2026-11-16",
+            "source_name": "Investify",
+            "value": None,
+        },
+        {
+            "topic": "announcement_highlights",
+            "fact_text": "2026-11-16: The contract is worth Rs 20 billion.",
+            "period": "2026-11-16",
+            "source_date": "2026-11-16",
+            "source_name": "Investify",
+            "value": None,
+            "source_url": f"https://investify.pk/company/X/announcements#{asub.title_key(title)}-1",
+        },
+    ]
+    base = dict(
+        history_facts=[], price=None, news_signal=None, has_prices=True, company_names=["X"], mcap=100e9
+    )
+    graded = m.score_company("X", window_facts=window, **base)
+    assert graded["score"] == 25.0 and "20.0% of market cap" in graded["drivers"][0]["text"]
+    assert "major" in graded["drivers"][0]["text"]
+    without = m.score_company("X", window_facts=window[:1], **base)
+    assert without["score"] == 8.0

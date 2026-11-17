@@ -21,7 +21,7 @@ from engines import company_names, library_db, materiality, news_rollup
 from engines import research_facts as rf
 
 _ISO = re.compile(r"^\d{4}-\d{2}-\d{2}$")
-FACT_COLS = "company, topic, fact_text, value, unit, period, source_name, source_date"
+FACT_COLS = "company, topic, fact_text, value, unit, period, source_name, source_url, source_date"
 NOT_COMPANY = ("SECTOR:", "MACRO:")
 
 
