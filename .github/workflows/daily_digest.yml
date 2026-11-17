@@ -1,0 +1,36 @@
+# Daily digest (engines/daily_digest.py): breadth, radar, notable moves, unexplained moves, data freshness.
+# Read only: nothing is written to any database. Manual dispatch only for now (an owner decision whether it should
+# run by itself after market close). The report goes to the run summary and an artifact; it is not sent to anyone.
+name: Daily digest
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PSXNI_LIBRARY_TURSO_DATABASE_URL: ${{ secrets.PSXNI_LIBRARY_TURSO_DATABASE_URL }}
+      PSXNI_LIBRARY_TURSO_AUTH_TOKEN: ${{ secrets.PSXNI_LIBRARY_TURSO_AUTH_TOKEN }}
+      PSXNI_DB_MAX_ROWS_READ: "300000"
+      PSXNI_DB_MAX_ROWS_WRITTEN: "1"
+      PSXNI_DB_MAX_REQUESTS: "200"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Build the digest
+        run: python -m scripts.build_digest
+      - uses: actions/upload-artifact@v4
+        with:
+          name: daily-digest
+          path: .digest
+          include-hidden-files: true
+          retention-days: 30
