@@ -12,6 +12,7 @@ or the run stops. Budgets, the queue and the LLM call log live in the council le
 from __future__ import annotations
 
 import argparse
+import functools
 import json
 import os
 import sys
@@ -108,7 +109,14 @@ def run_ten(args: argparse.Namespace, ledger: cl.Ledger) -> int:
     ni.classify(vocab, events)
     signals, baseline = cn.baseline_signals(db, now, bnc.build)
     events += ni.concentration_events(events) + ni.signal_events(signals, ni.local_day(now))
-    picked = cn.pick_ten(events, now, args.count)
+    focus = {s.strip().upper() for s in (args.focus or "").split(",") if s.strip()}
+    if focus:
+        picked = cn.pick_focus(events, now, focus, args.count)
+        if not picked:
+            print(f"no event in the last {args.days} days names {sorted(focus)}")
+            return 0
+    else:
+        picked = cn.pick_ten(events, now, args.count)
     print(f"{len(headlines)} headlines -> {len(events)} events; picked {len(picked)}; baseline: {baseline}")
     records, labels = [], {}
     exec_id = args.exec_id or f"ten-{now:%Y%m%dT%H%M%S}"
@@ -129,7 +137,11 @@ def run_ten(args: argparse.Namespace, ledger: cl.Ledger) -> int:
             env=os.environ,
             ledger=ledger,
             clock=lambda: datetime.now(UTC),
-            build_pack=council_run.build_pack,
+            build_pack=(
+                functools.partial(council_run.build_pack, mapped_first=True)
+                if focus
+                else council_run.build_pack
+            ),
             calendar=_calendar(),
             exec_id=exec_id,
             mode="ten",
@@ -162,6 +174,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--ledger", type=Path, default=None)
     ap.add_argument("--exec-id", default=None)
     ap.add_argument("--count", type=int, default=10)
+    ap.add_argument("--focus", default="", help="comma-separated symbols: assess the events that name them")
     ap.add_argument(
         "--days", type=int, default=7, help="headline window for --mode ten; report length for report"
     )

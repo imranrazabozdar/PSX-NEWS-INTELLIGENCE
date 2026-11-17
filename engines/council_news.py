@@ -692,6 +692,20 @@ def pick_ten(events: list[ni.Event], now: datetime, count: int = 10) -> list[tup
     return out[:count]
 
 
+def pick_focus(
+    events: list[ni.Event], now: datetime, symbols: set[str], count: int = 3
+) -> list[tuple[ni.Event, str]]:
+    """Real events naming one of the chosen companies, best-corroborated and newest first, labelled 'focus'.
+
+    Unlike pick_ten this does not require a rule to have fired: the owner chose the company, so its
+    headlines are assessed whether or not the importance rules flagged them. Concentration and signal
+    events are included only when they name the company."""
+    named = [e for e in events if symbols & set(e.companies)]
+    named.sort(key=lambda e: e.first_seen, reverse=True)  # newest first, then the most-corroborated first
+    named.sort(key=lambda e: -len({m.source for m in e.members}))
+    return [(e, "focus") for e in named[:count]]
+
+
 def payload_for(e: ni.Event) -> dict[str, Any]:
     return cl.event_payload(e)
 
