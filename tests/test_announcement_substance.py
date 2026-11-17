@@ -72,7 +72,10 @@ def test_routine_labels_are_routine_and_the_market_cap_is_parsed():
 
 
 def test_in_a_sale_the_company_named_before_the_verb_is_the_target():
-    text = "2026-11-02: Nimir Industrial Chemicals controlling shareholders agree to sell 51% stake to Cherat Cement"
+    text = (
+        "2026-11-02: Nimir Industrial Chemicals controlling shareholders "
+        "agree to sell 51% stake to Cherat Cement"
+    )
     seller_side = a("M&A / Public Offer", text, ["Nimir Industrial Chemicals"])
     assert seller_side["tier"] == "major" and seller_side["quantified"]
     buyer = a("M&A / Public Offer", text, ["Cherat Cement"])
