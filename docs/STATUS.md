@@ -612,3 +612,6 @@ Order (one phase at a time, each stops at an owner gate):
   most every 6 hours, failures isolated and recorded in the execution summary. No production writes.
 - `contradiction()` flags council-vs-numbers disagreement (function and tests; not yet shown in the digest).
 - NOT DONE: digest "Council (dry run)" section (needs the ledger cache in the digest workflow).
+
+## Investify old title facts trimmed (owner decision 2026-11-17) - IMPLEMENTED
+- 395 announcement title facts dated before 2026-08-17 deleted from psx-library via `scripts/trim_investify_titles.py` (dry run counted 395, apply deleted 395, 0 remain older than the cutoff). Only research_fact rows from the Investify sources, topic announcements.*, announcement date before the capture cutoff.
