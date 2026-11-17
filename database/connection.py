@@ -276,6 +276,28 @@ class TursoHTTPDatabase(Database):
                 for i in range(2, last + 1)]
 
 
+class TursoReadOnlyDatabase(TursoHTTPDatabase):
+    """For read-only tokens. The shared client prepends `PRAGMA foreign_keys = ON` to every request, which a
+    read-only token refuses; this one sends only the caller's SELECT/WITH statements, no PRAGMA, no
+    transaction, and refuses anything else before it leaves the process."""
+
+    def batch(self, statements, *, transactional=True, rollback=False):
+        stmts = []
+        for sql, params in statements:
+            head = sql.lstrip().split(None, 1)[0].upper() if sql.strip() else ""
+            if head not in ("SELECT", "WITH"):
+                raise DatabaseError(f"read-only connection refused: {sql.strip()[:60]!r}")
+            stmts.append({"sql": sql, "args": [_encode_arg(p) for p in params]})
+        body = {"requests": [{"type": "execute", "stmt": s} for s in stmts] + [{"type": "close"}]}
+        out = self._post(body)["results"]
+        results = []
+        for r in out[:-1]:
+            if r["type"] != "ok":
+                raise DatabaseError(r.get("error", {}).get("message", "statement failed"))
+            results.append(_rows(r["response"]["result"]))
+        return results
+
+
 def connect(url: str | None = None, auth_token: str | None = None) -> Database:
     """Open the configured database. Never falls back silently to another database.
 

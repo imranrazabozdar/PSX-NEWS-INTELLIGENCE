@@ -57,7 +57,7 @@ def test_the_dashboard_page_renders_from_a_seeded_library(monkeypatch):
     monkeypatch.setenv("PSXNI_LIBRARY_TURSO_DATABASE_URL", "libsql://psx-library-test.turso.io")
     monkeypatch.setenv("PSXNI_LIBRARY_TURSO_AUTH_TOKEN", "x")
     monkeypatch.setattr(
-        library_db, "get_library_connection", lambda *a, **k: SimpleNamespace(db=seeded())
+        library_db, "get_library_readonly_connection", lambda *a, **k: SimpleNamespace(db=seeded())
     )
     import app
 
@@ -67,3 +67,36 @@ def test_the_dashboard_page_renders_from_a_seeded_library(monkeypatch):
     text = " ".join([m.value for m in at.markdown] + [c.value for c in at.caption]).lower()
     assert "not a buy or sell view" in text or "nothing here is a buy or sell view" in text
     assert [m.label for m in at.metric][:2] == ["Latest price day", "Latest news day"]
+
+
+def test_the_readonly_client_sends_no_pragma_and_refuses_writes(monkeypatch):
+    import pytest
+
+    from database.connection import DatabaseError, TursoReadOnlyDatabase
+
+    db = TursoReadOnlyDatabase("https://x.turso.io", "t")
+    sent = []
+
+    def fake_post(body):
+        sent.append(body)
+        return {
+            "results": [
+                {
+                    "type": "ok",
+                    "response": {
+                        "result": {
+                            "cols": [{"name": "n"}],
+                            "rows": [[{"type": "integer", "value": "1"}]],
+                        }
+                    },
+                },
+                {"type": "ok"},
+            ]
+        }
+
+    monkeypatch.setattr(db, "_post", fake_post)
+    assert db.execute("SELECT 1 AS n")[0]["n"] == 1
+    assert all("PRAGMA" not in str(r) for r in sent[0]["requests"])
+    for bad in ("PRAGMA foreign_keys = ON", "INSERT INTO t VALUES (1)", "CREATE TABLE t (a)"):
+        with pytest.raises(DatabaseError):
+            db.execute(bad)

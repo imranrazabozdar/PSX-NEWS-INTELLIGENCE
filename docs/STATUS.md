@@ -629,3 +629,6 @@ Order (one phase at a time, each stops at an owner gate):
 ## Waves / Tariq Glass corrections and Market dashboard (owner, 2026-11-17) - IMPLEMENTED
 - WAVESAPP = Waves Home Appliances; WHALE excluded (not a company; added to the ticker stoplist and its alias removed); TGL = Tariq Glass Limited. Waves Corporation = WAVES, Thal Limited = THALL, Tariq Corporation = TCORP were already in.
 - New Streamlit page "Market dashboard" (`app.py` `_market_dashboard`, `engines/market_dashboard.py`): latest price/news day, breadth, radar table, notable moves with a cause on file, unexplained moves. Read only, cached 30 minutes, same engines as the daily digest. Needs the library secrets in the Streamlit deployment (`PSXNI_LIBRARY_TURSO_DATABASE_URL`, `PSXNI_LIBRARY_TURSO_AUTH_TOKEN`), as the Company brief does. Tests render it against a seeded library.
+
+## Dashboard works with a read-only token (2026-11-17) - IMPLEMENTED
+- First live run of the Market dashboard on Streamlit failed with "SQL write operations are forbidden": the shared Turso client sends `PRAGMA foreign_keys = ON` with every request, which a read-only token refuses. Added `database.connection.TursoReadOnlyDatabase` (SELECT/WITH only, no PRAGMA) and `library_db.get_library_readonly_connection()`; the app's library handle uses it. Tests added.

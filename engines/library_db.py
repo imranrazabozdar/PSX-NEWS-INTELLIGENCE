@@ -18,7 +18,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
-from database.connection import Database, TursoHTTPDatabase
+from database.connection import Database, TursoHTTPDatabase, TursoReadOnlyDatabase
 
 URL_VAR = "PSXNI_LIBRARY_TURSO_DATABASE_URL"
 TOKEN_VAR = "PSXNI_LIBRARY_TURSO_AUTH_TOKEN"  # noqa: S105 - a variable name, not a secret
@@ -65,6 +65,15 @@ def get_library_connection(environ: Mapping[str, str] | None = None) -> LibraryC
     token = _required(env, TOKEN_VAR)
     host = resolve_host(url)
     return LibraryConnection(host=host, db=TursoHTTPDatabase(url, token))
+
+
+def get_library_readonly_connection(environ: Mapping[str, str] | None = None) -> LibraryConnection:
+    """The same guarded target, for a READ-ONLY token (the dashboard): sends only SELECT/WITH, no PRAGMA."""
+    env = os.environ if environ is None else environ
+    url = _required(env, URL_VAR)
+    token = _required(env, TOKEN_VAR)
+    host = resolve_host(url)
+    return LibraryConnection(host=host, db=TursoReadOnlyDatabase(url, token))
 
 
 def auth_check(conn: LibraryConnection) -> list[Any]:
