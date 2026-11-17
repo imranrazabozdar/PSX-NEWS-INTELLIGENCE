@@ -27,9 +27,9 @@ INSERT = ("INSERT INTO council_verdict (event, created_at, lenses_answered, conf
 # so a new topic cannot quietly reach a lens that should not weigh it.
 TOPIC_KIND = (
     ("announcements.", "announcement"),
-    # Investify's card Highlights (addendum of 17 Nov 2026). Owner confirmed on 2026-11-17 that this private-use text
-    # may be given to the council, whose evidence goes to third-party model providers. Source name carries the
-    # attribution. Remove this line to withhold the text again.
+    # Investify's card Highlights (addendum of 17 Nov 2026). The owner confirmed on 2026-11-17 that this
+    # private-use text may go to the council, whose evidence goes to third-party model providers. The source
+    # name carries the attribution. Remove this line to withhold the text again.
     ("announcement_highlights", "announcement"),
     # PSX feed: results are figures; dividends, closures, meetings and issues are notices.
     ("results.", "figure"),
