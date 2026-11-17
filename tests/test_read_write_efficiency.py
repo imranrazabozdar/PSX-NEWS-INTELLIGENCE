@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -103,3 +103,30 @@ def test_owner_confirmed_notes_give_the_bare_company_name():
         == "Zuma Resources Ltd"
     )
     assert bnc.confirmed_name("BFBIO", "owner-confirmed 2026-11-16") == "BFBIO"
+
+
+def test_the_backfill_never_spends_the_live_feeds_daily_requests(monkeypatch):
+    """17 Nov 2026: the Tribune back-fill used the whole day's ceiling by morning; the live feed went dark."""
+    from tests.test_news_collector import NOW as T
+    from tests.test_news_collector import TRIBUNE_INDEX, TRIBUNE_POSTS, Site, fresh_db, pages
+
+    monkeypatch.setitem(nc.DAILY_CEILING, "tribune_business", 12)
+    monkeypatch.setitem(nc.LIVE_RESERVE, "tribune_business", 8)
+    db = fresh_db()
+    site = Site(
+        pages(
+            **{
+                "https://tribune.com.pk/sitemap.xml": (200, TRIBUNE_INDEX),
+                "https://tribune.com.pk/sitemap/posts-1.xml": (200, TRIBUNE_POSTS),
+            }
+        )
+    )
+    nc.run(db, site, T, sleep=lambda _s: None)
+    used = db.execute(
+        "SELECT value FROM news_progress WHERE source = 'tribune_business' AND key LIKE 'day:%'"
+    )
+    first = int(used[0]["value"])
+    assert first <= 12 - 8 + 1  # robots + the feed + back-fill only up to the ceiling minus the live reserve
+    site.calls.clear()
+    nc.run(db, site, T + timedelta(minutes=30), sleep=lambda _s: None)
+    assert "https://tribune.com.pk/feed/business" in site.calls  # the live feed is still read

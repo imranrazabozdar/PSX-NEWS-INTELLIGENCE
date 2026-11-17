@@ -42,7 +42,9 @@ run's 25 articles after the live ones, under the same robots check, 8 s gap and 
 - Every request is checked against the site's stored robots.txt first (refreshed daily). A disallowed URL is never
   fetched. If robots.txt cannot be read and no copy is stored, nothing is fetched.
 - 8 seconds between requests; at most 25 article pages per run; daily request ceilings: Mettis 300, Profit 200,
-  Business Recorder 120, Tribune 100, Dawn 60. Dawn, Business Recorder and Profit are read at most once an hour. Ceilings are counted in `news_progress`; the run is logged in `fetch_log` (`news_stored` / `news_noop`).
+  Business Recorder 120, Tribune 160, Dawn 60. The back-fill may never use the last 60 requests of Tribune's or Profit's day:
+  they are kept for the live feed (on 17 Nov the back-fill used up Tribune's whole ceiling by morning and the live feed
+  went dark). Dawn, Business Recorder and Profit are read at most once an hour. Ceilings are counted in `news_progress`; the run is logged in `fetch_log` (`news_stored` / `news_noop`).
 - Honest User-Agent with the contact address used by the Investify tick (`PSXNI_CONTACT_EMAIL`, default the repo URL).
 - Idempotent: a stored or skipped URL is never fetched again. A re-run changes nothing.
 
