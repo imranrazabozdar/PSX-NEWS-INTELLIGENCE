@@ -96,3 +96,30 @@ def test_setup_cards_escape_text_show_pillars_and_use_no_advice_words():
     for word in ("buy ", "sell ", "stop loss", "target price"):
         assert word not in low
     assert "Nothing qualifies" in ui.setup_cards_html([], "technical")
+
+
+def test_announcements_news_and_corporate_actions_lift_the_fundamental_side():
+    drivers = [
+        {"kind": "announcement", "points": 25.0, "date": "2026-11-17", "text": "material deal"},
+        {"kind": "corporate", "points": 10.0, "date": "2026-11-16", "text": "dividend"},
+    ]
+    plain = su.score_symbol("A", bars(), GOOD, TODAY, None)
+    with_events = su.score_symbol("A", bars(), GOOD, TODAY, None, drivers)
+    assert any(x.startswith("announcement (2026-11-17)") for x in with_events["fund_evidence"])
+    assert "a recent material announcement" in plain["fund_unknown"]
+    assert "a recent material announcement" not in with_events["fund_unknown"]
+    assert "unusual recent news flow" in with_events["fund_unknown"]  # none on file: unknown, not zero
+    assert with_events["fundamental"] != plain["fundamental"]
+    pts, _ = su.event_items(drivers)
+    assert pts["announcement"] == 10.0 and pts["corporate"] == 2.5 and pts["news"] is None
+
+
+def test_lookup_says_where_a_stock_stands_or_why_it_is_not_scored():
+    rows = {s: su.score_symbol(s, bars(step=st), GOOD, TODAY, None) for s, st in (("A", 0.0), ("B", 1.0))}
+    result = {"rows": rows, "skipped": {"THIN": "thinly traded (Rs 1.0m a day; the floor is Rs 25m)"}}
+    found = su.lookup(result, " b ")
+    assert found["ranks"]["technical"] == (1, 2) and found["row"]["symbol"] == "B"
+    assert su.lookup(result, "thin")["reason"].startswith("thinly traded")
+    assert "no price series" in su.lookup(result, "zzz")["reason"]
+    html = ui.lookup_html(found)
+    assert "rank 1 of 2" in html and "not scored" in ui.lookup_html(su.lookup(result, "thin"))

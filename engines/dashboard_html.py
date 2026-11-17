@@ -200,3 +200,31 @@ def setup_cards_html(rows: list[dict[str, Any]], mode: str) -> str:
                 lines.append("<i>not on file:</i> " + e(", ".join(r["fund_unknown"])))
         out.append(_details(summary, lines))
     return "".join(out) or '<div class="pi-card m">Nothing qualifies on the evidence on file.</div>'
+
+
+def lookup_html(found: dict[str, Any]) -> str:
+    """One stock's standing: its three scores and ranks, its evidence, or why it is not scored."""
+    sym = e(found["symbol"])
+    if found["row"] is None:
+        return f'<div class="pi-card"><div class="pi-h">{sym}<span>not scored</span></div><div class="pi-note">{e(found["reason"])}</div></div>'
+    r = found["row"]
+
+    def rank(key: str) -> str:
+        v, rk = r[key], found["ranks"].get(key)
+        if v is None:
+            return "unknown (not enough on file)"
+        return f"{v:.0f}" + (f" · rank {rk[0]} of {rk[1]}" if rk else "")
+
+    rows = [
+        f"<b>Technical:</b> {rank('technical')}",
+        f"<b>Fundamental:</b> {rank('fundamental')}",
+        f"<b>Combined:</b> {rank('combined')}",
+    ]
+    rows += [f"<b>Technical:</b> {e(x)}" for x in r["tech_evidence"]]
+    rows += [f"<b>Fundamental:</b> {e(x)}" for x in r["fund_evidence"]]
+    rows += ["<i>not on file:</i> " + e(", ".join(r["tech_unknown"] + r["fund_unknown"]))]
+    return (
+        f'<div class="pi-card"><div class="pi-h">{sym}<span>{e(r["name"] or "")}</span></div>'
+        + "".join(f"<p class='pi-body'>{x}</p>" for x in rows)
+        + "</div>"
+    )

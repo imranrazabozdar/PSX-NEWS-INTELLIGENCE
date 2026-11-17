@@ -18,12 +18,13 @@ def load(db: Any, now: datetime, days: int = 3, top: int = 15) -> dict[str, Any]
     bars = explain_moves.load_bars(db, today, 10)
     moves = move_explainer.daily_moves(bars)
     day = daily_digest.latest_trading_day(moves)
-    radar, radar_stats = build_radar.build(db, today, days, top)
+    radar_all, radar_stats = build_radar.build(db, today, days, 500)
+    radar = radar_all[:top]
     items, universe = explain_moves.build(db, today, days, 40)
     news = db.execute("SELECT MAX(day) AS d FROM news_rollup")[0]["d"]
     sector = explain_moves.sectors_of(db, sorted(bars))
     return {
-        "setups": setups.build(db, today, bars, sector),
+        "setups": setups.build(db, today, bars, sector, radar_all),
         "movers": movers(bars, moves, day),
         "today": today.isoformat(),
         "price_day": day,
