@@ -60,6 +60,7 @@ def _empty() -> dict[str, Any]:
         "runs": [],
         "execution_log": [],
         "cursor": None,
+        "scans": {},  # scan name -> last run time (UTC stamp), for scans that need not run every execution
     }
 
 
@@ -226,6 +227,17 @@ class Ledger:
     # --- counters -----------------------------------------------------------------------------------------
     def runs_on(self, day: str) -> int:
         return int(self.snapshot()["days"].get(day, {"runs": 0})["runs"])
+
+    def scan_due(self, name: str, now: datetime, hours: float) -> bool:
+        """True when the named scan has not run in the last `hours` hours (or never)."""
+        last = self.snapshot().get("scans", {}).get(name)
+        if not last:
+            return True
+        return now - datetime.fromisoformat(last.replace("Z", "+00:00")) >= timedelta(hours=hours)
+
+    def mark_scan(self, name: str, now: datetime) -> None:
+        with self.transaction() as d:
+            d.setdefault("scans", {})[name] = stamp(now)
 
     def cursor(self) -> str | None:
         return self.snapshot()["cursor"]
