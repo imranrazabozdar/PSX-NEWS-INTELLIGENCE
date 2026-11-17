@@ -1,0 +1,40 @@
+# Company radar (engines/materiality.py): ranks companies by recent, sourced evidence that could matter. Read only:
+# nothing is written to any database. Dispatch only for now; the report goes to the run summary and an artifact.
+name: Company radar
+
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "Window in days"
+        required: false
+        default: "3"
+
+permissions:
+  contents: read
+
+jobs:
+  radar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PSXNI_LIBRARY_TURSO_DATABASE_URL: ${{ secrets.PSXNI_LIBRARY_TURSO_DATABASE_URL }}
+      PSXNI_LIBRARY_TURSO_AUTH_TOKEN: ${{ secrets.PSXNI_LIBRARY_TURSO_AUTH_TOKEN }}
+      PSXNI_DB_MAX_ROWS_READ: "150000"
+      PSXNI_DB_MAX_ROWS_WRITTEN: "1"
+      PSXNI_DB_MAX_REQUESTS: "200"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Build the radar
+        run: python -m scripts.build_radar --days "${{ inputs.days }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: company-radar
+          path: .radar
+          include-hidden-files: true
+          retention-days: 30
