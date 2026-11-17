@@ -21,15 +21,52 @@ from typing import Any
 CAPS = {"results": 60, "corporate": 20, "price": 40, "news": 15, "technical": 10}
 RESULT_TOPICS = ("results.", "news.results", "announcements.Financial Result")
 CORPORATE_TOPICS = ("corporate_action.", "news.dividend")
-EPS_UNITS = {"PKR_per_share", "PKR"}
+EPS_UNITS = {"PKR_per_share", "PKR", "PKR/share"}
 _PERIOD_9M = re.compile(r"^(\d)M (\d{4})$")
+_PERIOD_ENDED = re.compile(r"^(.*?)\s+ended (\d{4})-(\d{2})-(\d{2})$")
 _PERIOD_Q = re.compile(r"^(\d{4}) (\d)Q$|^(\d)Q (\d{4})$")
 CONFLICT_TOLERANCE = 0.10  # sources disagreeing by more than this make the comparison unknown
+
+
+def _ended_kind(label: str, month: str, day: str) -> str:
+    """'nine months ended 2026-09-30' -> '9M@09-30': the same period of another year has the same kind."""
+    text = label.lower()
+    if "quarter" in text:
+        name = "Q"
+    elif "nine" in text:
+        name = "9M"
+    elif "half" in text:
+        name = "H"
+    elif "year" in text:
+        name = "FY"
+    else:
+        name = text.strip().replace(" ", "_")
+    return f"{name}@{month}-{day}"
+
+
+def _end_md(kind: str) -> str:
+    """MM-DD the period ends on, so the most recent period of the latest year is compared first."""
+    base = kind.split("|", 1)[0]
+    if "@" in base:
+        return base.split("@", 1)[1]
+    if base.endswith("M") and base[:-1].isdigit():
+        return f"{int(base[:-1]):02d}-30"
+    if base.endswith("Q") and base[:-1].isdigit():
+        return f"{int(base[:-1]) * 3:02d}-30"
+    return "00-00"
+
+
+def basis_of(text: Any) -> str:
+    """consolidated / unconsolidated, as stated in the fact; EPS must only be compared on the same basis."""
+    low = str(text or "").lower()
+    return "unconsolidated" if "unconsolidated" in low else "consolidated" if "consolidated" in low else ""
 
 
 def parse_period(period: Any) -> tuple[str, int] | None:
     """('9M', 2026) or ('3Q', 2026) from the stored period strings; anything else is not comparable."""
     text = str(period or "").strip()
+    if m := _PERIOD_ENDED.match(text):
+        return _ended_kind(m.group(1), m.group(3), m.group(4)), int(m.group(2))
     if m := _PERIOD_9M.match(text):
         return f"{m.group(1)}M", int(m.group(2))
     if m := _PERIOD_Q.match(text):
@@ -47,6 +84,8 @@ def eps_history(facts: list[dict[str, Any]]) -> dict[tuple[str, int], float | No
             continue
         if "eps" not in str(f.get("fact_text", "")).lower():
             continue
+        if basis := basis_of(f.get("fact_text")):
+            key = (f"{key[0]}|{basis}", key[1])
         seen.setdefault(key, []).append(float(f["value"]))
     out: dict[tuple[str, int], float | None] = {}
     for key, vals in seen.items():
@@ -58,12 +97,13 @@ def eps_history(facts: list[dict[str, Any]]) -> dict[tuple[str, int], float | No
 
 def eps_change(hist: dict[tuple[str, int], float | None]) -> tuple[dict[str, Any] | None, str | None]:
     """Like-for-like change for the latest year that has the previous year too: (result, why unknown)."""
-    years = sorted({(k, y) for (k, y) in hist}, key=lambda t: t[1], reverse=True)
+    years = sorted({(k, y) for (k, y) in hist}, key=lambda t: (t[1], _end_md(t[0])), reverse=True)
     for kind, year in years:
         cur, prev = hist.get((kind, year)), hist.get((kind, year - 1))
         if cur is None or prev is None:
             continue
-        label = f"{kind} {year} vs {kind} {year - 1}"
+        shown = kind.replace("|", " ").replace("@", " ")
+        label = f"{shown} {year} vs {year - 1}"
         if prev > 0 and cur >= 0:
             return {"label": label, "cur": cur, "prev": prev, "pct": (cur / prev - 1) * 100}, None
         if prev > 0 > cur or prev < 0 <= cur:
