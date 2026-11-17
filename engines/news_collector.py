@@ -35,7 +35,12 @@ PER_RUN_ARTICLES = 25
 GAP_SECONDS = 8.0
 ROBOTS_MAX_AGE = timedelta(hours=24)
 FEED_MIN_INTERVAL = timedelta(minutes=55)  # feeds and listings that change slowly are read hourly
-DAILY_CEILING = {"mettis": 300, "tribune_business": 100, "dawn_business": 60, "brecorder": 120, "profit": 200}
+DAILY_CEILING = {"mettis": 300, "tribune_business": 160, "dawn_business": 60, "brecorder": 120, "profit": 200}
+# The back-fill may never use the requests the live reading needs for the rest of the day: the Tribune feed
+# is read every 30 minutes (48 a day) and Profit's front page every hour plus its new articles. Without this
+# the back-fill spent the whole day's ceiling in the morning and the live feed went dark until the next UTC
+# day (seen on 17 Nov).
+LIVE_RESERVE = {"tribune_business": 60, "profit": 60}
 MAX_BODY = 15_000_000  # Tribune's post sitemap is about 5.6 MB
 BACKFILL_DAYS = 30  # owner-approved one-month back-fill (16 Nov 2026) for Profit and Tribune business
 SNIPPET_CHARS = 300
@@ -377,9 +382,9 @@ class _Session:
         self.count += 1
         return self.fetch(url)
 
-    def get(self, url: str) -> tuple[int | None, bytes] | None:
+    def get(self, url: str, reserve: int = 0) -> tuple[int | None, bytes] | None:
         """None means not fetched: robots disallows the URL, or the request budget is spent."""
-        if self.robots is None or not robots_allows(self.robots, url) or self.count >= self.budget:
+        if self.robots is None or not robots_allows(self.robots, url) or self.count >= self.budget - reserve:
             return None
         return self._get(url)
 
@@ -489,7 +494,8 @@ def _backfill_queue(s: _Session, result: Result, cutoff: datetime) -> list[str]:
         return []
     cfg = SOURCES[name]
     cut_day = cutoff.strftime("%Y-%m-%d")
-    index = s.get(cfg["sitemap"])
+    keep = LIVE_RESERVE.get(name, 0)
+    index = s.get(cfg["sitemap"], reserve=keep)
     if not index or index[0] != 200:
         result.notes.append("sitemap index not read")
         return []
@@ -497,7 +503,7 @@ def _backfill_queue(s: _Session, result: Result, cutoff: datetime) -> list[str]:
     files = [loc for loc, _mod in parse_sitemap(index[1].decode("utf-8", "replace")) if key in loc]
     queue: list[str] = []
     for loc in files:
-        page = s.get(loc)
+        page = s.get(loc, reserve=keep)
         if not page or page[0] != 200:
             result.notes.append(f"sitemap not read: {loc.rsplit('/', 1)[-1]}")
             break
@@ -526,7 +532,7 @@ def _read_articles(s: _Session, result: Result, urls: list[str], cutoff: datetim
                    per_run: int) -> None:
     business_only = bool(SOURCES[s.name].get("business_only"))
     for url in urls[:per_run]:
-        got = s.get(url)
+        got = s.get(url, reserve=LIVE_RESERVE.get(s.name, 0))
         if got is None:
             break
         if got[0] != 200:
