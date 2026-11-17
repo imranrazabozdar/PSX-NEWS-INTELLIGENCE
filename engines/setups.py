@@ -7,9 +7,10 @@ Three rankings, each a top 10:
   * combined     : both pillars, equal weight, and a stock needs both.
 
 What these are not: forecasts, probabilities or instructions. Every item is an equal-weight, uncalibrated
-step score over measured values; an item that is not on file is left out of that stock's score and shown as
-unknown, never counted as zero. Stocks are skipped when they are too thinly traded or priced too low to
-matter, and when a fundamental value is an artefact (negative equity, negative earnings, a tiny-equity ROE).
+step score over measured values; an item that is not on file is shown as unknown and counts at the midpoint
+of its range (never zero, never a bonus), so thin evidence does not out-rank full evidence. Stocks are
+skipped when they are too thinly traded or priced too low to matter, and when a fundamental value is an
+artefact (negative equity, negative earnings, a tiny-equity ROE).
 """
 
 from __future__ import annotations
@@ -172,12 +173,16 @@ def technical_items(
 
 
 def pillar(pts: dict[str, float | None], items: tuple[tuple[str, int], ...], floor: int) -> float | None:
-    """0-100 over the items that are measured; None when too little is measured."""
+    """0-100. Items that are measured count as measured; an item NOT on file counts at the midpoint of its
+    range (neither good nor bad, and never zero), so a stock is not ranked above another only because less
+    was measured about it. None when too little is measured to score at all."""
     measured = [(k, m) for k, m in items if pts.get(k) is not None]
-    maximum = sum(m for _k, m in measured)
-    if maximum < floor:
+    got = sum(m for _k, m in measured)
+    if got < floor:
         return None
-    return round(max(0.0, sum(pts[k] for k, _m in measured)) / maximum * 100, 1)  # type: ignore[misc]
+    total = sum(m for _k, m in items)
+    value = sum(pts[k] for k, _m in measured) + 0.5 * (total - got)  # type: ignore[misc]
+    return round(max(0.0, value) / total * 100, 1)
 
 
 def unknown_items(pts: dict[str, float | None], items: tuple[tuple[str, int], ...]) -> list[str]:
