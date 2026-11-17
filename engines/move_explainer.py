@@ -29,7 +29,36 @@ MACRO_TOPICS = {
     "market.kse100_drivers",
     "market.kse100_move",
 }
-STRENGTH = {"company_event": 3, "company_news": 2, "sector": 2, "market": 1}
+# Investify announcement labels (announcements.<label>). Material ones are company-specific disclosures;
+# scheduled ones are routine notices that say a date is coming, not why a price moved. Everything else
+# (report transmission, briefings, auditor certificates, insider lines, "Other") stays out of the explanation.
+MATERIAL_LABELS = {
+    "Material Disclosure",
+    "Management Change",
+    "Financing / Restructuring",
+    "M&A / Public Offer",
+    "Legal / Regulatory",
+    "Capacity / Shutdown",
+    "Operations Update",
+    "Unusual Movement Reply",
+    "Share Buyback",
+    "Share Split",
+    "Credit Rating",
+    "Scheme / Arrangement",
+    "Rights / Bonus",
+    "Corporate Action",
+}
+SCHEDULED_LABELS = {"Board Meeting", "AGM / EGM", "Book Closure", "Dividend", "Meetings"}
+PER_KIND_CAP = 3
+STRENGTH = {
+    "company_event": 3,
+    "company_news": 2,
+    "company_announcement": 2,
+    "sector": 2,
+    "market": 1,
+    "scheduled_notice": 1,
+}
+COMPANY_KINDS = ("company_event", "company_news", "company_announcement")
 
 
 def pct(a: float, b: float) -> float | None:
@@ -104,6 +133,26 @@ def explain(
                     "is_result": t.startswith(materiality.RESULT_TOPICS),
                 }
             )
+    for f in sorted(facts, key=lambda f: f["source_date"], reverse=True):
+        t, d = str(f["topic"]), f["source_date"]
+        if (
+            not t.startswith("announcements.")
+            or t.startswith(materiality.RESULT_TOPICS)
+            or not _within(day, d)
+        ):
+            continue
+        label = t[len("announcements.") :]
+        kind = (
+            "company_announcement"
+            if label in MATERIAL_LABELS
+            else "scheduled_notice"
+            if label in SCHEDULED_LABELS
+            else None
+        )
+        if kind and sum(1 for e in evidence if e["kind"] == kind) < PER_KIND_CAP:
+            evidence.append(
+                {"kind": kind, "date": d, "text": f["fact_text"][:220], "source": f["source_name"]}
+            )
     if any(e.get("is_result") for e in evidence):
         change, why = materiality.eps_change(materiality.eps_history(history))
         if change and change.get("pct") is not None:
@@ -138,7 +187,7 @@ def explain(
                     "text": f"{r['stories']} stories; top: {str(r['top_title'])[:160]}",
                 }
             )
-    if not any(e["kind"] in ("company_event", "company_news") for e in evidence):
+    if not any(e["kind"] in COMPANY_KINDS for e in evidence):
         unknown.append("no company news or announcement on file for the days before the move")
 
     sector_move, peers = (None, 0)
@@ -184,11 +233,13 @@ def explain(
         if f["topic"] in MACRO_TOPICS and _within(day, f["source_date"])
     ][:2]
     ranked = sorted(evidence, key=lambda e: -STRENGTH[e["kind"]])
-    company = [e for e in ranked if e["kind"] in ("company_event", "company_news")]
+    company = [e for e in ranked if e["kind"] in COMPANY_KINDS]
     if company:
         verdict = "evidence on file about this company is consistent with the move"
-    elif ranked:
+    elif any(e["kind"] in ("sector", "market") for e in ranked):
         verdict = "the move was shared with its sector or the market; no company-specific evidence on file"
+    elif ranked:
+        verdict = "only routine scheduled notices are on file for this company; no company-specific cause"
     else:
         verdict = "no identified cause in the evidence on file"
     return {
@@ -215,6 +266,12 @@ def render_markdown(items: list[dict[str, Any]], day: str, universe: int) -> str
         f"{len(items)} moves explained, {universe} symbols tracked.",
         "",
     ]
+    none = [i for i in items if i["verdict"].startswith("no identified cause")]
+    lines.append(f"Unexplained (no cause on file): {len(none)} of {len(items)}.")
+    for i in sorted(none, key=lambda i: -abs(i["move"]) * (i.get("volume_x") or 1))[:10]:
+        vol = f", volume {i['volume_x']:.1f}x" if i.get("volume_x") else ""
+        lines.append(f"- {i['symbol']} {i['move']:+.1f}% on {i['day']}{vol}")
+    lines.append("")
     for i in items:
         vol = f", volume {i['volume_x']:.1f}x" if i.get("volume_x") else ""
         lines.append(f"## {i['symbol']} {i['move']:+.1f}% on {i['day']}{vol}")
