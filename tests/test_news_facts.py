@@ -193,3 +193,11 @@ def test_a_confirmed_one_word_name_with_its_legal_suffix_matches_only_with_the_s
     assert "Systems" not in vocab.singles
     assert nf.companies_in(vocab, "Treet Corporation announces dividend") == ["TREET"]
     assert nf.companies_in(vocab, "Payment Systems expand") == []
+
+
+def test_waves_home_appliances_is_wavesapp_and_whale_is_excluded():
+    vocab = nf.build_vocabulary(
+        {"WHALE": "Waves Home Appliances Limited"}, {"Waves Home Appliances": "WAVESAPP"}, set()
+    )
+    assert nf.companies_in(vocab, "Waves Home Appliances posts profit") == ["WAVESAPP"]
+    assert nf.companies_in(vocab, "WHALE rallies") == []
