@@ -134,12 +134,12 @@ def _market_dashboard() -> None:
         st.write("Biggest falls: " + ", ".join(f"{s} {v:+.1f}%" for s, v in down))
     st.subheader("Companies to look at (radar)")
     rows = market_dashboard.radar_rows(d["radar"])
-    st.dataframe(rows, hide_index=True, use_container_width=True) if rows else st.write("Nothing scored.")
+    st.dataframe(rows, hide_index=True, width="stretch") if rows else st.write("Nothing scored.")
     with_cause, no_cause = market_dashboard.explained(d["moves"])
     st.subheader("Notable moves with something on file")
-    st.dataframe(market_dashboard.move_rows(with_cause), hide_index=True, use_container_width=True)
+    st.dataframe(market_dashboard.move_rows(with_cause), hide_index=True, width="stretch")
     st.subheader(f"Unexplained: no cause on file ({len(no_cause)} of {len(d['moves'])} notable moves)")
-    st.dataframe(market_dashboard.move_rows(no_cause), hide_index=True, use_container_width=True)
+    st.dataframe(market_dashboard.move_rows(no_cause), hide_index=True, width="stretch")
     st.caption(f"Built {d['built_utc']} UTC; refreshes every 30 minutes.")
 
 
@@ -352,20 +352,20 @@ def _ops_view(db) -> None:
     st.subheader("Triggers")
     st.table(d["triggers"])
     st.subheader("Backfill progress (share of each target window covered)")
-    st.dataframe(d["progress"], use_container_width=True)
+    st.dataframe(d["progress"], width="stretch")
     st.subheader("Session completeness")
     st.caption(
         "COMPLETE / INCOMPLETE / ANOMALY / MISSING / PROVIDER_UNAVAILABLE are graded against the bars the "
         "market actually traded that session; weekends, recorded holidays and closures are never counted "
         "as missing. Volume is not used."
     )
-    st.dataframe(d["quality"]["summary"], use_container_width=True)
+    st.dataframe(d["quality"]["summary"], width="stretch")
     st.subheader("Remaining gaps and provider-unavailable history")
-    st.dataframe(d["quality"]["gaps"][:200], use_container_width=True)
+    st.dataframe(d["quality"]["gaps"][:200], width="stretch")
     st.subheader("Recent runs (outcome, trigger, continuation pass, rows written)")
-    st.dataframe(d["runs"], use_container_width=True)
+    st.dataframe(d["runs"], width="stretch")
     st.subheader("Source health (retries and failures)")
-    st.dataframe(d["sources"], use_container_width=True)
+    st.dataframe(d["sources"], width="stretch")
 
 
 def _market_view(db) -> None:
@@ -397,7 +397,7 @@ def _market_view(db) -> None:
             }
             for r in cov
         ],
-        use_container_width=True,
+        width="stretch",
     )
     symbols = sorted({r["symbol"] for r in cov})
     c1, c2 = st.columns(2)
@@ -411,7 +411,7 @@ def _market_view(db) -> None:
     if rows:
         rows = list(reversed(rows))
         st.line_chart({"close": [r["close"] for r in rows]})
-        st.dataframe(rows[-50:], use_container_width=True)
+        st.dataframe(rows[-50:], width="stretch")
 
 
 def _news_view(db) -> None:
@@ -458,13 +458,13 @@ def _health_view(db) -> None:
         "last_attempt_at_utc, consecutive_failures, last_error FROM sources "
         "WHERE lifecycle_status = 'ACTIVE' ORDER BY source_id"
     )
-    st.dataframe(rows, use_container_width=True)
+    st.dataframe(rows, width="stretch")
     runs = db.execute(
         "SELECT run_id, job, source_id, started_at_utc, status, items_fetched, items_accepted, "
         "items_rejected, errors FROM collector_runs ORDER BY run_id DESC LIMIT 50"
     )
     st.subheader("Recent collection runs")
-    st.dataframe(runs, use_container_width=True)
+    st.dataframe(runs, width="stretch")
 
 
 main()
