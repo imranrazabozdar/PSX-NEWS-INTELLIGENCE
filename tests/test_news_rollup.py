@@ -69,3 +69,40 @@ def test_no_signal_for_a_new_entity_or_too_little_news():
     facts = background() + [fact(TODAY - timedelta(days=i), url=f"https://x/n{i}") for i in range(4)]
     assert not [s for s in nr.signals(nr.rollup(facts), TODAY, "t") if s["company"] == "HUBC"]
     assert nr.signals(nr.rollup(background(days=35, per_day=0) or []), TODAY, "t") == []
+
+
+def test_a_rerun_writes_only_new_or_changed_rollup_rows():
+    from database.connection import SQLiteDatabase
+    from scripts import build_news_rollup as bnr
+
+    db = SQLiteDatabase()
+    db.execute(
+        "CREATE TABLE news_rollup (day TEXT, entity TEXT, stories INTEGER, topics TEXT, top_title TEXT, "
+        "top_url TEXT, updated_utc TEXT, PRIMARY KEY (day, entity))"
+    )
+    rows = [
+        {
+            "day": "2026-11-16",
+            "entity": "HUBC",
+            "stories": 2,
+            "topics": "{}",
+            "top_title": "t",
+            "top_url": "u1",
+        },
+        {
+            "day": "2026-11-16",
+            "entity": "ALL",
+            "stories": 2,
+            "topics": "{}",
+            "top_title": None,
+            "top_url": None,
+        },
+    ]
+    assert len(bnr.changed_rows(db, rows)) == 2  # empty table: everything is new
+    for r in rows:
+        db.execute(
+            bnr.UPSERT, (r["day"], r["entity"], r["stories"], r["topics"], r["top_title"], r["top_url"], "t")
+        )
+    assert bnr.changed_rows(db, rows) == []  # identical: nothing to write
+    rows[0] = {**rows[0], "stories": 3}
+    assert [r["entity"] for r in bnr.changed_rows(db, rows)] == ["HUBC"]

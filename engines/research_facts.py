@@ -221,23 +221,45 @@ def rows_from_report(*, company: str, manifest: dict[str, Any], expected: dict[s
 CHUNK = 200  # entities per query: well under SQLite's parameter limit
 
 
-def facts_for(db: Any, companies: list[str] | set[str], columns: str) -> list[Any]:
+def facts_for(
+    db: Any, companies: list[str] | set[str], columns: str, *, since: str | None = None
+) -> list[Any]:
     """Rows of research_fact for just these entities. `columns` is a fixed, code-supplied column list.
 
     One indexed query per CHUNK entities: the rows read are the matching rows, not the whole table, so a
-    loader or a pack no longer runs out of its per-process row-read budget as the table grows."""
+    loader or a pack no longer runs out of its per-process row-read budget as the table grows. With `since`
+    (an ISO date) only rows with source_date on or after it are read: idx_research_fact_company_date makes
+    that a range read, so a loader that only needs recent rows for duplicate checks reads a few hundred rows
+    even for an entity with thousands (MACRO:PAKISTAN)."""
     wanted = sorted(set(companies))
     out: list[Any] = []
     for i in range(0, len(wanted), CHUNK):
         part = wanted[i : i + CHUNK]
         marks = ", ".join("?" for _ in part)
-        out.extend(db.execute(f"SELECT {columns} FROM research_fact WHERE company IN ({marks})", tuple(part)))  # noqa: S608
+        sql = f"SELECT {columns} FROM research_fact WHERE company IN ({marks})"  # noqa: S608
+        args: tuple = tuple(part)
+        if since:
+            sql += " AND source_date >= ?"
+            args += (since,)
+        out.extend(db.execute(sql, args))
     return out
 
 
 def sector_names(db: Any) -> set[str]:
-    """Every SECTOR:* entity, by an index range (not LIKE, which cannot use the index)."""
-    rows = db.execute(
-        "SELECT DISTINCT company FROM research_fact WHERE company >= 'SECTOR:' AND company < 'SECTOR;'"
-    )
-    return {str(r["company"]) for r in rows}
+    """Every SECTOR:* entity, by a loose index scan: one row read per sector (about 25), not one per fact row.
+
+    Each query asks for the first entity at or after the cursor, then the cursor moves just past it. A
+    DISTINCT over the range would read every sector fact (thousands) each time."""
+    found: set[str] = set()
+    cursor = "SECTOR:"
+    while True:
+        rows = db.execute(
+            "SELECT company FROM research_fact WHERE company >= ? AND company < 'SECTOR;' "
+            "ORDER BY company LIMIT 1",
+            (cursor,),
+        )
+        if not rows:
+            return found
+        name = str(rows[0]["company"])
+        found.add(name)
+        cursor = name + "\x00"

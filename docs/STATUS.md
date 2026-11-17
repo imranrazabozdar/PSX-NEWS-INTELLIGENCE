@@ -518,3 +518,9 @@ announcements, 5,061 profile facts incl. sector for 562 companies). Loaded 17 No
 near-duplicates skipped; research_fact is now 46,376 rows across 914 entities. News headlines (1,217) and the 60 symbols
 not in the listing snapshot are not yet added. Full-table scans now cost about 46,000 of the 50,000-row read budget, so every
 read must go through the company index (the news step's sector list was fixed to use an index range).
+
+## Read/write economy pass (17 Nov 2026) - IMPLEMENTED, TESTED; index applied to psx-library
+See `docs/ops/DB_BUDGET.md`. New index (company, source_date) replaces (company, topic); loaders read a date window;
+sector list by loose scan; collector checks only candidate URLs; rollup writes only changes. An automatic news run
+now reads about 6,100 rows (was about 25,000). The 60 Investify symbols are in `owner_confirmed`; the matcher now also
+uses the company names inside `owner_confirmed` notes (they never matched before).

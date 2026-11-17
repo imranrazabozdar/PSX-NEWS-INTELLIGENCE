@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from collections import Counter
 from datetime import UTC, datetime, timedelta
@@ -24,14 +25,23 @@ from engines import research_facts as rf
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def confirmed_name(symbol: str, note: str) -> str:
+    """The company name inside an owner_confirmed note ('Select Technologies, owner-confirmed 2026-11-16').
+
+    The matcher needs the bare name; a note with no name ('owner-confirmed 2026-11-16') leaves only
+    the ticker."""
+    name = re.split(r", (?:owner-confirmed|from the owner)", note, maxsplit=1)[0].strip()
+    return symbol if name.lower().startswith("owner-confirmed") or not name else name
+
+
 def load_vocabulary(db) -> nf.Vocabulary:
     listing = json.loads((ROOT / "docs/research/psx_listed_companies.json").read_text("utf-8"))
     companies = dict(listing["companies"])
     for sym, note in listing.get("owner_confirmed", {}).items():
         if not sym.startswith("_"):
-            companies.setdefault(sym, note)
+            companies.setdefault(sym, confirmed_name(sym, note))
     aliases = json.loads((ROOT / "docs/research/arn/entity_aliases.json").read_text("utf-8"))["aliases"]
-    names = {company[7:] for company in rf.sector_names(db)}  # an index range, not a scan of the whole table
+    names = {company[7:] for company in rf.sector_names(db)}  # a loose index scan: about 25 row reads
     return nf.build_vocabulary(companies, aliases, names)
 
 

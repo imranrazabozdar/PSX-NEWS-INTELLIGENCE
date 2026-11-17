@@ -17,7 +17,7 @@ import json
 import re
 import sys
 import time
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from email.utils import parsedate_to_datetime
@@ -60,7 +60,11 @@ SOURCES = {
     "profit": {"kind": "profit", "base": PROFIT, "latest": PROFIT + "/", "min_interval": FEED_MIN_INTERVAL,
                "sitemap": PROFIT + "/sitemap.xml"},
 }
-_CREATE = re.compile(r"^CREATE TABLE IF NOT EXISTS [a-z_]+ \(", re.IGNORECASE)
+_CREATE = re.compile(
+    r"^(?:CREATE TABLE IF NOT EXISTS [a-z_]+ \("
+    r"|CREATE INDEX IF NOT EXISTS idx_news_item_published ON news_item \(published_at\)$)",
+    re.IGNORECASE,
+)
 
 Fetch = Callable[[str], tuple["int | None", bytes]]
 
@@ -287,14 +291,25 @@ class Store:
         body = "\n".join(line.split("--", 1)[0] for line in SCHEMA.read_text(encoding="utf-8").splitlines())
         for stmt in (s.strip() for s in body.split(";") if s.strip()):
             if not _CREATE.match(stmt):
-                raise ValueError(f"refused: only CREATE TABLE IF NOT EXISTS is allowed, found {stmt[:50]!r}")
+                raise ValueError(f"refused: only the news tables and index may be created: {stmt[:50]!r}")
             self.db.execute(stmt)
 
-    def known_urls(self, source: str) -> set[str]:
-        stored = {r["url"] for r in self.db.execute("SELECT url FROM news_item WHERE source = ?", (source,))}
-        skipped = {r["key"][5:] for r in self.db.execute(
-            "SELECT key FROM news_progress WHERE source = ? AND key LIKE 'skip:%'", (source,))}
-        return stored | skipped
+    def known_among(self, source: str, urls: Iterable[str]) -> set[str]:
+        """Which of these URLs are already stored or skipped. Two primary-key lookups per 200 candidates: the
+        rows read are the matches, not every article the source has ever had (that grew without limit)."""
+        wanted = sorted(set(urls))
+        known: set[str] = set()
+        for i in range(0, len(wanted), 200):
+            part = wanted[i : i + 200]
+            marks = ", ".join("?" for _ in part)
+            known |= {r["url"] for r in self.db.execute(
+                f"SELECT url FROM news_item WHERE source = ? AND url IN ({marks})",  # noqa: S608
+                (source, *part))}
+            keys = ["skip:" + u for u in part]
+            known |= {r["key"][5:] for r in self.db.execute(
+                f"SELECT key FROM news_progress WHERE source = ? AND key IN ({marks})",  # noqa: S608
+                (source, *keys))}
+        return known
 
     def progress(self, source: str, key: str) -> tuple[str, str] | None:
         rows = self.db.execute("SELECT value, updated_utc FROM news_progress WHERE source = ? AND key = ?",
@@ -370,11 +385,10 @@ class _Session:
 
 
 def _run_mettis(s: _Session, result: Result, cutoff: datetime, per_run: int) -> None:
-    known = s.store.known_urls("mettis")
     fresh: list[str] = []
     listing = s.get(SOURCES["mettis"]["latest"])
     if listing and listing[0] == 200:
-        fresh = [u for u in parse_mettis_listing(listing[1].decode("utf-8", "replace")) if u not in known]
+        fresh = parse_mettis_listing(listing[1].decode("utf-8", "replace"))
     got = s.get(SOURCES["mettis"]["index"])
     cut_day = cutoff.strftime("%Y-%m-%d")
     maps: list[str] = []
@@ -390,8 +404,11 @@ def _run_mettis(s: _Session, result: Result, cutoff: datetime, per_run: int) -> 
             result.notes.append(f"sitemap not read: {loc.rsplit('/', 1)[-1]}")
             continue
         for url, mod in parse_sitemap(page[1].decode("utf-8", "replace")):
-            if mettis_is_article(url) and url not in known and (mod or "9999")[:10] >= cut_day:
+            if mettis_is_article(url) and (mod or "9999")[:10] >= cut_day:
                 pending.append((mod or "", url))
+    known = s.store.known_among("mettis", fresh + [url for _mod, url in pending])
+    fresh = [u for u in fresh if u not in known]
+    pending = [(mod, url) for mod, url in pending if url not in known]
     pending.sort(reverse=True)  # newest first
     queue = fresh + [url for _mod, url in pending if url not in fresh]  # the listing's new articles go first
     for url in queue[:per_run]:
@@ -414,20 +431,22 @@ def _run_mettis(s: _Session, result: Result, cutoff: datetime, per_run: int) -> 
 
 def _run_feeds(s: _Session, result: Result, per_run: int = PER_RUN_ARTICLES) -> None:
     """RSS sources: each item carries title, date and description, so no article page is fetched."""
-    known = s.store.known_urls(s.name)
+    items: list[Item] = []
     for feed in SOURCES[s.name]["feeds"]:
         got = s.get(feed)
         if not got or got[0] != 200:
             result.notes.append(f"feed not read: {feed.rsplit('/', 1)[-1]}")
             continue
-        for item in parse_rss(got[1].decode("utf-8", "replace"), s.name):
-            if item.url not in known:
-                known.add(item.url)  # the same article can appear in two feeds of one source
-                s.store.add_item(item, s.now)
-                result.stored += 1
+        items += parse_rss(got[1].decode("utf-8", "replace"), s.name)
+    known = s.store.known_among(s.name, [i.url for i in items])
+    for item in items:
+        if item.url not in known:
+            known.add(item.url)  # the same article can appear in two feeds of one source
+            s.store.add_item(item, s.now)
+            result.stored += 1
     if SOURCES[s.name].get("sitemap"):  # owner-approved one-month back-fill (business stories only)
         cutoff = s.now - timedelta(days=BACKFILL_DAYS)
-        back = _backfill_queue(s, result, cutoff, s.store.known_urls(s.name))
+        back = _backfill_queue(s, result, cutoff)
         _read_articles(s, result, back, cutoff, per_run)
 
 
@@ -437,8 +456,9 @@ def _run_profit(s: _Session, result: Result, cutoff: datetime, per_run: int) -> 
     if not listing or listing[0] != 200:
         result.notes.append("front page not read")
         return
-    known = s.store.known_urls("profit")
-    queue = [u for u in parse_profit_listing(listing[1].decode("utf-8", "replace")) if u not in known]
+    listed = parse_profit_listing(listing[1].decode("utf-8", "replace"))
+    known = s.store.known_among("profit", listed)
+    queue = [u for u in listed if u not in known]
     for url in queue[:per_run]:
         got = s.get(url)
         if got is None:
@@ -456,12 +476,11 @@ def _run_profit(s: _Session, result: Result, cutoff: datetime, per_run: int) -> 
             result.stored += 1
     result.notes.append(f"{max(len(queue) - per_run, 0)} article(s) still pending")
     if len(queue) < per_run:  # the live articles come first; the back-fill uses what is left of the run
-        known = s.store.known_urls("profit")
-        back = _backfill_queue(s, result, s.now - timedelta(days=BACKFILL_DAYS), known)
+        back = _backfill_queue(s, result, s.now - timedelta(days=BACKFILL_DAYS))
         _read_articles(s, result, back, s.now - timedelta(days=BACKFILL_DAYS), per_run - len(queue))
 
 
-def _backfill_queue(s: _Session, result: Result, cutoff: datetime, known: set[str]) -> list[str]:
+def _backfill_queue(s: _Session, result: Result, cutoff: datetime) -> list[str]:
     """Back-fill candidates from the site's sitemaps, newest first; read at most once an hour."""
     name = s.name
     day = s.now.astimezone(UTC).strftime("%Y-%m-%d")
@@ -491,13 +510,13 @@ def _backfill_queue(s: _Session, result: Result, cutoff: datetime, known: set[st
                 reached_older = True
                 continue
             in_window += 1
-            if url in known:
-                continue
             if name == "profit" or tribune_slug_is_business(url):
                 queue.append(url)
         if not in_window or reached_older:
             break  # the window ends in this file (or it is all older); later files are older still
-    queue = sorted(set(queue), key=lambda u: (profit_url_day(u) or "", u), reverse=True)
+    known = s.store.known_among(name, queue)
+    fresh = {u for u in queue if u not in known}
+    queue = sorted(fresh, key=lambda u: (profit_url_day(u) or "", u), reverse=True)
     if not queue:
         s.store.set_progress(name, "backfill_done", day, s.now)
     return queue
