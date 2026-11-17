@@ -51,6 +51,40 @@ def radar_rows(radar: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return rows
 
 
+def radar_cards(radar: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """One card per company: a short title, then every driver (what, when, where from) and what is unknown."""
+    cards = []
+    for i, s in enumerate(radar, 1):
+        top = max(s["drivers"], key=lambda d: d["points"])
+        lines = [
+            f"**{d['kind']}** ({d['date']}, {d['source']}): {d['text'][:240]}"
+            for d in sorted(s["drivers"], key=lambda d: -d["points"])
+        ]
+        lines += [f"*unknown:* {u}" for u in s["unknown"][:2]]
+        title = f"{i}. {s['symbol']} · score {s['score']:g} · {top['text'][:60]}"
+        cards.append({"title": title, "lines": lines})
+    return cards
+
+
+def move_cards(moves: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    cards = []
+    for m in moves:
+        vol = f" · volume {m['volume_x']:.1f}x" if m.get("volume_x") else ""
+        lines = [f"**{m['verdict']}**"]
+        lines += [f"{e['text'][:200]}" for e in m["evidence"][:3]]
+        cards.append({"title": f"{m['symbol']} {m['move']:+.1f}% on {m['day']}{vol}", "lines": lines})
+    return cards
+
+
+def unexplained_lines(moves: list[dict[str, Any]]) -> list[str]:
+    ranked = sorted(moves, key=lambda m: -abs(m["move"]) * (m.get("volume_x") or 1))
+    return [
+        f"- **{m['symbol']}** {m['move']:+.1f}% on {m['day']}"
+        + (f" (volume {m['volume_x']:.1f}x)" if m.get("volume_x") else "")
+        for m in ranked[:25]
+    ]
+
+
 def explained(moves: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """(moves with a candidate cause on file, moves with none)."""
     none = [m for m in moves if m["verdict"].startswith("no identified cause")]

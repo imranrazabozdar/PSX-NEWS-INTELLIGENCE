@@ -15,8 +15,7 @@ def test_app_starts_without_errors(monkeypatch):
     monkeypatch.delenv("PSXNI_TURSO_DATABASE_URL", raising=False)
     at = AppTest.from_file(str(REPO_ROOT / "app.py"), default_timeout=30).run()
     assert not at.exception
-    assert at.title[0].value == "PSX Fundamental & News Intelligence"
-    assert any(m.value == "Not connected" for m in at.metric)
+    assert at.title[0].value == "Market dashboard"  # the first page; the older pages need the news database
 
 
 def test_settings_defaults(monkeypatch):

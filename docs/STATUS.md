@@ -632,3 +632,7 @@ Order (one phase at a time, each stops at an owner gate):
 
 ## Dashboard works with a read-only token (2026-11-17) - IMPLEMENTED
 - First live run of the Market dashboard on Streamlit failed with "SQL write operations are forbidden": the shared Turso client sends `PRAGMA foreign_keys = ON` with every request, which a read-only token refuses. Added `database.connection.TursoReadOnlyDatabase` (SELECT/WITH only, no PRAGMA) and `library_db.get_library_readonly_connection()`; the app's library handle uses it. Tests added.
+
+## Dashboard made phone-friendly (owner screen recording, 2026-11-17) - IMPLEMENTED
+- Found from the recording: a one-line conditional expression made Streamlit print its own documentation under the radar table (a bug); wide tables were cut off on a phone; the sidebar opened on pages that only said "no database configured".
+- Fixed: Market dashboard is the first page and the older Overview / Company intelligence pages appear only when the news database is configured; the radar and moves are tap-to-open cards (every driver with date and source) instead of wide tables; unexplained moves are a short list; the three header numbers are one line.
