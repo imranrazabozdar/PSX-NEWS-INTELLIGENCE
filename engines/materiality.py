@@ -8,7 +8,8 @@ guessed or counted as zero.
 Drivers and their caps (the sum is capped at 100):
   results      35  a results/earnings fact in the window, +up to 25 for a like-for-like EPS change
   corporate    20  dividend, bonus, rights, book closure in the window
-  announcement 15  a material company announcement in the window (5 if only routine scheduled notices)
+  announcement 25  a material announcement in the window, sized from its own numbers against the company
+                   (engines/announcement_substance.py); 3 if only routine scheduled notices
   price        40  a close-to-close move (and volume vs its previous 20-session average) in the window
   news         15  a news-volume signal against the company's own baseline (news_rollup)
   technical    10  the technical engine's heuristic scores (labelled as heuristics; never a direction call)
@@ -21,26 +22,13 @@ import re
 from collections import Counter
 from typing import Any
 
-CAPS = {"results": 60, "corporate": 20, "announcement": 15, "price": 40, "news": 15, "technical": 10}
+from engines import announcement_substance as asub
+
+CAPS = {"results": 60, "corporate": 20, "announcement": 25, "price": 40, "news": 15, "technical": 10}
 # Investify announcement labels (announcements.<label>). Material ones are company-specific disclosures;
 # scheduled ones are routine notices that say a date is coming, not why a price moved. Everything else
 # (report transmission, briefings, auditor certificates, insider lines, "Other") is left out of scores.
-MATERIAL_LABELS = {
-    "Material Disclosure",
-    "Management Change",
-    "Financing / Restructuring",
-    "M&A / Public Offer",
-    "Legal / Regulatory",
-    "Capacity / Shutdown",
-    "Operations Update",
-    "Unusual Movement Reply",
-    "Share Buyback",
-    "Share Split",
-    "Credit Rating",
-    "Scheme / Arrangement",
-    "Rights / Bonus",
-    "Corporate Action",
-}
+MATERIAL_LABELS = asub.MATERIAL_LABELS
 SCHEDULED_LABELS = {"Board Meeting", "AGM / EGM", "Book Closure", "Dividend", "Meetings"}
 
 RESULT_TOPICS = ("results.", "news.results", "announcements.Financial Result")
@@ -164,6 +152,8 @@ def score_company(
     price: dict[str, Any] | None,
     news_signal: dict[str, Any] | None,
     has_prices: bool,
+    company_names: list[str] | None = None,
+    mcap: float | None = None,
 ) -> dict[str, Any]:
     drivers: list[dict[str, Any]] = []
     unknown: list[str] = []
@@ -201,20 +191,35 @@ def score_company(
             _driver("corporate", 20, top["fact_text"][:200], top["source_date"], top["source_name"])
         )
     ann = [f for f in window_facts if str(f["topic"]).startswith("announcements.")]
-    material = [f for f in ann if str(f["topic"])[len("announcements.") :] in MATERIAL_LABELS]
+    graded = []
+    for f in ann:
+        label = str(f["topic"])[len("announcements.") :]
+        if label in MATERIAL_LABELS:
+            graded.append(
+                (asub.assess(label, f["fact_text"], company_names=company_names or [], mcap=mcap), f)
+            )
     scheduled = [f for f in ann if str(f["topic"])[len("announcements.") :] in SCHEDULED_LABELS]
-    if material:
-        top = max(material, key=lambda f: f["source_date"])
-        more = f"{len(material)} material announcements; latest: " if len(material) > 1 else ""
+    if graded:
+        result, top = max(graded, key=lambda g: (g[0]["points"], g[1]["source_date"]))
+        more = f"{len(graded)} material announcements; largest: " if len(graded) > 1 else ""
+        why = "; ".join(result["basis"])
         drivers.append(
-            _driver("announcement", 15, more + top["fact_text"][:180], top["source_date"], top["source_name"])
+            _driver(
+                "announcement",
+                result["points"],
+                f"{more}{top['fact_text'][:150]} [size: {result['tier']}; {why}]",
+                top["source_date"],
+                top["source_name"],
+            )
         )
+        if not result["quantified"]:
+            unknown.append("announcement size unknown: " + why)
     elif scheduled:
         top = max(scheduled, key=lambda f: f["source_date"])
         drivers.append(
             _driver(
                 "announcement",
-                5,
+                asub.SCHEDULED_POINTS,
                 "routine notice: " + top["fact_text"][:180],
                 top["source_date"],
                 top["source_name"],
