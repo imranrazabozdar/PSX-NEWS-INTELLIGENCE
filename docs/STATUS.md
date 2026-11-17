@@ -547,3 +547,8 @@ Order (one phase at a time, each stops at an owner gate):
 - Read-only link to the technical engine's database: IMPLEMENTED and TESTED (PRs #116 to #119). Schema discovery done (27 tables). Schedule A approved (9 tables); predictions, runs, dss_history, its own news, intraday/candle tables are excluded.
 - `price_daily` (migration 0012, last 120 sessions) and technical facts (`price.move` as fact; `technical.wyckoff` and `technical.pattern` as analyst_view with the engine's scan date): IN PROGRESS. First applied load of 5 symbols (HBL, NBP, OGDC, PSO, TRSM): 600 bars, 87 facts, 0 duplicates. Full load (148 symbols) and the daily refresh await the owner's go-ahead.
 - Not read: FIRE (last scan 2026-11-03, stale), `snapshots` (empty), backtest reliability (per pattern, not per company; not loaded yet), volatility engine (no table found).
+
+## Materiality scoring and company radar (owner approved 2026-11-17)
+- `engines/materiality.py` + `scripts/build_radar.py` + dispatch-only `company_radar.yml`: IMPLEMENTED and TESTED. Read only (no database writes); report in the run summary and an artifact. No dashboard page yet (needs the owner's gate).
+- Drivers: results (+ like-for-like EPS change when a same-period prior-year pair exists, else "size unknown"), corporate actions, price move with volume, news volume vs the company's own baseline, technical heuristics (labelled). Scores order attention only; not forecasts or recommendations.
+- Limits: the results size is mostly unknown until the PSX announcement feed (15,574 facts, awaiting the owner's yes) is loaded; Investify announcement facts are dated by their announcement date (period), not the load date; companies the technical engine does not cover have no price driver.
