@@ -42,9 +42,10 @@ def test_no_collector_is_enabled_without_a_matching_consent_entry():
     assert set(gc.COLLECTORS) <= consented_collectors | {"robots"}
 
 
-def test_enablement_is_still_off_for_every_category():
+def test_only_the_announcements_collector_is_enabled():
+    """Owner enabled announcements on 2026-11-17 (one request per run, library only). Others stay off."""
     policy = json.loads(POLICY.read_text(encoding="utf-8"))
-    assert not any(policy["collectors_enabled"].values())
+    assert {k for k, v in policy["collectors_enabled"].items() if v} == {"announcements"}
     assert json.loads(FLAGS.read_text(encoding="utf-8"))["news_enabled"] is False
 
 
