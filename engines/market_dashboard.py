@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from engines import company_names, daily_digest, move_explainer
+from engines import company_names, daily_digest, move_explainer, setups
 from scripts import build_digest, build_radar, explain_moves
 
 
@@ -21,7 +21,9 @@ def load(db: Any, now: datetime, days: int = 3, top: int = 15) -> dict[str, Any]
     radar, radar_stats = build_radar.build(db, today, days, top)
     items, universe = explain_moves.build(db, today, days, 40)
     news = db.execute("SELECT MAX(day) AS d FROM news_rollup")[0]["d"]
+    sector = explain_moves.sectors_of(db, sorted(bars))
     return {
+        "setups": setups.build(db, today, bars, sector),
         "movers": movers(bars, moves, day),
         "today": today.isoformat(),
         "price_day": day,

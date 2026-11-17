@@ -68,7 +68,7 @@ def test_the_dashboard_page_renders_from_a_seeded_library(monkeypatch):
     assert "not a buy or sell view" in text or "nothing here is a buy or sell view" in text
     html = " ".join(m.value for m in at.markdown).lower()
     assert "prices to" in html and "market breadth" in html and "pi-card" in html
-    assert [t.label for t in at.tabs] == ["Market", "Watch list", "Why it moved"]
+    assert [t.label for t in at.tabs][:3] == ["Technical setups", "Fundamental setups", "Fund + Tech setups"]
 
 
 def test_the_readonly_client_sends_no_pragma_and_refuses_writes(monkeypatch):

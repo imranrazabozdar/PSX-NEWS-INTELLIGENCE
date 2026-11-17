@@ -93,7 +93,7 @@ def _library():
 
     db = library_db.get_library_readonly_connection().db
     if hasattr(db, "max_rows_read"):  # the Turso client; other backends have no per-process budget
-        db.max_rows_read = max(db.max_rows_read, 150_000)
+        db.max_rows_read = max(db.max_rows_read, 400_000)
         db.max_rows_written = 1
     return db
 
@@ -132,7 +132,29 @@ def _market_dashboard() -> None:
 
     st.markdown(ui.CSS, unsafe_allow_html=True)
     st.markdown(ui.status_bar(d["price_day"], d["news_day"], d["universe"]), unsafe_allow_html=True)
-    market_tab, radar_tab, moves_tab = st.tabs(["Market", "Watch list", "Why it moved"])
+    tech_tab, fund_tab, both_tab, market_tab, radar_tab, moves_tab = st.tabs(
+        [
+            "Technical setups",
+            "Fundamental setups",
+            "Fund + Tech setups",
+            "Market",
+            "Watch list",
+            "Why it moved",
+        ]
+    )
+    note = (
+        "Top 10 by measured evidence on file: equal-weight, uncalibrated scores, not forecasts and not "
+        "advice. Stocks must trade at least Rs 25m a day. Tap one for the evidence and what is not on file."
+    )
+    for tab, mode, heading in (
+        (tech_tab, "technical", "Technical setups"),
+        (fund_tab, "fundamental", "Fundamental setups"),
+        (both_tab, "combined", "Fundamental + technical setups"),
+    ):
+        with tab:
+            st.markdown(f"**{heading} · top 10** ({d['setups']['eligible']} stocks assessed)")
+            st.caption(note)
+            st.markdown(ui.setup_cards_html(d["setups"][mode], mode), unsafe_allow_html=True)
     with market_tab:
         st.markdown(ui.breadth_card(d["breadth"]), unsafe_allow_html=True)
         mode = st.segmented_control(
