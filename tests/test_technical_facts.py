@@ -71,3 +71,25 @@ def test_only_changed_bars_are_written():
     assert sync.changed_bars(FakeDB(), [same]) == []
     assert sync.changed_bars(FakeDB(), [moved]) == [moved]
     assert sync.changed_bars(FakeDB(), [dict(same, trade_date="2026-11-17")]) != []
+
+
+def test_an_idle_check_costs_only_two_one_row_reads():
+    class Link:
+        calls = 0
+
+        def select_from(self, obj, sql, params=()):
+            Link.calls += 1
+            assert "LIMIT 1" in sql and obj == "daily_ohlc"
+            return [{"trade_date": "2026-11-16"}]
+
+    class Lib:
+        def __init__(self, day):
+            self.day = day
+
+        def execute(self, sql, params=()):
+            assert "LIMIT 1" in sql
+            return [{"trade_date": self.day}] if self.day else []
+
+    assert sync.anything_new(Link(), Lib("2026-11-16")) is False
+    assert sync.anything_new(Link(), Lib("2026-11-13")) is True
+    assert sync.anything_new(Link(), Lib(None)) is True

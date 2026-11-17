@@ -24,6 +24,8 @@ UPSERT = ("INSERT INTO price_daily (symbol, trade_date, open, high, low, close, 
           "high = excluded.high, low = excluded.low, close = excluded.close, volume = excluded.volume, "
           "source = excluded.source, updated_utc = excluded.updated_utc")
 KEY = ("open", "high", "low", "close", "volume")
+KEEP_DAYS = 180  # calendar days of bars kept in price_daily (about 120 sessions); older rows are pruned
+PROBES = ("HBL", "OGDC", "PSO")  # reference symbols for the cheap "is there anything new?" check
 
 
 def _in(symbols: list[str]) -> tuple[str, tuple]:
@@ -71,11 +73,29 @@ def changed_bars(db, bars: list[dict]) -> list[dict]:
             if stored.get((b["symbol"], b["trade_date"])) != tuple(float(b[k]) for k in KEY)]
 
 
+def anything_new(link: tl.TechnicalLink, db) -> bool:
+    """Two one-row indexed reads: the newest bar of a reference symbol in the technical database and in
+    price_daily. True when the technical engine is ahead (or the library has none): an idle run is 2 reads."""
+    for sym in PROBES:
+        t_rows = link.select_from(
+            "daily_ohlc",
+            "SELECT trade_date FROM daily_ohlc WHERE symbol = ? ORDER BY trade_date DESC LIMIT 1",
+            (sym,))
+        if not t_rows:
+            continue
+        mine = db.execute(
+            "SELECT trade_date FROM price_daily WHERE symbol = ? ORDER BY trade_date DESC LIMIT 1", (sym,))
+        return not mine or str(t_rows[0]["trade_date"]) > str(mine[0]["trade_date"])
+    return True
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--symbols", default="", help="comma-separated symbols (default: every symbol)")
     ap.add_argument("--days", type=int, default=120)
     ap.add_argument("--out", type=Path, required=True, help="facts capsule (JSON)")
+    ap.add_argument("--only-if-new", action="store_true",
+                    help="exit at once (no capsule, no writes) when the library already has the newest bar")
     ap.add_argument("--apply", action="store_true", help="write price_daily (default: dry run)")
     args = ap.parse_args(argv)
     symbols = [s.strip().upper() for s in args.symbols.split(",") if s.strip()]
@@ -90,6 +110,14 @@ def main(argv: list[str] | None = None) -> int:
     except tl.LinkError as exc:
         print(f"refused: {exc}")
         return 1
+    if args.only_if_new:
+        try:
+            if not anything_new(link, library_db.get_library_connection().db):
+                print("nothing new in the technical engine; no capsule written")
+                return 0
+        except Exception as exc:  # noqa: BLE001 - price_daily missing or unreadable: say so, do nothing
+            print(f"cannot compare yet ({exc}); skipping")
+            return 0
     bars = [b for b in read_bars(link, fetch_start, symbols) if tf.valid_bar(b)]
     wy, pat = read_signals(link, window_start, symbols)
     by_symbol: dict[str, list[dict]] = {}
@@ -124,7 +152,12 @@ def main(argv: list[str] | None = None) -> int:
             db.batch([(UPSERT, (b["symbol"], b["trade_date"], b["open"], b["high"], b["low"], b["close"],
                                 b["volume"], tf.PRICE_SOURCE, stamp)) for b in todo[i : i + 200]],
                      transactional=True)
-        print(f"price_daily: wrote {len(todo)} bars; library usage {db.usage()}")
+        cutoff = (today - timedelta(days=KEEP_DAYS)).isoformat()
+        old = db.execute("SELECT COUNT(*) AS n FROM price_daily WHERE trade_date < ?", (cutoff,))[0]["n"]
+        if old:
+            db.execute("DELETE FROM price_daily WHERE trade_date < ?", (cutoff,))
+        print(f"price_daily: wrote {len(todo)} bars, pruned {old} older than {cutoff}; "
+              f"library usage {db.usage()}")
     else:
         print("dry run: nothing written to the library")
     print(f"technical usage: {link.db.usage()}")
