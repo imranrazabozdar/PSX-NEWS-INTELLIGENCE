@@ -58,10 +58,12 @@ def topic_for(record: dict[str, Any]) -> str:
 
 
 def facts_from_records(
-    records: list[dict[str, Any]], stamp: str, *, with_highlights: bool = False
+    records: list[dict[str, Any]], stamp: str, *, with_highlights: bool = False, cutoff: str = ""
 ) -> list[dict[str, Any]]:
     """One fact per announcement, dated by the announcement day. The text format matches the earlier facts
     from the owner's Investify snapshot ('<date>: <title>'), so an announcement already stored is skipped."""
+    if cutoff:  # owner rule: previous three months and the latest only, never history
+        records = [r for r in records if (r.get("announced_on_pkt") or r["announced_at_utc"][:10]) >= cutoff]
     out = []
     for r in records:
         day = r["announced_at_utc"][:10]
@@ -175,7 +177,9 @@ def run(
     print(f"investify: {outcome.status}: {outcome.reason}")
     print(f"requests made this run: {outcome.http_requests}")
     stamp = now.strftime("%Y-%m-%dT%H:%M:%SZ")
-    facts = facts_from_records(outcome.records, stamp, with_highlights=pol.highlights_allowed(now))
+    facts = facts_from_records(
+        outcome.records, stamp, with_highlights=pol.highlights_allowed(now), cutoff=pol.capture_cutoff(now)
+    )
     print(f"announcements parsed: {len(outcome.records)}; facts built: {len(facts)}")
     for f in facts[:8]:
         print("  sample:", f["company"], f["topic"], "|", f["fact_text"][:150])

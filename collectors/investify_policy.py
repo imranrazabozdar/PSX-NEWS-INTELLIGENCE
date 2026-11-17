@@ -36,6 +36,9 @@ SOURCE_ID = "investify_announcements"
 CONSENT_RECORD = "docs/consent/investify-2026-11-12.md"
 CONSENT_EFFECTIVE_UTC = datetime(2026, 11, 12, tzinfo=UTC)
 MIN_INTERVAL = timedelta(minutes=15)
+# Owner rule (2026-11-17), so as never to load Investify's servers: capture only the previous three months and
+# the latest, never history. The live job fetches one page (the latest) per run and never pages back.
+CAPTURE_WINDOW_DAYS = 92
 HIGHLIGHTS_CONSENT_RECORD = "docs/consent/investify-2026-11-17-highlights.md"
 HIGHLIGHTS_CONSENT_EFFECTIVE_UTC = datetime(2026, 11, 17, tzinfo=UTC)
 ANNOUNCEMENTS_URL = "https://www.investify.pk/announcements"
@@ -53,9 +56,11 @@ BREAKER_THRESHOLD = 3  # consecutive 403 / 429 / 503 responses
 ROBOTS_TOKEN = "psx-news-intelligence"  # noqa: S105 - a robots.txt user-agent token, not a secret
 # One stable, honest identity: what the client is and how to reach its operator. It is never rotated and never
 # imitates a browser.
-USER_AGENT = ("psx-news-intelligence/0.3 (+https://github.com/imranrazabozdar/PSX-NEWS-INTELLIGENCE; "
-              "contact: https://github.com/imranrazabozdar/PSX-NEWS-INTELLIGENCE/issues; "
-              "consented research client for Investify; at most one request per 15 minutes)")
+USER_AGENT = (
+    "psx-news-intelligence/0.3 (+https://github.com/imranrazabozdar/PSX-NEWS-INTELLIGENCE; "
+    "contact: https://github.com/imranrazabozdar/PSX-NEWS-INTELLIGENCE/issues; "
+    "consented research client for Investify; at most one request per 15 minutes)"
+)
 ATTRIBUTION = "Source: Investify (investify.pk)"
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -162,8 +167,9 @@ def requests_today(now: datetime, state: PollState) -> int:
     return state.day_requests if state.day_pkt == today_pkt(now) else 0
 
 
-def may_poll(now: datetime, state: PollState, cfg: PolicyConfig = DEFAULT_CONFIG, *,
-             rate_at: datetime | None = None) -> Decision:
+def may_poll(
+    now: datetime, state: PollState, cfg: PolicyConfig = DEFAULT_CONFIG, *, rate_at: datetime | None = None
+) -> Decision:
     """Every gate that must pass before a request. Pure: no I/O.
 
     `rate_at` is the time the request would be sent, for the rate floor; it defaults to `now`. Before the
@@ -249,8 +255,9 @@ def backoff_until(now: datetime, retry_after: str | None) -> datetime:
     return now + delay
 
 
-def registry_problem(entry: dict, source_id: str = SOURCE_ID,
-                     consent_record: str = CONSENT_RECORD) -> str | None:
+def registry_problem(
+    entry: dict, source_id: str = SOURCE_ID, consent_record: str = CONSENT_RECORD
+) -> str | None:
     """Why the registry entry does not permit collection under this consent, or None if it does.
 
     The database's own constraints only allow the values checked here; the consent record is the evidence."""
@@ -283,8 +290,16 @@ def finish_request(state: PollState, now: datetime, **changes) -> PollState:
     local = now.astimezone(PKT).date()
     week = (local - timedelta(days=local.weekday())).isoformat()
     week_count = (state.week_requests if state.week_start_pkt == week else 0) + 1
-    return replace(state, last_request_utc=_iso(now), day_pkt=day, day_requests=count,
-                   week_start_pkt=week, week_requests=week_count, in_flight_since_utc=None, **changes)
+    return replace(
+        state,
+        last_request_utc=_iso(now),
+        day_pkt=day,
+        day_requests=count,
+        week_start_pkt=week,
+        week_requests=week_count,
+        in_flight_since_utc=None,
+        **changes,
+    )
 
 
 def trip_breaker(state: PollState, now: datetime) -> PollState:
@@ -295,3 +310,8 @@ def highlights_allowed(now: datetime) -> bool:
     """Highlights text may be stored only under the 17 November 2026 addendum: the record must exist and the
     consent must be in effect. Otherwise only metadata is kept (condition 7 of the 12 November permission)."""
     return (REPO_ROOT / HIGHLIGHTS_CONSENT_RECORD).is_file() and now >= HIGHLIGHTS_CONSENT_EFFECTIVE_UTC
+
+
+def capture_cutoff(now: datetime) -> str:
+    """The oldest announcement date (ISO, Pakistan calendar) that may be kept: three months back."""
+    return (now.astimezone(PKT).date() - timedelta(days=CAPTURE_WINDOW_DAYS)).isoformat()

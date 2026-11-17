@@ -51,13 +51,15 @@ def highlight_rows(sym: str, lines: list[str], scraped: str) -> list[dict[str, A
     return out
 
 
-def build(db_path: Path) -> list[dict[str, Any]]:
+def build(db_path: Path, cutoff: str = "") -> list[dict[str, Any]]:
     db = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
     rows: list[dict[str, Any]] = []
     for sym, js, scraped in db.execute(
         "SELECT symbol, lines_json, scraped_at FROM company_pages WHERE tab = 'announcements'"
     ):
-        rows += highlight_rows(sym, [str(x) for x in json.loads(js)], scraped)
+        rows += [
+            r for r in highlight_rows(sym, [str(x) for x in json.loads(js)], scraped) if r["period"] >= cutoff
+        ]
     return rows
 
 
@@ -69,9 +71,15 @@ def main(argv: list[str] | None = None) -> int:
     if not pol.highlights_allowed(datetime.now(UTC)):
         print("refused: the 17 Nov 2026 Highlights addendum is not in force (record missing or too early)")
         return 2
-    rows = build(args.db)
+    cutoff = pol.capture_cutoff(
+        datetime.now(UTC)
+    )  # owner rule: the previous three months and the latest only
+    rows = build(args.db, cutoff)
     args.out.write_text(json.dumps(rows, ensure_ascii=False), encoding="utf-8")
-    print(f"highlights: {len(rows)} facts for {len({r['company'] for r in rows})} companies -> {args.out}")
+    print(
+        f"highlights: {len(rows)} facts, {len({r['company'] for r in rows})} companies, from {cutoff} on "
+        f"-> {args.out}"
+    )
     print("nothing was loaded; load with scripts.absorb_sector_capsule --apply")
     return 0
 
