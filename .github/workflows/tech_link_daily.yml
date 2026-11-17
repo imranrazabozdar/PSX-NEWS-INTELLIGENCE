@@ -1,0 +1,48 @@
+# ADR-0008: daily refresh of price_daily and the technical facts, read-only from the technical engine.
+# Piggybacks on the News collector's runs (no new schedule). An idle run costs two one-row reads: the script
+# compares the newest bar of a reference symbol first and exits when the library is already current.
+name: Technical link daily
+
+on:
+  workflow_run:
+    workflows: ["News collector"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: tech-link-sync
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PSXNI_TECH_LINK_URL: ${{ secrets.PSXNI_TECH_LINK_URL }}
+      PSXNI_TECH_LINK_TOKEN: ${{ secrets.PSXNI_TECH_LINK_TOKEN }}
+      PSXNI_LIBRARY_TURSO_DATABASE_URL: ${{ secrets.PSXNI_LIBRARY_TURSO_DATABASE_URL }}
+      PSXNI_LIBRARY_TURSO_AUTH_TOKEN: ${{ secrets.PSXNI_LIBRARY_TURSO_AUTH_TOKEN }}
+      PSXNI_DB_MAX_ROWS_READ: "120000"
+      PSXNI_DB_MAX_ROWS_WRITTEN: "4000"
+      PSXNI_DB_MAX_REQUESTS: "200"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Sync the newest bars and build the facts capsule (exits at once when nothing is new)
+        run: python -m scripts.tech_link_sync --out tech_facts.json --days 10 --only-if-new --apply
+      - name: Load the facts
+        run: |
+          if [ -f tech_facts.json ]; then
+            python -m scripts.absorb_sector_capsule tech_facts.json --since-days 60 --apply
+          else
+            echo "no capsule: nothing new"
+          fi
