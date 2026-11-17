@@ -542,3 +542,8 @@ Order (one phase at a time, each stops at an owner gate):
 3. Materiality scoring (new figure vs the company's own history) and the company radar. NOT STARTED.
 4. "Why did it move" explanations with sector and macro context; ranked hypotheses with evidence, "no identified cause" when nothing fits; no buy/sell. NOT STARTED.
 5. One company page: news, results, price, technical signals. NOT STARTED (only built from implemented modules).
+
+## Technical link (ADR-0008, signed 2026-11-17) and price/signal facts
+- Read-only link to the technical engine's database: IMPLEMENTED and TESTED (PRs #116 to #119). Schema discovery done (27 tables). Schedule A approved (9 tables); predictions, runs, dss_history, its own news, intraday/candle tables are excluded.
+- `price_daily` (migration 0012, last 120 sessions) and technical facts (`price.move` as fact; `technical.wyckoff` and `technical.pattern` as analyst_view with the engine's scan date): IN PROGRESS. First applied load of 5 symbols (HBL, NBP, OGDC, PSO, TRSM): 600 bars, 87 facts, 0 duplicates. Full load (148 symbols) and the daily refresh await the owner's go-ahead.
+- Not read: FIRE (last scan 2026-11-03, stale), `snapshots` (empty), backtest reliability (per pattern, not per company; not loaded yet), volatility engine (no table found).
