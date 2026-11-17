@@ -66,7 +66,7 @@ def test_the_dashboard_page_renders_from_a_seeded_library(monkeypatch):
     assert not at.exception
     text = " ".join([m.value for m in at.markdown] + [c.value for c in at.caption]).lower()
     assert "not a buy or sell view" in text or "nothing here is a buy or sell view" in text
-    assert [m.label for m in at.metric][:2] == ["Latest price day", "Latest news day"]
+    assert "prices to" in text and "symbols with prices" in text
 
 
 def test_the_readonly_client_sends_no_pragma_and_refuses_writes(monkeypatch):
@@ -100,3 +100,26 @@ def test_the_readonly_client_sends_no_pragma_and_refuses_writes(monkeypatch):
     for bad in ("PRAGMA foreign_keys = ON", "INSERT INTO t VALUES (1)", "CREATE TABLE t (a)"):
         with pytest.raises(DatabaseError):
             db.execute(bad)
+
+
+def test_cards_carry_every_driver_and_unexplained_moves_are_listed_by_size():
+    radar = [
+        {
+            "symbol": "MARI",
+            "score": 52.0,
+            "drivers": [
+                {"kind": "price", "points": 10, "text": "up", "date": "2026-11-16", "source": "bars"},
+                {"kind": "announcement", "points": 25, "text": "big deal", "date": "d", "source": "I"},
+            ],
+            "unknown": ["no results on file"],
+        }
+    ]
+    card = md.radar_cards(radar)[0]
+    assert card["title"].startswith("1. MARI") and "big deal" in card["title"]
+    assert len(card["lines"]) == 3 and card["lines"][0].startswith("**announcement**")
+    moves = [
+        {"symbol": "A", "day": "d", "move": 2.0, "volume_x": None, "verdict": "v", "evidence": []},
+        {"symbol": "B", "day": "d", "move": -9.0, "volume_x": 2.0, "verdict": "v", "evidence": []},
+    ]
+    assert md.unexplained_lines(moves)[0].startswith("- **B**")
+    assert md.move_cards(moves)[1]["title"].startswith("B -9.0% on d")

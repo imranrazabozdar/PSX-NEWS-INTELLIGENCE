@@ -188,17 +188,17 @@ def test_the_company_picker_lists_stored_symbols(local_db, monkeypatch):
     assert at.selectbox[0].options == ["TST"]
 
 
-def test_overview_still_renders_and_the_company_page_says_when_no_database(monkeypatch):
+def test_without_the_news_database_only_the_library_pages_are_offered(monkeypatch):
     at = _app(monkeypatch, None)
     assert not at.exception
-    assert at.title[0].value == "PSX Fundamental & News Intelligence"  # overview untouched
-    at = _company_page(at)
-    assert not at.exception
-    assert any("No database is configured" in i.value for i in at.info)
+    assert list(at.sidebar.radio[0].options) == ["Market dashboard", "Company brief"]
+    assert at.title[0].value == "Market dashboard"
 
 
 def test_navigation_switches_between_the_pages_without_errors(local_db, monkeypatch):
     at = _app(monkeypatch, f"sqlite:///{local_db}")
+    assert at.title[0].value == "Market dashboard"
+    at.sidebar.radio[0].set_value("Overview").run()
     assert at.title[0].value == "PSX Fundamental & News Intelligence"
     at = _company_page(at)
     assert not at.exception and at.title[0].value == "Company intelligence"

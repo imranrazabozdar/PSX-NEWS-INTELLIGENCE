@@ -33,7 +33,12 @@ PAGE_MARKET = "Market dashboard"
 def main() -> None:
     st.set_page_config(page_title="PSX News Intelligence", layout="wide")
     settings = load_settings()
-    page = st.sidebar.radio("Page", [PAGE_OVERVIEW, PAGE_MARKET, PAGE_COMPANY, PAGE_BRIEF], key="app_page")
+    # The older pages need the news database, which is only there when PSXNI_TURSO_DATABASE_URL is set;
+    # without it they would only say "nothing to show", so they are not offered.
+    pages = [PAGE_MARKET, PAGE_BRIEF]
+    if settings.database_configured:
+        pages += [PAGE_OVERVIEW, PAGE_COMPANY]
+    page = st.sidebar.radio("Page", pages, key="app_page")
     if page == PAGE_MARKET:
         _market_dashboard()
         return
@@ -122,24 +127,36 @@ def _market_dashboard() -> None:
     except Exception as exc:  # noqa: BLE001 - show the reason, never a half page
         st.error(f"Could not read the library: {exc}")
         return
-    a, b, c = st.columns(3)
-    a.metric("Latest price day", d["price_day"] or "unknown")
-    b.metric("Latest news day", d["news_day"] or "unknown")
-    c.metric("Symbols with prices", d["universe"])
+    st.markdown(
+        f"**Prices to** {d['price_day'] or 'unknown'} · **news to** {d['news_day'] or 'unknown'} · "
+        f"**{d['universe']}** symbols with prices"
+    )
     st.subheader("Market breadth")
     st.write(market_dashboard.breadth_line(d["breadth"]))
     if d["breadth"]:
         up, down = d["breadth"]["top_up"], d["breadth"]["top_down"]
         st.write("Biggest rises: " + ", ".join(f"{s} {v:+.1f}%" for s, v in up))
         st.write("Biggest falls: " + ", ".join(f"{s} {v:+.1f}%" for s, v in down))
-    st.subheader("Companies to look at (radar)")
-    rows = market_dashboard.radar_rows(d["radar"])
-    st.dataframe(rows, hide_index=True, width="stretch") if rows else st.write("Nothing scored.")
+    st.subheader("Companies to look at")
+    st.caption("Ordered by the evidence on file in the last few days. Tap a company for the detail.")
+    cards = market_dashboard.radar_cards(d["radar"])
+    if not cards:
+        st.write("Nothing scored.")
+    for c in cards:
+        with st.expander(c["title"]):
+            for line in c["lines"]:
+                st.markdown(line)
     with_cause, no_cause = market_dashboard.explained(d["moves"])
-    st.subheader("Notable moves with something on file")
-    st.dataframe(market_dashboard.move_rows(with_cause), hide_index=True, width="stretch")
-    st.subheader(f"Unexplained: no cause on file ({len(no_cause)} of {len(d['moves'])} notable moves)")
-    st.dataframe(market_dashboard.move_rows(no_cause), hide_index=True, width="stretch")
+    st.subheader("Big moves with something on file")
+    if not with_cause:
+        st.write("None.")
+    for c in market_dashboard.move_cards(with_cause):
+        with st.expander(c["title"]):
+            for line in c["lines"]:
+                st.markdown(line)
+    st.subheader("Big moves with no cause on file")
+    st.caption(f"{len(no_cause)} of {len(d['moves'])} notable moves. Absence of evidence on file, not proof.")
+    st.markdown("\n".join(market_dashboard.unexplained_lines(no_cause)) or "None.")
     st.caption(f"Built {d['built_utc']} UTC; refreshes every 30 minutes.")
 
 
