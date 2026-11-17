@@ -144,6 +144,7 @@ def run_ten(args: argparse.Namespace, ledger: cl.Ledger) -> int:
     md = cn.review_markdown(records, labels)
     (out_dir / "ten_headline_review.md").write_text(md, encoding="utf-8")
     _step_summary(md)
+    print(md)
     print(f"review files written to {out_dir}; no production writes were made (read-only connection)")
     return 0
 
