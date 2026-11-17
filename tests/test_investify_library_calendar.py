@@ -142,6 +142,6 @@ def test_the_friday_break_is_the_official_jumma_break_and_no_longer_pending():
     assert (raw["friday_break_pkt"]["start"], raw["friday_break_pkt"]["end"]) == ("12:00", "14:32")
 
 
-def test_the_shipped_policy_has_every_collector_off():
-    shipped = gc.load_policy()
-    assert not any(shipped.collectors_enabled.values())
+def test_the_shipped_policy_has_only_announcements_on():
+    shipped = gc.load_policy()  # the owner enabled announcements only, on 2026-11-17
+    assert {k for k, v in shipped.collectors_enabled.items() if v} == {"announcements"}

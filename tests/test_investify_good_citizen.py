@@ -276,9 +276,11 @@ def test_a_request_path_refuses_while_another_request_holds_the_slot(tmp_path):
 def test_the_shipped_policy_is_fail_safe():
     shipped = gc.load_policy()
     assert shipped.kill_switch is False and not hasattr(shipped, "mode")
-    assert not any(shipped.collectors_enabled.values())  # every collector off
+    # the owner enabled only the announcements collector (2026-11-17); every other collector is off
+    assert {k for k, v in shipped.collectors_enabled.items() if v} == {"announcements"}
     for ep in gc.COLLECTORS:
-        assert gc.gate(now=NOW, state=state(), policy=shipped, endpoint=ep).allowed is False
+        if ep != "announcements":
+            assert gc.gate(now=NOW, state=state(), policy=shipped, endpoint=ep).allowed is False
 
 
 def test_an_unknown_endpoint_is_refused():

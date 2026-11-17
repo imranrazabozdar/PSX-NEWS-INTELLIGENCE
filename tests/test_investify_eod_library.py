@@ -204,6 +204,6 @@ def test_no_live_request_is_made_after_trading_hours_even_with_every_limit_permi
     assert out.status in ("skipped", "refused") and NoNetwork.calls == 0
 
 
-def test_the_shipped_good_citizen_policy_has_every_collector_off():
+def test_the_shipped_good_citizen_policy_has_only_announcements_on():
     shipped = gc.load_policy()
-    assert not any(shipped.collectors_enabled.values())
+    assert {k for k, v in shipped.collectors_enabled.items() if v} == {"announcements"}
