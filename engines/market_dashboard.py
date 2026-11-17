@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from engines import daily_digest, move_explainer
+from engines import company_names, daily_digest, move_explainer
 from scripts import build_digest, build_radar, explain_moves
 
 
@@ -22,6 +22,7 @@ def load(db: Any, now: datetime, days: int = 3, top: int = 15) -> dict[str, Any]
     items, universe = explain_moves.build(db, today, days, 40)
     news = db.execute("SELECT MAX(day) AS d FROM news_rollup")[0]["d"]
     return {
+        "movers": movers(bars, moves, day),
         "today": today.isoformat(),
         "price_day": day,
         "news_day": news,
@@ -32,6 +33,38 @@ def load(db: Any, now: datetime, days: int = 3, top: int = 15) -> dict[str, Any]
         "universe": universe,
         "built_utc": now.strftime("%Y-%m-%d %H:%M"),
     }
+
+
+def movers(bars: dict[str, list[dict[str, Any]]], moves: dict, day: str | None) -> list[dict[str, Any]]:
+    """Every symbol that traded on `day`: close, move, volume, volume against its 20-session average."""
+    if not day:
+        return []
+    out = []
+    for sym, rows in bars.items():
+        last = next((r for r in rows if r["trade_date"] == day), None)
+        mv = moves.get((sym, day))
+        if last is None or mv is None:
+            continue
+        out.append(
+            {
+                "symbol": sym,
+                "name": company_names.official_name(sym),
+                "close": float(last["close"]),
+                "move": mv["move"],
+                "volume": float(last["volume"]),
+                "volume_x": mv["volume_x"],
+            }
+        )
+    return out
+
+
+def order_movers(items: list[dict[str, Any]], mode: str, count: int = 15) -> list[dict[str, Any]]:
+    key = {
+        "Gainers": lambda m: -m["move"],
+        "Losers": lambda m: m["move"],
+        "Most active": lambda m: -m["volume"],
+    }[mode]
+    return sorted(items, key=key)[:count]
 
 
 def radar_rows(radar: list[dict[str, Any]]) -> list[dict[str, Any]]:

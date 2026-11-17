@@ -27,3 +27,14 @@ def _index() -> dict[str, list[str]]:
 
 def names_for(symbol: str) -> list[str]:
     return list(_index().get(symbol, []))
+
+
+@lru_cache(maxsize=1)
+def _official() -> dict[str, str]:
+    listing = json.loads((ROOT / "docs/research/psx_listed_companies.json").read_text("utf-8"))
+    return dict(listing["companies"])
+
+
+def official_name(symbol: str) -> str:
+    """The listed company name ('' when the symbol is not in the committed listing)."""
+    return _official().get(symbol, "")
