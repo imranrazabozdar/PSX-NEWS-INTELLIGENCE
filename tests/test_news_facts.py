@@ -167,3 +167,19 @@ def test_a_company_or_sector_headline_is_also_filed_once_under_macro_pakistan():
     assert [r["topic"] for r in out if r["company"] == "MACRO:PAKISTAN"] == ["market.index"]
     # nothing matched: no macro copy either
     assert rows("Cricket final preview", macro_copy=True) == []
+
+
+def test_a_renamed_company_is_found_under_its_new_name():
+    """Mari Petroleum became Mari Energies; four stories on its 13 Nov discovery matched nothing."""
+    import json
+    from pathlib import Path
+
+    aliases = json.loads(
+        (Path(__file__).resolve().parents[1] / "docs/research/arn/entity_aliases.json").read_text("utf-8")
+    )["aliases"]
+    vocab = nf.build_vocabulary({"MARI": "Mari Petroleum Company Limited"}, aliases, set())
+    for title in (
+        "Mari Energies announces major copper-gold discovery in Balochistan's Chagai district",
+        "Mari Minerals signs copper-gold exploration agreement with Canada's Ivanhoe Mines",
+    ):
+        assert list(nf.companies_in(vocab, title, None)) == ["MARI"]
