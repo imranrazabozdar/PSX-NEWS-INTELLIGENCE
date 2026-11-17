@@ -139,3 +139,35 @@ def test_the_page_renders_for_a_symbol_and_gives_no_advice(monkeypatch):
     for word in ("buy ", "sell ", "stop loss"):
         assert word not in content
     assert any("What we do not know" in e.label for e in at.expander)
+
+
+def test_the_brief_lists_material_announcements_first_and_counts_routine_ones():
+    db = seeded()
+    fact(
+        db,
+        "AAA",
+        "announcements.Operations Update",
+        "2026-11-16: AAA starts a feasibility study",
+        "2026-11-16",
+        period="2026-11-16",
+        source="Investify",
+    )
+    fact(
+        db,
+        "AAA",
+        "announcements.Board Meeting",
+        "2026-11-15: board to meet",
+        "2026-11-15",
+        period="2026-11-15",
+    )
+    fact(
+        db,
+        "AAA",
+        "announcements.Report Transmission",
+        "2026-11-16: report sent",
+        "2026-11-16",
+        period="2026-11-16",
+    )
+    b = company_brief.load(db, "AAA", TODAY, company_brief.market_context(db, TODAY))
+    assert [a["weight"] for a in b["announcements"]] == ["material", "scheduled", "routine"]
+    assert b["announcements"][0]["label"] == "Operations Update"

@@ -8,6 +8,7 @@ guessed or counted as zero.
 Drivers and their caps (the sum is capped at 100):
   results      35  a results/earnings fact in the window, +up to 25 for a like-for-like EPS change
   corporate    20  dividend, bonus, rights, book closure in the window
+  announcement 15  a material company announcement in the window (5 if only routine scheduled notices)
   price        40  a close-to-close move (and volume vs its previous 20-session average) in the window
   news         15  a news-volume signal against the company's own baseline (news_rollup)
   technical    10  the technical engine's heuristic scores (labelled as heuristics; never a direction call)
@@ -20,7 +21,28 @@ import re
 from collections import Counter
 from typing import Any
 
-CAPS = {"results": 60, "corporate": 20, "price": 40, "news": 15, "technical": 10}
+CAPS = {"results": 60, "corporate": 20, "announcement": 15, "price": 40, "news": 15, "technical": 10}
+# Investify announcement labels (announcements.<label>). Material ones are company-specific disclosures;
+# scheduled ones are routine notices that say a date is coming, not why a price moved. Everything else
+# (report transmission, briefings, auditor certificates, insider lines, "Other") is left out of scores.
+MATERIAL_LABELS = {
+    "Material Disclosure",
+    "Management Change",
+    "Financing / Restructuring",
+    "M&A / Public Offer",
+    "Legal / Regulatory",
+    "Capacity / Shutdown",
+    "Operations Update",
+    "Unusual Movement Reply",
+    "Share Buyback",
+    "Share Split",
+    "Credit Rating",
+    "Scheme / Arrangement",
+    "Rights / Bonus",
+    "Corporate Action",
+}
+SCHEDULED_LABELS = {"Board Meeting", "AGM / EGM", "Book Closure", "Dividend", "Meetings"}
+
 RESULT_TOPICS = ("results.", "news.results", "announcements.Financial Result")
 CORPORATE_TOPICS = ("corporate_action.", "news.dividend")
 EPS_UNITS = {"PKR_per_share", "PKR", "PKR/share"}
@@ -177,6 +199,26 @@ def score_company(
         top = max(corp, key=lambda f: f["source_date"])
         drivers.append(
             _driver("corporate", 20, top["fact_text"][:200], top["source_date"], top["source_name"])
+        )
+    ann = [f for f in window_facts if str(f["topic"]).startswith("announcements.")]
+    material = [f for f in ann if str(f["topic"])[len("announcements.") :] in MATERIAL_LABELS]
+    scheduled = [f for f in ann if str(f["topic"])[len("announcements.") :] in SCHEDULED_LABELS]
+    if material:
+        top = max(material, key=lambda f: f["source_date"])
+        more = f"{len(material)} material announcements; latest: " if len(material) > 1 else ""
+        drivers.append(
+            _driver("announcement", 15, more + top["fact_text"][:180], top["source_date"], top["source_name"])
+        )
+    elif scheduled:
+        top = max(scheduled, key=lambda f: f["source_date"])
+        drivers.append(
+            _driver(
+                "announcement",
+                5,
+                "routine notice: " + top["fact_text"][:180],
+                top["source_date"],
+                top["source_name"],
+            )
         )
     if price:
         d = price_driver(price.get("move"), price.get("volume_x"), price["day"])
