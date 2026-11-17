@@ -534,3 +534,11 @@ Awaiting the owner's review of the 10-headline test and the seven-day results.
 `engines/psx_announcements.py`, `scripts/build_psx_announcement_capsule.py`: 15,574 rows (results with figures, dividends,
 bonus, rights, book closures, meetings) for 509 companies from 1 Jan 2023. No automated fetch from PSX (its Terms prohibit
 it); refresh = the owner supplies a newer file. See `docs/ops/PSX_ANNOUNCEMENT_FEED.md`. Awaiting the owner's approval to load.
+
+## Roadmap approved by the owner (2026-11-17): from collection to analysis
+Order (one phase at a time, each stops at an owner gate):
+1. Council V1 seven-day dry run and owner review. IN PROGRESS (first automatic run 2026-11-17). No production analytical writes until the owner approves.
+2. Price facts through the owner-export route (a file the owner supplies; converter loads dated facts). NOT STARTED, BLOCKED on the owner's price file. No live link to the technical engine (ADR-0001 stands).
+3. Materiality scoring (new figure vs the company's own history) and the company radar. NOT STARTED.
+4. "Why did it move" explanations with sector and macro context; ranked hypotheses with evidence, "no identified cause" when nothing fits; no buy/sell. NOT STARTED.
+5. One company page: news, results, price, technical signals. NOT STARTED (only built from implemented modules).
