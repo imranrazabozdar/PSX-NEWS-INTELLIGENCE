@@ -615,3 +615,7 @@ Order (one phase at a time, each stops at an owner gate):
 
 ## Investify old title facts trimmed (owner decision 2026-11-17) - IMPLEMENTED
 - 395 announcement title facts dated before 2026-08-17 deleted from psx-library via `scripts/trim_investify_titles.py` (dry run counted 395, apply deleted 395, 0 remain older than the cutoff). Only research_fact rows from the Investify sources, topic announcements.*, announcement date before the capture cutoff.
+
+## Entity aliases derived from current Investify names (owner, 2026-11-17) - IMPLEMENTED
+- Owner: "Ltd" and "Limited" are the same (the matcher already drops legal suffixes); keep ETFs and REITs; leave preference/right shares out. 109 aliases (name without "Ltd" -> symbol) added to `docs/research/arn/entity_aliases.json` for multi-word names that did not resolve to their symbol. Left out: 15 preference/right/class shares, 23 one-word names (Systems, Packages, Thal, Loads... the matcher refuses bare one-word names by design), 3 collisions with another symbol (AHL/AHCL, PIAHCLB/PIAHCLA, WAVESAPP/WHALE). 46 of the names are not in the KSE listing at all; about 50 differ from it only by typos in that listing.
+- No database rows were deleted. The alias fold into stored research_fact rows (`scripts/apply_entity_aliases.py`) is a separate, still-unrun step.
