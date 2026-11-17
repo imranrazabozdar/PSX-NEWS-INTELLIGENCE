@@ -138,3 +138,47 @@ def test_sector_names_come_from_the_profile_fact():
             ]
 
     assert ex.sectors_of(DB(), ["HBL"]) == {"HBL": "Commercial Banks"}
+
+
+def _announcement(day, label, text="x"):
+    return {
+        "topic": f"announcements.{label}",
+        "fact_text": f"{day}: {text}",
+        "source_date": day,
+        "source_name": "Investify",
+        "value": None,
+        "unit": None,
+        "period": day,
+    }
+
+
+def test_a_material_announcement_counts_as_company_evidence():
+    item0, day = explain_one()
+    prev = (date.fromisoformat(day) - timedelta(days=1)).isoformat()
+    item, _ = explain_one(extra_facts=[_announcement(prev, "Management Change", "CEO resigns")])
+    assert item["verdict"].startswith("evidence on file about this company")
+    assert [e["kind"] for e in item["evidence"]][0] == "company_announcement"
+
+
+def test_a_scheduled_notice_alone_is_not_called_a_cause():
+    item0, day = explain_one()
+    prev = (date.fromisoformat(day) - timedelta(days=1)).isoformat()
+    item, _ = explain_one(extra_facts=[_announcement(prev, "Board Meeting", "to consider dividend")])
+    assert item["verdict"].startswith("only routine scheduled notices")
+    assert [e["kind"] for e in item["evidence"]] == ["scheduled_notice"]
+    assert item["unknown"] and any("no company news" in u for u in item["unknown"])
+
+
+def test_routine_labels_are_left_out_and_the_report_lists_the_unexplained():
+    item0, day = explain_one()
+    prev = (date.fromisoformat(day) - timedelta(days=1)).isoformat()
+    item, _ = explain_one(
+        extra_facts=[
+            _announcement(prev, "Report Transmission"),
+            _announcement(prev, "Insider Sell"),
+            _announcement(prev, "Other"),
+        ]
+    )
+    assert item["evidence"] == [] and item["verdict"] == "no identified cause in the evidence on file"
+    md = me.render_markdown([item], day, 5)
+    assert "Unexplained (no cause on file): 1 of 1." in md
