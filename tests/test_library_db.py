@@ -142,6 +142,8 @@ def test_only_the_single_module_constructs_a_turso_client_outside_the_database_p
         for path in files:
             if path.name == "library_db.py":
                 continue
+            if path.name == "technical_link.py":  # the one sanctioned second client (ADR-0008), read only
+                continue
             tree = ast.parse(path.read_text(encoding="utf-8"))
             for node in ast.walk(tree):
                 if isinstance(node, ast.Call) and getattr(node.func, "id", "") == "TursoHTTPDatabase":
