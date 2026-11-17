@@ -1,0 +1,26 @@
+# ADR-0008: schema discovery for the read-only technical-engine link. Dispatch only. Reads table and column
+# NAMES; stores nothing; no data tables are read (the allowlist in engines/technical_link.py is empty).
+name: Technical link discovery
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PSXNI_TECH_LINK_URL: ${{ secrets.PSXNI_TECH_LINK_URL }}
+      PSXNI_TECH_LINK_TOKEN: ${{ secrets.PSXNI_TECH_LINK_TOKEN }}
+      PSXNI_DB_MAX_ROWS_READ: "5000"
+      PSXNI_DB_MAX_REQUESTS: "60"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Discover the schema (names only)
+        run: python -m scripts.tech_link_discover

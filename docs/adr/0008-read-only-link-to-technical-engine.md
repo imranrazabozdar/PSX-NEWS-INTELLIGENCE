@@ -1,6 +1,6 @@
 # ADR-0008: Read-only link from the technical engine's signals to this project
 
-* **Status:** PROPOSED. Not in force until the owner signs the block at the end. Until then ADR-0001 applies in full.
+* **Status:** ACCEPTED 2026-11-17 (signed by the owner in chat, see Owner sign-off). Schema discovery only until Schedule A is approved.
 * **Date proposed:** 2026-11-17
 * **Supersedes (in part, once signed):** the "Data exchange: none" and "Database" rows of ADR-0001, for the single interface below only.
 
@@ -56,6 +56,7 @@ Database identity (host name only, no secrets): (owner to fill).
 4. Tests: allowlist enforcement, read-only enforcement, identity mismatch fails closed, stale-scan labelling, no action words, caps.
 
 ## Owner sign-off
-- [ ] I have read this ADR and authorise exactly the read-only link described, limited to Schedule A.
-
-Owner: ______________________  Date: ____________
+- [x] 2026-11-17, in the session chat, the owner wrote: "I sign ADR-0008, schema discovery first" and confirmed that the
+  secrets `PSXNI_TECH_LINK_URL` and `PSXNI_TECH_LINK_TOKEN` were added. This authorises the read-only link described here.
+  Step 1 is schema discovery only (table and column names, nothing stored). Data tables may be read only after the owner approves
+  the list in Schedule A; until then the allowlist in `engines/technical_link.py` is empty and the code refuses data reads.
