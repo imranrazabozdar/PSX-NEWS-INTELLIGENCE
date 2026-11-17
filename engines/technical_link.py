@@ -19,7 +19,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
-from database.connection import TursoHTTPDatabase
+from database.connection import DatabaseError, TursoHTTPDatabase, _encode_arg, _rows
 
 URL_VAR = "PSXNI_TECH_LINK_URL"
 TOKEN_VAR = "PSXNI_TECH_LINK_TOKEN"  # noqa: S105 - a variable name, not a secret
@@ -58,6 +58,26 @@ def check_target(url: str) -> str:
     if LIBRARY_MARKER in host:
         raise LinkError("refused: the link URL names the psx-library database, not the technical engine's")
     return host
+
+
+class ReadOnlyTurso(TursoHTTPDatabase):
+    """Sends only the caller's statements. The shared client prepends `PRAGMA foreign_keys = ON` to every
+    request, which a read-only token (correctly) refuses. This client sends no PRAGMA or transaction."""
+
+    def batch(self, statements, *, transactional=True, rollback=False):
+        stmts = [{"sql": sql, "args": [_encode_arg(p) for p in params]} for sql, params in statements]
+        for s in stmts:
+            head = s["sql"].lstrip().split(None, 1)[0].upper() if s["sql"].strip() else ""
+            if head not in ("SELECT", "WITH"):
+                raise ReadOnlyViolation(f"refused a non-read statement: {s['sql'].strip()[:60]!r}")
+        body = {"requests": [{"type": "execute", "stmt": s} for s in stmts] + [{"type": "close"}]}
+        out = self._post(body)["results"]
+        results = []
+        for r in out[:-1]:
+            if r["type"] != "ok":
+                raise DatabaseError(r.get("error", {}).get("message", "statement failed"))
+            results.append(_rows(r["response"]["result"]))
+        return results
 
 
 @dataclass
@@ -99,7 +119,7 @@ def connect(environ: Mapping[str, str] | None = None) -> TechnicalLink:
     if not url or not token:
         raise LinkError(f"{URL_VAR} and {TOKEN_VAR} must both be set")
     host = check_target(url)
-    db = TursoHTTPDatabase(url, token)
+    db = ReadOnlyTurso(url, token)
     db.max_rows_read = min(db.max_rows_read, DISCOVERY_ROW_CAP)
     db.max_requests = min(db.max_requests, MAX_REQUESTS)
     return TechnicalLink(db=db, host=host)
