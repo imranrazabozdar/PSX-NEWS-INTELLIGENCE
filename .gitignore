@@ -43,3 +43,4 @@ Thumbs.db
 
 # Raw documents: never committed (the document vault lives outside the repository)
 *.pdf
+.council_dryrun/

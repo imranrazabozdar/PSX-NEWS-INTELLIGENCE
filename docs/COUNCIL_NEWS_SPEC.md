@@ -1,6 +1,6 @@
 # Council on material news: proposed spec (one page, for owner approval)
 
-Status: PROPOSAL. Nothing here is built. It reuses the existing council (`engines/analyst_council.py`,
+Status: SUPERSEDED by `docs/COUNCIL_NEWS_V1.md` (the dry-run stage is built; production storage is not). It reuses the existing council (`engines/analyst_council.py`,
 `scripts/council_run.py`), which already builds an evidence pack in Python and runs three lenses on free-tier keys.
 Nothing depends on Claude.
 

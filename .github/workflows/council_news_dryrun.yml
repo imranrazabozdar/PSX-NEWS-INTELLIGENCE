@@ -1,0 +1,76 @@
+# PSX News Intelligence Council V1: DRY RUN. Runs after every News collector execution (every 30 minutes, around the
+# clock, so weekends, holidays and after-hours news are included) and on demand for the 10-headline review.
+#
+# NOTHING analytical is written to production: the database connection is read only (any non-SELECT statement raises),
+# and the council's budget, queue and LLM call log live in a ledger file carried from run to run by the Actions cache.
+# Results are printed to the log (COUNCIL_DRYRUN_RECORD lines), added to the run summary, and kept as an artifact.
+name: Council news dry run
+
+on:
+  workflow_run:
+    workflows: ["News collector"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "ten = the 10-real-headline review; auto = one normal execution; report = the 7-day report"
+        required: true
+        default: ten
+        type: choice
+        options: [ten, auto, report]
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: council-news-dryrun
+  cancel-in-progress: false
+
+jobs:
+  dryrun:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      PSXNI_LIBRARY_TURSO_DATABASE_URL: ${{ secrets.PSXNI_LIBRARY_TURSO_DATABASE_URL }}
+      PSXNI_LIBRARY_TURSO_AUTH_TOKEN: ${{ secrets.PSXNI_LIBRARY_TURSO_AUTH_TOKEN }}
+      PSXNI_GROQ_API_KEY_ONE: ${{ secrets.PSXNI_GROQ_API_KEY_ONE }}
+      PSXNI_GROQ_API_KEY_TWO: ${{ secrets.PSXNI_GROQ_API_KEY_TWO }}
+      PSXNI_GROQ_API_KEY_THREE: ${{ secrets.PSXNI_GROQ_API_KEY_THREE }}
+      PSXNI_GEMINI_API_KEY_ONE: ${{ secrets.PSXNI_GEMINI_API_KEY_ONE }}
+      PSXNI_OPENROUTER_API_KEY_ONE: ${{ secrets.PSXNI_OPENROUTER_API_KEY_ONE }}
+      PSXNI_COUNCIL_LEDGER: .council_dryrun/ledger.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Restore the council ledger
+        uses: actions/cache/restore@v4
+        with:
+          path: .council_dryrun
+          key: council-ledger-none
+          restore-keys: council-ledger-
+      - name: Council dry run
+        run: python -m scripts.council_news_dryrun --mode "${{ github.event.inputs.mode || 'auto' }}"
+      - name: Seven-day report
+        if: github.event_name == 'workflow_run'
+        run: python -m scripts.council_news_dryrun --mode report
+      - name: Save the council ledger
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .council_dryrun
+          key: council-ledger-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Keep the records
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: council-dryrun-${{ github.run_id }}
+          path: .council_dryrun
+          retention-days: 30
+          if-no-files-found: ignore
