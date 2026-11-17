@@ -15,7 +15,9 @@ Drivers and their caps (the sum is capped at 100):
 
 from __future__ import annotations
 
+import calendar
 import re
+from collections import Counter
 from typing import Any
 
 CAPS = {"results": 60, "corporate": 20, "price": 40, "news": 15, "technical": 10}
@@ -95,7 +97,9 @@ def eps_history(facts: list[dict[str, Any]]) -> dict[tuple[str, int], float | No
     return out
 
 
-def eps_change(hist: dict[tuple[str, int], float | None]) -> tuple[dict[str, Any] | None, str | None]:
+def eps_change(
+    hist: dict[tuple[str, int], float | None], notes: dict[tuple[str, int], str] | None = None
+) -> tuple[dict[str, Any] | None, str | None]:
     """Like-for-like change for the latest year that has the previous year too: (result, why unknown)."""
     years = sorted({(k, y) for (k, y) in hist}, key=lambda t: (t[1], _end_md(t[0])), reverse=True)
     for kind, year in years:
@@ -104,6 +108,8 @@ def eps_change(hist: dict[tuple[str, int], float | None]) -> tuple[dict[str, Any
             continue
         shown = kind.replace("|", " ").replace("@", " ")
         label = f"{shown} {year} vs {year - 1}"
+        if notes and notes.get((kind, year)):
+            label += f" (latest figure from {notes[(kind, year)]}, basis matched)"
         if prev > 0 and cur >= 0:
             return {"label": label, "cur": cur, "prev": prev, "pct": (cur / prev - 1) * 100}, None
         if prev > 0 > cur or prev < 0 <= cur:
@@ -143,7 +149,7 @@ def score_company(
     if results:
         top = max(results, key=lambda f: f["source_date"])
         drivers.append(_driver("results", 35, top["fact_text"][:200], top["source_date"], top["source_name"]))
-        change, why = eps_change(eps_history(history_facts))
+        change, why = eps_pair(history_facts)
         if change and change.get("pct") is not None:
             drivers.append(
                 _driver(
@@ -233,3 +239,99 @@ def render_markdown(ranked: list[dict[str, Any]], day: str, universe: int, with_
             lines.append(f"- unknown: {u}")
         lines.append("")
     return "\n".join(lines)
+
+
+# --- pairing Investify's newest EPS with the PSX history, only when like-for-like can be shown --------
+
+INVESTIFY_EPS = {
+    "fundamentals.latest_quarter_eps": "quarter",
+    "fundamentals.year_to_date_eps": "ytd",
+    "fundamentals.annual_eps": "annual",
+}
+_FUND_PERIOD = re.compile(r"^(?:UPTO )?(\d{4}) (?:(\d)Q|FY)$")
+IMPLAUSIBLE_RATIO = 4.0  # an Investify figure above this multiple of last year's is not used
+AGREE_TOLERANCE = 0.02  # an overlapping period must match within 2% for the source to count as validated
+
+
+def _is_investify(f: dict[str, Any]) -> bool:
+    return str(f.get("source_name", "")).startswith("Investify") and f.get("topic") in INVESTIFY_EPS
+
+
+def investify_key(topic: str, period: str, fye: tuple[int, int]) -> tuple[str, int] | None:
+    """Investify's '2026 3Q', 'UPTO 2026 3Q' or '2025 FY' as PSX-style (kind, calendar year of period end).
+
+    The label's year is the fiscal year; the quarter ends 3n months after the previous fiscal year end."""
+    m = _FUND_PERIOD.match(str(period or "").strip())
+    kind = INVESTIFY_EPS.get(topic)
+    if not m or not kind:
+        return None
+    fy, n = int(m.group(1)), int(m.group(2) or 4)
+    month, day = fye
+    total = (fy - 1) * 12 + (month - 1) + 3 * n
+    year, end_month = total // 12, total % 12 + 1
+    end_day = day if n == 4 else calendar.monthrange(year, end_month)[1]
+    if kind == "quarter" and n == 4:
+        return None  # a fourth quarter is the year less nine months: not a reported figure to compare
+    base = {"quarter": "Q", "annual": "FY"}.get(kind) or {1: "Q", 2: "H", 3: "9M", 4: "FY"}[n]
+    if kind == "annual" and n != 4:
+        return None
+    return f"{base}@{end_month:02d}-{end_day:02d}", year
+
+
+def _fiscal_year_end(hist: dict[tuple[str, int], float | None]) -> tuple[int, int] | None:
+    ends = Counter(k.split("|", 1)[0].split("@", 1)[1] for (k, _y) in hist if k.startswith("FY@"))
+    if not ends:
+        return None
+    month, day = ends.most_common(1)[0][0].split("-")
+    return int(month), int(day)
+
+
+def eps_pair(facts: list[dict[str, Any]]) -> tuple[dict[str, Any] | None, str | None]:
+    """Like-for-like EPS change from every fact on file; Investify's newest figure joins only when proven.
+
+    Investify labels no basis and, for one company, can follow different bases for different figures
+    (HBL's annual EPS matches PSX's unconsolidated figure and its year-to-date EPS matches PSX's consolidated
+    one). So its newest figure is paired with last year's PSX figure only when (1) PSX's figure for that prior
+    period exists on exactly one basis, and (2) Investify's own figures agree with PSX on that basis wherever
+    the two overlap (at least once, and never a disagreement). Otherwise it stays unpaired and the result
+    stays unknown."""
+    psx = [f for f in facts if not _is_investify(f)]
+    hist = eps_history(psx)
+    notes: dict[tuple[str, int], str] = {}
+    fye = _fiscal_year_end(hist)
+    points = []
+    if fye:
+        for f in facts:
+            if _is_investify(f) and f.get("value") is not None:
+                key = investify_key(f["topic"], f.get("period"), fye)
+                if key:
+                    points.append((key, float(f["value"])))
+    by_period: dict[tuple[str, int], dict[str, float | None]] = {}
+    for (kind, year), val in hist.items():
+        base, _, basis = kind.partition("|")
+        if "@" in base:  # PSX-style period; an unlabelled basis ("") is a basis of its own
+            by_period.setdefault((base, year), {})[basis] = val
+    agree: set[str] = set()
+    disagree = False
+    for key, val in points:
+        bases = by_period.get(key)
+        if bases and len(bases) == 1:
+            basis, other = next(iter(bases.items()))
+            if other is None or abs(val - other) > AGREE_TOLERANCE * max(abs(other), 1e-9):
+                disagree = True
+            else:
+                agree.add(basis)
+    if agree and not disagree:
+        for (kind, year), val in points:
+            if (kind, year) in by_period:
+                continue  # PSX already has this period: its figure stands
+            prior = by_period.get((kind, year - 1), {})
+            if len(prior) == 1 and next(iter(prior)) in agree:
+                basis = next(iter(prior))
+                before = prior[basis]
+                if before is not None and before > 0 and val / before > IMPLAUSIBLE_RATIO:
+                    continue  # more than 4x last year's figure: more likely a source slip than a result
+                key = f"{kind}|{basis}" if basis else kind
+                hist[(key, year)] = val
+                notes[(key, year)] = "Investify"
+    return eps_change(hist, notes)

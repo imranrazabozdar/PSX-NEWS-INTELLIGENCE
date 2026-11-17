@@ -112,7 +112,7 @@ def load(db: Any, symbol: str, today: date, ctx: dict[str, Any], days: int = 30)
         key=lambda f: f["event_date"],
         reverse=True,
     )[:8]
-    change, why = materiality.eps_change(materiality.eps_history(history))
+    change, why = materiality.eps_pair(facts)
     if not results:
         unknown.append("no results on file")
     elif change is None:
