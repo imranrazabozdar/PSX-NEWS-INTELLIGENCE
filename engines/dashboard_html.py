@@ -44,6 +44,11 @@ details.pi-d[open] summary::after{content:"\\25B4"}
  background:#1c1f26;color:#b9c0cc;border:1px solid #2b2f38}
 .pi-body{padding:.1rem 0 .8rem;font-size:.84rem;color:#d4d7dc;line-height:1.35}
 .pi-body p{margin:.35rem 0}.pi-body i{color:#8a8f98}
+.pi-pil{display:flex;gap:.9rem;margin:.3rem 0 .1rem}
+.pi-pil div{flex:1;font-size:.68rem;color:#8a8f98}
+.pi-pil i{display:block;height:5px;border-radius:3px;background:#222;margin-top:3px;overflow:hidden}
+.pi-pil i b{display:block;height:100%;background:#4fd8e0}
+.pi-rk{color:#6b7280;font-weight:700;min-width:1.4rem}
 .pi-note{font-size:.74rem;color:#7d828b;margin:.4rem 0 .2rem}
 </style>
 """
@@ -160,3 +165,38 @@ def unexplained_card(moves: list[dict[str, Any]], total: int) -> str:
         '<div class="pi-note">Absence of evidence on file, not proof of no cause.</div>'
     )
     return '<div class="pi-card">' + head + "".join(rows) + "</div>"
+
+
+def _pillar_bar(label: str, value: float | None) -> str:
+    if value is None:
+        return f"<div>{e(label)} <span class='m'>unknown</span><i></i></div>"
+    return f"<div>{e(label)} <b style='color:#e8eaed'>{value:.0f}</b><i><b style='width:{value:.0f}%'></b></i></div>"
+
+
+def setup_cards_html(rows: list[dict[str, Any]], mode: str) -> str:
+    """mode: technical | fundamental | combined. One tap-to-open card per stock, best first."""
+    out = []
+    for i, r in enumerate(rows, 1):
+        score = r[mode]
+        show_t = mode in ("technical", "combined")
+        show_f = mode in ("fundamental", "combined")
+        bars = (_pillar_bar("Technical", r["technical"]) if show_t else "") + (
+            _pillar_bar("Fundamental", r["fundamental"]) if show_f else ""
+        )
+        sector = f" · {e(r['sector'])}" if r.get("sector") else ""
+        summary = (
+            f'<span class="pi-rk">{i}</span><span class="pi-score">{score:.0f}</span>'
+            f'<div class="pi-st"><b>{e(r["symbol"])}</b> <span class="m">{r["close"]:,.2f}</span>'
+            f'<div>{e(r["name"] or "")}{sector}</div><div class="pi-pil">{bars}</div></div>'
+        )
+        lines = []
+        if show_t:
+            lines += [f"<b>Technical:</b> {e(x)}" for x in r["tech_evidence"]]
+            if r["tech_unknown"]:
+                lines.append("<i>not on file:</i> " + e(", ".join(r["tech_unknown"])))
+        if show_f:
+            lines += [f"<b>Fundamental:</b> {e(x)}" for x in r["fund_evidence"]]
+            if r["fund_unknown"]:
+                lines.append("<i>not on file:</i> " + e(", ".join(r["fund_unknown"])))
+        out.append(_details(summary, lines))
+    return "".join(out) or '<div class="pi-card m">Nothing qualifies on the evidence on file.</div>'
