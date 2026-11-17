@@ -1,0 +1,33 @@
+# One-off: remove Investify announcement title facts older than the three-month capture window (owner, 2026-11-17).
+name: Trim old Investify titles
+
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: "Delete (false = count only)"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  trim:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PSXNI_LIBRARY_TURSO_DATABASE_URL: ${{ secrets.PSXNI_LIBRARY_TURSO_DATABASE_URL }}
+      PSXNI_LIBRARY_TURSO_AUTH_TOKEN: ${{ secrets.PSXNI_LIBRARY_TURSO_AUTH_TOKEN }}
+      PSXNI_DB_MAX_ROWS_READ: "400000"
+      PSXNI_DB_MAX_ROWS_WRITTEN: "1500"
+      PSXNI_DB_MAX_REQUESTS: "20"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python -m scripts.trim_investify_titles ${{ inputs.apply && '--apply' || '' }}
