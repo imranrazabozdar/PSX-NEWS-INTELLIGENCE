@@ -31,6 +31,7 @@ def load(db: Any, now: datetime, days: int = 3, top: int = 15) -> dict[str, Any]
         "news_day": news,
         "breadth": daily_digest.breadth(moves, day) if day else None,
         "radar": radar,
+        "radar_all": radar_all,
         "radar_stats": radar_stats,
         "moves": items,
         "universe": universe,
