@@ -529,3 +529,8 @@ uses the company names inside `owner_confirmed` notes (they never matched before
 Seven importance rules, event de-duplication and versions, caps (6 a day, 2 an execution), queue, per-call ledger,
 read-only connection, 10-headline review and a 7-day automatic dry-run workflow. See `docs/COUNCIL_NEWS_V1.md`.
 Awaiting the owner's review of the 10-headline test and the seven-day results.
+
+## PSX announcement feed (owner-supplied export, 17 Nov 2026) - converter IMPLEMENTED, TESTED; dry run only, NOT loaded
+`engines/psx_announcements.py`, `scripts/build_psx_announcement_capsule.py`: 15,574 rows (results with figures, dividends,
+bonus, rights, book closures, meetings) for 509 companies from 1 Jan 2023. No automated fetch from PSX (its Terms prohibit
+it); refresh = the owner supplies a newer file. See `docs/ops/PSX_ANNOUNCEMENT_FEED.md`. Awaiting the owner's approval to load.

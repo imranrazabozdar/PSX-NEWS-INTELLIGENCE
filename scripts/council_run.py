@@ -27,6 +27,9 @@ INSERT = ("INSERT INTO council_verdict (event, created_at, lenses_answered, conf
 # so a new topic cannot quietly reach a lens that should not weigh it.
 TOPIC_KIND = (
     ("announcements.", "announcement"),
+    # PSX feed: results are figures; dividends, closures, meetings and issues are notices.
+    ("results.", "figure"),
+    ("corporate_action.", "announcement"),
     # Dated channel facts (verified upload date): reported results and payouts are figures for the financial
     # lens, other company/economy events are news, and market data (index, oil, flows, rates) is macro.
     ("news.results", "figure"),
