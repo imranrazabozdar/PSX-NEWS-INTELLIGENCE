@@ -226,7 +226,7 @@ def build_vocabulary(listing: dict[str, str], aliases: dict[str, str], sectors: 
             continue  # the exchange itself, an index or an acronym: market news, not a company
         phrase = _name_phrase(name)
         tail = _SUFFIXED.search(name)
-        if (name, sym) in aliased and tail and " " not in phrase and len(phrase) >= 4:
+        if (name, sym) in aliased and tail and " " not in phrase and len(phrase) >= 3:
             # an owner-confirmed one-word name written with its legal suffix ("Systems Limited"): matched
             # only with the suffix, so the bare common word ("Payment Systems") is never a company
             for suffix in {"limited", "ltd", tail.group(1).lower()}:
