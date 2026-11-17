@@ -6,10 +6,29 @@ STAMP = "2026-11-17T00:00:00Z"
 
 
 def bars(n=30, last_close=110.0, last_vol=100.0):
-    out = [{"symbol": "ABC", "trade_date": f"2026-10-{i + 1:02d}", "open": 100.0, "high": 101.0, "low": 99.0,
-            "close": 100.0, "volume": 100.0} for i in range(n - 1)]
-    out.append({"symbol": "ABC", "trade_date": "2026-11-16", "open": 100.0, "high": 111.0, "low": 99.0,
-                "close": last_close, "volume": last_vol})
+    out = [
+        {
+            "symbol": "ABC",
+            "trade_date": f"2026-10-{i + 1:02d}",
+            "open": 100.0,
+            "high": 101.0,
+            "low": 99.0,
+            "close": 100.0,
+            "volume": 100.0,
+        }
+        for i in range(n - 1)
+    ]
+    out.append(
+        {
+            "symbol": "ABC",
+            "trade_date": "2026-11-16",
+            "open": 100.0,
+            "high": 111.0,
+            "low": 99.0,
+            "close": last_close,
+            "volume": last_vol,
+        }
+    )
     return out
 
 
@@ -35,16 +54,40 @@ def test_not_enough_history_or_bad_bars_make_no_fact():
 
 
 def test_signal_facts_are_heuristic_dated_and_never_an_instruction():
-    w = tf.wyckoff_fact({"symbol": "ABC", "scan_date": "2026-11-16", "accumulation_score": 72,
-                         "signal_type": "BUY_NOW"}, STAMP)
+    w = tf.wyckoff_fact(
+        {"symbol": "ABC", "scan_date": "2026-11-16", "accumulation_score": 72, "signal_type": "BUY_NOW"},
+        STAMP,
+    )
     assert w["confidence"] == "analyst_view" and "unlabelled" in w["fact_text"]
     assert "buy" not in w["fact_text"].lower() and w["source_date"] == "2026-11-16"
-    assert tf.wyckoff_fact({"symbol": "ABC", "scan_date": "2026-11-16", "accumulation_score": 20,
-                            "signal_type": "NO_SIGNAL"}, STAMP) is None
-    assert tf.wyckoff_fact({"symbol": "ABC", "scan_date": "2026-11-16", "accumulation_score": None,
-                            "signal_type": "STRONG"}, STAMP) is None
-    p = tf.pattern_fact({"symbol": "ABC", "pattern_type": "DOUBLE_BOTTOM", "signal_date": "2026-11-16",
-                         "confidence_score": 0.8847}, STAMP)
+    assert (
+        tf.wyckoff_fact(
+            {
+                "symbol": "ABC",
+                "scan_date": "2026-11-16",
+                "accumulation_score": 20,
+                "signal_type": "NO_SIGNAL",
+            },
+            STAMP,
+        )
+        is None
+    )
+    assert (
+        tf.wyckoff_fact(
+            {"symbol": "ABC", "scan_date": "2026-11-16", "accumulation_score": None, "signal_type": "STRONG"},
+            STAMP,
+        )
+        is None
+    )
+    p = tf.pattern_fact(
+        {
+            "symbol": "ABC",
+            "pattern_type": "DOUBLE_BOTTOM",
+            "signal_date": "2026-11-16",
+            "confidence_score": 0.8847,
+        },
+        STAMP,
+    )
     assert "double bottom" in p["fact_text"] and "not a probability" in p["fact_text"]
     missing = {"symbol": "ABC", "signal_date": "2026-11-16", "confidence_score": None}
     assert tf.pattern_fact(missing, STAMP) is None
@@ -63,8 +106,17 @@ def test_the_price_table_migration_is_exactly_one_create_table():
 def test_only_changed_bars_are_written():
     class FakeDB:
         def execute(self, sql, params=()):
-            return [{"symbol": "ABC", "trade_date": "2026-11-16", "open": 100.0, "high": 111.0, "low": 99.0,
-                     "close": 110.0, "volume": 100.0}]
+            return [
+                {
+                    "symbol": "ABC",
+                    "trade_date": "2026-11-16",
+                    "open": 100.0,
+                    "high": 111.0,
+                    "low": 99.0,
+                    "close": 110.0,
+                    "volume": 100.0,
+                }
+            ]
 
     same = bars()[-1]
     moved = dict(same, close=105.0, trade_date="2026-11-16")
@@ -93,3 +145,11 @@ def test_an_idle_check_costs_only_two_one_row_reads():
     assert sync.anything_new(Link(), Lib("2026-11-16")) is False
     assert sync.anything_new(Link(), Lib("2026-11-13")) is True
     assert sync.anything_new(Link(), Lib(None)) is True
+
+
+def test_the_sync_never_scans_the_whole_fact_table():
+    """A DISTINCT over research_fact read every row (over 160,000) and broke the first live data day."""
+    from pathlib import Path
+
+    code = (Path(__file__).resolve().parents[1] / "scripts" / "tech_link_sync.py").read_text("utf-8")
+    assert "SELECT DISTINCT company FROM research_fact" not in code

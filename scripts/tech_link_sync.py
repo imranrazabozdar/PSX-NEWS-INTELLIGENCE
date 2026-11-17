@@ -138,9 +138,6 @@ def main(argv: list[str] | None = None) -> int:
     args.out.write_text(json.dumps(facts, ensure_ascii=False), encoding="utf-8")
 
     db = library_db.get_library_connection().db
-    known = {r["company"] for r in db.execute("SELECT DISTINCT company FROM research_fact")}
-    unknown = sorted(set(by_symbol) - known)
-    print(f"symbols with no entity in the library yet: {len(unknown)} {unknown[:20]}")
     try:
         todo = changed_bars(db, window)
     except Exception as exc:  # noqa: BLE001 - table missing: say so plainly
