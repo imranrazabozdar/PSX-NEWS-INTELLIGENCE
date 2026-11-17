@@ -622,3 +622,6 @@ Order (one phase at a time, each stops at an owner gate):
 
 ## Owner-confirmed one-word names (2026-11-17) - IMPLEMENTED
 - Owner confirmed Systems Limited = SYS, Packages Limited = PKGS, Loads Limited = LOADS, Treet Corporation = TREET. A confirmed one-word alias written with its legal suffix now matches only WITH the suffix ("Systems Limited"/"Systems Ltd"), so "Payment Systems" is never a company. Test added. The other 19 one-word names await the owner.
+
+## One-word names, second confirmation (owner, 2026-11-17) - IMPLEMENTED
+- Owner accepted all remaining one-word names: AGP, AMTEX, BLUEX, BNL, CHBL, HAFL, TELE, TOWL, ZAL, PREMA, ASC, SPEL, TPL, THALL, TCORP, WAVES, IML, GOC, ZIL (each matched only with its legal suffix). WAVESAPP is not aliased: its Investify name "Waves Home Appliances" is identical to the KSE listing name of WHALE, so the name cannot point to two symbols; owner to say which symbol the name belongs to.
