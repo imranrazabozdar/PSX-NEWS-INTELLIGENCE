@@ -18,6 +18,11 @@ on:
         default: ten
         type: choice
         options: [ten, auto, report]
+      focus:
+        description: "ten only: comma-separated symbols (for example MARI,NRSL) to assess instead of the usual ten"
+        required: false
+        default: ""
+        type: string
 
 permissions:
   contents: read
@@ -56,7 +61,7 @@ jobs:
           key: council-ledger-none
           restore-keys: council-ledger-
       - name: Council dry run
-        run: python -m scripts.council_news_dryrun --mode "${{ github.event.inputs.mode || 'auto' }}"
+        run: python -m scripts.council_news_dryrun --mode "${{ github.event.inputs.mode || 'auto' }}" --focus "${{ github.event.inputs.focus }}"
       - name: Seven-day report
         if: github.event_name == 'workflow_run'
         run: python -m scripts.council_news_dryrun --mode report

@@ -515,3 +515,35 @@ def test_a_failed_run_is_retried_by_a_later_execution_and_counts_against_the_day
     assert (
         led.runs_on(ni.local_day(NOW)) == 4
     )  # every started run is charged to the daily cap, success or not
+
+
+def test_focus_picks_only_events_that_name_the_chosen_company_best_corroborated_first():
+    from types import SimpleNamespace as NS
+
+    from engines import council_news as cn
+
+    def ev(eid, companies, sources, first):
+        members = [NS(source=s, published_at=first) for s in sources]
+        return NS(event_id=eid, companies=companies, members=members, first_seen=first)
+
+    events = [
+        ev("a", ["MARI"], ["profit"], "2026-11-13T07:08"),
+        ev("b", ["OGDC"], ["profit", "dawn_business"], "2026-11-14T07:08"),
+        ev("c", ["MARI", "OGDC"], ["profit", "brecorder", "mettis"], "2026-11-12T07:08"),
+        ev("d", ["MARI"], ["profit"], "2026-11-16T07:08"),
+    ]
+    picked = cn.pick_focus(events, None, {"MARI"}, 3)
+    assert [e.event_id for e, _ in picked] == ["c", "d", "a"]  # three outlets, then newest first
+    assert {label for _, label in picked} == {"focus"}
+    assert cn.pick_focus(events, None, {"MARI"}, 1)[0][0].event_id == "c"
+    assert cn.pick_focus(events, None, {"ZZZ"}, 3) == []
+    assert cn.pick_focus(events, None, set(), 3) == []
+
+
+def test_mapped_first_keeps_the_pack_slots_for_facts_a_lens_can_weigh():
+    from scripts import council_run as cr
+
+    assert cr.kind_for("price.move") is None and cr.kind_for("technical.wyckoff") is None
+    assert cr.kind_for("results.quarterly") == "figure" and cr.kind_for("fundamentals.market_cap") == "figure"
+    # announcement_highlights has no lens on purpose: Investify's Highlights text is not sent to LLM providers
+    assert cr.kind_for("announcement_highlights") is None

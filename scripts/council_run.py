@@ -198,7 +198,8 @@ def _link_items(db: Any, entities: list[str], wanted: set[str], start: int, date
 
 
 def build_pack(event: str, companies: list[str], db: Any, *, limit_per_company: int = 40,
-               news: list[str] | None = None, sectors: list[str] | None = None) -> council.EvidencePack:
+               news: list[str] | None = None, sectors: list[str] | None = None,
+               mapped_first: bool = False) -> council.EvidencePack:
     """The event, plus what the brain already knows about these companies and their sectors."""
     items: list[council.Evidence] = []
     for n, text in enumerate(news or [], start=1):
@@ -231,6 +232,10 @@ def build_pack(event: str, companies: list[str], db: Any, *, limit_per_company: 
         rows = _dated_rows(by_company.get(company, []), dates)
         # Facts about the factors this event touches first, then the rest, each newest-first.
         rows.sort(key=lambda r: not (wanted & freshness.factors_in(f"{r['topic']} {r['fact_text']}")))
+        if mapped_first:
+            # price moves and technical rows have no lens: dropping them BEFORE the cut keeps the slots
+            # for facts a lens can weigh (the default cuts first, so the newest rows may all be unmapped)
+            rows = [r for r in rows if kind_for(str(r["topic"])) is not None]
         for row in rows[:limit_per_company]:
             kind = kind_for(str(row["topic"]))
             if kind is None:
