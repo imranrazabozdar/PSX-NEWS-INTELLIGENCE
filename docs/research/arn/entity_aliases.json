@@ -238,7 +238,6 @@
     "Gani Global Holdings": "GGL",
     "First Habib Modaraba": "FHAM",
     "High Noon Laboratories": "HINOON",
-    "Waves Homes Appliances": "WHALE",
     "786 Investments": "786",
     "OGDCL": "OGDC",
     "LUCKY": "LUCK",
@@ -414,7 +413,9 @@
     "Waves Corporation": "WAVES",
     "Imperial Limited": "IML",
     "GOC Limited": "GOC",
-    "ZIL Limited": "ZIL"
+    "ZIL Limited": "ZIL",
+    "Waves Home Appliances": "WAVESAPP",
+    "Tariq Glass Limited": "TGL"
   },
   "not_listed": [
     "Central Depository Company",

@@ -27,12 +27,16 @@ PHASES = [  # master programme (docs/PROJECT_ROADMAP.md); code status only, noth
 PAGE_OVERVIEW = "Overview"
 PAGE_COMPANY = "Company intelligence"
 PAGE_BRIEF = "Company brief"
+PAGE_MARKET = "Market dashboard"
 
 
 def main() -> None:
     st.set_page_config(page_title="PSX News Intelligence", layout="wide")
     settings = load_settings()
-    page = st.sidebar.radio("Page", [PAGE_OVERVIEW, PAGE_COMPANY, PAGE_BRIEF], key="app_page")
+    page = st.sidebar.radio("Page", [PAGE_OVERVIEW, PAGE_MARKET, PAGE_COMPANY, PAGE_BRIEF], key="app_page")
+    if page == PAGE_MARKET:
+        _market_dashboard()
+        return
     if page == PAGE_BRIEF:
         _brief_page()
         return
@@ -87,6 +91,56 @@ def _library():
         db.max_rows_read = max(db.max_rows_read, 150_000)
         db.max_rows_written = 1
     return db
+
+
+@st.cache_data(ttl=1800, show_spinner="Reading the brain (cached for 30 minutes)...")
+def _dashboard_data(day_key: str) -> dict:
+    from datetime import UTC, datetime
+
+    from engines import market_dashboard
+
+    return market_dashboard.load(_library(), datetime.now(UTC))
+
+
+def _market_dashboard() -> None:
+    """Market view from the library: breadth, companies to look at, notable moves. Read only; no advice."""
+    import os
+    from datetime import UTC, datetime
+
+    from engines import library_db, market_dashboard
+
+    st.title("Market dashboard")
+    st.caption(
+        "Evidence on file, ordered for attention. Scores are not forecasts, explanations are candidates "
+        "not proof, and nothing here is a buy or sell view."
+    )
+    if not (os.environ.get(library_db.URL_VAR) and os.environ.get(library_db.TOKEN_VAR)):
+        st.info(f"The library is not configured here (set {library_db.URL_VAR} and {library_db.TOKEN_VAR}).")
+        return
+    try:
+        d = _dashboard_data(datetime.now(UTC).strftime("%Y-%m-%d %H"))
+    except Exception as exc:  # noqa: BLE001 - show the reason, never a half page
+        st.error(f"Could not read the library: {exc}")
+        return
+    a, b, c = st.columns(3)
+    a.metric("Latest price day", d["price_day"] or "unknown")
+    b.metric("Latest news day", d["news_day"] or "unknown")
+    c.metric("Symbols with prices", d["universe"])
+    st.subheader("Market breadth")
+    st.write(market_dashboard.breadth_line(d["breadth"]))
+    if d["breadth"]:
+        up, down = d["breadth"]["top_up"], d["breadth"]["top_down"]
+        st.write("Biggest rises: " + ", ".join(f"{s} {v:+.1f}%" for s, v in up))
+        st.write("Biggest falls: " + ", ".join(f"{s} {v:+.1f}%" for s, v in down))
+    st.subheader("Companies to look at (radar)")
+    rows = market_dashboard.radar_rows(d["radar"])
+    st.dataframe(rows, hide_index=True, use_container_width=True) if rows else st.write("Nothing scored.")
+    with_cause, no_cause = market_dashboard.explained(d["moves"])
+    st.subheader("Notable moves with something on file")
+    st.dataframe(market_dashboard.move_rows(with_cause), hide_index=True, use_container_width=True)
+    st.subheader(f"Unexplained: no cause on file ({len(no_cause)} of {len(d['moves'])} notable moves)")
+    st.dataframe(market_dashboard.move_rows(no_cause), hide_index=True, use_container_width=True)
+    st.caption(f"Built {d['built_utc']} UTC; refreshes every 30 minutes.")
 
 
 @st.cache_data(ttl=1800, show_spinner="Reading the brain (cached for 30 minutes)...")

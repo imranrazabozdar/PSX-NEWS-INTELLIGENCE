@@ -63,6 +63,7 @@ COMMON_SINGLES = {
     "Standard",
 }
 TICKER_STOPLIST = {
+    "WHALE",  # owner (2026-11-17): not a company; the name Waves Home Appliances belongs to WAVESAPP
     "PPP",  # the political party, as often as Pakistan Paper Products
     "PSX",
     "KSE",
