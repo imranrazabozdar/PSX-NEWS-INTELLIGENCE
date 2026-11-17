@@ -120,3 +120,9 @@ owner_confirmed, and DHPL, SERG, SECMC, DHCL, BYCO, DAPL, GAGL, IPAX, SRG, SSG, 
 Added to owner_confirmed: MIIETF, MZNPETF, JSMFETF. Everything else on the held list is LEFT AS IT IS (IBL, JBDC,
 PIBC, TRT, HPCO, GHAI, GHAL, and the names not found on any screen). NIMIR and SOYASUP (Apex Agro / Soya Supreme) were
 not answered separately; they are also left unchanged until the owner says otherwise.
+
+## Owner decision, 17 Nov 2026 - APPLIED to psx-library
+Folded: Apex Agro Processors and Atmospheric Gases (28 rows) and Soya Supreme (12) -> SOYASUP (Investify profile:
+"Agro Processors & Atmospheric Gases Ltd"); NIMIR (1) -> NICL. Rows unchanged. Still left as they are: IBL, JBDC,
+PIBC, TRT, HPCO, GHAI, GHAL, and the names not found on any screen (DHPL, SERG, SECMC, DHCL, BYCO, DAPL, GAGL, IPAX,
+SRG, SSG, AGR).
