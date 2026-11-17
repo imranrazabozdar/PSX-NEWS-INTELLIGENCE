@@ -25,7 +25,7 @@ def test_periods_parse_only_comparable_forms():
 def test_like_for_like_eps_change_and_its_unknowns():
     hist = m.eps_history([eps("9M 2026", 36.84), eps("9M 2025", 35.0)])
     change, why = m.eps_change(hist)
-    assert why is None and round(change["pct"], 1) == 5.3 and change["label"] == "9M 2026 vs 9M 2025"
+    assert why is None and round(change["pct"], 1) == 5.3 and change["label"] == "9M 2026 vs 2025"
     assert m.eps_change(m.eps_history([eps("9M 2026", 36.84)]))[0] is None
     swing, _ = m.eps_change(m.eps_history([eps("9M 2026", -2.0), eps("9M 2025", 5.0)]))
     assert swing["pct"] is None and swing["swing"]
@@ -126,3 +126,56 @@ def test_an_old_announcement_loaded_today_is_not_new():
     news = {"topic": "news.results", "period": "9M 2026", "source_date": "2026-11-16"}
     assert br.event_date(old) == "2026-10-28"
     assert br.event_date(news) == "2026-11-16"
+
+
+def psx(period, value, basis, unit="PKR/share"):
+    return {
+        "topic": "results.nine_months",
+        "fact_text": f"Financial result, {period} ({basis}): EPS {value}.",
+        "value": value,
+        "unit": unit,
+        "period": period,
+        "source_name": "PSX",
+        "source_date": "2026-10-23",
+    }
+
+
+def test_psx_periods_compare_like_for_like_and_never_mix_bases():
+    facts = [
+        psx("nine months ended 2026-09-30", 35.23, "consolidated"),
+        psx("nine months ended 2026-09-30", 36.84, "unconsolidated"),
+        psx("nine months ended 2025-09-30", 32.31, "consolidated"),
+    ]
+    change, why = m.eps_change(m.eps_history(facts))
+    assert why is None and round(change["pct"], 1) == 9.0
+    assert "consolidated" in change["label"] and "unconsolidated" not in change["label"]
+    only_unconsol_now = m.eps_change(m.eps_history(facts[1:2] + facts[2:3]))
+    assert only_unconsol_now[0] is None
+
+
+def test_ended_periods_parse_to_a_kind_that_repeats_each_year():
+    assert m.parse_period("first quarter ended 2026-03-31") == ("Q@03-31", 2026)
+    assert m.parse_period("half yer ended 2025-06-30") == ("H@06-30", 2025)
+    assert m.parse_period("year ended 2025-12-31") == ("FY@12-31", 2025)
+
+
+def test_the_most_recent_period_is_compared_first():
+    def q(period, value):
+        return {
+            "topic": "results.quarterly",
+            "fact_text": f"{period} (consolidated): EPS {value}",
+            "value": value,
+            "unit": "PKR/share",
+            "period": period,
+            "source_name": "PSX",
+            "source_date": "2026-10-28",
+        }
+
+    facts = [
+        q("half ended 2026-06-30", 20.0),
+        q("half ended 2025-06-30", 15.0),
+        q("third quarter ended 2026-09-30", 8.0),
+        q("third quarter ended 2025-09-30", 10.0),
+    ]
+    change, _ = m.eps_change(m.eps_history(facts))
+    assert change["label"].startswith("Q 09-30") and round(change["pct"]) == -20
