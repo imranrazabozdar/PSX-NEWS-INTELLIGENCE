@@ -32,23 +32,8 @@ MACRO_TOPICS = {
 # Investify announcement labels (announcements.<label>). Material ones are company-specific disclosures;
 # scheduled ones are routine notices that say a date is coming, not why a price moved. Everything else
 # (report transmission, briefings, auditor certificates, insider lines, "Other") stays out of the explanation.
-MATERIAL_LABELS = {
-    "Material Disclosure",
-    "Management Change",
-    "Financing / Restructuring",
-    "M&A / Public Offer",
-    "Legal / Regulatory",
-    "Capacity / Shutdown",
-    "Operations Update",
-    "Unusual Movement Reply",
-    "Share Buyback",
-    "Share Split",
-    "Credit Rating",
-    "Scheme / Arrangement",
-    "Rights / Bonus",
-    "Corporate Action",
-}
-SCHEDULED_LABELS = {"Board Meeting", "AGM / EGM", "Book Closure", "Dividend", "Meetings"}
+MATERIAL_LABELS = materiality.MATERIAL_LABELS
+SCHEDULED_LABELS = materiality.SCHEDULED_LABELS
 PER_KIND_CAP = 3
 STRENGTH = {
     "company_event": 3,

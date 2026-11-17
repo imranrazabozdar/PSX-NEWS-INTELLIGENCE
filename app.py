@@ -174,6 +174,16 @@ def _render_brief(b: dict) -> None:
     st.subheader("Corporate actions (last 12 months)")
     for f in b["actions"]:
         st.markdown(f"- {f['event_date']}: {f['fact_text']}")
+    st.subheader("Announcements (last month)")
+    shown = [x for x in b["announcements"] if x["weight"] != "routine"]
+    for x in shown:
+        tag = "material" if x["weight"] == "material" else "scheduled notice"
+        st.markdown(f"- {x['date']} [{x['label']}, {tag}] {x['text']} ({x['source']})")
+    routine = len(b["announcements"]) - len(shown)
+    if routine:
+        st.caption(f"{routine} routine filings not listed (transmissions, briefings, insiders).")
+    if not b["announcements"]:
+        st.write("No announcements on file for the last month.")
     st.subheader("News (last month)")
     for r in b["news"]:
         link = f" ([link]({r['top_url']}))" if r.get("top_url") else ""

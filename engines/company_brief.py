@@ -127,6 +127,32 @@ def load(db: Any, symbol: str, today: date, ctx: dict[str, Any], days: int = 30)
         key=lambda f: f["event_date"],
         reverse=True,
     )[:10]
+    cutoff = (today - timedelta(days=days)).isoformat()
+    announcements = []
+    for f in sorted(facts, key=lambda f: f["event_date"], reverse=True):
+        topic = str(f["topic"])
+        if not topic.startswith("announcements.") or f["event_date"] < cutoff:
+            continue
+        label = topic[len("announcements.") :]
+        weight = (
+            "material"
+            if label in materiality.MATERIAL_LABELS
+            else "scheduled"
+            if label in materiality.SCHEDULED_LABELS
+            else "routine"
+        )
+        announcements.append(
+            {
+                "date": f["event_date"],
+                "label": label,
+                "weight": weight,
+                "text": f["fact_text"],
+                "source": f["source_name"],
+            }
+        )
+    # newest first, then material before scheduled before routine (the sort is stable)
+    announcements.sort(key=lambda a: a["date"], reverse=True)
+    announcements.sort(key=lambda a: {"material": 0, "scheduled": 1, "routine": 2}[a["weight"]])
     news = sorted(news_rows, key=lambda r: r["day"], reverse=True)[:10]
     if not news:
         unknown.append("no news for this company in the last month")
@@ -160,6 +186,7 @@ def load(db: Any, symbol: str, today: date, ctx: dict[str, Any], days: int = 30)
         "results": results,
         "eps_change": change,
         "actions": actions,
+        "announcements": announcements,
         "news": news,
         "technical": tech,
         "fundamentals": fundamentals,

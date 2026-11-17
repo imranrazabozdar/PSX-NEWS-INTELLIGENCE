@@ -309,3 +309,30 @@ def test_an_implausible_jump_in_the_investify_figure_is_not_used():
         _inv("fundamentals.latest_quarter_eps", "2026 3Q", 25.0),
     ]  # 12.5x last year
     assert m.eps_pair(facts)[0] is None
+
+
+def _ann(label, day="2026-11-16", text="x"):
+    return {
+        "topic": f"announcements.{label}",
+        "fact_text": f"{day}: {text}",
+        "source_date": day,
+        "source_name": "Investify",
+        "value": None,
+    }
+
+
+def test_a_material_announcement_is_an_attention_driver_and_routine_ones_are_not():
+    base = dict(history_facts=[], price=None, news_signal=None, has_prices=True)
+    material = m.score_company("HUBC", window_facts=[_ann("Operations Update", text="smelter study")], **base)
+    assert [d["kind"] for d in material["drivers"]] == ["announcement"]
+    assert material["score"] == 15.0 and "smelter study" in material["drivers"][0]["text"]
+    scheduled = m.score_company("HUBC", window_facts=[_ann("Board Meeting")], **base)
+    assert scheduled["score"] == 5.0 and scheduled["drivers"][0]["text"].startswith("routine notice")
+    routine = m.score_company(
+        "HUBC", window_facts=[_ann("Report Transmission"), _ann("Insider Sell")], **base
+    )
+    assert routine["drivers"] == [] and routine["score"] == 0
+    several = m.score_company(
+        "HUBC", window_facts=[_ann("Operations Update"), _ann("Management Change")], **base
+    )
+    assert several["score"] == 15.0 and "2 material announcements" in several["drivers"][0]["text"]
