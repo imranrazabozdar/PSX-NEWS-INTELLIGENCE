@@ -77,3 +77,20 @@ def test_the_digest_gives_no_advice_and_handles_an_empty_day():
     assert "not forecasts" in md
     empty = dd.render("2026-11-17", None, None, [], [], {}, 0)
     assert "No price data for that day." in empty and "Nothing scored in the window." in empty
+
+
+def test_the_once_a_day_probe_reads_one_indexed_row_per_symbol_and_can_say_none():
+    from scripts import build_digest as bd
+
+    class DB:
+        def __init__(self, rows_by_symbol):
+            self.rows, self.calls = rows_by_symbol, []
+
+        def execute(self, sql, params=()):
+            assert "LIMIT 1" in sql and "ORDER BY trade_date DESC" in sql
+            self.calls.append(params[0])
+            return self.rows.get(params[0], [])
+
+    db = DB({"OGDC": [{"trade_date": "2026-11-16"}]})
+    assert bd.latest_price_day(db) == "2026-11-16" and db.calls == ["HBL", "OGDC"]
+    assert bd.latest_price_day(DB({})) is None
