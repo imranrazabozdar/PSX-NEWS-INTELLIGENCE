@@ -12,6 +12,19 @@ from typing import Any
 from engines import daily_digest, library_db, move_explainer
 from scripts import build_radar, explain_moves
 
+PROBES = ("HBL", "OGDC", "PSO")  # reference symbols: the newest stored price day, one indexed row each
+
+
+def latest_price_day(db: Any) -> str | None:
+    """The newest stored price day, from one indexed row of a reference symbol. Costs a single row read."""
+    for sym in PROBES:
+        rows = db.execute(
+            "SELECT trade_date FROM price_daily WHERE symbol = ? ORDER BY trade_date DESC LIMIT 1", (sym,)
+        )
+        if rows:
+            return str(rows[0]["trade_date"])
+    return None
+
 
 def build(db: Any, today_dt: datetime, days: int = 3, top: int = 10) -> str:
     today = today_dt.date()
@@ -34,8 +47,20 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--out-dir", type=Path, default=Path(".digest"))
     ap.add_argument("--days", type=int, default=3)
+    ap.add_argument(
+        "--probe",
+        action="store_true",
+        help="print the newest stored price day (for the once-a-day gate) and stop",
+    )
     args = ap.parse_args(argv)
     db = library_db.get_library_connection().db
+    if args.probe:
+        day = latest_price_day(db) or "none"
+        print(f"latest_price_day={day}")
+        if path := os.environ.get("GITHUB_OUTPUT"):
+            with open(path, "a", encoding="utf-8") as fh:
+                fh.write(f"day={day}\n")
+        return 0
     md = build(db, datetime.now(UTC), args.days)
     args.out_dir.mkdir(parents=True, exist_ok=True)
     (args.out_dir / "digest.md").write_text(md, encoding="utf-8")

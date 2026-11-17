@@ -1,16 +1,27 @@
 # Daily digest (engines/daily_digest.py): breadth, radar, notable moves, unexplained moves, data freshness.
-# Read only: nothing is written to any database. Manual dispatch only for now (an owner decision whether it should
-# run by itself after market close). The report goes to the run summary and an artifact; it is not sent to anyone.
+# Read only: nothing is written to any database. Runs once per trading day: it starts after the technical link
+# refresh and first asks for the newest stored price day (one row read). If a digest for that day was already built
+# (the Actions cache key digest-<day>), it stops there. Nothing is sent to anyone: the report goes to the run
+# summary and an artifact. Manual dispatch also works and always builds.
 name: Daily digest
 
 on:
+  workflow_run:
+    workflows: ["Technical link daily"]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
   contents: read
+  actions: read
+
+concurrency:
+  group: daily-digest
+  cancel-in-progress: false
 
 jobs:
   digest:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -26,11 +37,34 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
-      - name: Build the digest
-        run: python -m scripts.build_digest
-      - uses: actions/upload-artifact@v4
+      - name: Newest stored price day (one row read)
+        id: probe
+        run: python -m scripts.build_digest --probe
+      - name: Was this day already digested?
+        id: seen
+        uses: actions/cache/restore@v4
         with:
-          name: daily-digest
+          path: .digest_done
+          key: digest-${{ steps.probe.outputs.day }}
+          lookup-only: true
+      - name: Build the digest
+        if: github.event_name == 'workflow_dispatch' || (steps.seen.outputs.cache-hit != 'true' && steps.probe.outputs.day != 'none')
+        run: python -m scripts.build_digest
+      - name: Mark the day as digested
+        if: success() && steps.seen.outputs.cache-hit != 'true' && steps.probe.outputs.day != 'none'
+        run: |
+          mkdir -p .digest_done
+          cp .digest/digest.md .digest_done/digest.md
+      - name: Remember the day
+        if: success() && steps.seen.outputs.cache-hit != 'true' && steps.probe.outputs.day != 'none'
+        uses: actions/cache/save@v4
+        with:
+          path: .digest_done
+          key: digest-${{ steps.probe.outputs.day }}
+      - uses: actions/upload-artifact@v4
+        if: hashFiles('.digest/digest.md') != ''
+        with:
+          name: daily-digest-${{ steps.probe.outputs.day }}
           path: .digest
           include-hidden-files: true
           retention-days: 30
