@@ -42,3 +42,39 @@ def test_it_refuses_before_the_addendum_is_in_force(monkeypatch, tmp_path, capsy
     monkeypatch.setattr(bh.pol, "highlights_allowed", lambda now: False)
     assert bh.main([str(tmp_path / "none.db"), "--out", str(tmp_path / "o.json")]) == 2
     assert "refused" in capsys.readouterr().out
+
+
+def test_the_snapshot_builder_drops_cards_older_than_the_window(tmp_path):
+    import json
+    import sqlite3
+
+    path = tmp_path / "x.db"
+    db = sqlite3.connect(path)
+    db.execute("create table company_pages (symbol text, tab text, lines_json text, scraped_at text)")
+    old = [
+        "ABC",
+        "ABC Ltd",
+        "Other",
+        "Neutral",
+        "01/05/2026, 9:00 AM",
+        "Old news",
+        "Old summary text.",
+        "Highlights",
+    ]
+    new = [
+        "ABC",
+        "ABC Ltd",
+        "Other",
+        "Neutral",
+        "16/11/2026, 9:00 AM",
+        "New news",
+        "New summary text.",
+        "Highlights",
+    ]
+    db.execute(
+        "insert into company_pages values ('ABC','announcements',?,?)", (json.dumps(old + new), "2026-11-16")
+    )
+    db.commit()
+    db.close()
+    assert [r["period"] for r in bh.build(path, "2026-08-17")] == ["2026-11-16"]
+    assert len(bh.build(path, "")) == 2

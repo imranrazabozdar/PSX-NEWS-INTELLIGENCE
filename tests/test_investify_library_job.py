@@ -164,3 +164,30 @@ def test_facts_skip_untitled_rows_and_repeat_the_earlier_text_format():
     assert len(facts) == 1
     assert facts[0]["fact_text"] == "2026-10-28: NBP reports lower profit"
     assert facts[0]["topic"] == "announcements.Financial Result"
+
+
+def test_only_the_previous_three_months_and_the_latest_are_kept_never_history():
+    from datetime import datetime as dt
+
+    assert pol.CAPTURE_WINDOW_DAYS == 92
+    assert pol.capture_cutoff(dt(2026, 11, 17, 5, 0, tzinfo=UTC)) == "2026-08-17"
+    old = {
+        "symbol": "X",
+        "title": "old news",
+        "announced_at_utc": "2026-05-01T10:00:00Z",
+        "announced_on_pkt": "2026-05-01",
+        "investify_label": "Other",
+        "highlights": "k",
+        "summary": "s",
+    }
+    new = {
+        **old,
+        "title": "new news",
+        "announced_at_utc": "2026-11-16T10:00:00Z",
+        "announced_on_pkt": "2026-11-16",
+    }
+    facts = lj.facts_from_records([old, new], "t", with_highlights=True, cutoff="2026-08-17")
+    assert {f["fact_text"].split(": ", 1)[0] for f in facts} == {"2026-11-16"}
+    assert (
+        len(lj.facts_from_records([old, new], "t", with_highlights=True)) == 4
+    )  # no cutoff given: nothing dropped
