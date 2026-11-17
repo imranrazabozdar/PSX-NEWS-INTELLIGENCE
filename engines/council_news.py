@@ -35,7 +35,7 @@ from engines import news_facts as nf
 from engines import news_importance as ni
 from engines import news_rollup as nr
 
-SOURCE_LABEL = nf.OUTLETS
+SOURCE_LABEL = {**nf.OUTLETS, "investify": "Investify (investify.pk) announcement"}
 MAX_MEMBERS_IN_PACK = 6
 MIN_HISTORY_DAYS = (
     nr.BASELINE_MIN_DAYS + 7
@@ -588,6 +588,9 @@ def window_start(now: datetime, cursor: str | None) -> datetime:
     return min(base, local_midnight)
 
 
+ANNOUNCEMENT_SCAN_HOURS = 6
+
+
 def execution(
     *,
     db: Any,
@@ -601,6 +604,7 @@ def execution(
     calendar: Any | None,
     chain_for: Callable[..., Any] = build_chain,
     pack_db: Callable[[], Any] | None = None,
+    announcement_events: Callable[[Any, datetime], list[ni.Event]] | None = None,
 ) -> dict[str, Any]:
     """One automatic dry-run execution (one per collector run). Returns {'records': [...], 'summary':
     {...}}."""
@@ -611,6 +615,16 @@ def execution(
     ni.classify(vocab, events)
     signals, baseline = signals_for(db, now)
     extra = ni.concentration_events(events) + ni.signal_events(signals, ni.local_day(now))
+    gate: dict[str, Any] = {"scanned": False, "events": 0, "error": None}
+    if announcement_events is not None and ledger.scan_due("announcements", now, ANNOUNCEMENT_SCAN_HOURS):
+        gate["scanned"] = True
+        try:
+            found = announcement_events(db, now)
+            extra += found
+            gate["events"] = len(found)
+        except Exception as exc:  # noqa: BLE001 - a gate failure must never stop the news run
+            gate["error"] = f"{type(exc).__name__}: {exc}"[:200]
+        ledger.mark_scan("announcements", now)
     ledger.register_events(events)
     queued = {"queued": 0, "already_queued": 0, "already_assessed": 0}
     for e in ni.prioritised(events + extra, now):
@@ -658,6 +672,7 @@ def execution(
         "pending_after": len(pending),
         "needs_review": sum(1 for p in pending if p["state"] == "needs_review"),
         "baseline": baseline,
+        "announcement_gate": gate,
         "db_usage": db.usage(),
     }
     ledger.log_execution(summary)

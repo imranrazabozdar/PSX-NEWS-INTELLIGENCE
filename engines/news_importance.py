@@ -39,9 +39,12 @@ RULE_NAMES = {
     5: "government policy, IMF, regulatory or geopolitical development",
     6: "unusual news concentration about a sector against its baseline",
     7: "material adverse company development",
+    # Added at the owner's direction (2026-11-17): a material announcement that the numbers engine grades
+    # as large, or that the market reacted to, found by engines/announcement_events.py.
+    8: "material announcement: stated size or stage, or a large market reaction",
 }
 # Higher is more urgent. Adverse developments first, then results, then the macro and policy backdrop.
-RULE_WEIGHT = {7: 100, 1: 90, 2: 80, 5: 70, 3: 60, 6: 55, 4: 50}
+RULE_WEIGHT = {7: 100, 1: 90, 8: 85, 2: 80, 5: 70, 3: 60, 6: 55, 4: 50}
 
 # How far each outlet's reporting is trusted by default. These are the owner-editable starting values,
 # ordered by
@@ -153,7 +156,9 @@ class RuleHit:
 
 @dataclass
 class Event:
-    """One story, however many outlets told it. `kind` is 'headline', 'concentration' or 'signal'."""
+    """One story, however many outlets told it.
+
+    `kind` is 'headline', 'concentration', 'signal' or 'announcement'."""
 
     event_id: str
     anchor: frozenset[str]  # content words of the first headline: what later headlines are compared with

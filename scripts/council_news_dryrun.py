@@ -20,9 +20,9 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+from engines import announcement_events, library_db, market_calendar
 from engines import council_ledger as cl
 from engines import council_news as cn
-from engines import library_db, market_calendar
 from engines import news_importance as ni
 from scripts import build_news_capsule as bnc
 from scripts import council_run
@@ -67,6 +67,7 @@ def run_auto(args: argparse.Namespace, ledger: cl.Ledger) -> int:
         build_pack=council_run.build_pack,
         calendar=_calendar(),
         pack_db=lambda: _connect()[0],
+        announcement_events=lambda _d, n: announcement_events.build(_connect()[0], n),
     )
     rec_file = _records_path(ledger.path)
     with open(rec_file, "a", encoding="utf-8") as fh:
@@ -93,6 +94,9 @@ def run_auto(args: argparse.Namespace, ledger: cl.Ledger) -> int:
             f"- {r['outcome']}: {r['event']['headline'][:90]} | {names} | "
             f"{r['models'].get('claim', 'no models')}"
         )
+    g = s.get("announcement_gate") or {}
+    if g.get("scanned"):
+        lines.append(f"- announcement gate: {g['events']} event(s) queued; error: {g.get('error') or 'none'}")
     _step_summary("\n".join(lines))
     print("no production writes were made (read-only connection)")
     return 0
