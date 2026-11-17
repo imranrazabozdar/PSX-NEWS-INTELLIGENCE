@@ -46,3 +46,20 @@ def test_library_host_is_refused_and_both_vars_needed():
     assert tl.check_target("libsql://psx-intelligence-v2-abc.turso.io") == "psx-intelligence-v2-abc.turso.io"
     with pytest.raises(tl.LinkError):
         tl.connect({tl.URL_VAR: "libsql://x.turso.io"})
+
+
+def test_the_client_sends_no_pragma_and_no_write(monkeypatch):
+    sent = []
+
+    def fake_send(self, body):
+        sent.append(body)
+        return {"results": [{"type": "ok", "response": {"result": {
+            "cols": [{"name": "name"}], "rows": [[{"type": "text", "value": "t"}]]}}}, {"type": "ok"}]}
+
+    monkeypatch.setattr(tl.ReadOnlyTurso, "_send", fake_send)
+    db = tl.ReadOnlyTurso("libsql://other.turso.io", "tok")
+    assert db.execute("SELECT name FROM sqlite_master")[0]["name"] == "t"
+    sqls = [r["stmt"]["sql"] for r in sent[0]["requests"] if r["type"] == "execute"]
+    assert sqls == ["SELECT name FROM sqlite_master"]
+    with pytest.raises(tl.ReadOnlyViolation):
+        db.execute("DELETE FROM x")
