@@ -169,7 +169,7 @@ def _market_dashboard() -> None:
         shown = market_dashboard.order_movers(d["movers"], mode or "Most active")
         st.markdown(ui.mover_rows(shown), unsafe_allow_html=True)
     with radar_tab:
-        st.caption("Companies with the most recent evidence on file. Tap one for the detail.")
+        st.caption("Companies with the most evidence on file in the last week. Tap one for the detail.")
         names = {r["symbol"]: company_names.official_name(r["symbol"]) for r in d["radar"]}
         st.markdown(ui.radar_cards_html(d["radar"], names), unsafe_allow_html=True)
     with moves_tab:

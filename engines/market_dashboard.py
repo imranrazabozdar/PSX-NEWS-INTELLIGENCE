@@ -12,13 +12,15 @@ from typing import Any
 from engines import company_names, daily_digest, move_explainer, setups
 from scripts import build_digest, build_radar, explain_moves
 
+EVENT_DAYS = 7  # calendar days of announcements, news flow and corporate actions that count
+
 
 def load(db: Any, now: datetime, days: int = 3, top: int = 15) -> dict[str, Any]:
     today = now.date()
     bars = explain_moves.load_bars(db, today, 10)
     moves = move_explainer.daily_moves(bars)
     day = daily_digest.latest_trading_day(moves)
-    radar_all, radar_stats = build_radar.build(db, today, days, 500)
+    radar_all, radar_stats = build_radar.build(db, today, EVENT_DAYS, 500)
     radar = radar_all[:top]
     items, universe = explain_moves.build(db, today, days, 40)
     news = db.execute("SELECT MAX(day) AS d FROM news_rollup")[0]["d"]

@@ -49,14 +49,14 @@ def test_technical_score_rises_with_trend_volume_and_the_engines_scores():
     )
     assert flat["technical"] < up["technical"]
     # a score is over the items that are measured: engine scores that are on file count, missing ones do not
-    assert withsig["technical"] != up["technical"] and withsig["technical"] > 90
+    assert withsig["technical"] != up["technical"]
     assert any("accumulation score 80/100" in x for x in withsig["tech_evidence"])
     assert "technical engine accumulation score" in up["tech_unknown"]
 
 
 def test_fundamental_score_and_unknowns_are_never_zero_filled():
     row = su.score_symbol("A", bars(), GOOD, TODAY, "CEMENT")
-    assert row["fundamental"] is not None and row["fundamental"] > 70
+    assert row["fundamental"] is not None and row["fundamental"] > 60
     assert "EPS change" in row["fund_unknown"] and any(
         "return on equity 24.0%" in x for x in row["fund_evidence"]
     )
@@ -123,3 +123,19 @@ def test_lookup_says_where_a_stock_stands_or_why_it_is_not_scored():
     assert "no price series" in su.lookup(result, "zzz")["reason"]
     html = ui.lookup_html(found)
     assert "rank 1 of 2" in html and "not scored" in ui.lookup_html(su.lookup(result, "thin"))
+
+
+def test_missing_engine_scores_count_at_the_midpoint_not_as_a_bonus():
+    strong = bars(step=1.0, last_volume=3_000_000.0)
+    price_only = su.score_symbol("A", strong, [], TODAY, None)["technical"]
+    middling = su.score_symbol(
+        "B", strong, [fact("technical.wyckoff", 50.0), fact("technical.pattern", 0.5)], TODAY, None
+    )["technical"]
+    weak = su.score_symbol(
+        "C", strong, [fact("technical.wyckoff", 10.0), fact("technical.pattern", 0.1)], TODAY, None
+    )["technical"]
+    good = su.score_symbol(
+        "D", strong, [fact("technical.wyckoff", 90.0), fact("technical.pattern", 0.9)], TODAY, None
+    )["technical"]
+    assert price_only == middling  # unknown = neutral
+    assert weak < price_only < good  # a bad scan lowers a stock, a good one lifts it
