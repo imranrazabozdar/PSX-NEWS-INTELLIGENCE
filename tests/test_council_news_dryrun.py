@@ -242,7 +242,9 @@ def test_the_record_carries_evidence_classification_assessment_cost_and_timestam
     lens = a["affected_companies"][0]["lenses"]["news"]
     assert lens["evidence_ids"] and lens["confidence"] == "medium" and lens["direction"] == "benefit"
     assert r["cost"]["llm_calls"] == 4 and r["cost"]["input_tokens"] == 480 and r["cost"]["usd"] is None
-    assert r["started_at_utc"] and r["ended_at_utc"] and r["time"]["pkt_day"] == "2026-11-17"
+    assert r["started_at_utc"] and r["ended_at_utc"]
+    started = datetime.fromisoformat(r["started_at_utc"].replace("Z", "+00:00"))
+    assert r["time"]["pkt_day"] == (started + timedelta(hours=5)).date().isoformat()
     assert r["time"]["after_hours"] == "unknown"  # no calendar was given: unknown, not guessed
 
 
