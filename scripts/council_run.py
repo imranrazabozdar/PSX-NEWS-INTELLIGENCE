@@ -25,6 +25,9 @@ INSERT = ("INSERT INTO council_verdict (event, created_at, lenses_answered, conf
           "verdict_json) VALUES (?, ?, ?, ?, ?)")
 # Which lens each kind of stored knowledge belongs to. A topic with no rule here is not shown to anyone,
 # so a new topic cannot quietly reach a lens that should not weigh it.
+HIGHLIGHTS_TOPIC = "announcement_highlights"
+RESERVED_HIGHLIGHTS = 6  # extra slots per company for its newest Highlights, beyond the per-company cut
+
 TOPIC_KIND = (
     ("announcements.", "announcement"),
     # Investify's card Highlights (addendum of 17 Nov 2026). The owner confirmed on 2026-11-17 that this
@@ -240,7 +243,11 @@ def build_pack(event: str, companies: list[str], db: Any, *, limit_per_company: 
             # price moves and technical rows have no lens: dropping them BEFORE the cut keeps the slots
             # for facts a lens can weigh (the default cuts first, so the newest rows may all be unmapped)
             rows = [r for r in rows if kind_for(str(r["topic"])) is not None]
-        for row in rows[:limit_per_company]:
+        # The newest rows fill the cut (a fundamentals load, news and commentary are all newer than a
+        # Highlights item), so reserve a few slots for the company's most recent announcement Highlights:
+        # they are the text of the filings the lenses are asked to weigh.
+        reserved = [r for r in rows[limit_per_company:] if str(r["topic"]) == HIGHLIGHTS_TOPIC]
+        for row in rows[:limit_per_company] + reserved[:RESERVED_HIGHLIGHTS]:
             kind = kind_for(str(row["topic"]))
             if kind is None:
                 continue

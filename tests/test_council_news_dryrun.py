@@ -547,3 +547,36 @@ def test_mapped_first_keeps_the_pack_slots_for_facts_a_lens_can_weigh():
     assert cr.kind_for("results.quarterly") == "figure" and cr.kind_for("fundamentals.market_cap") == "figure"
     # the owner allowed Investify's Highlights text into the council's pack on 2026-11-17 (private use)
     assert cr.kind_for("announcement_highlights") == "announcement"
+
+
+def test_recent_highlights_get_reserved_slots_even_when_newer_rows_fill_the_cut():
+    from pathlib import Path
+
+    from database.connection import SQLiteDatabase
+    from scripts import council_run as cr
+
+    db = SQLiteDatabase(":memory:")
+    lib = Path(__file__).resolve().parents[1] / "database" / "library" / "0002_research_fact.sql"
+    for stmt in "\n".join(ln.split("--", 1)[0] for ln in lib.read_text("utf-8").splitlines()).split(";"):
+        if stmt.strip():
+            db.execute(stmt)
+
+    def add(topic, text, day, source="synthetic"):
+        db.execute(
+            "INSERT INTO research_fact (company, topic, fact_text, value, unit, period, source_name, "
+            "source_url, source_date, as_of, confidence, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+            ("MARI", topic, text, None, None, None, source, None, day, day, "fact", "2026-11-17T00:00:00Z"),
+        )
+
+    for n in range(60):  # newer rows that fill the 40-row cut
+        text = f"metric {n}"
+        add(f"fundamentals.m{n}", text, "2026-11-17")
+    for n in range(8):  # older Highlights
+        text = f"2026-11-13: highlight {n}"
+        add(
+            "announcement_highlights", text, "2026-11-13", "Investify (investify.pk), announcement highlights"
+        )
+    pack = cr.build_pack("event", ["MARI"], db, mapped_first=True)
+    texts = [str(i.text) for i in pack.items if "announcement highlights" in str(i.source_name)]
+    assert len(texts) == cr.RESERVED_HIGHLIGHTS == 6
+    assert all("highlight" in t for t in texts)
