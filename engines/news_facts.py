@@ -32,6 +32,7 @@ OUTLETS = {
 _LEGAL = re.compile(
     r"\((?:pvt\.?|private)\)|\b(?:private|pvt\.?|limited|ltd\.?|company|corporation|corp\.?)\b", re.I
 )
+_SUFFIXED = re.compile(r"\b(limited|ltd|corporation|corp|company)\.?\s*$", re.I)
 # Listed symbols that are also common acronyms or words in the news; never matched as a bare ticker.
 # One-word company names that are also ordinary words; never matched as a company on their own.
 COMMON_SINGLES = {
@@ -224,6 +225,13 @@ def build_vocabulary(listing: dict[str, str], aliases: dict[str, str], sectors: 
         if sym in TICKER_STOPLIST:
             continue  # the exchange itself, an index or an acronym: market news, not a company
         phrase = _name_phrase(name)
+        tail = _SUFFIXED.search(name)
+        if (name, sym) in aliased and tail and " " not in phrase and len(phrase) >= 4:
+            # an owner-confirmed one-word name written with its legal suffix ("Systems Limited"): matched
+            # only with the suffix, so the bare common word ("Payment Systems") is never a company
+            for suffix in {"limited", "ltd", tail.group(1).lower()}:
+                phrases.setdefault(f"{phrase.lower()} {suffix}", sym)
+            continue
         if len(phrase) < 5 or phrase.upper() == sym:
             continue
         if " " in phrase:

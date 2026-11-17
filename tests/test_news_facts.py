@@ -183,3 +183,13 @@ def test_a_renamed_company_is_found_under_its_new_name():
         "Mari Minerals signs copper-gold exploration agreement with Canada's Ivanhoe Mines",
     ):
         assert list(nf.companies_in(vocab, title, None)) == ["MARI"]
+
+
+def test_a_confirmed_one_word_name_with_its_legal_suffix_matches_only_with_the_suffix():
+    vocab = nf.build_vocabulary(
+        {"SYS": "Systems Limited"}, {"Systems Limited": "SYS", "Treet Corporation": "TREET"}, set()
+    )
+    assert vocab.phrases["systems limited"] == "SYS" and vocab.phrases["systems ltd"] == "SYS"
+    assert "Systems" not in vocab.singles
+    assert nf.companies_in(vocab, "Treet Corporation announces dividend") == ["TREET"]
+    assert nf.companies_in(vocab, "Payment Systems expand") == []
