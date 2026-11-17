@@ -155,6 +155,12 @@ def _market_dashboard() -> None:
             st.markdown(f"**{heading} · top 10** ({d['setups']['eligible']} stocks assessed)")
             st.caption(note)
             st.markdown(ui.setup_cards_html(d["setups"][mode], mode), unsafe_allow_html=True)
+    with both_tab:
+        from engines import setups
+
+        typed = st.text_input("Check a stock (symbol)", "", key="setup_check").strip().upper()
+        if typed:
+            st.markdown(ui.lookup_html(setups.lookup(d["setups"], typed)), unsafe_allow_html=True)
     with market_tab:
         st.markdown(ui.breadth_card(d["breadth"]), unsafe_allow_html=True)
         mode = st.segmented_control(

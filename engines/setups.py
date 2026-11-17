@@ -34,6 +34,9 @@ FUND_ITEMS = (
     ("dividend", 10),
     ("leverage", 5),
     ("eps_trend", 10),
+    ("announcement", 10),
+    ("news", 5),
+    ("corporate", 5),
 )
 TECH_ITEMS = (("trend20", 10), ("range_pos", 10), ("volume", 10), ("wyckoff", 10), ("pattern", 10))
 LABELS = {
@@ -43,6 +46,9 @@ LABELS = {
     "dividend": "dividend yield",
     "leverage": "debt/equity",
     "eps_trend": "EPS change",
+    "announcement": "a recent material announcement",
+    "news": "unusual recent news flow",
+    "corporate": "a recent corporate action",
     "trend20": "20-session price change",
     "range_pos": "position in the recent range",
     "volume": "volume against usual",
@@ -65,6 +71,25 @@ def _num(f: dict[str, Any] | None) -> float | None:
         return None if f is None else float(f["value"])
     except (TypeError, ValueError):
         return None
+
+
+EVENT_MAX = {"announcement": 25.0, "news": 15.0, "corporate": 20.0}  # the radar's own caps per kind
+EVENT_POINTS = {"announcement": 10.0, "news": 5.0, "corporate": 5.0}
+
+
+def event_items(drivers: list[dict[str, Any]]) -> tuple[dict[str, float | None], dict[str, str]]:
+    """Announcements, news flow and corporate actions the company radar already graded (size, stage and
+    recency are in its points). Only what IS on file counts; no event leaves the item unknown, not zero."""
+    pts: dict[str, float | None] = {}
+    text: dict[str, str] = {}
+    for kind, cap in EVENT_MAX.items():
+        best = max((d for d in drivers if d["kind"] == kind), key=lambda d: d["points"], default=None)
+        if best is None:
+            pts[kind], text[kind] = None, ""
+            continue
+        pts[kind] = min(EVENT_POINTS[kind], best["points"] / cap * EVENT_POINTS[kind])
+        text[kind] = f"{kind} ({best['date']}): {best['text'][:140]}"
+    return pts, text
 
 
 def fundamental_items(facts: list[dict[str, Any]]) -> tuple[dict[str, float | None], dict[str, str], bool]:
@@ -168,12 +193,21 @@ def eligible(bars: list[dict[str, Any]]) -> bool:
 
 
 def score_symbol(
-    sym: str, bars: list[dict[str, Any]], facts: list[dict[str, Any]], today: date, sector: str | None
+    sym: str,
+    bars: list[dict[str, Any]],
+    facts: list[dict[str, Any]],
+    today: date,
+    sector: str | None,
+    drivers: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any] | None:
     if not eligible(bars):
         return None
     tpts, ttext = technical_items(bars, facts, today)
     fpts, ftext, usable = fundamental_items(facts)
+    if usable:
+        epts, etext = event_items(drivers or [])
+        fpts.update(epts)
+        ftext.update(etext)
     tech = pillar(tpts, TECH_ITEMS, MIN_TECH_POINTS)
     fund = pillar(fpts, FUND_ITEMS, MIN_FUND_POINTS) if usable else None
     b = sorted(bars, key=lambda x: x["trade_date"])
@@ -197,8 +231,24 @@ def rank(rows: list[dict[str, Any]], key: str, top: int = TOP) -> list[dict[str,
     return sorted(live, key=lambda r: (-r[key], r["symbol"]))[:top]
 
 
+def skip_reason(bars: list[dict[str, Any]]) -> str:
+    if not bars:
+        return "no price series on file"
+    if len(bars) < MIN_SESSIONS:
+        return f"only {len(bars)} sessions of prices (needs {MIN_SESSIONS})"
+    b = sorted(bars, key=lambda x: x["trade_date"])
+    turnover = statistics.fmean(float(x["close"]) * float(x["volume"]) for x in b[-20:])
+    if turnover < MIN_TURNOVER:
+        return f"thinly traded (Rs {turnover / 1e6:.1f}m a day; the floor is Rs {MIN_TURNOVER / 1e6:.0f}m)"
+    return f"priced under Rs {MIN_PRICE:g}"
+
+
 def build(
-    db: Any, today: date, bars: dict[str, list[dict[str, Any]]], sector: dict[str, str]
+    db: Any,
+    today: date,
+    bars: dict[str, list[dict[str, Any]]],
+    sector: dict[str, str],
+    radar: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     from engines import research_facts as rf
 
@@ -208,14 +258,32 @@ def build(
         f = dict(r)
         f["source_date"] = event_date(f)
         facts.setdefault(f["company"], []).append(f)
+    drivers = {r["symbol"]: r["drivers"] for r in (radar or [])}
     rows = [
         r
         for s in symbols
-        if (r := score_symbol(s, bars[s], facts.get(s, []), today, sector.get(s))) is not None
+        if (r := score_symbol(s, bars[s], facts.get(s, []), today, sector.get(s), drivers.get(s))) is not None
     ]
     return {
         "eligible": len(symbols),
+        "rows": {r["symbol"]: r for r in rows},
+        "skipped": {s: skip_reason(b) for s, b in bars.items() if not eligible(b)},
         "technical": rank(rows, "technical"),
         "fundamental": rank(rows, "fundamental"),
         "combined": rank(rows, "combined"),
     }
+
+
+def lookup(result: dict[str, Any], symbol: str) -> dict[str, Any]:
+    """Where one symbol stands, or why it is not scored. Rank is among the stocks assessed."""
+    sym = symbol.strip().upper()
+    row = result["rows"].get(sym)
+    if row is None:
+        why = result["skipped"].get(sym) or "no price series on file for this symbol"
+        return {"symbol": sym, "row": None, "reason": why, "ranks": {}}
+    ranks = {}
+    for key in ("technical", "fundamental", "combined"):
+        order = sorted((r for r in result["rows"].values() if r[key] is not None), key=lambda r: -r[key])
+        pos = next((i for i, r in enumerate(order, 1) if r["symbol"] == sym), None)
+        ranks[key] = (pos, len(order)) if pos else None
+    return {"symbol": sym, "row": row, "reason": "", "ranks": ranks}
