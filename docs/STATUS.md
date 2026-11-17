@@ -524,3 +524,8 @@ See `docs/ops/DB_BUDGET.md`. New index (company, source_date) replaces (company,
 sector list by loose scan; collector checks only candidate URLs; rollup writes only changes. An automatic news run
 now reads about 6,100 rows (was about 25,000). The 60 Investify symbols are in `owner_confirmed`; the matcher now also
 uses the company names inside `owner_confirmed` notes (they never matched before).
+
+## PSX News Intelligence Council V1 - dry-run stage IMPLEMENTED, TESTED; production storage NOT activated
+Seven importance rules, event de-duplication and versions, caps (6 a day, 2 an execution), queue, per-call ledger,
+read-only connection, 10-headline review and a 7-day automatic dry-run workflow. See `docs/COUNCIL_NEWS_V1.md`.
+Awaiting the owner's review of the 10-headline test and the seven-day results.

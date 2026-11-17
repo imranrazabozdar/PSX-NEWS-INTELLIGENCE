@@ -62,6 +62,7 @@ COMMON_SINGLES = {
     "Standard",
 }
 TICKER_STOPLIST = {
+    "PPP",  # the political party, as often as Pakistan Paper Products
     "PSX",
     "KSE",
     "IMF",
