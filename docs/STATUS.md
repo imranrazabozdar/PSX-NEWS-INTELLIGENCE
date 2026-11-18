@@ -654,3 +654,6 @@ Order (one phase at a time, each stops at an owner gate):
 ## Setups fixes after the MARI/HUBC trace (owner, 2026-11-17) - IMPLEMENTED
 - Trace on live data (Actions "Setups check"): no symbol is named in the scoring code; MARI ranked on real price/volume numbers, HUBC's announcement was counted. Two weaknesses fixed: (1) events window widened from 3 to 7 calendar days (`market_dashboard.EVENT_DAYS`), so MARI's 13 Nov discovery counts; (2) an item not on file now counts at the midpoint of its range (not zero, not a bonus) instead of being left out, so a stock with no technical-engine scan is not ranked above one with moderate scans; a bad scan lowers a score, a good one lifts it. Tests added. The Watch list tab now shows the last week.
 - Also fixed a latent test that failed after 19:00 UTC (the council record day follows the real clock).
+
+## Investify dry run, first attempt skipped (2026-11-18) - NOTE
+- The scheduled dry run at 04:34 UTC (09:34 PKT) made 0 requests: the good-citizen gate allows requests only INSIDE 10:00-15:30 PKT (the "quiet mid-session window", away from the open and close bursts) and only in an open session (Mon-Thu 09:32-15:30). My earlier statement that the usable window was 09:32-10:00 was wrong. The audit trail records the skip; nothing was fetched or stored. Retry scheduled for 05:06 UTC (10:06 PKT), apply=false.
