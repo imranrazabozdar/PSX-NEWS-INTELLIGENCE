@@ -216,3 +216,16 @@ def test_the_registry_still_validates():
 
     data = json.loads((ROOT / "database" / "seed" / "sources.json").read_text(encoding="utf-8"))
     assert validate_source_registry(data) == []
+
+
+def test_the_live_page_of_18_nov_2026_uses_h2_headings_and_still_parses():
+    """The first live fetch returned the page but 0 records: the announcement headings had changed from h3 to
+    h2. Both are read now."""
+    page = re.sub(
+        r'<h3([^>]*)><a([^>]*href="/announcements/[^"]+"[^>]*)>([^<]*)</a></h3>',
+        r"<h2\1><a\2>\3</a></h2>",
+        _page(),
+    )
+    assert "<h2" in page
+    res = ic.collect(page, watchlist=_all_symbols(), retrieved_at_utc=RETRIEVED)
+    assert res.parse_problems == () and len(res.records) == 25
