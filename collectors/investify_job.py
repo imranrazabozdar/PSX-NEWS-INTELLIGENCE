@@ -94,6 +94,7 @@ class RunOutcome:
     new: int = 0
     duplicates: int = 0
     records: list[dict[str, Any]] = field(default_factory=list)  # dry runs only: what would be stored
+    page_html: str | None = None  # dry runs only, and only when nothing parsed: the page, to find out why
 
 
 def _external_id(source_url: str) -> str | None:
@@ -310,6 +311,8 @@ def _page_cycle(*, send, state, state_path, transport, cfg, jitter, audit, db, d
     outcome = RunOutcome("fetched", f"parsed {len(result.records)} watchlist announcements",
                          http_requests=1, duplicates=result.skipped_duplicates)
     if dry_run:
+        if not result.records:
+            outcome.page_html = body.decode("utf-8", "replace")
         outcome.records = [{"symbol": r.symbol, "title": r.title, "category": r.category,
                             "announced_at_utc": r.announced_at_utc, "pdf_access": r.pdf_access,
                             "announced_on_pkt": r.announced_on_pkt, "investify_label": r.investify_label,
@@ -328,9 +331,14 @@ def _page_cycle(*, send, state, state_path, transport, cfg, jitter, audit, db, d
         symbols = {r.symbol for r in result.records}
         has = {sym: fund.has_fundamentals(db, sym) for sym in symbols}
         state, _ = fund.enqueue_from_announcements(state, result.records, now=send, has_fundamentals=has)
+    # a dry run stores no validators: the next real run must not be told "304, unchanged" about a page
+    # whose announcements were never loaded
     pol.save_state(state_path, pol.finish_request(
-        state, send, etag=resp_headers.get("etag", state.etag),
-        last_modified=resp_headers.get("last-modified", state.last_modified),
+        state, send,
+        etag=state.etag if dry_run else resp_headers.get("etag", state.etag),
+        last_modified=(
+            state.last_modified if dry_run else resp_headers.get("last-modified", state.last_modified)
+        ),
         fresh_until_utc=fresh, consecutive_blocks=0, backoff_until_utc=None))
     return outcome
 

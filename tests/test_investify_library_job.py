@@ -208,3 +208,22 @@ def test_a_stale_robots_copy_is_refreshed_then_the_page_is_fetched_in_the_same_r
     assert lj.AFTER_ROBOTS_WAIT_S in slept and lj.AFTER_ROBOTS_WAIT_S >= 15 * 60  # the 15-minute floor holds
     assert json.loads(out.read_text("utf-8")), "the page was parsed into facts"
     assert "requests made this run: 2" in capsys.readouterr().out
+
+
+def test_a_dry_run_that_parses_nothing_keeps_the_page_and_never_stores_validators(tmp_path):
+    state, out = tmp_path / "state.json", tmp_path / "facts.json"
+    seeded_state(state)
+    page = b"<html><body>no announcements here</body></html>"
+    t = Transport((200, {"etag": '"v9"', "last-modified": "Tue"}, page))
+    lj.run(state, out, now=MONDAY_10AM, transport=t, sleep=lambda s: None, rng=Jitter())
+    assert (tmp_path / "investify_page.html").read_text("utf-8") == page.decode()
+    saved = pol.load_state(state)
+    assert saved.etag is None and saved.last_modified is None  # a later real run is not told "unchanged"
+    # --unconditional forgets stored validators so a page, not a 304, comes back
+    pol.save_state(
+        state,
+        pol.PollState(robots_txt="User-agent: *\n", robots_fetched_utc=pol._iso(MONDAY_10AM), etag='"old"'),
+    )
+    t2 = Transport((200, {}, page))
+    lj.run(state, out, now=MONDAY_10AM, transport=t2, sleep=lambda s: None, rng=Jitter(), unconditional=True)
+    assert "If-None-Match" not in t2.calls[0][1]
