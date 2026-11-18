@@ -670,3 +670,8 @@ Order (one phase at a time, each stops at an owner gate):
 - Dry run 3 (05:51 UTC, 1 request) returned the page and kept it. Cause of "0 parsed": Investify changed the announcement headings from h3 to h2. Both are read now; run offline on the saved live page it parses 22 of 25 announcements (3 are outside the watchlist). Test added.
 - Finding: the "Highlights" key-line is no longer in the static page (it sits behind a button), so only the title and Investify's one-line summary are captured. The summary is stored under the same private-use consent as Highlights (the job already stores highlights + summary). Owner to confirm that is acceptable, or to turn it off.
 - The live list holds only the newest 25 (17-18 Nov); 16 Nov and older came from the owner's snapshot (to 16 Nov 23:55 UTC), so there is no gap.
+
+## Investify announcements loaded (owner approved, 2026-11-18) - IMPLEMENTED
+- Live load at 08:06 UTC (13:06 PKT, 1 request): 19 announcements parsed, 47 facts written to psx-library (titles plus Investify's one-line summaries, private use). Requests today before it: 4 (robots.txt 05:09, pages 05:29, 05:51, 06:15 UTC), all inside the window and at least 15 minutes apart.
+- Gap found: the page lists only the newest 25, so by 13:06 PKT the 17 Nov items seen at 05:51 UTC had scrolled off. Closed WITHOUT a new request: `scripts/investify_page_to_facts.py` + workflow `investify_saved_page.yml` turn the page saved by the 05:51 dry run (artifact, 3 days) into facts; exact repeats are skipped.
+- Lesson for the schedule: the page holds the newest 25 only, so on busy days it must be read often enough that nothing scrolls off (within the 15-minute floor and 12/day limits).
