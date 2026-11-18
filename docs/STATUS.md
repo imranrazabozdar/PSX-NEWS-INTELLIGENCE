@@ -661,3 +661,7 @@ Order (one phase at a time, each stops at an owner gate):
 ## Investify: robots refresh and page fetch in one run (owner, 2026-11-18) - IMPLEMENTED
 - A run that finds the 24-hour robots.txt copy stale now refreshes it, waits 15 min 30 s, then fetches the page, instead of ending after robots and needing a second dispatch. The one-request-per-15-minutes limit and every other gate are unchanged (the second request re-runs the gate). `collectors/investify_library_job.py` (`AFTER_ROBOTS_WAIT_S`), workflow timeout 10 -> 45 min, test added. Consent record updated with the owner's operating decision.
 - 2026-11-18 dry run: attempt 1 skipped (my window error, 0 requests); attempt 2 refreshed robots.txt (HTTP 200, 1 request); page fetch scheduled for 05:27 UTC.
+
+## Investify dry run 2 (2026-11-18 05:29 UTC): page returned, 0 announcements parsed - BLOCKED (diagnosis)
+- Audit: robots.txt (05:09:58) and the announcements page (05:29:46, HTTP 200, 495,814 bytes): two requests in total, 20 minutes apart. The parser found 0 watchlist announcements in it. Cause unknown until the page text is seen (the page changed since the 11 Nov fixture, or is built differently).
+- Fixes: a dry run now keeps the page (investify_page.html, 3-day private artifact) when nothing parsed; a dry run no longer stores the ETag/Last-Modified (otherwise a later real load could be told "unchanged" about announcements never loaded); `--unconditional` / workflow input forgets stored validators so a page, not a 304, comes back.

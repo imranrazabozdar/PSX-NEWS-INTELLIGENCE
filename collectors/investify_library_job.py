@@ -20,6 +20,7 @@ import argparse
 import json
 import sys
 import time
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -162,6 +163,7 @@ def run(
     transport=job.default_transport,
     sleep=None,
     rng=None,
+    unconditional: bool = False,
 ) -> int:
     injected = now is not None
     now = now or datetime.now(UTC)
@@ -171,6 +173,9 @@ def run(
     if rng is not None:
         kwargs["rng"] = rng
     audit = job.AuditLog(state_path.with_name("investify_audit.jsonl"))  # every request and skip
+    if unconditional:  # diagnosis: forget any stored validators so the server sends the page, not a 304
+        saved = pol.load_state(state_path)
+        pol.save_state(state_path, replace(saved, etag=None, last_modified=None))
 
     def cycle(at: datetime):
         return job.run_once(
@@ -204,6 +209,10 @@ def run(
     print(f"announcements parsed: {len(outcome.records)}; facts built: {len(facts)}")
     for f in facts[:8]:
         print("  sample:", f["company"], f["topic"], "|", f["fact_text"][:150])
+    if outcome.page_html:  # nothing parsed: keep the page for diagnosis (a short-lived private artifact)
+        page = out_path.with_name("investify_page.html")
+        page.write_text(outcome.page_html, encoding="utf-8")
+        print(f"nothing parsed: the page ({len(outcome.page_html)} chars) was saved to {page.name}")
     if outcome.status == "fetched":
         out_path.write_text(json.dumps(facts, ensure_ascii=False), encoding="utf-8")
     return 1 if outcome.status in ("refused", "failed") else 0
@@ -213,9 +222,10 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--state", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--unconditional", action="store_true", help="forget stored ETag/Last-Modified first")
     args = ap.parse_args(argv)
     args.state.parent.mkdir(parents=True, exist_ok=True)
-    return run(args.state, args.out)
+    return run(args.state, args.out, unconditional=args.unconditional)
 
 
 if __name__ == "__main__":

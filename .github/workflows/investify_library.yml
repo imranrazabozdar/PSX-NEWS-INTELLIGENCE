@@ -12,6 +12,11 @@ name: Investify announcements to library
 on:
   workflow_dispatch:
     inputs:
+      unconditional:
+        description: "Forget the stored ETag first, so the page is returned (diagnosis)"
+        required: false
+        default: false
+        type: boolean
       apply:
         description: "Write the facts to psx-library (false = one request, nothing stored)"
         required: true
@@ -52,7 +57,7 @@ jobs:
           restore-keys: |
             investify-state-
       - name: One consented request, parsed into facts
-        run: python -m collectors.investify_library_job --state "$STATE_DIR/state.json" --out investify_facts.json
+        run: python -m collectors.investify_library_job --state "$STATE_DIR/state.json" --out investify_facts.json ${{ inputs.unconditional && '--unconditional' || '' }}
       - name: Load the facts (only when apply)
         if: ${{ inputs.apply }}
         run: |
@@ -61,6 +66,14 @@ jobs:
           else
             echo "no facts this run (no new page, outside the window, or a backoff): nothing to load"
           fi
+      - name: Keep the page when nothing parsed (diagnosis only, short-lived)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: investify-page-${{ github.run_id }}
+          path: investify_page.html
+          retention-days: 3
+          if-no-files-found: ignore
       - name: Save polling state and audit trail
         if: always()
         uses: actions/cache/save@v4
