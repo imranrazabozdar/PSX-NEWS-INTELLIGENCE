@@ -98,7 +98,7 @@ def _library():
     return db
 
 
-@st.cache_data(ttl=1800, show_spinner="Reading the brain (cached for 30 minutes)...")
+@st.cache_data(ttl=900, show_spinner="Reading the brain...")
 def _dashboard_data(day_key: str) -> dict:
     from datetime import UTC, datetime
 
@@ -110,9 +110,8 @@ def _dashboard_data(day_key: str) -> dict:
 def _market_dashboard() -> None:
     """Market view from the library: breadth, companies to look at, notable moves. Read only; no advice."""
     import os
-    from datetime import UTC, datetime
 
-    from engines import library_db, market_dashboard
+    from engines import library_db
 
     st.title("Market dashboard")
     st.caption(
@@ -122,6 +121,20 @@ def _market_dashboard() -> None:
     if not (os.environ.get(library_db.URL_VAR) and os.environ.get(library_db.TOKEN_VAR)):
         st.info(f"The library is not configured here (set {library_db.URL_VAR} and {library_db.TOKEN_VAR}).")
         return
+    _dashboard_body()
+
+
+@st.fragment(run_every=600)
+def _dashboard_body() -> None:
+    """Re-runs by itself every 10 minutes (an open page does not otherwise update), reading the 15-minute
+    cache, so a new trading day appears without anyone pressing anything."""
+    from datetime import UTC, datetime
+
+    from engines import market_dashboard
+
+    if st.button("Refresh now", key="dash_refresh"):
+        _dashboard_data.clear()
+        st.rerun()
     try:
         d = _dashboard_data(datetime.now(UTC).strftime("%Y-%m-%d %H"))
     except Exception as exc:  # noqa: BLE001 - show the reason, never a half page
@@ -177,7 +190,11 @@ def _market_dashboard() -> None:
         st.caption("Big recent moves and what the evidence on file may explain. Candidates, not proof.")
         st.markdown(ui.move_cards_html(with_cause), unsafe_allow_html=True)
         st.markdown(ui.unexplained_card(no_cause, len(d["moves"])), unsafe_allow_html=True)
-    st.caption(f"Built {d['built_utc']} UTC; refreshes every 30 minutes.")
+    st.caption(
+        f"Prices to {d['price_day'] or 'unknown'}, news to {d['news_day'] or 'unknown'}. "
+        f"Read {d['built_utc']} UTC; this page re-reads every 10 minutes. A trading day's prices arrive "
+        "after the market closes and the technical engine has updated (about an hour after the close)."
+    )
 
 
 @st.cache_data(ttl=1800, show_spinner="Reading the brain (cached for 30 minutes)...")
