@@ -227,3 +227,11 @@ def test_a_dry_run_that_parses_nothing_keeps_the_page_and_never_stores_validator
     t2 = Transport((200, {}, page))
     lj.run(state, out, now=MONDAY_10AM, transport=t2, sleep=lambda s: None, rng=Jitter(), unconditional=True)
     assert "If-None-Match" not in t2.calls[0][1]
+
+
+def test_a_saved_page_becomes_facts_without_any_request():
+    from scripts import investify_page_to_facts as sp
+
+    facts = sp.build(FIXTURE.read_text("utf-8"), "2026-11-16T05:00:00Z")
+    assert facts and all(f["source_name"] in (lj.SOURCE_NAME, lj.HIGHLIGHTS_SOURCE) for f in facts)
+    assert any(f["topic"].startswith("announcements.") for f in facts)
