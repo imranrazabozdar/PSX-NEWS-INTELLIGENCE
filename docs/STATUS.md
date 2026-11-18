@@ -657,3 +657,7 @@ Order (one phase at a time, each stops at an owner gate):
 
 ## Investify dry run, first attempt skipped (2026-11-18) - NOTE
 - The scheduled dry run at 04:34 UTC (09:34 PKT) made 0 requests: the good-citizen gate allows requests only INSIDE 10:00-15:30 PKT (the "quiet mid-session window", away from the open and close bursts) and only in an open session (Mon-Thu 09:32-15:30). My earlier statement that the usable window was 09:32-10:00 was wrong. The audit trail records the skip; nothing was fetched or stored. Retry scheduled for 05:06 UTC (10:06 PKT), apply=false.
+
+## Investify: robots refresh and page fetch in one run (owner, 2026-11-18) - IMPLEMENTED
+- A run that finds the 24-hour robots.txt copy stale now refreshes it, waits 15 min 30 s, then fetches the page, instead of ending after robots and needing a second dispatch. The one-request-per-15-minutes limit and every other gate are unchanged (the second request re-runs the gate). `collectors/investify_library_job.py` (`AFTER_ROBOTS_WAIT_S`), workflow timeout 10 -> 45 min, test added. Consent record updated with the owner's operating decision.
+- 2026-11-18 dry run: attempt 1 skipped (my window error, 0 requests); attempt 2 refreshed robots.txt (HTTP 200, 1 request); page fetch scheduled for 05:27 UTC.

@@ -48,3 +48,6 @@ evidence to third-party free-tier model providers (Groq, Gemini, OpenRouter) for
 published. The source name on every item carries the attribution to Investify. Caveat recorded for the owner: free-tier
 terms differ by provider and some allow inputs to be used to improve their products; each provider's current terms
 have not been verified here. To withhold the text again, remove the mapping line.
+
+## Operating decision, 2026-11-18 (owner): robots.txt and the page in one run
+The earlier wording "fetching robots.txt counts as the run's single request" cost a morning window: the first run of a day refreshes the 24-hour robots.txt copy and then has to wait for a second dispatch. Decision: one dispatch may now read robots.txt, wait out the 15-minute floor (15 min 30 s), and then fetch the announcements page. The limit is UNCHANGED: never more than one request per 15 minutes, every other gate (trading window 10:00-15:30 PKT in an open session, daily and weekly ceilings, calendar, circuit breaker, robots rules themselves) is re-checked before the second request, and robots.txt is still obeyed and still counts as a request.

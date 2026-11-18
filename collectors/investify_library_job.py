@@ -19,7 +19,8 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from datetime import UTC, datetime
+import time
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -146,6 +147,13 @@ def highlight_facts(records: list[dict[str, Any]], stamp: str) -> list[dict[str,
     return out
 
 
+# robots.txt is read first when its 24-hour copy is stale, and that read is a request, so the page request
+# must wait out the 15-minute floor. One dispatch now does both (robots, wait, page) instead of needing two
+# dispatches and wasting a morning window. The limit of one request per 15 minutes is unchanged: the gate
+# re-checks every rule (window, floor, ceilings, calendar) before the second request.
+AFTER_ROBOTS_WAIT_S = 15 * 60 + 30
+
+
 def run(
     state_path: Path,
     out_path: Path,
@@ -155,6 +163,7 @@ def run(
     sleep=None,
     rng=None,
 ) -> int:
+    injected = now is not None
     now = now or datetime.now(UTC)
     kwargs: dict[str, Any] = {}
     if sleep is not None:
@@ -162,18 +171,30 @@ def run(
     if rng is not None:
         kwargs["rng"] = rng
     audit = job.AuditLog(state_path.with_name("investify_audit.jsonl"))  # every request and skip
-    outcome = job.run_once(
-        now=now,
-        state_path=state_path,
-        entry=ENTRY,
-        db=None,
-        transport=transport,
-        watchlist=listed_symbols(),
-        dry_run=True,
-        cfg=pol.PolicyConfig.from_env(),
-        audit=audit,
-        **kwargs,
-    )
+
+    def cycle(at: datetime):
+        return job.run_once(
+            now=at,
+            state_path=state_path,
+            entry=ENTRY,
+            db=None,
+            transport=transport,
+            watchlist=listed_symbols(),
+            dry_run=True,
+            cfg=pol.PolicyConfig.from_env(),
+            audit=audit,
+            **kwargs,
+        )
+
+    outcome = cycle(now)
+    if outcome.status == "robots_refreshed":
+        print(f"investify: {outcome.reason}")
+        print(f"waiting {AFTER_ROBOTS_WAIT_S}s (the 15-minute floor) before the page request")
+        (sleep or time.sleep)(AFTER_ROBOTS_WAIT_S)
+        later = now + timedelta(seconds=AFTER_ROBOTS_WAIT_S + 200) if injected else datetime.now(UTC)
+        first = outcome.http_requests
+        outcome = cycle(later)  # the gate re-checks the window, floor, ceilings and calendar
+        outcome.http_requests += first
     print(f"investify: {outcome.status}: {outcome.reason}")
     print(f"requests made this run: {outcome.http_requests}")
     stamp = now.strftime("%Y-%m-%dT%H:%M:%SZ")
