@@ -665,3 +665,8 @@ Order (one phase at a time, each stops at an owner gate):
 ## Investify dry run 2 (2026-11-18 05:29 UTC): page returned, 0 announcements parsed - BLOCKED (diagnosis)
 - Audit: robots.txt (05:09:58) and the announcements page (05:29:46, HTTP 200, 495,814 bytes): two requests in total, 20 minutes apart. The parser found 0 watchlist announcements in it. Cause unknown until the page text is seen (the page changed since the 11 Nov fixture, or is built differently).
 - Fixes: a dry run now keeps the page (investify_page.html, 3-day private artifact) when nothing parsed; a dry run no longer stores the ETag/Last-Modified (otherwise a later real load could be told "unchanged" about announcements never loaded); `--unconditional` / workflow input forgets stored validators so a page, not a 304, comes back.
+
+## Investify parser fixed against the live page (2026-11-18) - IMPLEMENTED
+- Dry run 3 (05:51 UTC, 1 request) returned the page and kept it. Cause of "0 parsed": Investify changed the announcement headings from h3 to h2. Both are read now; run offline on the saved live page it parses 22 of 25 announcements (3 are outside the watchlist). Test added.
+- Finding: the "Highlights" key-line is no longer in the static page (it sits behind a button), so only the title and Investify's one-line summary are captured. The summary is stored under the same private-use consent as Highlights (the job already stores highlights + summary). Owner to confirm that is acceptable, or to turn it off.
+- The live list holds only the newest 25 (17-18 Nov); 16 Nov and older came from the owner's snapshot (to 16 Nov 23:55 UTC), so there is no gap.

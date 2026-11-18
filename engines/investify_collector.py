@@ -65,7 +65,9 @@ MATERIAL_CATEGORIES = frozenset({"material_information", "board_meeting", "divid
 _LD_ITEMLIST = re.compile(r'<script type="application/ld\+json"[^>]*>(.*?)</script>', re.S)
 _COMPANY = re.compile(r'<a[^>]*href="/company/([A-Z0-9&-]+)/quote">\1</a>')
 _TIME = re.compile(r'<time dateTime="([^"]+)"')
-_HEADING = re.compile(r'<h3[^>]*><a[^>]*href="(/announcements/([A-Z0-9&-]+)/[^"]+)"[^>]*>([^<]*)</a></h3>')
+_HEADING = re.compile(  # h3 in the 11 Nov page, h2 in the live page of 18 Nov
+    r'<h[23][^>]*><a[^>]*href="(/announcements/([A-Z0-9&-]+)/[^"]+)"[^>]*>([^<]*)</a></h[23]>'
+)
 _PSX_PDF = re.compile(r'href="(https://dps\.psx\.com\.pk/download/[^"]+)"')
 _TEXT_SPAN = re.compile(r">([^<>]+)</span>")
 
