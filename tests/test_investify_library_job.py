@@ -191,3 +191,20 @@ def test_only_the_previous_three_months_and_the_latest_are_kept_never_history():
     assert (
         len(lj.facts_from_records([old, new], "t", with_highlights=True)) == 4
     )  # no cutoff given: nothing dropped
+
+
+def test_a_stale_robots_copy_is_refreshed_then_the_page_is_fetched_in_the_same_run_after_the_floor(
+    tmp_path, capsys
+):
+    state, out = tmp_path / "state.json", tmp_path / "facts.json"  # no cached robots.txt at all
+    t = Transport(
+        (200, {}, b"User-agent: *\nDisallow: /admin\n"),
+        (200, {"etag": '"v1"'}, FIXTURE.read_bytes()),
+    )
+    slept = []
+    code = lj.run(state, out, now=MONDAY_10AM, transport=t, sleep=lambda s: slept.append(s), rng=Jitter())
+    assert code == 0
+    assert [u for u, _h in t.calls] == [pol.ROBOTS_URL, pol.ANNOUNCEMENTS_URL]
+    assert lj.AFTER_ROBOTS_WAIT_S in slept and lj.AFTER_ROBOTS_WAIT_S >= 15 * 60  # the 15-minute floor holds
+    assert json.loads(out.read_text("utf-8")), "the page was parsed into facts"
+    assert "requests made this run: 2" in capsys.readouterr().out
