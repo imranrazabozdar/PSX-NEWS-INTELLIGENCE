@@ -675,3 +675,7 @@ Order (one phase at a time, each stops at an owner gate):
 - Live load at 08:06 UTC (13:06 PKT, 1 request): 19 announcements parsed, 47 facts written to psx-library (titles plus Investify's one-line summaries, private use). Requests today before it: 4 (robots.txt 05:09, pages 05:29, 05:51, 06:15 UTC), all inside the window and at least 15 minutes apart.
 - Gap found: the page lists only the newest 25, so by 13:06 PKT the 17 Nov items seen at 05:51 UTC had scrolled off. Closed WITHOUT a new request: `scripts/investify_page_to_facts.py` + workflow `investify_saved_page.yml` turn the page saved by the 05:51 dry run (artifact, 3 days) into facts; exact repeats are skipped.
 - Lesson for the schedule: the page holds the newest 25 only, so on busy days it must be read often enough that nothing scrolls off (within the 15-minute floor and 12/day limits).
+
+## Dashboard keeps itself current (owner, 2026-11-18: "Why it moved has old data") - IMPLEMENTED
+- Cause: the library already held 18 Nov prices (written 16:32 PKT, after the close; 278 bars), but an open Streamlit page never re-reads by itself, and the data was cached 30 minutes. A trading day's prices only arrive after the close plus the technical engine's update (about an hour after).
+- Fix: the dashboard body is a fragment that re-runs every 10 minutes over a 15-minute cache, has a "Refresh now" button, and states "prices to / news to / read at" with the reason prices lag. Tests pass.
