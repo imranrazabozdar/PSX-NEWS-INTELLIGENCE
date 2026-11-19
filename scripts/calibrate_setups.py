@@ -22,6 +22,7 @@ def main() -> int:
     sessions = sorted({r["trade_date"] for b in bars.values() for r in b})
     print(f"{len(bars)} symbols, {len(sessions)} sessions ({sessions[0]} to {sessions[-1]})")
     text = setups_calibration.report(setups_calibration.run(bars))
+    text += "\n" + setups_calibration.robustness_report(bars)
     print(text)
     path = os.environ.get("GITHUB_STEP_SUMMARY")
     if path:

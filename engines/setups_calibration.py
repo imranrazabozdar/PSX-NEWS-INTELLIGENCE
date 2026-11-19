@@ -50,24 +50,43 @@ def spearman(a: list[float], b: list[float]) -> float | None:
     return None if den == 0 else num / den
 
 
+def _eligible(window: list[dict[str, Any]], min_turnover: float) -> bool:
+    if len(window) < setups.MIN_SESSIONS:
+        return False
+    turnover = statistics.fmean(float(x["close"]) * float(x["volume"]) for x in window[-20:])
+    return turnover >= min_turnover and float(window[-1]["close"]) >= setups.MIN_PRICE
+
+
 def run(
-    bars: dict[str, list[dict[str, Any]]], horizons: tuple[int, ...] = HORIZONS, top: int = 10
+    bars: dict[str, list[dict[str, Any]]],
+    horizons: tuple[int, ...] = HORIZONS,
+    top: int = 10,
+    *,
+    min_turnover: float = setups.MIN_TURNOVER,
+    volume_weight: float = 1.0,
+    days_filter: Any = None,
 ) -> dict[str, Any]:
     series = {s: sorted(b, key=lambda r: r["trade_date"]) for s, b in bars.items()}
     days = sorted({r["trade_date"] for b in series.values() for r in b})
     index = {s: {r["trade_date"]: i for i, r in enumerate(b)} for s, b in series.items()}
-    per_h: dict[int, dict[str, list[float]]] = {h: {"excess": [], "beat": [], "ic": []} for h in horizons}
+    per_h: dict[int, dict[str, list[Any]]] = {
+        h: {"excess": [], "beat": [], "ic": [], "top": [], "group": [], "days": []} for h in horizons
+    }
     item_ic: dict[int, dict[str, list[float]]] = {h: {k: [] for k, _m in setups.TECH_ITEMS} for h in horizons}
     for day in days:
+        if days_filter is not None and not days_filter(day):
+            continue
         rows = []
         for s, b in series.items():
             i = index[s].get(day)
             if i is None or i + 1 < setups.MIN_SESSIONS:
                 continue
             window = b[max(0, i + 1 - LOOKBACK) : i + 1]
-            if not setups.eligible(window):
+            if not _eligible(window, min_turnover):
                 continue
             pts, _ = setups.technical_items(window, [], date.fromisoformat(day))
+            if pts.get("volume") is not None:
+                pts["volume"] = pts["volume"] * volume_weight
             score = setups.pillar(pts, setups.TECH_ITEMS, setups.MIN_TECH_POINTS)
             if score is None:
                 continue
@@ -86,6 +105,9 @@ def run(
             best = sorted(fw, key=lambda r: -r[1])[:top]
             bestmean = statistics.fmean(r[3] for r in best)
             per_h[h]["excess"].append(bestmean - allmean)
+            per_h[h]["top"].append(bestmean)
+            per_h[h]["group"].append(allmean)
+            per_h[h]["days"].append(day)
             per_h[h]["beat"].append(1.0 if bestmean > allmean else 0.0)
             ic = spearman([r[1] for r in fw], [r[3] for r in fw])
             if ic is not None:
@@ -141,5 +163,64 @@ def report(result: dict[str, Any]) -> str:
         "followed by higher returns, negative the reverse (a reversal pattern). Top-10 excess return is in "
         "percentage points over the whole eligible group on the same days. These are the tests of the "
         "equal-weight scoring; no weights were fitted.",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def summarise(result: dict[str, Any], h: int) -> dict[str, Any]:
+    """One horizon: average excess, beat rate, the market's own drift, and an overlap-aware t-stat from days
+    sampled h sessions apart (so the forward windows do not overlap)."""
+    d = result["horizons"][h]
+    ex = d["excess"]
+    sampled = ex[::h]
+    m, t_all = _mean_t(ex)
+    _m2, t_sep = _mean_t(sampled)
+    return {
+        "days": len(ex),
+        "excess": m,
+        "beat": (statistics.fmean(d["beat"]) * 100 if d["beat"] else None),
+        "top": statistics.fmean(d["top"]) if d["top"] else None,
+        "group": statistics.fmean(d["group"]) if d["group"] else None,
+        "t_overlapping": t_all,
+        "t_separate": t_sep,
+        "separate_days": len(sampled),
+    }
+
+
+def robustness_report(bars: dict[str, list[dict[str, Any]]], horizons: tuple[int, ...] = (5, 10)) -> str:
+    sessions = sorted({r["trade_date"] for b in bars.values() for r in b})
+    mid = sessions[len(sessions) // 2]
+    variants = (
+        ("all days (baseline)", {}),
+        (f"first half (to {mid})", {"days_filter": lambda d: d <= mid}),
+        (f"second half (after {mid})", {"days_filter": lambda d: d > mid}),
+        ("liquidity floor Rs 100m a day", {"min_turnover": 100e6}),
+        ("volume item at half weight", {"volume_weight": 0.5}),
+        ("volume item removed", {"volume_weight": 0.0}),
+    )
+    f = lambda x, p=2: "n/a" if x is None else f"{x:.{p}f}"  # noqa: E731
+    lines = [
+        "# Robustness of the technical setups score (walk-forward, stored daily bars)",
+        "",
+        "Same limits as the first report: one regime, about a hundred sessions, closes only, no costs. "
+        "'t (separate)' uses days h sessions apart so the forward windows do not overlap; it is the number "
+        "to trust, not the overlapping one. 'market' is the average forward return of the whole eligible group.",
+        "",
+        "| variant | h | days | top-10 avg return | market avg return | excess | beat | t (overlapping) | t (separate, n) |",
+        "|---|---|---|---|---|---|---|---|---|",
+    ]
+    for name, kw in variants:
+        res = run(bars, horizons, **kw)
+        for h in horizons:
+            r = summarise(res, h)
+            beat = "n/a" if r["beat"] is None else f"{r['beat']:.0f}%"
+            lines.append(
+                f"| {name} | {h} | {r['days']} | {f(r['top'])}% | {f(r['group'])}% | {f(r['excess'])}pp | {beat} "
+                f"| {f(r['t_overlapping'], 1)} | {f(r['t_separate'], 1)} ({r['separate_days']}) |"
+            )
+    lines += [
+        "",
+        "Read: a result that holds in both halves, with a separate-window t above about 2, is a candidate "
+        "for a weight; one that holds in only one half is regime luck. Nothing was fitted here.",
     ]
     return "\n".join(lines) + "\n"

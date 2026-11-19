@@ -55,3 +55,22 @@ def test_report_states_its_limits_and_shows_unknowns_as_n_a():
         }
     )
     assert "Indicative only" in text and "n/a" in text and "overlapping" in text
+
+
+def test_robustness_report_runs_every_variant_and_gives_a_non_overlapping_t():
+    bars = make_bars(n_days=100)
+    text = sc.robustness_report(bars, horizons=(5,))
+    for name in (
+        "all days (baseline)",
+        "first half",
+        "second half",
+        "liquidity floor",
+        "half weight",
+        "removed",
+    ):
+        assert name in text
+    res = sc.run(bars, horizons=(5,), days_filter=lambda d: d > "2026-07-15")
+    s = sc.summarise(res, 5)
+    assert s["days"] > 0 and s["separate_days"] <= s["days"] and s["group"] is not None
+    thin = sc.run(bars, horizons=(5,), min_turnover=1e12)  # nothing passes the floor: no days, not zero days
+    assert sc.summarise(thin, 5)["days"] == 0 and sc.summarise(thin, 5)["excess"] is None
