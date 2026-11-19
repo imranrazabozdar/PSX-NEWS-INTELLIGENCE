@@ -1,6 +1,10 @@
 # Investify announcements into psx-library, under the written consent (docs/consent/investify-2026-11-12.md).
 #
-# * Manual dispatch only: nothing polls Investify on a timer. A run makes AT MOST ONE request; the good-citizen
+# * Runs on request (manual dispatch) AND, since the owner's approval of 2026-11-19, on a schedule every 30 minutes
+#   from 10:07 to 15:37 PKT, Monday to Friday (scheduled runs load the facts). The cron only decides when to ASK:
+#   the gate in code decides whether any request is made, so outside the window, on a holiday, inside the
+#   15-minute floor or past a ceiling the run ends with no request. A run makes AT MOST ONE page request (plus
+#   robots.txt when its 24-hour copy is stale, after the 15-minute floor); the good-citizen
 #   gate in code decides whether any request is allowed (collector switched on in config/investify_good_citizen.json,
 #   trading window, quiet window 10:00-15:30 PKT, 15-minute floor, daily/weekly ceilings, 24-hour cache-first TTL,
 #   robots.txt, backoff, circuit breaker). Outside the window the run ends without a request.
@@ -10,6 +14,9 @@
 name: Investify announcements to library
 
 on:
+  schedule:
+    # UTC. 05:07-10:37 UTC = 10:07-15:37 PKT. Off the top of the hour (GitHub drops runs at :00 and :30).
+    - cron: "7,37 5-10 * * 1-5"
   workflow_dispatch:
     inputs:
       unconditional:
@@ -59,7 +66,7 @@ jobs:
       - name: One consented request, parsed into facts
         run: python -m collectors.investify_library_job --state "$STATE_DIR/state.json" --out investify_facts.json ${{ inputs.unconditional && '--unconditional' || '' }}
       - name: Load the facts (only when apply)
-        if: ${{ inputs.apply }}
+        if: ${{ inputs.apply || github.event_name == 'schedule' }}
         run: |
           if [ -f investify_facts.json ]; then
             python -m scripts.absorb_sector_capsule investify_facts.json --since-days 60 --apply

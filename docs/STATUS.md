@@ -682,3 +682,7 @@ Order (one phase at a time, each stops at an owner gate):
 
 ## "Why it moved" shows every day's moves (owner screenshots, 2026-11-19) - IMPLEMENTED
 - The tab listed only moves that already had a candidate cause and put unexplained ones in a separate list at the bottom, so 18 Nov moves with no cause on file (for example 786 up 10%) were hidden below 17 Nov ones. Now grouped by day, newest first, biggest first within a day, every notable move shown; unexplained ones say "no cause on file yet".
+
+## Investify scheduled reads (owner approval 2026-11-19) - IMPLEMENTED
+- `investify_library.yml` now also runs on a schedule (cron 7,37 UTC, 05-10 UTC, Mon-Fri = 10:07-15:37 PKT) and loads the facts. The gate in code decides whether a request is made, so cron slots outside the window, in the 15-minute floor or past a ceiling end with no request. Kill switch: repository variable PSXNI_KILL_SWITCH=true. Reason: the page holds only the newest 25 announcements, so unread slots lose items.
+- Council view on the dashboard: BLOCKED on a storage decision (see report); technical-engine signals already appear in the setups cards and move evidence.
