@@ -58,3 +58,9 @@ Not repeated or deferred (as before): raw-timestamp column and parser-version co
 
 ### What the next evaluation has to show (acceptance list)
 Three analysts reliably on three families (macro: at least 10 checks answered); the original missed events detected; no excessive false positives on the extended and holdout sets; Mettis times correct for new rows; separate events kept separate; sector candidates without direction; important events still queued at the cap; a weekend and a holiday; every conclusion traceable to source evidence.
+
+### Live check of round 2 (10-headline dry run, NVIDIA macro analyst)
+- News (OpenAI gpt-oss) and financial (Alibaba Qwen) answered 10 of 10 each. Macro on NVIDIA nemotron-3-ultra produced a usable answer in 5 of 10 verdicts (3 unparsable, 1 error, 1 refused by the quota guard); of 15 NVIDIA calls, 7 came back as an empty answer and 8 answered; the Gemini fallback then failed 7 times (429 quota five times, 503 twice).
+- Result: 5 of 10 verdicts had full coverage (three analysts on three different families: OpenAI, Alibaba Qwen, NVIDIA) and in all 5 the models disagreed; the other 5 are recorded `INSUFFICIENT_ANALYST_COVERAGE` with `disagreement_found` null, as designed.
+- **Not yet met:** the macro analyst is not operational (the review asked for at least 10 answered checks). Likely cause: the NVIDIA model is a reasoning model whose answer is cut off or empty at the lens output limit; not yet confirmed. Next step: test a larger output limit for that model, or another free non-Google family, before the fresh seven-day dry run.
+- Mettis correction layer on 400 stored rows: 99 `valid` (stored later than collected, so the five-hour offset is visible and the corrected time is consistent), 301 `unverifiable` (collected long after publication), 1 row would change calendar day. Nothing was changed.

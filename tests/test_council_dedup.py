@@ -79,3 +79,38 @@ def test_a_story_naming_a_listed_company_outranks_an_equal_market_wide_one():
     named.company_keys = {"NBP"}
     assert ni.priority(named, NOW) > ni.priority(macro, NOW)
     assert ni.COMPANY_BONUS > 0
+
+
+def test_a_fenced_or_chatty_model_answer_is_still_read_but_garbage_is_not():
+    import json
+
+    import pytest
+
+    from engines import analyst_council as ac
+
+    assert ac.extract_json_object('{"a": 1}') == {"a": 1}
+    assert ac.extract_json_object('```json\n{"a": 1}\n```') == {"a": 1}
+    assert ac.extract_json_object('Here is my answer:\n{"a": {"b": 2}}\nHope that helps.') == {"a": {"b": 2}}
+    for bad in ("no json at all", "", '{"a": '):
+        with pytest.raises(json.JSONDecodeError):
+            ac.extract_json_object(bad)
+
+
+def test_openrouter_asks_for_low_reasoning_and_a_larger_output_allowance_but_groq_is_unchanged():
+    from engines import llm
+
+    sent = {}
+
+    def post(url, headers, body, timeout):
+        sent.update(body)
+        return {"choices": [{"message": {"content": "{}"}}], "usage": {}}
+
+    llm.OpenRouterProvider(api_key="k", model="x:free", post=post).complete(
+        system="s", user="u", json_schema={}, max_output_tokens=2000
+    )
+    assert sent["reasoning"] == {"effort": "low"} and sent["max_tokens"] == 4000
+    sent.clear()
+    llm.GroqProvider(api_key="k", model="m", post=post).complete(
+        system="s", user="u", json_schema={}, max_output_tokens=2000
+    )
+    assert "reasoning" not in sent and sent["max_tokens"] == 2000

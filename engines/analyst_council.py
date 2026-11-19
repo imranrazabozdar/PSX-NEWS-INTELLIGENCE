@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -160,6 +161,23 @@ def provider_for_role(role: str, environ: Any = None, *, db: Any = None) -> Any:
     return result
 
 
+def extract_json_object(text: str) -> Any:
+    """The JSON object in a model's answer. Free models often wrap it in a markdown fence or add a sentence
+    before or after it; the object itself is parsed strictly. Raises JSONDecodeError when there is none."""
+    try:
+        return json.loads(text)
+    except (json.JSONDecodeError, TypeError):
+        pass
+    body = re.sub(r"^```(?:json)?\s*|\s*```$", "", str(text).strip(), flags=re.I)
+    try:
+        return json.loads(body)
+    except json.JSONDecodeError:
+        start, end = body.find("{"), body.rfind("}")
+        if start == -1 or end <= start:
+            raise
+        return json.loads(body[start : end + 1])
+
+
 def _clean_assessments(raw: Any, pack: EvidencePack) -> tuple[list[Assessment], list[str]]:
     """Keep only assessments the evidence can carry. A model may not introduce a company or a citation."""
     kept: list[Assessment] = []
@@ -212,7 +230,7 @@ def run_role(role: str, pack: EvidencePack, gateway: Any) -> RoleFinding:
         finding.error = result.error
         return finding
     try:
-        payload = json.loads(result.text)
+        payload = extract_json_object(result.text)
     except (json.JSONDecodeError, TypeError):
         finding.outcome = "unparsable"
         finding.error = "the model did not return one JSON object"
