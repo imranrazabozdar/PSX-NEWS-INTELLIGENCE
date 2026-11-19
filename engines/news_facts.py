@@ -15,8 +15,9 @@ from __future__ import annotations
 
 import re
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
+from typing import Any
 
 from engines import freshness
 
@@ -179,6 +180,9 @@ class Vocabulary:
     singles: dict[str, str]  # exact-case one-word name -> ticker
     tickers: frozenset[str]
     sectors: frozenset[str]  # sector entity names that exist in the library, e.g. 'CEMENT'
+    # A bare one-word name that is a listed company ONLY when the headline also carries a word that ties it
+    # to the listed company's own corporate events: name -> (ticker, context pattern). Owner-confirmed only.
+    contextual: dict[str, tuple[str, re.Pattern[str]]] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         object.__setattr__(
@@ -211,7 +215,12 @@ def _name_phrase(name: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
-def build_vocabulary(listing: dict[str, str], aliases: dict[str, str], sectors: Iterable[str]) -> Vocabulary:
+def build_vocabulary(
+    listing: dict[str, str],
+    aliases: dict[str, str],
+    sectors: Iterable[str],
+    contextual: dict[str, Any] | None = None,
+) -> Vocabulary:
     """The company names and tickers the matcher knows: listed names (legal suffixes dropped) and aliases."""
     phrases: dict[str, str] = {}
     singles: dict[str, str] = {}
@@ -242,7 +251,12 @@ def build_vocabulary(listing: dict[str, str], aliases: dict[str, str], sectors: 
             # make every "Tariq" in the news a company
             singles.setdefault(phrase, sym)
     all_tickers = symbols | {t for t in aliases.values() if t.isalnum() and t.upper() == t and ":" not in t}
-    return Vocabulary(phrases, singles, frozenset(all_tickers - TICKER_STOPLIST), frozenset(sectors))
+    ctx = {
+        name: (spec["symbol"], re.compile(r"\b(?:" + "|".join(spec["context"]) + r")\b", re.I))
+        for name, spec in (contextual or {}).items()
+        if spec["symbol"] in symbols and spec.get("context")
+    }
+    return Vocabulary(phrases, singles, frozenset(all_tickers - TICKER_STOPLIST), frozenset(sectors), ctx)
 
 
 def _mostly_upper(text: str) -> bool:
@@ -261,6 +275,10 @@ def companies_in(vocab: Vocabulary, title: str, snippet: str | None = None) -> l
     if vocab._single_re:  # noqa: SLF001
         for m in vocab._single_re.finditer(title):  # noqa: SLF001
             found.append((m.start(), m.end(), vocab.singles[m.group(0)]))
+    for name, (sym, context) in vocab.contextual.items():
+        hit = re.search(rf"\b{re.escape(name)}\b", title)
+        if hit and context.search(title):
+            found.append((hit.start(), hit.end(), sym))
     if not _mostly_upper(title):
         for m in re.finditer(r"\b[A-Z]{3,7}\b", title):
             if m.group(0) in vocab.tickers:

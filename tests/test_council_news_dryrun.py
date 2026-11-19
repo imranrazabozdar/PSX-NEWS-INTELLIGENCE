@@ -282,14 +282,48 @@ def test_three_lenses_on_one_model_are_not_reported_as_three_models(tmp_path):
     assert set(m["lenses"]) == {"news", "financial", "macro"}
 
 
+def three_families(directions):
+    """One fake provider per analyst, each on a different model family (as in the pinned chain)."""
+    fakes = {
+        "news": FakeProvider(directions, model="openai/gpt-oss-120b"),
+        "financial": FakeProvider(directions, model="qwen/qwen3.8-27b"),
+        "macro": FakeProvider(directions, model="nvidia/nemotron-3-ultra-550b-a55b:free"),
+    }
+
+    def chain_for(role, env, ledger, ctx, clock):
+        return cn.TrackedLeaf(fakes[role], ledger, ctx, clock), []
+
+    return chain_for
+
+
 def test_model_disagreement_is_recorded_not_hidden(tmp_path):
     db = make_db()
-    split = FakeProvider({"news": "benefit", "financial": "neutral", "macro": "suffer"})
-    _, out = run(tmp_path, db, chain_with(split))
+    split = {"news": "benefit", "financial": "neutral", "macro": "suffer"}
+    _, out = run(tmp_path, db, three_families(split))
     r = out["records"][0]
+    assert r["model_disagreement"]["coverage"]["status"] == "full"
     assert r["model_disagreement"]["disagreement_found"] is True
     assert r["model_disagreement"]["conflicts"][0]["company"] == "HUBC"
     assert r["assessment"]["affected_companies"][0]["consensus"] == "mixed"
+
+
+def test_one_model_for_every_analyst_is_not_independent_and_no_disagreement_is_claimed(tmp_path):
+    db = make_db()
+    split = FakeProvider({"news": "benefit", "financial": "neutral", "macro": "suffer"})
+    _, out = run(tmp_path, db, chain_with(split))
+    d = out["records"][0]["model_disagreement"]
+    assert d["coverage"]["status"] == "INSUFFICIENT_ANALYST_COVERAGE"
+    assert d["disagreement_found"] is None and "not assessed" in d["note"]
+
+
+def test_the_model_families_are_disjoint_and_a_google_model_is_never_a_second_family():
+    fam = {r: {cn.family_of(m) for _v, m in c} for r, c in cn.INDEPENDENT_MODELS.items()}
+    assert fam["news"] == {"OpenAI"} and fam["financial"] == {"Alibaba Qwen"}
+    assert "Google" in fam["macro"] and "NVIDIA" in fam["macro"]
+    assert not fam["news"] & fam["financial"]
+    assert not (fam["news"] | fam["financial"]) & fam["macro"]
+    assert cn.family_of("google/gemma-4-31b-it:free") == cn.family_of(cn.llm.DEFAULT_GEMINI_MODEL) == "Google"
+    assert cn.family_of("some/new-model") == "unknown"  # an unknown model is never assumed independent
 
 
 def test_every_attempt_is_a_recorded_call_and_transient_errors_are_retried(tmp_path):
@@ -601,6 +635,7 @@ def test_each_analyst_is_pinned_to_a_different_model_family_with_no_cross_family
     assert not pools["news"] & pools["financial"]
     assert not pools["news"] & pools["macro"] and not pools["financial"] & pools["macro"]
     assert all(m.endswith(":free") for _v, m in cn.INDEPENDENT_MODELS["macro"] if _v == "openrouter")
+    assert cn.INDEPENDENT_MODELS["macro"][0][0] == "openrouter"  # NVIDIA first, Gemini only as the fallback
     # a pinned vendor with no key leaves the analyst unavailable instead of borrowing another family
     provider, notes = cn.build_chain("macro", {"PSXNI_GROQ_API_KEY_ONE": "g1"}, led, {}, clock)
-    assert provider is None and any("pinned gemini" in n for n in notes)
+    assert provider is None and any("pinned openrouter or gemini" in n for n in notes)

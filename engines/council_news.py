@@ -165,13 +165,25 @@ class TrackedLeaf:
 # is NO silent fallback to another family: when the pinned model cannot answer the analyst is recorded as
 # unavailable, and the record says so. Set PSXNI_COUNCIL_INDEPENDENT_MODELS=off to return to the older chain.
 INDEPENDENT_MODELS: dict[str, tuple[tuple[str, str], ...]] = {
-    "news": (("groq", llm.DEFAULT_GROQ_MODEL),),  # OpenAI gpt-oss family
-    "financial": (("groq", "qwen/qwen3.8-27b"),),  # Alibaba Qwen family (offered on the Groq free tier)
-    # Google family: Gemini first; when it is overloaded or out of quota (transient 503/429: 10 of 10 calls
-    # in the first live check) the free Gemma model, still a different family from the two above.
-    # (gemini-2.5-flash was tried and answers 404 for these keys, so the "latest" alias stays.)
-    "macro": (("gemini", llm.DEFAULT_GEMINI_MODEL), ("openrouter", "google/gemma-4-31b-it:free")),
+    "news": (("groq", llm.DEFAULT_GROQ_MODEL),),
+    "financial": (("groq", "qwen/qwen3.8-27b"),),
+    # NVIDIA family first (a family no other analyst uses); Google Gemini only as the fallback. Gemma is NOT
+    # used: it is a Google model and would not be independent of Gemini.
+    "macro": (("openrouter", "nvidia/nemotron-3-ultra-550b-a55b:free"), ("gemini", llm.DEFAULT_GEMINI_MODEL)),
 }
+# The model family behind each model id (a "different model" from the same lab is not independent).
+FAMILIES: dict[str, str] = {
+    llm.DEFAULT_GROQ_MODEL: "OpenAI",
+    "qwen/qwen3.8-27b": "Alibaba Qwen",
+    "nvidia/nemotron-3-ultra-550b-a55b:free": "NVIDIA",
+    llm.DEFAULT_GEMINI_MODEL: "Google",
+    "google/gemma-4-31b-it:free": "Google",
+}
+
+
+def family_of(model: str) -> str:
+    """The family of a model id; unknown ids are reported as unknown, never assumed independent."""
+    return FAMILIES.get(model, "unknown")
 
 
 def build_chain(
@@ -190,14 +202,16 @@ def build_chain(
     if pinned:
         names = " then ".join(f"{v} {m}" for v, m in pinned)
         notes.append(f"{role}: pinned to {names}; no fallback to another analyst's family")
-    for cls, model_var in (
+    vendors = (
         (llm.GroqProvider, llm.GROQ_MODEL_VAR),
         (llm.GeminiProvider, llm.GEMINI_MODEL_VAR),
         (llm.OpenRouterProvider, llm.OPENROUTER_MODEL_VAR),
-    ):
+    )
+    if pinned:  # the analyst's own order: primary first, its permitted fallback after
+        by_name = {c.name: (c, v) for c, v in vendors}
+        vendors = tuple(by_name[v] for v, _m in pinned if v in by_name)
+    for cls, model_var in vendors:
         pin_model = next((m for v, m in pinned if v == cls.name), None) if pinned else None
-        if pinned and pin_model is None:
-            continue
         keys = llm.keys_from_env(cls.key_var, env)
         if not keys:
             continue
@@ -376,6 +390,19 @@ def structure_assessment(
     }
 
 
+def analyst_coverage(verdict_dict: dict[str, Any]) -> dict[str, Any]:
+    """Whether all three analysts answered on three different model families. Disagreement between models is
+    only meaningful then; otherwise the record says INSUFFICIENT_ANALYST_COVERAGE, no consensus is made up."""
+    ok = [f for f in verdict_dict["findings"] if f["outcome"] == "ok"]
+    families = {family_of(f["model"] or "") for f in ok}
+    full = len(ok) == 3 and len(families) == 3 and "unknown" not in families
+    return {
+        "status": "full" if full else "INSUFFICIENT_ANALYST_COVERAGE",
+        "analysts_answered": [f["role"] for f in ok],
+        "families": {f["role"]: family_of(f["model"] or "") for f in ok},
+    }
+
+
 def disagreement(verdict_dict: dict[str, Any]) -> dict[str, Any]:
     by = _direction_views(verdict_dict)
     spread = {
@@ -389,7 +416,14 @@ def disagreement(verdict_dict: dict[str, Any]) -> dict[str, Any]:
             f["role"]: len(f["dropped"]) for f in verdict_dict["findings"] if f["dropped"]
         },
         "disagreement_found": bool(verdict_dict["conflicted"]) or any(len(d) > 1 for d in spread.values()),
+        "coverage": analyst_coverage(verdict_dict),
     }
+
+
+def _dis_text(d: dict[str, Any]) -> str:
+    if d.get("disagreement_found") is None:
+        return "not assessed (insufficient analyst coverage)"
+    return "YES" if d["disagreement_found"] else "no"
 
 
 def run_council(
@@ -552,6 +586,11 @@ def execute_item(
             verdict, pack, [s.split(":", 1)[1] for s in payload["sectors"]]
         )
         record["model_disagreement"] = disagreement(verdict)
+        if record["model_disagreement"]["coverage"]["status"] != "full":
+            # fewer than three analysts on three families: the spread between the ones that answered is
+            # reported but not counted as a disagreement finding, and no consensus is claimed
+            record["model_disagreement"]["disagreement_found"] = None
+            record["model_disagreement"]["note"] = "not assessed: INSUFFICIENT_ANALYST_COVERAGE"
         record["narrative"] = verdict.get("narrative")
         record["narrative_error"] = verdict.get("narrative_error")
     else:
@@ -782,7 +821,7 @@ def review_markdown(records: list[dict[str, Any]], labels: dict[str, str]) -> st
                 lines.append(f"- {s['entity']}: {s['consensus']}")
             d = r["model_disagreement"]
             lines.append(
-                f"- disagreement: {'YES' if d['disagreement_found'] else 'no'} {d['conflicts'] or ''}"
+                f"- disagreement: {_dis_text(d)} {d['conflicts'] or ''}"
             )
         lines += [
             f"- calls: {r['cost']['llm_calls']} ({r['cost']['calls_by_outcome']}), "
@@ -803,6 +842,41 @@ def ledger_path(env: Any = None) -> Path:
 
 
 # --- the seven-day report ---------------------------------------------------------------------------
+
+
+def model_availability(calls: list[dict[str, Any]]) -> list[str]:
+    """One row per analyst and model actually called: family, successful and failed calls, rate limits, and
+    whether it was the primary or a fallback."""
+    roles = {"news": "news", "financial": "financial", "macro": "macro"}
+    rows = [
+        "| analyst | provider | model | family | primary or fallback | ok | rate-limited (429) | "
+        "other failed |",
+        "|---|---|---|---|---|---|---|---|",
+    ]
+    seen: dict[tuple[str, str, str], dict[str, int]] = {}
+    for c in calls:
+        role = str(c.get("role", "")).split(":")[0]
+        if role not in roles:
+            continue
+        key = (role, c["vendor"], c.get("model") or "unknown")
+        s = seen.setdefault(key, {"ok": 0, "rl": 0, "bad": 0})
+        if c["outcome"] == "ok":
+            s["ok"] += 1
+        elif "429" in str(c.get("error") or ""):
+            s["rl"] += 1
+        else:
+            s["bad"] += 1
+    for (role, vendor, model), s in sorted(seen.items()):
+        pins = INDEPENDENT_MODELS.get(role, ())
+        order = next((i for i, (_v, m) in enumerate(pins) if m == model), None)
+        kind = "unpinned (older chain)" if order is None else ("primary" if order == 0 else "fallback")
+        rows.append(
+            f"| {role} | {vendor} | {model} | {family_of(model)} | {kind} | "
+            f"{s['ok']} | {s['rl']} | {s['bad']} |"
+        )
+    if len(rows) == 2:
+        rows.append("| none | | | | | | | |")
+    return rows
 
 
 def seven_day_report(snapshot: dict[str, Any], now: datetime, days: int = 7) -> str:
@@ -860,6 +934,8 @@ def seven_day_report(snapshot: dict[str, Any], now: datetime, days: int = 7) -> 
     errors = sorted({e for r in all_runs for e in r["errors"]})[:10]
     short = sum(1 for r in all_runs if isinstance(r["lenses_ok"], int) and r["lenses_ok"] < 3)
     answering = sorted({r["lenses_ok"] for r in all_runs}) or "unknown"
+    lines += ["", "Model availability per analyst (calls in the window):", ""]
+    lines += model_availability(calls)
     lines += [
         "",
         f"- consecutive days with at least one execution: **{best}** of {days}",

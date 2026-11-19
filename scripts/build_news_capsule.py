@@ -40,9 +40,11 @@ def load_vocabulary(db) -> nf.Vocabulary:
     for sym, note in listing.get("owner_confirmed", {}).items():
         if not sym.startswith("_"):
             companies.setdefault(sym, confirmed_name(sym, note))
-    aliases = json.loads((ROOT / "docs/research/arn/entity_aliases.json").read_text("utf-8"))["aliases"]
+    alias_file = json.loads((ROOT / "docs/research/arn/entity_aliases.json").read_text("utf-8"))
+    aliases = alias_file["aliases"]
+    contextual = {k: v for k, v in alias_file.get("contextual_aliases", {}).items() if not k.startswith("_")}
     names = {company[7:] for company in rf.sector_names(db)}  # a loose index scan: about 25 row reads
-    return nf.build_vocabulary(companies, aliases, names)
+    return nf.build_vocabulary(companies, aliases, names, contextual)
 
 
 def build(db, days: int | None) -> tuple[list[dict], int, list[tuple[dict, list[dict]]]]:

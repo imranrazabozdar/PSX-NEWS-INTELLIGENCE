@@ -59,13 +59,15 @@
     {
       "title": "Govt cuts petrol, high-speed diesel price by Rs2",
       "companies": []
+    },
+    {
+      "title": "Gatron’s ‘merger’ moves a third of the company out of two holding companies",
+      "companies": [
+        "GATI"
+      ]
     }
   ],
   "known_gap": [
-    {
-      "title": "Gatron’s ‘merger’ moves a third of the company out of two holding companies",
-      "reason": "bare one-word name 'Gatron' is not confirmed as an alias (owner decision)"
-    },
     {
       "title": "Gul Ahmed Textile approves procurement of two wind turbines with 15.75 MW capacity",
       "reason": "capacity contract wording is not in the corporate-action terms"

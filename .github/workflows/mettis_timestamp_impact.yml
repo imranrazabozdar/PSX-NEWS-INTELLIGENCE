@@ -25,5 +25,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: mettis-timestamp-impact
-          path: mettis_timestamp_impact.json
+          path: mettis_timestamp_correction_v1.json
           retention-days: 14

@@ -382,3 +382,14 @@ def test_tracking_parameters_do_not_create_a_second_row_for_the_same_article():
     )
     assert nc.canonical_url("https://a.pk/p?id=7&utm_source=t&fbclid=z#frag") == "https://a.pk/p?id=7"
     assert nc.canonical_url("https://a.pk/plain") == "https://a.pk/plain"
+
+
+def test_mettis_times_around_midnight_keep_the_right_calendar_day():
+    """A Pakistan clock time just after midnight is still the previous UTC day; the labelled-UTC reading would
+    have put it on the wrong day."""
+    after_midnight = nc.parse_mettis_article(article("Late story", "2026-11-18T01:30:00Z"), "https://m/x")
+    assert after_midnight.published_at == "2026-11-17T20:30:00Z"  # 01:30 PKT on 18 Nov is 20:30 UTC on 17 Nov
+    evening = nc.parse_mettis_article(article("Evening story", "2026-11-17T23:50:00+00:00"), "https://m/y")
+    assert evening.published_at == "2026-11-17T18:50:00Z"
+    noon = nc.parse_mettis_article(article("Noon story", "2026-11-17T12:00:00"), "https://m/z")
+    assert noon.published_at == "2026-11-17T07:00:00Z"
