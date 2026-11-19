@@ -211,6 +211,10 @@ class _ChatCompletionsProvider:
     key_var = ""
     model_var = ""
     default_model = ""
+    # Reasoning models spend output tokens thinking before they answer, so a small cap can leave the answer
+    # empty or cut off. A vendor can ask for low reasoning effort and a floor on the output allowance.
+    extra_body: dict = {}  # noqa: RUF012 - read-only class constant
+    min_output_tokens = 0
 
     def __init__(self, *, api_key: str | None = None, model: str | None = None,
                  post: Any = None, timeout: float = 30.0, extra_headers: dict[str, str] | None = None,
@@ -235,7 +239,8 @@ class _ChatCompletionsProvider:
             "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
             "response_format": {"type": "json_object"},
             "temperature": 0,
-            "max_tokens": max_output_tokens,
+            "max_tokens": max(max_output_tokens, self.min_output_tokens),
+            **self.extra_body,
         }
         headers = {"Authorization": f"Bearer {self._key}", "Content-Type": "application/json",
                    "User-Agent": "PSX-NI/1.0 (private research)", **self._extra_headers}
@@ -269,6 +274,8 @@ class OpenRouterProvider(_ChatCompletionsProvider):
     key_var = OPENROUTER_KEY_VAR
     model_var = OPENROUTER_MODEL_VAR
     default_model = DEFAULT_OPENROUTER_MODEL
+    extra_body = {"reasoning": {"effort": "low"}}  # noqa: RUF012 - ignored by models that do not reason
+    min_output_tokens = 4_000
 
 
 class GeminiProvider:
