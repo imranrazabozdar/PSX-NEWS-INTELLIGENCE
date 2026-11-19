@@ -1,0 +1,127 @@
+{
+ "schema_version": 1,
+ "method": "Each weekday the live top 10 of every ranking is recorded with the whole eligible group. A snapshot is scored against the next 1, 5 and 10 sessions: top-10 average return minus group average return. Scoring weights are not changed while the tracker runs.",
+ "generated_utc": "2026-11-19T15:43:45Z",
+ "snapshots": 1,
+ "first_day": "2026-11-19",
+ "last_day": "2026-11-19",
+ "checkpoints": {
+  "initial": 20,
+  "early": 30,
+  "preliminary": "60-90 days",
+  "meaningful": "6 months"
+ },
+ "summary": [
+  {
+   "track": "technical",
+   "horizon": 1,
+   "snapshots_scored": 0,
+   "top_avg": null,
+   "group_avg": null,
+   "avg_excess": null,
+   "beat_rate": null
+  },
+  {
+   "track": "technical",
+   "horizon": 5,
+   "snapshots_scored": 0,
+   "top_avg": null,
+   "group_avg": null,
+   "avg_excess": null,
+   "beat_rate": null
+  },
+  {
+   "track": "technical",
+   "horizon": 10,
+   "snapshots_scored": 0,
+   "top_avg": null,
+   "group_avg": null,
+   "avg_excess": null,
+   "beat_rate": null
+  },
+  {
+   "track": "fundamental",
+   "horizon": 1,
+   "snapshots_scored": 0,
+   "top_avg": null,
+   "group_avg": null,
+   "avg_excess": null,
+   "beat_rate": null
+  },
+  {
+   "track": "fundamental",
+   "horizon": 5,
+   "snapshots_scored": 0,
+   "top_avg": null,
+   "group_avg": null,
+   "avg_excess": null,
+   "beat_rate": null
+  },
+  {
+   "track": "fundamental",
+   "horizon": 10,
+   "snapshots_scored": 0,
+   "top_avg": null,
+   "group_avg": null,
+   "avg_excess": null,
+   "beat_rate": null
+  },
+  {
+   "track": "combined",
+   "horizon": 1,
+   "snapshots_scored": 0,
+   "top_avg": null,
+   "group_avg": null,
+   "avg_excess": null,
+   "beat_rate": null
+  },
+  {
+   "track": "combined",
+   "horizon": 5,
+   "snapshots_scored": 0,
+   "top_avg": null,
+   "group_avg": null,
+   "avg_excess": null,
+   "beat_rate": null
+  },
+  {
+   "track": "combined",
+   "horizon": 10,
+   "snapshots_scored": 0,
+   "top_avg": null,
+   "group_avg": null,
+   "avg_excess": null,
+   "beat_rate": null
+  },
+  {
+   "track": "technical_novol",
+   "horizon": 1,
+   "snapshots_scored": 0,
+   "top_avg": null,
+   "group_avg": null,
+   "avg_excess": null,
+   "beat_rate": null
+  },
+  {
+   "track": "technical_novol",
+   "horizon": 5,
+   "snapshots_scored": 0,
+   "top_avg": null,
+   "group_avg": null,
+   "avg_excess": null,
+   "beat_rate": null
+  },
+  {
+   "track": "technical_novol",
+   "horizon": 10,
+   "snapshots_scored": 0,
+   "top_avg": null,
+   "group_avg": null,
+   "avg_excess": null,
+   "beat_rate": null
+  }
+ ],
+ "snapshot_days": [
+  "2026-11-19"
+ ]
+}
