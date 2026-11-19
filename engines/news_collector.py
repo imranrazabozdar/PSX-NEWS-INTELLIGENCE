@@ -19,7 +19,7 @@ import sys
 import time
 from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 from typing import Any
@@ -103,8 +103,17 @@ def clean_text(value: str | None, limit: int = SNIPPET_CHARS) -> str:
     return (cut or text[:limit]).rstrip(",;:- ")
 
 
-def to_utc_iso(text: str | None) -> str | None:
-    """An ISO-8601 or RFC-822 date as UTC 'YYYY-MM-DDTHH:MM:SSZ'. A date with no zone is read as UTC."""
+PKT = timezone(timedelta(hours=5))  # Pakistan has no daylight saving time
+# Outlets whose article dates carry the Pakistan wall-clock time but are labelled UTC (or carry no zone).
+# Found in the seven-day council evaluation (19 Nov 2026): every Mettis item was dated about five hours in
+# the future. The wall-clock part of their date is read as Pakistan time. Forward-only: rows already stored
+# are NOT rewritten (a historical correction needs a separate owner approval).
+WALL_CLOCK_IS_PKT = frozenset({"mettis"})
+
+
+def to_utc_iso(text: str | None, *, wall_clock: timezone | None = None) -> str | None:
+    """An ISO-8601 or RFC-822 date as UTC 'YYYY-MM-DDTHH:MM:SSZ'. A date with no zone is read as UTC, unless
+    `wall_clock` says the clock time in the text is in that zone whatever label it carries."""
     if not text:
         return None
     raw = text.strip()
@@ -116,7 +125,9 @@ def to_utc_iso(text: str | None) -> str | None:
             when = parsedate_to_datetime(raw)
         except (TypeError, ValueError):
             return None
-    if when.tzinfo is None:
+    if wall_clock is not None:
+        when = when.replace(tzinfo=wall_clock)  # keep the clock reading, replace the (wrong or missing) label
+    elif when.tzinfo is None:
         when = when.replace(tzinfo=UTC)
     return when.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -198,7 +209,9 @@ def parse_article(page: str, url: str, source: str) -> Item | None:
                  if n.get("@type") in ("NewsArticle", "Article", "BlogPosting")), None)
     meta = _meta(page)
     title = (node or {}).get("headline") or meta.get("og:title")
-    when = to_utc_iso((node or {}).get("datePublished") or meta.get("article:published_time"))
+    zone = PKT if source in WALL_CLOCK_IS_PKT else None
+    raw_date = (node or {}).get("datePublished") or meta.get("article:published_time")
+    when = to_utc_iso(raw_date, wall_clock=zone)
     if not title or not when:
         return None
     section = (node or {}).get("articleSection") or meta.get("article:section")

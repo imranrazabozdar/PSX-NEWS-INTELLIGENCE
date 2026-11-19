@@ -1,0 +1,29 @@
+# Read-only: how many stored Mettis items carry the five-hour offset. Changes nothing.
+name: Mettis timestamp impact (read only)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PSXNI_LIBRARY_TURSO_DATABASE_URL: ${{ secrets.PSXNI_LIBRARY_TURSO_DATABASE_URL }}
+      PSXNI_LIBRARY_TURSO_AUTH_TOKEN: ${{ secrets.PSXNI_LIBRARY_TURSO_AUTH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python -m scripts.mettis_timestamp_impact
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mettis-timestamp-impact
+          path: mettis_timestamp_impact.json
+          retention-days: 14

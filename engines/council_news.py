@@ -22,6 +22,7 @@ from __future__ import annotations
 import json
 import os
 import time
+from collections import Counter
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
@@ -158,6 +159,18 @@ class TrackedLeaf:
         return out
 
 
+# Independence (owner-approved 2026-11-19, free tier only): each analyst is pinned to a DIFFERENT model
+# family,
+# so agreement or disagreement means something. The pinned family may rotate over its own accounts, but there
+# is NO silent fallback to another family: when the pinned model cannot answer the analyst is recorded as
+# unavailable, and the record says so. Set PSXNI_COUNCIL_INDEPENDENT_MODELS=off to return to the older chain.
+INDEPENDENT_MODELS: dict[str, tuple[str, str]] = {
+    "news": ("groq", llm.DEFAULT_GROQ_MODEL),  # OpenAI gpt-oss family
+    "financial": ("groq", "qwen/qwen3.8-27b"),  # Alibaba Qwen family (offered on the Groq free tier)
+    "macro": ("gemini", llm.DEFAULT_GEMINI_MODEL),  # Google Gemini family
+}
+
+
 def build_chain(
     role: str, env: Any, ledger: cl.Ledger, ctx: dict[str, Any], clock: Callable[[], datetime]
 ) -> tuple[Any | None, list[str]]:
@@ -169,15 +182,21 @@ def build_chain(
     notes: list[str] = []
     offset = council.ROLES.index(role)
     chain: list[Any] = []
+    switch = str(env.get("PSXNI_COUNCIL_INDEPENDENT_MODELS", "on"))
+    pinned = INDEPENDENT_MODELS.get(role) if switch != "off" else None
+    if pinned:
+        notes.append(f"{role}: pinned to {pinned[0]} {pinned[1]}; no cross-family fallback")
     for cls, model_var in (
         (llm.GroqProvider, llm.GROQ_MODEL_VAR),
         (llm.GeminiProvider, llm.GEMINI_MODEL_VAR),
         (llm.OpenRouterProvider, llm.OPENROUTER_MODEL_VAR),
     ):
+        if pinned and cls.name != pinned[0]:
+            continue
         keys = llm.keys_from_env(cls.key_var, env)
         if not keys:
             continue
-        model = str(env.get(model_var, "") or "").strip() or None
+        model = pinned[1] if pinned else (str(env.get(model_var, "") or "").strip() or None)
         if cls is llm.OpenRouterProvider and not (model or llm.DEFAULT_OPENROUTER_MODEL).endswith(":free"):
             notes.append("openrouter skipped: only ':free' models are allowed (no paid fallback)")
             continue
@@ -187,7 +206,10 @@ def build_chain(
         leaves = [TrackedLeaf(cls(api_key=k, model=model, account=n), ledger, ctx, clock) for n, k in ordered]
         chain.append(leaves[0] if len(leaves) == 1 else llm.RotatingProvider(leaves))
     if not chain:
-        return None, notes + ["no free-tier model key is configured"]
+        why = "no free-tier model key is configured"
+        if pinned:
+            why = f"no free-tier key for the pinned {pinned[0]} model"
+        return None, notes + [why]
     provider = chain[0] if len(chain) == 1 else llm.FallbackProvider(chain)
     return llm_quota.guard(provider, LedgerQuotaTracker(ledger, clock), env), notes
 
@@ -791,13 +813,16 @@ def seven_day_report(snapshot: dict[str, Any], now: datetime, days: int = 7) -> 
     for r in snapshot["runs"]:
         if r.get("mode") == "auto":
             runs_by_day.setdefault(r["time"]["pkt_day"], []).append(r)
-    head = "| Pakistan day | type | executions | flagged | runs | assessed | failed | disagreement | after |"
+    head = (
+        "| Pakistan day | type | collection executions | events seen (max in one execution) | flagged | "
+        "council runs | assessed | failed | disagreement | after |"
+    )
     lines = [
         f"# Council dry run: {days}-day report (to {now.astimezone(ni.PKT):%Y-%m-%d %H:%M} PKT)",
         "",
         head,
     ]
-    lines.append("|---|---|---|---|---|---|---|---|---|")
+    lines.append("|---|---|---|---|---|---|---|---|---|---|")
     streak = best = weekends = holidays = 0
     for d in wanted:
         ex, rs = ex_by_day[d], runs_by_day[d]
@@ -805,11 +830,13 @@ def seven_day_report(snapshot: dict[str, Any], now: datetime, days: int = 7) -> 
         weekends += 1 if tags.get("weekend") else 0
         holidays += 1 if tags.get("holiday") is True else 0
         flagged = max((e["flagged"] for e in ex), default=None)
+        seen = max((e["events"] for e in ex if "events" in e), default=None)
         assessed = sum(1 for r in rs if r["outcome"] == "assessed")
         dis = sum(1 for r in rs if r.get("disagreement"))
         after = sum(1 for r in rs if r["time"].get("after_hours") is True)
         lines.append(
             f"| {d} | {tags.get('day_type') or 'no executions'} | {len(ex)} | "
+            f"{'unknown' if seen is None else seen} | "
             f"{'unknown' if flagged is None else flagged} | {len(rs)} | {assessed} | {len(rs) - assessed} | "
             f"{dis} | {after} |"
         )
@@ -826,6 +853,7 @@ def seven_day_report(snapshot: dict[str, Any], now: datetime, days: int = 7) -> 
     pend = [q for q in snapshot["queue"] if q["state"] in ("pending", "reserved", "needs_review")]
     review = sum(1 for q in pend if q["state"] == "needs_review")
     errors = sorted({e for r in all_runs for e in r["errors"]})[:10]
+    short = sum(1 for r in all_runs if isinstance(r["lenses_ok"], int) and r["lenses_ok"] < 3)
     answering = sorted({r["lenses_ok"] for r in all_runs}) or "unknown"
     lines += [
         "",
@@ -835,7 +863,10 @@ def seven_day_report(snapshot: dict[str, Any], now: datetime, days: int = 7) -> 
         f"- council runs: {len(all_runs)} (cap {cl.CAP_PER_DAY} a day, {cl.CAP_PER_EXECUTION} an execution); "
         f"lenses answering per run: {answering}",
         f"- LLM calls: {len(calls)} {by_out or ''}; by account: {by_acct or 'none'}",
-        f"- queue now: {len(pend)} waiting, {review} needing review",
+        f"- queue now: {len(pend)} waiting, {review} needing review; by state: "
+        f"{dict(sorted(Counter(q['state'] for q in snapshot['queue']).items()))} "
+        "(covered = a similar story was assessed within 36 hours; nothing is deleted)",
+        f"- analysts unavailable in a run (fewer than 3 lenses answered): {short} of {len(all_runs)}",
         f"- distinct errors: {errors or 'none'}",
     ]
     return "\n".join(lines)

@@ -56,3 +56,20 @@ def test_report_averages_the_scored_snapshots():
     ]
     text = sf.report(snaps, sf.evaluate(snaps, b))
     assert "| technical | 5 | 2 |" in text and "100%" in text
+
+
+def test_the_results_file_is_versioned_validated_and_free_of_secrets():
+    b = bars(up=tuple(f"S{i:02d}" for i in range(10)))
+    top = [f"S{i:02d}" for i in range(10)]
+    snaps = [sf.snapshot(result_for(b, top), b, d) for d in ("2026-09-01", "2026-09-02")]
+    assert sf.validate_snapshots(snaps) == []
+    payload = sf.results_payload(snaps, sf.evaluate(snaps, b), "2026-11-19T12:00:00Z")
+    assert payload["schema_version"] == sf.SCHEMA_VERSION and payload["snapshots"] == 2
+    assert payload["first_day"] == "2026-09-01" and any(
+        r["snapshots_scored"] == 2 for r in payload["summary"]
+    )
+    text = str(payload).lower()
+    assert "token" not in text and "secret" not in text and "password" not in text
+    bad = snaps + [dict(snaps[0])]  # a duplicate day
+    assert any("duplicate" in p for p in sf.validate_snapshots(bad))
+    assert any("malformed" in p for p in sf.validate_snapshots([{"day": "19-11-2026", "tracks": {}}]))

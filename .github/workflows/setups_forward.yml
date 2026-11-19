@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write  # only to push the results file to the dedicated data branch
 
 concurrency:
   group: setups-forward
@@ -36,6 +36,27 @@ jobs:
           key: setups-forward-none
           restore-keys: setups-forward-
       - run: python -m scripts.setups_forward
+      - name: Publish the results file to the data branch (results.json and snapshots only)
+        if: success()
+        env:
+          BRANCH: data/setups-forward
+        run: |
+          set -e
+          git fetch --quiet origin "$BRANCH:refs/remotes/origin/$BRANCH" || true
+          if git rev-parse --verify --quiet "origin/$BRANCH" >/dev/null; then
+            git worktree add --quiet databranch -B "$BRANCH" "origin/$BRANCH"
+          else
+            git worktree add --quiet --orphan -b "$BRANCH" databranch
+          fi
+          cp .setups_forward/results.json .setups_forward/snapshots.jsonl databranch/
+          cd databranch
+          git config user.name "psxni-data-bot"
+          git config user.email "psxni-data-bot@users.noreply.github.com"
+          git add results.json snapshots.jsonl
+          if git diff --cached --quiet; then echo "no change to publish"; else
+            git commit --quiet -m "setups forward tracking: results $(date -u +%Y-%m-%dT%H:%MZ)"
+            git push --quiet origin "$BRANCH"
+          fi
       - name: Save the snapshots
         if: always()
         uses: actions/cache/save@v4

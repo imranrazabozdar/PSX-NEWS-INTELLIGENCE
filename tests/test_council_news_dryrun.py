@@ -312,11 +312,16 @@ def test_there_is_no_paid_fallback_and_only_free_openrouter_models(tmp_path):
     led = cl.Ledger(tmp_path / "l.json")
     clock = lambda: NOW  # noqa: E731
     provider, notes = cn.build_chain("news", {"PSXNI_ANTHROPIC_API_KEY": "sk-x"}, led, {}, clock)
-    assert provider is None and "no free-tier model key" in notes[0]  # the Claude stub is never the fallback
-    paid = {"PSXNI_OPENROUTER_API_KEY": "k", "PSXNI_LLM_OPENROUTER_MODEL": "anthropic/claude-3-opus"}
+    assert provider is None and any("no free-tier" in n for n in notes)  # no Claude stub fallback
+    legacy = {"PSXNI_COUNCIL_INDEPENDENT_MODELS": "off"}
+    paid = {
+        **legacy,
+        "PSXNI_OPENROUTER_API_KEY": "k",
+        "PSXNI_LLM_OPENROUTER_MODEL": "anthropic/claude-3-opus",
+    }
     provider, notes = cn.build_chain("news", paid, led, {}, clock)
     assert provider is None and any("':free'" in n for n in notes)
-    free = {"PSXNI_OPENROUTER_API_KEY": "k"}
+    free = {**legacy, "PSXNI_OPENROUTER_API_KEY": "k"}
     provider, _ = cn.build_chain("news", free, led, {}, clock)
     assert provider is not None
     assert cn.configured_accounts({"PSXNI_GROQ_API_KEY_ONE": "a", "PSXNI_GROQ_API_KEY_TWO": "b"})["groq"] == 2
@@ -422,7 +427,7 @@ REAL = [
     (
         "Supreme Court rules in favour of Attock Refinery in sales tax dispute over crude oil processing",
         "profit",
-        set(),
+        {9},  # was a documented gap before rule 9 (corporate action or legal decision)
     ),
     ("Kohat Cement Company Limited", "brecorder", set()),
     ("‘PPP lives in the hearts of the people’: Faryal", "brecorder", set()),
@@ -582,3 +587,19 @@ def test_recent_highlights_get_reserved_slots_even_when_newer_rows_fill_the_cut(
     texts = [str(i.text) for i in pack.items if "announcement highlights" in str(i.source_name)]
     assert len(texts) == cr.RESERVED_HIGHLIGHTS == 6
     assert all("highlight" in t for t in texts)
+
+
+def test_each_analyst_is_pinned_to_a_different_model_family_with_no_cross_family_fallback(tmp_path):
+    led = cl.Ledger(tmp_path / "l.json")
+    clock = lambda: NOW  # noqa: E731
+    env = {"PSXNI_GROQ_API_KEY_ONE": "g1", "PSXNI_GEMINI_API_KEY_ONE": "m1", "PSXNI_OPENROUTER_API_KEY": "o1"}
+    models = {}
+    for role in ("news", "financial", "macro"):
+        provider, notes = cn.build_chain(role, env, led, {}, clock)
+        assert provider is not None and any("no cross-family fallback" in n for n in notes)
+        models[role] = cn.INDEPENDENT_MODELS[role]
+    assert len({m for _v, m in models.values()}) == 3  # three different models
+    assert {v for v, _m in models.values()} == {"groq", "gemini"}
+    # a pinned vendor with no key leaves the analyst unavailable instead of borrowing another family
+    provider, notes = cn.build_chain("macro", {"PSXNI_GROQ_API_KEY_ONE": "g1"}, led, {}, clock)
+    assert provider is None and any("pinned gemini" in n for n in notes)

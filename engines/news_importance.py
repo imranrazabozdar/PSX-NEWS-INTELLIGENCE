@@ -28,6 +28,7 @@ from datetime import UTC, datetime, timedelta, timezone
 from typing import Any
 
 from engines import news_facts as nf
+from engines import sector_transmission
 
 PKT = timezone(timedelta(hours=5))  # Pakistan has no daylight saving time
 
@@ -42,9 +43,12 @@ RULE_NAMES = {
     # Added at the owner's direction (2026-11-17): a material announcement that the numbers engine grades
     # as large, or that the market reacted to, found by engines/announcement_events.py.
     8: "material announcement: stated size or stage, or a large market reaction",
+    # Added after the seven-day dry-run evaluation (owner-approved 2026-11-19): company news about a
+    # merger, stake sale, rights issue, large loss, court ruling or scheme that rules 1, 5, 7 missed.
+    9: "company corporate action or legal decision (ownership, capital, loss, court ruling, scheme)",
 }
 # Higher is more urgent. Adverse developments first, then results, then the macro and policy backdrop.
-RULE_WEIGHT = {7: 100, 1: 90, 8: 85, 2: 80, 5: 70, 3: 60, 6: 55, 4: 50}
+RULE_WEIGHT = {7: 100, 1: 90, 9: 88, 8: 85, 2: 80, 5: 70, 3: 60, 6: 55, 4: 50}
 
 # How far each outlet's reporting is trusted by default. These are the owner-editable starting values,
 # ordered by
@@ -128,6 +132,40 @@ _ADVERSE = re.compile(
     r"force majeure|explosion|fire (?:at|breaks))\b",
     re.I,
 )
+# Rule 9: a corporate action or legal decision. It is only used when a listed company is named, so a wire
+# story about "losses" in global markets never matches. The terms catch the event; what it means for the
+# company is for the analysts to judge, and the stage (proposed or done) is recorded with the hit.
+_CORPORATE = re.compile(
+    r"\b(acquir\w+|acquisition|take-?over|merg(?:er|es|ed|ing)|amalgamat\w+|demerger|scheme of arrangement|"
+    r"stake (?:sale|purchase)|(?:sells?|selling|sold|buys?|buying|bought|divests?) (?:its |entire |a |the )?"
+    r"(?:\d+(?:\.\d+)?(?:pc|%) )?(?:stake|shares?|equity)|\d+(?:\.\d+)?(?:pc|%) stake|"
+    r"bids? (?:for|to)|rights? (?:issue|shares?)|buy-?back|bonus shares?|private placement|share issuance|"
+    r"capital (?:raise|raising|injection)|equity injection|restructur\w+|joint venture|"
+    r"share purchase agreement|"
+    r"(?:supreme|high|appellate) court|sindh high court|lahore high court|islamabad high court|"
+    r"peshawar high court|tribunal|rules? in favou?r|verdict|"
+    r"(?:net )?loss(?:es)? (?:of|after)|rs ?[\d.,]+ ?(?:billion|million|bn|mn|m|b) (?:net )?loss|"
+    r"(?:reports?|posts?|incurs?) (?:a )?(?:net )?loss|impairment|write-?offs?|"
+    r"(?:sale|transfer) of (?:\w+ ){0,2}(?:plant|property|business|unit|division))\b",
+    re.I,
+)
+_PROPOSED = re.compile(
+    r"\b(eyes|eyeing|evaluat\w+|propos\w+|intends?|plans?|seeks?|explor\w+|considers?|may|could|mulls?|"
+    r"in talks|approaches|offer(?:s|ed)?|bids?)\b",
+    re.I,
+)
+# Daily price pages and procedural notices are not events a council should spend a run on (the evaluation
+# found them among the highest-priority flags): they are still collected, they just do not become flags.
+_ROUTINE = re.compile(
+    r"\b(for today|exchange rates? in pakistan|prize bond|e-magazine|issues foreign exchange rates)\b|"
+    r"^rupee (?:records|posts|ends|closes|settles|gains?|slips?|loses?|edges?)\b",
+    re.I,
+)
+_PROCEDURAL = re.compile(
+    r"\b(faceless|adjournment|customs export values|export values of|declarations?\b|"
+    r"jurisdiction of .{0,50}collectorate|rules? for .{0,30}appeals?)\b",
+    re.I,
+)
 _NUMBER = re.compile(r"\d[\d,]*(?:\.\d+)?")
 _PAKISTANI_OUTLETS = frozenset({"mettis", "tribune_business", "dawn_business", "profit"})
 
@@ -174,6 +212,7 @@ class Event:
     day: str = ""  # Pakistan-local day of the first headline
     company_keys: set[str] = field(default_factory=set)  # companies the clustered headlines name (kept apart)
     words: list[frozenset[str]] = field(default_factory=list)  # content words of each member headline
+    transmission: list[dict[str, Any]] = field(default_factory=list)  # candidate sectors for a macro driver
 
     @property
     def sources(self) -> list[str]:
@@ -253,6 +292,10 @@ def similar_same_company(a: frozenset[str], b: frozenset[str]) -> bool:
     return bool(numbers) and len(shared) - len(numbers) >= 2
 
 
+def _same_title(a: str, b: str) -> bool:
+    return " ".join(a.lower().split()) == " ".join(b.lower().split())
+
+
 def _event_id(anchor: frozenset[str]) -> str:
     return hashlib.sha256(" ".join(sorted(anchor)).encode()).hexdigest()[:16]
 
@@ -321,7 +364,10 @@ def cluster(
                 target = anchor_id
         ev = events[target]
         ev.company_keys |= cos
-        if not any(m.url == h.url for m in ev.members):
+        same_copy = any(
+            m.url == h.url or (m.source == h.source and _same_title(m.title, h.title)) for m in ev.members
+        )
+        if not same_copy:  # the same article stored twice (another URL form) is one member, not two
             ev.members.append(h)
             ev.words.append(words)
         by_url[h.url] = target
@@ -379,6 +425,11 @@ def headline_hits(vocab: nf.Vocabulary, h: Headline) -> tuple[list[RuleHit], lis
         found = _ADVERSE.search(title)
         if found:
             hits.append(RuleHit(7, f"adverse term {found.group(0)!r}", tuple(companies)))
+        corp = _CORPORATE.search(title)
+        if corp:
+            stage = "proposed or reported" if _PROPOSED.search(title) else "announced or done"
+            detail = f"corporate action or legal decision {corp.group(0)!r} ({stage})"
+            hits.append(RuleHit(9, detail, tuple(companies)))
     elif not companies and sectors:
         found = _ADVERSE.search(title)
         if found:
@@ -395,13 +446,16 @@ def headline_hits(vocab: nf.Vocabulary, h: Headline) -> tuple[list[RuleHit], lis
         market = None
     if market and market != "market.index" and companies and not _MACRO_ACTOR.search(bare):
         market = None
+    routine = bool(_ROUTINE.search(title) or _PROCEDURAL.search(title))
+    if routine:
+        market = None  # a daily price page or a procedural notice is not a macro event
     if market in RULE2_TOPICS:
         hits.append(RuleHit(2, market, ("MACRO:PAKISTAN",)))
     elif market == "market.index":
         major, size = _index_is_major(bare)
         if major:
             hits.append(RuleHit(2, f"major index move ({size})", ("MACRO:PAKISTAN",)))
-    pol = _POLICY.search(bare) if context else None
+    pol = _POLICY.search(bare) if context and not routine else None
     geo = _GEOPOLITICAL.search(bare)
     if pol or geo:
         word = (pol or geo).group(0)
@@ -429,6 +483,11 @@ def classify(vocab: nf.Vocabulary, events: list[Event]) -> None:
                 if s not in e.sectors:
                     e.sectors.append(s)
         e.macro = ["MACRO:PAKISTAN"] if any(x.rule in (2, 5) for x in e.hits) else []
+        e.transmission = []
+        for h in e.members:
+            for cand in sector_transmission.candidates(h.title):
+                if not any(c["driver"] == cand["driver"] for c in e.transmission):
+                    e.transmission.append(cand)
 
 
 def concentration_events(events: list[Event], min_events: int = 3) -> list[Event]:

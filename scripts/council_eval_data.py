@@ -150,6 +150,13 @@ def main(argv: list[str] | None = None) -> int:
             )
     out["mapped_count"] = len(mapped)
     out["mapped_sample"] = mapped[:: max(1, len(mapped) // 70)][:70]
+    dup: dict = defaultdict(list)
+    for h in heads:
+        dup[(h.source, " ".join(h.title.lower().split()))].append(h.url)
+    out["stored_duplicate_titles"] = [
+        {"source": k[0], "title": k[1][:90], "urls": v[:6]} for k, v in dup.items() if len(v) > 1
+    ][:40]
+    out["stored_duplicate_title_count"] = sum(1 for v in dup.values() if len(v) > 1)
     out["name_like_unmapped"] = unmapped[:80]
     out["name_like_unmapped_count"] = len(unmapped)
     cnt = Counter(c for m in mapped for c in m["companies"])

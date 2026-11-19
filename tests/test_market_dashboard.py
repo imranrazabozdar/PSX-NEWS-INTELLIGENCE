@@ -167,3 +167,35 @@ def test_moves_are_grouped_by_day_newest_first_and_unexplained_ones_are_shown():
     assert html.index("NEW1") < html.index("NEW2")  # bigger move first within the day
     assert "no cause on file yet" in html and "1 with no cause on file" in html
     assert "OLD" in html and "No notable moves" in ui.moves_by_day_html([])
+
+
+def test_cause_labels_never_claim_a_confirmed_cause_and_the_radar_card_shows_the_30_day_context():
+    from engines import dashboard_html as ui
+
+    def mv(verdict, kinds):
+        return {"verdict": verdict, "evidence": [{"kind": k, "text": "t"} for k in kinds]}
+
+    assert ui.cause_label(mv("no identified cause in the evidence on file", [])) == "NO_IDENTIFIED_CAUSE"
+    assert ui.cause_label(mv("only routine scheduled notices are on file for this company", ["x"])) == (
+        "NO_IDENTIFIED_CAUSE"
+    )
+    assert "sector or market" in ui.cause_label(mv("the move was shared with its sector", ["sector"]))
+    assert ui.cause_label(
+        mv("evidence on file about this company is consistent with the move", ["company_event"])
+    ) == ("PLAUSIBLE_CATALYST")
+    both = mv(
+        "evidence on file about this company is consistent with the move", ["company_event", "company_news"]
+    )
+    assert ui.cause_label(both) == "MULTIPLE_POSSIBLE_CATALYSTS"
+    radar = [
+        {
+            "symbol": "MARI",
+            "score": 52.0,
+            "drivers": [{"kind": "price", "points": 10, "text": "up", "date": "d", "source": "s"}],
+            "unknown": [],
+        }
+    ]
+    html = ui.radar_cards_html(
+        radar, {"MARI": "Mari"}, {"MARI": {"d7": 1, "d30": 4, "latest": ("2026-11-13", "discovery")}}
+    )
+    assert "1 material item(s) in the last 7 days, 4 in the last 30; latest 2026-11-13: discovery" in html

@@ -316,6 +316,7 @@ def event_payload(e: Any) -> dict[str, Any]:
         "companies": list(e.companies),
         "sectors": list(e.sectors),
         "macro": list(e.macro),
+        "transmission": list(getattr(e, "transmission", [])),  # candidate sectors, not conclusions
         "day": e.day,
         "hits": [{"rule": h.rule, "detail": h.detail, "entities": list(h.entities)} for h in e.hits],
         "members": [
