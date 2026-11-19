@@ -679,3 +679,6 @@ Order (one phase at a time, each stops at an owner gate):
 ## Dashboard keeps itself current (owner, 2026-11-18: "Why it moved has old data") - IMPLEMENTED
 - Cause: the library already held 18 Nov prices (written 16:32 PKT, after the close; 278 bars), but an open Streamlit page never re-reads by itself, and the data was cached 30 minutes. A trading day's prices only arrive after the close plus the technical engine's update (about an hour after).
 - Fix: the dashboard body is a fragment that re-runs every 10 minutes over a 15-minute cache, has a "Refresh now" button, and states "prices to / news to / read at" with the reason prices lag. Tests pass.
+
+## "Why it moved" shows every day's moves (owner screenshots, 2026-11-19) - IMPLEMENTED
+- The tab listed only moves that already had a candidate cause and put unexplained ones in a separate list at the bottom, so 18 Nov moves with no cause on file (for example 786 up 10%) were hidden below 17 Nov ones. Now grouped by day, newest first, biggest first within a day, every notable move shown; unexplained ones say "no cause on file yet".

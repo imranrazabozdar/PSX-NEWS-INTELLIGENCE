@@ -141,3 +141,29 @@ def test_html_is_escaped_and_colours_follow_the_sign():
     assert "width:50.0%" in ui.breadth_card(b) and "5 advanced" in ui.breadth_card(b)
     assert md.order_movers(movers, "Losers")[0]["symbol"] == "B"
     assert md.order_movers(movers, "Most active")[0]["symbol"] == "A<b>"
+
+
+def test_moves_are_grouped_by_day_newest_first_and_unexplained_ones_are_shown():
+    from engines import dashboard_html as ui
+
+    def mv(sym, day, move, verdict, vol=None):
+        return {
+            "symbol": sym,
+            "day": day,
+            "move": move,
+            "volume_x": vol,
+            "verdict": verdict,
+            "evidence": [{"text": "e"}] if not verdict.startswith("no identified") else [],
+            "technical_context": [],
+        }
+
+    moves = [
+        mv("OLD", "2026-11-17", 9.0, "company event on file"),
+        mv("NEW1", "2026-11-18", 10.0, "no identified cause in the evidence on file"),
+        mv("NEW2", "2026-11-18", -6.0, "the move was shared with its sector"),
+    ]
+    html = ui.moves_by_day_html(moves)
+    assert html.index("2026-11-18") < html.index("2026-11-17")
+    assert html.index("NEW1") < html.index("NEW2")  # bigger move first within the day
+    assert "no cause on file yet" in html and "1 with no cause on file" in html
+    assert "OLD" in html and "No notable moves" in ui.moves_by_day_html([])
