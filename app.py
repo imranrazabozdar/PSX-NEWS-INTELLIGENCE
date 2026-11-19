@@ -7,6 +7,8 @@ placeholder numbers. No trading signals or buy/sell instructions.
 
 from __future__ import annotations
 
+import os
+
 import streamlit as st
 
 from config.settings import load_settings
@@ -28,6 +30,7 @@ PAGE_OVERVIEW = "Overview"
 PAGE_COMPANY = "Company intelligence"
 PAGE_BRIEF = "Company brief"
 PAGE_MARKET = "Market dashboard"
+PAGE_TRACKER = "Performance tracker"
 
 
 def main() -> None:
@@ -36,11 +39,18 @@ def main() -> None:
     # The older pages need the news database, which is only there when PSXNI_TURSO_DATABASE_URL is set;
     # without it they would only say "nothing to show", so they are not offered.
     pages = [PAGE_MARKET, PAGE_BRIEF]
+    from engines import tracker_view
+
+    if os.environ.get(tracker_view.TOKEN_VAR):  # offered only where the read-only token is configured
+        pages.append(PAGE_TRACKER)
     if settings.database_configured:
         pages += [PAGE_OVERVIEW, PAGE_COMPANY]
     page = st.sidebar.radio("Page", pages, key="app_page")
     if page == PAGE_MARKET:
         _market_dashboard()
+        return
+    if page == PAGE_TRACKER:
+        _tracker_page()
         return
     if page == PAGE_BRIEF:
         _brief_page()
@@ -96,6 +106,41 @@ def _library():
         db.max_rows_read = max(db.max_rows_read, 400_000)
         db.max_rows_written = 1
     return db
+
+
+@st.cache_data(ttl=900, show_spinner="Reading the tracker...")
+def _tracker_data(day_key: str) -> dict:
+    from engines import tracker_view
+
+    token = os.environ.get(tracker_view.TOKEN_VAR, "")
+    repo = os.environ.get(tracker_view.REPO_VAR, tracker_view.DEFAULT_REPO)
+    return tracker_view.fetch(token, repo)
+
+
+def _tracker_page() -> None:
+    """Prospective performance of the setups rankings, read from the data branch. Read only; not advice."""
+    from datetime import UTC, datetime
+
+    from engines import tracker_view
+
+    st.title("Performance tracker")
+    st.caption(
+        "Each weekday the live top 10 of each ranking is recorded, then compared with the whole eligible "
+        "group over the next sessions. A reading needs at least 20 snapshots. Scores are not forecasts and "
+        "nothing here is advice."
+    )
+    try:
+        p = _tracker_data(datetime.now(UTC).strftime("%Y-%m-%d %H"))
+    except tracker_view.TrackerError as exc:
+        st.error(str(exc))
+        return
+    first, last = p.get("first_day"), p.get("last_day")
+    st.markdown(
+        f"**{p['snapshots']}** snapshots recorded ({first or 'none'} to {last or 'none'}); "
+        f"file generated {p['generated_utc']}."
+    )
+    st.dataframe(tracker_view.table(p), hide_index=True, width="stretch")
+    st.caption(p["method"])
 
 
 @st.cache_data(ttl=900, show_spinner="Reading the brain...")

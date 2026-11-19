@@ -1,0 +1,86 @@
+{
+  "_note": "Extended reviewed cases (assistant-reviewed, from the 12-19 Nov headlines). Difficult and negative cases are kept as they are; none is removed because the system cannot handle it. NOT an independent validation: these headlines were seen while the rule was being built. Build the real holdout from headlines collected after 19 Nov (see benchmark_holdout.json).",
+  "should_flag": [
+    {
+      "title": "Crescent Fibres approves Rs1.25bn sale of Nooriabad industrial property",
+      "companies": [
+        "CFL"
+      ]
+    },
+    {
+      "title": "Pakistan Services distances itself from Thatta Cement-Fauji Foundation restructuring deal",
+      "companies": [
+        "PSEL",
+        "THCCL"
+      ]
+    },
+    {
+      "title": "Saudi Pak approves JD Taurus bid to sell entire stake in Saudi Pak Consultancy",
+      "companies": [
+        "SPCL"
+      ]
+    },
+    {
+      "title": "Dar orders global consultants for PNSC restructuring, reviews austerity measures",
+      "companies": [
+        "PNSC"
+      ]
+    },
+    {
+      "title": "Jubilee General Insurance approves sale of property in Lahore",
+      "companies": [
+        "JGICL"
+      ]
+    },
+    {
+      "title": "Bank of Punjab receives Rs20 billion from Punjab government under equity injection plan",
+      "companies": [
+        "BOP"
+      ]
+    },
+    {
+      "title": "Altern Energy signs agreement to sell plant and machinery to Volka Foods, Iconic Energy",
+      "companies": [
+        "ALTN"
+      ]
+    },
+    {
+      "title": "IGI Holdings evaluates up to 60% stake in Nimir Resins",
+      "companies": [
+        "NRSL",
+        "IGIHL"
+      ]
+    },
+    {
+      "title": "IGI Investments eyes acquisition of up to 60% stake in Nimir Resins",
+      "companies": [
+        "NRSL"
+      ]
+    },
+    {
+      "title": "Najd Gateway Holding withdraws PAI to acquire 84.5% stake in Samba Bank",
+      "companies": [
+        "SBL"
+      ],
+      "expected_stage": "withdrawn"
+    }
+  ],
+  "should_not_flag": [
+    "Aurangzeb lauds HBL’s role in supporting financial sector",
+    "Jam, HBL chief discuss SME financing, digital banking",
+    "Citi Pakistan executes first FI trade loan with HBL",
+    "Govt to support HBL in expanding trade links with four countries",
+    "Kohat Cement Company Limited: performance and outlook",
+    "APAG adds four new products to Soya Supreme portfolio",
+    "Panther Tyres commissions 3.5MW solar power plant",
+    "World Bank rates $370 million Pakistan health programme satisfactory",
+    "Deutsche Bank chair backs CEO after reports expose past lapses",
+    "MG Morning Breeze: Updates to skim before market"
+  ],
+  "difficult": [
+    {
+      "title": "Najd Gateway Holding withdraws PAI to acquire 84.5% stake in Samba Bank",
+      "why": "a withdrawn proposal is still a material event; the stage must say so"
+    }
+  ]
+}

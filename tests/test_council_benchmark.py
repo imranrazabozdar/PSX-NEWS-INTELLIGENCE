@@ -16,8 +16,9 @@ BENCH = json.loads((ROOT / "tests/fixtures/council/material_event_benchmark.json
 @pytest.fixture(scope="module")
 def vocab():
     listing = json.loads((ROOT / "docs/research/psx_listed_companies.json").read_text("utf-8"))
-    aliases = json.loads((ROOT / "docs/research/arn/entity_aliases.json").read_text("utf-8"))["aliases"]
-    return nf.build_vocabulary(dict(listing["companies"]), aliases, [])
+    alias_file = json.loads((ROOT / "docs/research/arn/entity_aliases.json").read_text("utf-8"))
+    ctx = {k: v for k, v in alias_file["contextual_aliases"].items() if not k.startswith("_")}
+    return nf.build_vocabulary(dict(listing["companies"]), alias_file["aliases"], [], ctx)
 
 
 def flags(vocab, title, source="profit"):
@@ -49,12 +50,21 @@ def test_routine_pages_global_wires_and_procedural_notices_are_not_flagged(vocab
     assert not noisy, f"false positives on the benchmark: {noisy}"
 
 
-def test_known_gaps_stay_listed_with_a_reason_and_are_not_silently_claimed_as_caught(vocab):
+def test_known_gaps_stay_listed_with_a_reason(vocab):
     for item in BENCH["known_gap"]:
         assert item["reason"]
-    # The Gatron story needs an owner-confirmed one-word alias; until then it must not be mapped by guess.
-    gatron = next(i for i in BENCH["known_gap"] if "Gatron" in i["title"])
-    assert flags(vocab, gatron["title"])[1] == []
+
+
+def test_a_bare_gatron_is_the_listed_company_only_with_a_corporate_context_word(vocab):
+    event = "Gatron\u2019s \u2018merger\u2019 moves a third of the company out of two holding companies"
+    assert flags(vocab, event)[1] == ["GATI"]
+    assert flags(vocab, "Gatron announces share transfer book closure for scheme of arrangement")[1] == [
+        "GATI"
+    ]
+    assert flags(vocab, "Gatron Industries posts quarterly profit")[1] == ["GATI"]
+    # a mention with no tie to the listed company's own corporate events is not mapped by guess
+    assert flags(vocab, "A Gatron truck overturned near Gadap")[1] == []
+    assert flags(vocab, "Gatron wins a cricket tournament sponsorship")[1] == []
 
 
 def test_corporate_action_hits_record_the_stage_and_have_a_weight_below_adverse_developments(vocab):
@@ -75,3 +85,33 @@ def test_the_same_article_stored_under_two_url_forms_is_one_event_member(vocab):
     events = ni.cluster(heads, (), vocab)
     assert len(events) == 1
     assert len(events[0].members) == 2  # one Business Recorder copy and the Dawn article
+
+
+EXT = json.loads((ROOT / "tests/fixtures/council/benchmark_extended.json").read_text("utf-8"))
+HOLD = json.loads((ROOT / "tests/fixtures/council/benchmark_holdout.json").read_text("utf-8"))
+
+
+def test_extended_cases_company_events_are_flagged_by_rule_9_and_company_chatter_is_not(vocab):
+    missed = [
+        i["title"][:60]
+        for i in EXT["should_flag"]
+        if not any(h.rule == 9 for h in flags(vocab, i["title"])[0])
+        or not set(i["companies"]) <= set(flags(vocab, i["title"])[1])
+    ]
+    assert not missed, missed
+    chatter = [t[:60] for t in EXT["should_not_flag"] if any(h.rule == 9 for h in flags(vocab, t)[0])]
+    assert not chatter, chatter
+
+
+def test_a_withdrawn_proposal_is_flagged_with_its_stage_recorded(vocab):
+    hits, _ = flags(vocab, "Najd Gateway Holding withdraws PAI to acquire 84.5% stake in Samba Bank")
+    assert "withdrawn, denied or called off" in next(h.detail for h in hits if h.rule == 9)
+
+
+def test_the_holdout_is_separate_from_the_tuning_sets_and_empty_until_filled_from_new_headlines():
+    tuned = {i["title"] for k in (BENCH, EXT) for i in k.get("should_flag", [])}
+    tuned |= {t for k in (BENCH, EXT) for t in k.get("should_not_flag", [])}
+    held = {i["title"] if isinstance(i, dict) else i for i in HOLD["should_flag"] + HOLD["should_not_flag"]}
+    assert not held & tuned, "the holdout must not overlap the sets the rules were tuned against"
+    if not held:
+        pytest.skip("holdout is empty: fill it from headlines collected after 19 Nov, labelled first")

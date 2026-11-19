@@ -712,3 +712,6 @@ Order (one phase at a time, each stops at an owner gate):
 
 ## Council remediation (owner-approved items, 2026-11-19) - IMPLEMENTED (dry run only)
 - See `docs/COUNCIL_REMEDIATION_2026-11-19.md`: rule 9 (corporate action or legal decision), reviewed benchmark and regression tests, flag-precision filters, Mettis timestamps forward-only plus a read-only impact report, three independent free-tier model families with no cross-family fallback, event-level de-duplication, separated reporting, sector-transmission candidates, radar 30-day context, move-cause labels, tracker results published to the `data/setups-forward` branch. Production storage, weights, paid APIs and historical rewrites untouched. Next: verify the independent models live (10-headline dry run), re-run the evaluation data on the 43 missed headlines, then a fresh seven-day dry run.
+
+## Council remediation, second round (owner review, 2026-11-19) - IMPLEMENTED (dry run only)
+- Independence corrected (Gemma removed, NVIDIA primary for macro), model families recorded, per-analyst availability table, `INSUFFICIENT_ANALYST_COVERAGE` instead of a made-up consensus; rule 9 stages incl. withdrawn; extended benchmark plus an empty holdout; GATI by context; Mettis read-only correction layer; Performance tracker page (needs the owner's read-only token). Details: `docs/COUNCIL_REMEDIATION_2026-11-19.md`.

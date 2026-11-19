@@ -417,7 +417,8 @@
     "Waves Home Appliances": "WAVESAPP",
     "Tariq Glass Limited": "TGL",
     "Colony Textile": "CTM",
-    "Gul Ahmed Textile": "GATM"
+    "Gul Ahmed Textile": "GATM",
+    "Gatron Industries": "GATI"
   },
   "not_listed": [
     "Central Depository Company",
@@ -460,5 +461,32 @@
     "Hero Textile Mills",
     "Shatar Sugar Mills"
   ],
-  "_keep_as_name_note": "Owner decision 2026-11-16: leave these as plain names (not folded onto a ticker)."
+  "_keep_as_name_note": "Owner decision 2026-11-16: leave these as plain names (not folded onto a ticker).",
+  "contextual_aliases": {
+    "_note": "A bare one-word name is the listed company only when the headline also carries one of these context words (owner decision 2026-11-19: do not map every 'Gatron' mention; a subsidiary or group story is not the listed company's own event).",
+    "Gatron": {
+      "symbol": "GATI",
+      "context": [
+        "merger",
+        "scheme of arrangement",
+        "book closure",
+        "shares?",
+        "dividends?",
+        "rights",
+        "stake",
+        "board",
+        "directors",
+        "EOGM",
+        "AGM",
+        "holding compan\\w*",
+        "financial results",
+        "quarterly",
+        "profit",
+        "polyester",
+        "rayon",
+        "synthetic",
+        "PSX"
+      ]
+    }
+  }
 }

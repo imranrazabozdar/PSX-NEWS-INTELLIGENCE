@@ -1,0 +1,5 @@
+{
+  "_note": "HOLDOUT. Do not tune any rule against this file. It is for measuring only. It must be filled from headlines collected AFTER 19 Nov 2026 and labelled before the system's flags for them are looked at (ideally by the owner). Empty until then; the test skips an empty holdout and refuses overlap with the other benchmark files.",
+  "should_flag": [],
+  "should_not_flag": []
+}

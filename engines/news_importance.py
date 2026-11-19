@@ -146,7 +146,14 @@ _CORPORATE = re.compile(
     r"peshawar high court|tribunal|rules? in favou?r|verdict|"
     r"(?:net )?loss(?:es)? (?:of|after)|rs ?[\d.,]+ ?(?:billion|million|bn|mn|m|b) (?:net )?loss|"
     r"(?:reports?|posts?|incurs?) (?:a )?(?:net )?loss|impairment|write-?offs?|"
-    r"(?:sale|transfer) of (?:\w+ ){0,2}(?:plant|property|business|unit|division))\b",
+    r"(?:sale|transfer) of (?:\w+ ){0,2}(?:plant|property|business|unit|division)|"
+    r"sell(?:s|ing)? (?:its |the |entire |all )?(?:\w+ ){0,2}"
+    r"(?:plant|property|business|unit|division|machinery|assets?))\b",
+    re.I,
+)
+_WITHDRAWN = re.compile(
+    r"\b(withdraw\w*|denies|denied|denial|rumou?rs?|calls? off|called off|scrapp\w+|abandon\w*|rejects?|"
+    r"rejected|cancel\w*)\b",
     re.I,
 )
 _PROPOSED = re.compile(
@@ -427,7 +434,12 @@ def headline_hits(vocab: nf.Vocabulary, h: Headline) -> tuple[list[RuleHit], lis
             hits.append(RuleHit(7, f"adverse term {found.group(0)!r}", tuple(companies)))
         corp = _CORPORATE.search(title)
         if corp:
-            stage = "proposed or reported" if _PROPOSED.search(title) else "announced or done"
+            if _WITHDRAWN.search(title):
+                stage = "withdrawn, denied or called off"
+            elif _PROPOSED.search(title):
+                stage = "proposed or reported"
+            else:
+                stage = "announced or done"
             detail = f"corporate action or legal decision {corp.group(0)!r} ({stage})"
             hits.append(RuleHit(9, detail, tuple(companies)))
     elif not companies and sectors:
