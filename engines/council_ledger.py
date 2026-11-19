@@ -44,6 +44,9 @@ KEEP_EXECUTIONS = 1000
 SCHEMA = 1
 
 
+COVER_HOURS = 36  # a story already assessed this recently is not assessed again (the queue item is kept)
+
+
 def stamp(now: datetime) -> str:
     return now.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -163,6 +166,20 @@ class Ledger:
             )
             return "queued"
 
+    def _covered(self, item: dict[str, Any], seen: list[tuple[frozenset[str], set[str]]]) -> bool:
+        """True when a similar story (same figure and subject, same companies) was assessed lately or is
+        already being taken in this batch. The item is kept, marked 'covered', never discarded."""
+        from engines import news_importance as ni  # lazy: the ledger itself needs nothing from the rules
+
+        words = ni.content_words(item.get("title", ""))
+        cos = set(item.get("payload", {}).get("companies", []))
+        for other_words, other_cos in seen:
+            if cos and other_cos and not (cos & other_cos):
+                continue  # "HBL profit rises 20%" and "MCB profit rises 20%" are two stories
+            if ni.similar(words, other_words):
+                return True
+        return False
+
     def reserve_batch(
         self,
         exec_id: str,
@@ -189,12 +206,26 @@ class Ledger:
                 (i for i in d["queue"] if i["state"] == "pending"),
                 key=lambda i: (-i["priority"], i["flagged_at"], i["key"]),
             )
+            from engines import news_importance as ni
+
+            recent = stamp(now - timedelta(hours=COVER_HOURS))
+            seen = [
+                (ni.content_words(i.get("title", "")), set(i.get("payload", {}).get("companies", [])))
+                for i in d["queue"]
+                if i["state"] == "done" and d["assessed"].get(i["key"], {}).get("at", "") >= recent
+            ]
             for item in order:
                 if counted and (runs_today["runs"] >= cap_day or runs_here["runs"] >= cap_exec):
                     break
                 if item["key"] in d["assessed"]:
                     item["state"] = "already_assessed"
                     continue
+                if counted and self._covered(item, seen):
+                    item["state"] = "covered"
+                    item["note"] = f"a similar story was assessed within {COVER_HOURS} hours"
+                    continue
+                taken_cos = set(item.get("payload", {}).get("companies", []))
+                seen.append((ni.content_words(item.get("title", "")), taken_cos))
                 item["state"] = "reserved"
                 item["reserved_at"] = stamp(now)
                 item["exec_id"] = exec_id

@@ -69,6 +69,8 @@ STOPWORDS = frozenset(
 )
 
 # --- rule patterns ------------------------------------------------------------------------------------------
+COMPANY_BONUS = 10  # a story that names a listed company runs before an equal market-wide one
+MACRO_ONLY_PENALTY = 5
 MAJOR_POINTS = 500
 MAJOR_PERCENT = 1.0
 _POINTS = re.compile(r"(\d[\d,]*(?:\.\d+)?)\s*points?\b", re.I)
@@ -519,6 +521,9 @@ def priority(e: Event, now: datetime | None = None) -> float:
     best = max((r for r in rel if r is not None), default=0.8)
     outlets = len({m.source for m in e.members if m.source != "rollup"})
     score = base + extra + 10 * (best - 0.8) + 4 * min(max(outlets - 1, 0), 3)
+    if e.kind == "headline":  # the council exists to say what a story means for a listed company
+        named = bool(e.company_keys or e.companies)
+        score += COMPANY_BONUS if named else -MACRO_ONLY_PENALTY
     if now and e.members:
         age_h = (now - e.members[-1].when()).total_seconds() / 3600
         score += max(0.0, 5.0 - age_h / 6)  # up to 5 points for news under about 30 minutes old
