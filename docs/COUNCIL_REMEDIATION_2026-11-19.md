@@ -31,3 +31,10 @@ Owner direction: adopt the important recommendations, skip the rest. Council pro
 
 ## Not done and why it stays off
 Production analytical storage, the Council dashboard and contradiction flag, any trade instruction, any weight change, any paid API. No activation without explicit owner approval.
+
+## Live verification and follow-up (same day)
+- 10-headline dry run on the new chain: news (OpenAI gpt-oss-120b) and financial (Alibaba qwen3.8-27b) answered 10 of 10 each; disagreement between the two families was found in 7 of 10 verdicts (it was 0 of 18 when one model answered everything). The macro analyst on Gemini failed 10 of 10 (HTTP 503 overloaded 15 times, quota 429 eight times, timeouts four) and was recorded as unavailable, as designed.
+- Fix: the macro analyst now tries Gemini 2.5 flash, then the free Gemma model on OpenRouter (a third family, still not shared with the other two analysts).
+- Rule 9 on the same seven days: 15 company events flagged, among them every one of the missed material examples that name a listed company (ATRL court win, Nimir/IGI, Samba x2, Mobilink/Apna, Colony Textile loss, Supernet rights issue); the top-priority list now starts with them. Overall flag rate is unchanged at about 22% because macro rules 2 and 5 dominate (175 hits): the daily cap and the ordering decide what the council sees, and the macro flag rate remains an open calibration item.
+- Mettis impact report: 399 stored Mettis rows; 99 are dated after they were collected (the live ones); the other 300 are older back-fill rows that look consistent but may carry the same offset. Nothing was changed.
+- Stored duplicate titles: 114. Two causes: tracking variants of one article (Business Recorder `?v=` links; fixed at collection by `canonical_url`) and recurring daily pages that reuse a title on different days (weather, morning breeze, FX rates, gold price), which are separate articles and are handled by the routine filter, not merged.

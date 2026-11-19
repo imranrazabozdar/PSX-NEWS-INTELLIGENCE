@@ -374,3 +374,11 @@ def test_mettis_clock_time_is_read_as_pakistan_time_whatever_label_it_carries():
     assert other.published_at == "2026-11-17T10:15:00Z"
     naive = nc.parse_article(article("A story", "2026-11-17T10:15:00"), "https://x/y", "profit")
     assert naive.published_at == "2026-11-17T10:15:00Z"
+
+
+def test_tracking_parameters_do_not_create_a_second_row_for_the_same_article():
+    assert nc.canonical_url("https://www.brecorder.com/news/40449550/x?v=Bzu8Bc") == (
+        "https://www.brecorder.com/news/40449550/x"
+    )
+    assert nc.canonical_url("https://a.pk/p?id=7&utm_source=t&fbclid=z#frag") == "https://a.pk/p?id=7"
+    assert nc.canonical_url("https://a.pk/plain") == "https://a.pk/plain"
