@@ -18,13 +18,13 @@ import re
 import sys
 import time
 from collections.abc import Callable, Iterable, Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 from typing import Any
 from urllib import error, request
-from urllib.parse import urlsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from engines import autonomous_tick as tick
 from engines import library_db
@@ -130,6 +130,17 @@ def to_utc_iso(text: str | None, *, wall_clock: timezone | None = None) -> str |
     elif when.tzinfo is None:
         when = when.replace(tzinfo=UTC)
     return when.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+_TRACKING = re.compile(r"^(?:v|utm_\w+|fbclid|gclid|ref|source)$", re.I)
+
+
+def canonical_url(url: str) -> str:
+    """The article URL without tracking parameters (the council evaluation found Business Recorder articles
+    stored several times as '...?v=<token>'). Other query parameters are kept."""
+    parts = urlsplit(url)
+    keep = [(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True) if not _TRACKING.match(k)]
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(keep), ""))
 
 
 def parse_sitemap(xml: str) -> list[tuple[str, str | None]]:
@@ -342,6 +353,7 @@ class Store:
             (source, key, value, _stamp(now)))
 
     def add_item(self, item: Item, now: datetime) -> None:
+        item = replace(item, url=canonical_url(item.url))  # one article, one row, whatever it tracks
         self.db.execute(
             "INSERT OR IGNORE INTO news_item "
             "(source, url, title, published_at, section, snippet, fetched_at) "

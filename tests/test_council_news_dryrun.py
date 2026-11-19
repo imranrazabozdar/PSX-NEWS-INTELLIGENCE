@@ -593,13 +593,14 @@ def test_each_analyst_is_pinned_to_a_different_model_family_with_no_cross_family
     led = cl.Ledger(tmp_path / "l.json")
     clock = lambda: NOW  # noqa: E731
     env = {"PSXNI_GROQ_API_KEY_ONE": "g1", "PSXNI_GEMINI_API_KEY_ONE": "m1", "PSXNI_OPENROUTER_API_KEY": "o1"}
-    models = {}
     for role in ("news", "financial", "macro"):
         provider, notes = cn.build_chain(role, env, led, {}, clock)
-        assert provider is not None and any("no cross-family fallback" in n for n in notes)
-        models[role] = cn.INDEPENDENT_MODELS[role]
-    assert len({m for _v, m in models.values()}) == 3  # three different models
-    assert {v for v, _m in models.values()} == {"groq", "gemini"}
+        assert provider is not None and any("no fallback to another analyst" in n for n in notes)
+    # no model is shared between analysts, so a fallback never lands on another analyst's model
+    pools = {role: {m for _v, m in cands} for role, cands in cn.INDEPENDENT_MODELS.items()}
+    assert not pools["news"] & pools["financial"]
+    assert not pools["news"] & pools["macro"] and not pools["financial"] & pools["macro"]
+    assert all(m.endswith(":free") for _v, m in cn.INDEPENDENT_MODELS["macro"] if _v == "openrouter")
     # a pinned vendor with no key leaves the analyst unavailable instead of borrowing another family
     provider, notes = cn.build_chain("macro", {"PSXNI_GROQ_API_KEY_ONE": "g1"}, led, {}, clock)
     assert provider is None and any("pinned gemini" in n for n in notes)

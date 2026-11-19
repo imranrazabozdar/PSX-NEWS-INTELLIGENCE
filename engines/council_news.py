@@ -164,10 +164,12 @@ class TrackedLeaf:
 # so agreement or disagreement means something. The pinned family may rotate over its own accounts, but there
 # is NO silent fallback to another family: when the pinned model cannot answer the analyst is recorded as
 # unavailable, and the record says so. Set PSXNI_COUNCIL_INDEPENDENT_MODELS=off to return to the older chain.
-INDEPENDENT_MODELS: dict[str, tuple[str, str]] = {
-    "news": ("groq", llm.DEFAULT_GROQ_MODEL),  # OpenAI gpt-oss family
-    "financial": ("groq", "qwen/qwen3.8-27b"),  # Alibaba Qwen family (offered on the Groq free tier)
-    "macro": ("gemini", llm.DEFAULT_GEMINI_MODEL),  # Google Gemini family
+INDEPENDENT_MODELS: dict[str, tuple[tuple[str, str], ...]] = {
+    "news": (("groq", llm.DEFAULT_GROQ_MODEL),),  # OpenAI gpt-oss family
+    "financial": (("groq", "qwen/qwen3.8-27b"),),  # Alibaba Qwen family (offered on the Groq free tier)
+    # Google family: Gemini first; when it is overloaded or out of quota (503/429 in the first live check:
+    # 10 of 10 calls failed) the free Gemma model, still a different family from the two above.
+    "macro": (("gemini", "gemini-2.5-flash"), ("openrouter", "google/gemma-4-31b-it:free")),
 }
 
 
@@ -185,18 +187,20 @@ def build_chain(
     switch = str(env.get("PSXNI_COUNCIL_INDEPENDENT_MODELS", "on"))
     pinned = INDEPENDENT_MODELS.get(role) if switch != "off" else None
     if pinned:
-        notes.append(f"{role}: pinned to {pinned[0]} {pinned[1]}; no cross-family fallback")
+        names = " then ".join(f"{v} {m}" for v, m in pinned)
+        notes.append(f"{role}: pinned to {names}; no fallback to another analyst's family")
     for cls, model_var in (
         (llm.GroqProvider, llm.GROQ_MODEL_VAR),
         (llm.GeminiProvider, llm.GEMINI_MODEL_VAR),
         (llm.OpenRouterProvider, llm.OPENROUTER_MODEL_VAR),
     ):
-        if pinned and cls.name != pinned[0]:
+        pin_model = next((m for v, m in pinned if v == cls.name), None) if pinned else None
+        if pinned and pin_model is None:
             continue
         keys = llm.keys_from_env(cls.key_var, env)
         if not keys:
             continue
-        model = pinned[1] if pinned else (str(env.get(model_var, "") or "").strip() or None)
+        model = pin_model or (str(env.get(model_var, "") or "").strip() or None)
         if cls is llm.OpenRouterProvider and not (model or llm.DEFAULT_OPENROUTER_MODEL).endswith(":free"):
             notes.append("openrouter skipped: only ':free' models are allowed (no paid fallback)")
             continue
@@ -208,7 +212,7 @@ def build_chain(
     if not chain:
         why = "no free-tier model key is configured"
         if pinned:
-            why = f"no free-tier key for the pinned {pinned[0]} model"
+            why = f"no free-tier key for the pinned {' or '.join(v for v, _m in pinned)} model"
         return None, notes + [why]
     provider = chain[0] if len(chain) == 1 else llm.FallbackProvider(chain)
     return llm_quota.guard(provider, LedgerQuotaTracker(ledger, clock), env), notes
