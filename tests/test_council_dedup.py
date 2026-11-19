@@ -114,3 +114,13 @@ def test_openrouter_asks_for_low_reasoning_and_a_larger_output_allowance_but_gro
         system="s", user="u", json_schema={}, max_output_tokens=2000
     )
     assert "reasoning" not in sent and sent["max_tokens"] == 2000
+
+
+def test_only_the_macro_analyst_gets_the_larger_input_allowance_and_only_when_it_is_not_on_groq():
+    from engines import council_news as cn
+
+    env = {}
+    assert cn.limits_for("macro", env).max_input_tokens == cn.MACRO_MAX_INPUT_TOKENS
+    assert cn.limits_for("news", env).max_input_tokens == 8_000
+    assert cn.limits_for("financial", env).max_input_tokens == 8_000
+    assert cn.limits_for("macro", {"PSXNI_COUNCIL_INDEPENDENT_MODELS": "off"}).max_input_tokens == 8_000

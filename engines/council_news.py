@@ -24,7 +24,7 @@ import os
 import time
 from collections import Counter
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -179,6 +179,21 @@ FAMILIES: dict[str, str] = {
     llm.DEFAULT_GEMINI_MODEL: "Google",
     "google/gemma-4-31b-it:free": "Google",
 }
+
+
+MACRO_MAX_INPUT_TOKENS = 14_000  # the macro pack is the largest (8,400-9,000 tokens seen)
+
+
+def limits_for(role: str, env: Any) -> llm.Limits:
+    """The gateway limits for one analyst. The macro analyst's evidence pack is larger than the default input
+    guard and its pinned (non-Groq) model accepts it; the Groq-served analysts keep the stricter guard because
+    Groq's free tier rejects oversized requests (HTTP 413 seen)."""
+    limits = llm.Limits.from_env()
+    on = str(env.get("PSXNI_COUNCIL_INDEPENDENT_MODELS", "on")) != "off"
+    pinned = INDEPENDENT_MODELS.get(role) if on else None
+    if role == "macro" and pinned and pinned[0][0] != "groq":
+        return replace(limits, max_input_tokens=max(limits.max_input_tokens, MACRO_MAX_INPUT_TOKENS))
+    return limits
 
 
 def family_of(model: str) -> str:
@@ -449,7 +464,7 @@ def run_council(
             inner = llm.LLMGateway(
                 provider=provider,
                 pricing=llm.Pricing(0.0, 0.0),
-                limits=llm.Limits.from_env(),
+                limits=limits_for(role, env),
                 sleep=lambda seconds: SLEEP(seconds),
             )
             gateways[role] = _CtxGateway(inner, ctx, role)
