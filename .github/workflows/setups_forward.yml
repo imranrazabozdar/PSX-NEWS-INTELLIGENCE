@@ -1,0 +1,53 @@
+# Private forward tracking of the live setups rankings (out of sample). Weekdays after the technical engine has
+# updated that day's prices (about 16:30 PKT). Read only on the library; the snapshots are a private file carried
+# between runs by the Actions cache and kept as an artifact. Nothing is written to psx-library.
+name: Setups forward tracking
+
+on:
+  schedule:
+    - cron: "41 12 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: setups-forward
+  cancel-in-progress: false
+
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PSXNI_LIBRARY_TURSO_DATABASE_URL: ${{ secrets.PSXNI_LIBRARY_TURSO_DATABASE_URL }}
+      PSXNI_LIBRARY_TURSO_AUTH_TOKEN: ${{ secrets.PSXNI_LIBRARY_TURSO_AUTH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Restore the snapshots
+        uses: actions/cache/restore@v4
+        with:
+          path: .setups_forward
+          key: setups-forward-none
+          restore-keys: setups-forward-
+      - run: python -m scripts.setups_forward
+      - name: Save the snapshots
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .setups_forward
+          key: setups-forward-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Keep the snapshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: setups-forward-${{ github.run_id }}
+          path: .setups_forward
+          retention-days: 90
+          if-no-files-found: ignore
+          include-hidden-files: true

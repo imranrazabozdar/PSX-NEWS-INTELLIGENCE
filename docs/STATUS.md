@@ -703,3 +703,6 @@ Order (one phase at a time, each stops at an owner gate):
 - Overlap-aware t (days h sessions apart): 5 sessions 0.5 (n 19, not significant); 10 sessions 2.8 (n 9, weak: few independent samples).
 - Both halves positive (excess +1.29pp then +0.59pp at 5 sessions; +3.59pp then +1.63pp at 10): the effect weakened in the second half. A Rs 100m liquidity floor keeps it (+1.93pp at 10). Removing or halving the volume item raised the excess (+3.05pp, +2.93pp vs +2.46pp): consistent with its negative rank correlation, but chosen after seeing the data, so NOT adopted. Weights unchanged.
 - Next: forward (out-of-sample) tracking of the live top 10, recorded daily, before any weight change.
+
+## Forward (out-of-sample) tracking of the setups (owner approval 2026-11-19) - IMPLEMENTED
+- `engines/setups_forward.py`, `scripts/setups_forward.py`, workflow `setups_forward.yml` (weekdays 12:41 UTC, after that day's prices are in; also dispatch). Each day the live top 10 of the three tabs plus the volume-removed technical variant are recorded with the whole eligible group in a PRIVATE file (Actions cache + 90-day artifact); nothing is written to psx-library. Snapshots are scored against the next 1, 5 and 10 sessions as they mature. A verdict needs at least 20 scored snapshots per horizon (about a month); no weights change before then.
