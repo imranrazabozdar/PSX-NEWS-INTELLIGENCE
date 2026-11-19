@@ -228,3 +228,37 @@ def lookup_html(found: dict[str, Any]) -> str:
         + "".join(f"<p class='pi-body'>{x}</p>" for x in rows)
         + "</div>"
     )
+
+
+def moves_by_day_html(moves: list[dict[str, Any]], per_day: int = 12) -> str:
+    """Notable moves grouped by trading day, newest day first, biggest first within a day. Every move is
+    shown: the ones with a candidate cause open to its evidence, the others say plainly that none is on file."""
+    days: dict[str, list[dict[str, Any]]] = {}
+    for m in moves:
+        days.setdefault(m["day"], []).append(m)
+    out = []
+    for day in sorted(days, reverse=True):
+        rows = sorted(days[day], key=lambda m: -abs(m["move"]) * (m.get("volume_x") or 1))
+        none = sum(1 for m in rows if m["verdict"].startswith("no identified cause"))
+        out.append(
+            f'<div class="pi-h" style="margin-top:1rem">{e(day)}'
+            f"<span>{len(rows)} notable moves · {none} with no cause on file</span></div>"
+        )
+        for m in rows[:per_day]:
+            cls = "g" if m["move"] > 0 else "r"
+            vol = f"volume {m['volume_x']:.1f}x usual" if m.get("volume_x") else "volume not comparable"
+            nocause = m["verdict"].startswith("no identified cause")
+            verdict = "no cause on file yet" if nocause else m["verdict"]
+            summary = (
+                f'<div class="pi-st"><b>{e(m["symbol"])}</b> <span class="{cls}">{_signed(m["move"])}</span>'
+                f"<div>{e(vol)}</div>"
+                f'<div class="{"m" if nocause else ""}">{e(verdict)}</div></div>'
+            )
+            lines = [e(x["text"][:220]) for x in m["evidence"][:3]]
+            lines += [f"<i>technical engine:</i> {e(t)}" for t in m.get("technical_context", [])[:2]]
+            if not lines:
+                lines = ["<i>No evidence on file for this move.</i>"]
+            out.append(_details(summary, lines))
+        if len(rows) > per_day:
+            out.append(f'<div class="pi-note">{len(rows) - per_day} smaller moves on {e(day)} not shown.</div>')
+    return "".join(out) or '<div class="pi-card m">No notable moves in the last few days.</div>'

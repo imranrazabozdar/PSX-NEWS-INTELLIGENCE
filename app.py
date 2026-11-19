@@ -186,10 +186,12 @@ def _dashboard_body() -> None:
         names = {r["symbol"]: company_names.official_name(r["symbol"]) for r in d["radar"]}
         st.markdown(ui.radar_cards_html(d["radar"], names), unsafe_allow_html=True)
     with moves_tab:
-        with_cause, no_cause = market_dashboard.explained(d["moves"])
-        st.caption("Big recent moves and what the evidence on file may explain. Candidates, not proof.")
-        st.markdown(ui.move_cards_html(with_cause), unsafe_allow_html=True)
-        st.markdown(ui.unexplained_card(no_cause, len(d["moves"])), unsafe_allow_html=True)
+        st.caption(
+            "Notable moves by day, newest first, and what the evidence on file may explain. "
+            "Candidates, not proof. A day's moves appear once its prices are in (about an hour after "
+            "the close)."
+        )
+        st.markdown(ui.moves_by_day_html(d["moves"]), unsafe_allow_html=True)
     st.caption(
         f"Prices to {d['price_day'] or 'unknown'}, news to {d['news_day'] or 'unknown'}. "
         f"Read {d['built_utc']} UTC; this page re-reads every 10 minutes. A trading day's prices arrive "
