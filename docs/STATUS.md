@@ -706,3 +706,6 @@ Order (one phase at a time, each stops at an owner gate):
 
 ## Forward (out-of-sample) tracking of the setups (owner approval 2026-11-19) - IMPLEMENTED
 - `engines/setups_forward.py`, `scripts/setups_forward.py`, workflow `setups_forward.yml` (weekdays 12:41 UTC, after that day's prices are in; also dispatch). Each day the live top 10 of the three tabs plus the volume-removed technical variant are recorded with the whole eligible group in a PRIVATE file (Actions cache + 90-day artifact); nothing is written to psx-library. Snapshots are scored against the next 1, 5 and 10 sessions as they mature. A verdict needs at least 20 scored snapshots per horizon (about a month); no weights change before then.
+
+## Council seven-day dry-run evaluation (2026-11-19) - DONE; recommendation C
+- Report: `docs/COUNCIL_DRYRUN_EVALUATION_2026-11-19.md`; separate minimal dashboard proposal: `docs/DASHBOARD_PROPOSAL_MINIMAL.md`. Production storage NOT activated; no weights changed; dry-run records preserved; no paid API. Recommendation C (remediate, then another dry run): corporate-action rule missing (43 material-looking unflagged), Mettis timestamps about +5 h, single model so disagreement unmeasurable, council ran only 3 days. Awaiting the owner's decision; no activation without explicit approval.
