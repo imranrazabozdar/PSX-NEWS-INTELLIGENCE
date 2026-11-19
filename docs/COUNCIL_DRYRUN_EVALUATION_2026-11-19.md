@@ -65,7 +65,7 @@ Flag rules seen: rule 1 (company results) 3, rule 2 (SBP / FX / fiscal / energy 
 - 21% of events flagged is too many for a council that can run 6 a day.
 
 ### 5.4 Direct and indirect sector-impact mapping
-- Of 10 company or market entities assessed in the 18 runs, 2 were company-level (NBP, POML) and 8 were market-wide (MACRO:PAKISTAN). No sector-level entity was assessed in any run, and `sector_impact` was empty in the sample read. The sector mapping exists (for example SECTOR:OIL_GAS on LNG and FBR oil-and-gas stories) but the council did not produce indirect-impact output in these 18 runs. **This area could not be evaluated for quality; it was effectively unexercised.**
+- Of 10 entity assessments in the 18 runs, 2 were company-level (NBP, POML) and 8 were market-wide (MACRO:PAKISTAN). No sector entity was assessed, and `sector_impact` was non-empty in only 1 of 18 runs. The sector mapping exists in the classifier (for example SECTOR:OIL_GAS on LNG and FBR oil-and-gas stories) but the council produced almost no indirect-impact output. **This area could not be evaluated for quality; it was effectively unexercised.**
 
 ### 5.5 Evidence quality, traceability and unsupported claims
 - Every assessment cited evidence ids: **33 of 33 exist in the run's evidence pack.** Each event record carries its outlets, URLs, publication times and reliability weights.
