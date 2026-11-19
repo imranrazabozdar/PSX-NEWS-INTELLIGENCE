@@ -167,9 +167,10 @@ class TrackedLeaf:
 INDEPENDENT_MODELS: dict[str, tuple[tuple[str, str], ...]] = {
     "news": (("groq", llm.DEFAULT_GROQ_MODEL),),  # OpenAI gpt-oss family
     "financial": (("groq", "qwen/qwen3.8-27b"),),  # Alibaba Qwen family (offered on the Groq free tier)
-    # Google family: Gemini first; when it is overloaded or out of quota (503/429 in the first live check:
-    # 10 of 10 calls failed) the free Gemma model, still a different family from the two above.
-    "macro": (("gemini", "gemini-2.5-flash"), ("openrouter", "google/gemma-4-31b-it:free")),
+    # Google family: Gemini first; when it is overloaded or out of quota (transient 503/429: 10 of 10 calls
+    # in the first live check) the free Gemma model, still a different family from the two above.
+    # (gemini-2.5-flash was tried and answers 404 for these keys, so the "latest" alias stays.)
+    "macro": (("gemini", llm.DEFAULT_GEMINI_MODEL), ("openrouter", "google/gemma-4-31b-it:free")),
 }
 
 
