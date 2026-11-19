@@ -686,3 +686,9 @@ Order (one phase at a time, each stops at an owner gate):
 ## Investify scheduled reads (owner approval 2026-11-19) - IMPLEMENTED
 - `investify_library.yml` now also runs on a schedule (cron 7,37 UTC, 05-10 UTC, Mon-Fri = 10:07-15:37 PKT) and loads the facts. The gate in code decides whether a request is made, so cron slots outside the window, in the 15-minute floor or past a ceiling end with no request. Kill switch: repository variable PSXNI_KILL_SWITCH=true. Reason: the page holds only the newest 25 announcements, so unread slots lose items.
 - Council view on the dashboard: BLOCKED on a storage decision (see report); technical-engine signals already appear in the setups cards and move evidence.
+
+## Council fixes after the 18-verdict review (owner, 2026-11-19) - IMPLEMENTED (dry run only)
+- Review of the first 18 verdicts: petrol-price and "PSX rally fizzles" repeats used the 6-a-day cap; only 2 of the assessments named a company; 8 were market-wide.
+- `council_ledger.reserve_batch`: a queued story similar to one assessed within the last 36 hours (same figure and subject, same companies; different companies never match) or already taken in the same batch is marked "covered" with a note, kept in the queue, and not run again (`COVER_HOURS`). `news_importance.priority`: a headline event naming a listed company gets +10, a market-wide-only one -5, so company stories run first.
+- The announcement gate was verified live: it scans every 6 hours and found 3-6 material announcements per scan (18-19 Nov); they join the same queue under the same cap.
+- Still true: one free model answers every lens; the 7-day report is due about 24 Nov; production storage stays OFF until the owner approves.
