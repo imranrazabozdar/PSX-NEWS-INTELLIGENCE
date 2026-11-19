@@ -362,3 +362,15 @@ def test_backfill_stops_at_the_file_where_the_window_ends_and_never_reads_older_
         posts2: (200, TRIBUNE_POSTS)}))
     nc.run(db, site, NOW, sleep=lambda _s: None)
     assert posts2 not in site.calls
+
+
+def test_mettis_clock_time_is_read_as_pakistan_time_whatever_label_it_carries():
+    """Found in the council evaluation: Mettis items were dated about five hours late (PKT stored as UTC)."""
+    for raw in ("2026-11-17T10:15:00Z", "2026-11-17T10:15:00+00:00", "2026-11-17T10:15:00"):
+        item = nc.parse_mettis_article(article("PMI back to growth", raw), "https://m/x")
+        assert item.published_at == "2026-11-17T05:15:00Z", raw  # 10:15 PKT is 05:15 UTC
+    # other outlets are untouched: a UTC label stays UTC, a missing zone is read as UTC
+    other = nc.parse_article(article("A story", "2026-11-17T10:15:00Z"), "https://x/y", "brecorder")
+    assert other.published_at == "2026-11-17T10:15:00Z"
+    naive = nc.parse_article(article("A story", "2026-11-17T10:15:00"), "https://x/y", "profit")
+    assert naive.published_at == "2026-11-17T10:15:00Z"

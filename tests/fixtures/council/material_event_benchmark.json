@@ -1,0 +1,108 @@
+{
+  "_note": "Reviewed benchmark of headlines from the seven-day dry run (12-19 Nov 2026). 'should_flag' = a company-level or macro event a council should consider; 'should_not_flag_wires' = global market wires and 'should_not_flag_routine' = routine pages, global market wires and procedural notices that must not use a council run; 'known_gap' = material but not detectable by the deterministic rules today (the reason is given). Reviewed by the assistant, not yet by the owner: the owner is asked to extend and correct it. Every rule change must keep should_flag recall and should_not_flag exclusions.",
+  "should_flag": [
+    {
+      "title": "Mobilink Microfinance Bank signs deal to acquire 82.51% stake in Apna Microfinance Bank from United Insurance",
+      "companies": [
+        "AMBL",
+        "UNIC"
+      ]
+    },
+    {
+      "title": "Supreme Court rules in favour of Attock Refinery in sales tax dispute over crude oil processing",
+      "companies": [
+        "ATRL"
+      ]
+    },
+    {
+      "title": "Nimir Resins: IGI Investments to evaluate proposed 60pc stake acquisition",
+      "companies": [
+        "NRSL"
+      ]
+    },
+    {
+      "title": "Saudi investor renews bid to acquire 84.51% stake in Samba Bank after withdrawing earlier offer",
+      "companies": [
+        "SBL"
+      ]
+    },
+    {
+      "title": "Najd Gateway Holding withdraws PAI to acquire 84.5% stake in Samba Bank",
+      "companies": [
+        "SBL"
+      ]
+    },
+    {
+      "title": "Supernet Technologies targets services-led growth, overseas expansion after Rs915 million rights issue",
+      "companies": [
+        "STL"
+      ]
+    },
+    {
+      "title": "Colony Textile’s Rs11 billion loss, and a plan to hand its weaving unit to the banks",
+      "companies": [
+        "CTM"
+      ]
+    },
+    {
+      "title": "NBP’s profit falls 29% in the third quarter as income shrinks on both fronts",
+      "companies": [
+        "NBP"
+      ]
+    },
+    {
+      "title": "Punjab Oil Mills cut its costs. Its taxes ate the profit",
+      "companies": [
+        "POML"
+      ]
+    },
+    {
+      "title": "Govt cuts petrol, high-speed diesel price by Rs2",
+      "companies": []
+    }
+  ],
+  "known_gap": [
+    {
+      "title": "Gatron’s ‘merger’ moves a third of the company out of two holding companies",
+      "reason": "bare one-word name 'Gatron' is not confirmed as an alias (owner decision)"
+    },
+    {
+      "title": "Gul Ahmed Textile approves procurement of two wind turbines with 15.75 MW capacity",
+      "reason": "capacity contract wording is not in the corporate-action terms"
+    },
+    {
+      "title": "Pharma sector earnings rise 5pc despite weak sales growth in 3QCY26",
+      "reason": "sector-level results: rule 1 needs a named company"
+    },
+    {
+      "title": "Fire breaks out at food factory in Baldia",
+      "reason": "no company named in the headline"
+    },
+    {
+      "title": "Dany Group acquires former US Consul General’s Karachi residence for Rs6.92 billion",
+      "reason": "not a listed company (correctly outside the rules)"
+    }
+  ],
+  "should_not_flag_wires": [
+    "Asian stocks tumble as Nvidia earnings, Anthropic IPO put AI rally to the test",
+    "Gold extends losses on US rate concerns",
+    "Copper extends losses on AI worries, dollar strength",
+    "Sri Lankan shares end lower on losses in financial, communications stocks",
+    "Bitcoin sinks nearly 50% from peak, whales sit on $8bn paper losses",
+    "Microsoft 365 outage insured losses likely under $100 million, CyberCube says",
+    "Alibaba tops revenue estimates on AI cloud growth; profit up on investment gains",
+    "Indian shares decline from nine-month high levels on profit-taking"
+  ],
+  "should_not_flag_routine": [
+    "National Savings announces results of Rs1,500 prize bond draw",
+    "Profit E-Magazine Issue 428",
+    "Gold price in Pakistan for today, November 16, 2026",
+    "Foreign exchange rates in Pakistan for today, November 18, 2026",
+    "Rupee records gain against US dollar",
+    "FBR unveils proposed rules for faceless tax appeals",
+    "FBR notifies customs export values of sesame seeds",
+    "Assets and liabilities: FBR directs officials to digitally file declarations",
+    "FBR expands jurisdiction of Customs Enforcement Collectorate Indus",
+    "NBP issues foreign exchange rates"
+  ]
+}

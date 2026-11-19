@@ -116,7 +116,9 @@ def _details(summary_html: str, body_lines: list[str]) -> str:
     )
 
 
-def radar_cards_html(radar: list[dict[str, Any]], names: dict[str, str]) -> str:
+def radar_cards_html(
+    radar: list[dict[str, Any]], names: dict[str, str], ctx: dict[str, dict[str, Any]] | None = None
+) -> str:
     out = []
     for s in radar:
         top = max(s["drivers"], key=lambda d: d["points"])
@@ -132,6 +134,12 @@ def radar_cards_html(radar: list[dict[str, Any]], names: dict[str, str]) -> str:
             for d in sorted(s["drivers"], key=lambda d: -d["points"])
         ]
         lines += [f"<i>unknown:</i> {e(u)}" for u in s["unknown"][:2]]
+        c = (ctx or {}).get(s["symbol"])
+        if c:
+            latest = f"; latest {e(c['latest'][0])}: {e(c['latest'][1])}" if c["latest"] else ""
+            lines.append(
+                f"<i>context:</i> {c['d7']} material item(s) in the last 7 days, {c['d30']} in the last 30{latest}"
+            )
         out.append(_details(summary, lines))
     return "".join(out) or '<div class="pi-card m">Nothing scored.</div>'
 
@@ -249,9 +257,11 @@ def moves_by_day_html(moves: list[dict[str, Any]], per_day: int = 12) -> str:
             vol = f"volume {m['volume_x']:.1f}x usual" if m.get("volume_x") else "volume not comparable"
             nocause = m["verdict"].startswith("no identified cause")
             verdict = "no cause on file yet" if nocause else m["verdict"]
+            label = cause_label(m)
             summary = (
                 f'<div class="pi-st"><b>{e(m["symbol"])}</b> <span class="{cls}">{_signed(m["move"])}</span>'
                 f"<div>{e(vol)}</div>"
+                f'<div><span class="pi-chip">{e(label)}</span></div>'
                 f'<div class="{"m" if nocause else ""}">{e(verdict)}</div></div>'
             )
             lines = [e(x["text"][:220]) for x in m["evidence"][:3]]
@@ -262,3 +272,19 @@ def moves_by_day_html(moves: list[dict[str, Any]], per_day: int = 12) -> str:
         if len(rows) > per_day:
             out.append(f'<div class="pi-note">{len(rows) - per_day} smaller moves on {e(day)} not shown.</div>')
     return "".join(out) or '<div class="pi-card m">No notable moves in the last few days.</div>'
+
+
+def cause_label(move: dict[str, Any]) -> str:
+    """One plain label for what the evidence on file says about a move. CONFIRMED_EVENT and
+    CONTRADICTORY_EVIDENCE are deliberately never produced: a stored fact cannot confirm a cause, and
+    direction conflicts are not yet tested; the labels exist in the vocabulary for when they can be."""
+    verdict = move["verdict"]
+    if verdict.startswith("no identified cause") or verdict.startswith("only routine"):
+        return "NO_IDENTIFIED_CAUSE"
+    kinds = {x.get("kind") for x in move.get("evidence", [])}
+    company = {k for k in kinds if k in ("company_event", "company_news")}
+    if verdict.startswith("the move was shared"):
+        return "PLAUSIBLE_CATALYST (sector or market)"
+    if len(company) >= 2 or (company and len(move.get("evidence", [])) >= 3):
+        return "MULTIPLE_POSSIBLE_CATALYSTS"
+    return "PLAUSIBLE_CATALYST"

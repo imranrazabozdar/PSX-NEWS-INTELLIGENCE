@@ -43,7 +43,14 @@ def main(argv: list[str] | None = None) -> int:
         )
     else:
         print(f"snapshot for {day} already recorded")
-    text = setups_forward.report(snaps, setups_forward.evaluate(snaps, bars))
+    problems = setups_forward.validate_snapshots(snaps)
+    if problems:
+        print("SNAPSHOT FILE PROBLEMS:", problems)
+        return 2
+    scored = setups_forward.evaluate(snaps, bars)
+    results = setups_forward.results_payload(snaps, scored, now.strftime("%Y-%m-%dT%H:%M:%SZ"))
+    (args.file.parent / "results.json").write_text(json.dumps(results, indent=1), encoding="utf-8")
+    text = setups_forward.report(snaps, scored)
     print(text)
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary:

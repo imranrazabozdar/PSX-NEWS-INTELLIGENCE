@@ -9,10 +9,43 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from engines import company_names, daily_digest, move_explainer, setups
+from engines import announcement_substance as asub
+from engines import company_names, daily_digest, materiality, move_explainer, setups
+from engines import research_facts as rf
 from scripts import build_digest, build_radar, explain_moves
 
 EVENT_DAYS = 7  # calendar days of announcements, news flow and corporate actions that count
+
+
+CONTEXT_DAYS = 30
+
+
+def radar_context(db: Any, radar: list[dict[str, Any]], today: Any) -> dict[str, dict[str, Any]]:
+    """For each radar company: how much material evidence the last 7 and the last 30 days hold, and the latest
+    material item. Only the radar's companies are read, so it is a few hundred rows."""
+    from datetime import timedelta
+
+    symbols = [r["symbol"] for r in radar]
+    if not symbols:
+        return {}
+    since30 = (today - timedelta(days=CONTEXT_DAYS)).isoformat()
+    since7 = (today - timedelta(days=7)).isoformat()
+    out: dict[str, dict[str, Any]] = {s: {"d7": 0, "d30": 0, "latest": None} for s in symbols}
+    for r in rf.facts_for(db, symbols, "company, topic, fact_text, source_date, period", since=since30):
+        topic = str(r["topic"])
+        label = topic.removeprefix("announcements.")
+        material = (topic.startswith("announcements.") and label in asub.MATERIAL_LABELS) or topic.startswith(
+            materiality.RESULT_TOPICS
+        )
+        if not material:
+            continue
+        day = str(r.get("period") or r["source_date"])
+        c = out[r["company"]]
+        c["d30"] += 1
+        c["d7"] += 1 if day >= since7 else 0
+        if c["latest"] is None or day > c["latest"][0]:
+            c["latest"] = (day, str(r["fact_text"])[:140])
+    return out
 
 
 def load(db: Any, now: datetime, days: int = 3, top: int = 15) -> dict[str, Any]:
@@ -34,6 +67,7 @@ def load(db: Any, now: datetime, days: int = 3, top: int = 15) -> dict[str, Any]
         "breadth": daily_digest.breadth(moves, day) if day else None,
         "radar": radar,
         "radar_all": radar_all,
+        "radar_ctx": radar_context(db, radar, today),
         "radar_stats": radar_stats,
         "moves": items,
         "universe": universe,

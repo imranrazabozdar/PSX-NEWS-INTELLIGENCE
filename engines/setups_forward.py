@@ -107,3 +107,60 @@ def report(snaps: list[dict[str, Any]], scored: dict[str, dict[int, list[dict[st
             )
     lines += ["", "Not advice, not a forecast. No costs or slippage; closes only."]
     return "\n".join(lines) + "\n"
+
+
+SCHEMA_VERSION = 1
+METHOD = (
+    "Each weekday the live top 10 of every ranking is recorded with the whole eligible group. A snapshot is "
+    "scored against the next 1, 5 and 10 sessions: top-10 average return minus group average return. "
+    "Scoring weights are not changed while the tracker runs."
+)
+
+
+def results_payload(snaps: list[dict[str, Any]], scored: dict[str, dict[int, list[dict[str, Any]]]], now: str) -> dict:
+    """A small, versioned results file for the data branch (no credentials, no personal data)."""
+    days = sorted(s["day"] for s in snaps)
+    summary = []
+    for t in TRACKS:
+        for h, rows in scored[t].items():
+            summary.append(
+                {
+                    "track": t,
+                    "horizon": h,
+                    "snapshots_scored": len(rows),
+                    "top_avg": round(statistics.fmean(r["top"] for r in rows), 3) if rows else None,
+                    "group_avg": round(statistics.fmean(r["group"] for r in rows), 3) if rows else None,
+                    "avg_excess": round(statistics.fmean(r["excess"] for r in rows), 3) if rows else None,
+                    "beat_rate": round(statistics.fmean(1.0 if r["excess"] > 0 else 0.0 for r in rows), 3)
+                    if rows
+                    else None,
+                }
+            )
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "method": METHOD,
+        "generated_utc": now,
+        "snapshots": len(snaps),
+        "first_day": days[0] if days else None,
+        "last_day": days[-1] if days else None,
+        "checkpoints": {"initial": 20, "early": 30, "preliminary": "60-90 days", "meaningful": "6 months"},
+        "summary": summary,
+        "snapshot_days": days,
+    }
+
+
+def validate_snapshots(snaps: list[dict[str, Any]]) -> list[str]:
+    """Problems that would make the file untrustworthy: duplicate days, malformed days or symbols."""
+    problems: list[str] = []
+    seen: set[str] = set()
+    for s in snaps:
+        d = s.get("day", "")
+        if len(d) != 10 or d[4] != "-" or d[7] != "-":
+            problems.append(f"malformed day {d!r}")
+        if d in seen:
+            problems.append(f"duplicate snapshot for {d}")
+        seen.add(d)
+        for t, syms in s.get("tracks", {}).items():
+            if t not in TRACKS or any(not str(x).replace("-", "").isalnum() for x in syms):
+                problems.append(f"{d}: bad track or symbol in {t}")
+    return problems
