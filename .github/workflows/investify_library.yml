@@ -17,6 +17,13 @@ on:
   schedule:
     # UTC. 05:07-10:37 UTC = 10:07-15:37 PKT. Off the top of the hour (GitHub drops runs at :00 and :30).
     - cron: "7,37 5-10 * * 1-5"
+  # GitHub's own cron fired once on 20 Nov, outside the window (it is unreliable for this repository, as the
+  # news and PSX workflows already found). The News collector is started every 30 minutes by the external
+  # timer, so its completion is the reliable tick; only completions inside the window start a job at all
+  # (a skipped job is not billed). The gate in code still decides whether any request is made.
+  workflow_run:
+    workflows: ["News collector"]
+    types: [completed]
   workflow_dispatch:
     inputs:
       unconditional:
@@ -39,6 +46,15 @@ concurrency:
 
 jobs:
   collect:
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.conclusion == 'success' && (
+      contains(github.event.workflow_run.updated_at, 'T05:') ||
+      contains(github.event.workflow_run.updated_at, 'T06:') ||
+      contains(github.event.workflow_run.updated_at, 'T07:') ||
+      contains(github.event.workflow_run.updated_at, 'T08:') ||
+      contains(github.event.workflow_run.updated_at, 'T09:') ||
+      contains(github.event.workflow_run.updated_at, 'T10:')))
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -66,7 +82,7 @@ jobs:
       - name: One consented request, parsed into facts
         run: python -m collectors.investify_library_job --state "$STATE_DIR/state.json" --out investify_facts.json ${{ inputs.unconditional && '--unconditional' || '' }}
       - name: Load the facts (only when apply)
-        if: ${{ inputs.apply || github.event_name == 'schedule' }}
+        if: ${{ inputs.apply || github.event_name == 'schedule' || github.event_name == 'workflow_run' }}
         run: |
           if [ -f investify_facts.json ]; then
             python -m scripts.absorb_sector_capsule investify_facts.json --since-days 60 --apply
