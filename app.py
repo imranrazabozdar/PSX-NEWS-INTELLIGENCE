@@ -45,6 +45,9 @@ def main() -> None:
         pages.append(PAGE_TRACKER)
     if settings.database_configured:
         pages += [PAGE_OVERVIEW, PAGE_COMPANY]
+    goto = st.session_state.pop("_goto_page", None)  # set by a button on another page
+    if goto in pages:
+        st.session_state["app_page"] = goto
     page = st.sidebar.radio("Page", pages, key="app_page")
     if page == PAGE_MARKET:
         _market_dashboard()
@@ -219,6 +222,10 @@ def _dashboard_body() -> None:
         typed = st.text_input("Check a stock (symbol)", "", key="setup_check").strip().upper()
         if typed:
             st.markdown(ui.lookup_html(setups.lookup(d["setups"], typed)), unsafe_allow_html=True)
+            if st.button(f"Open the {typed} company page", key="open_company"):
+                st.session_state["_goto_page"] = PAGE_BRIEF
+                st.session_state["brief_symbol"] = typed
+                st.rerun()
     with market_tab:
         st.markdown(ui.breadth_card(d["breadth"]), unsafe_allow_html=True)
         mode = st.segmented_control(
@@ -292,68 +299,59 @@ def _brief_page() -> None:
     choice = st.selectbox(
         "Company (symbols with a price series)", tracked, index=None, placeholder="Pick a symbol"
     )
-    typed = st.text_input("...or type any symbol the brain tracks", "").strip().upper()
+    typed = st.text_input("...or type any symbol the brain tracks", "", key="brief_symbol").strip().upper()
     symbol = typed or choice
     if not symbol:
         st.write(f"{len(tracked)} symbols have a price series. Pick one above.")
         return
     brief = _brief_company(symbol, today)
-    _render_brief(brief)
+    standing = None
+    try:  # where the company stands in the setups rankings (uses the dashboard's 15-minute cache)
+        from engines import setups
+
+        standing = setups.lookup(_dashboard_data(datetime.now(UTC).strftime("%Y-%m-%d %H"))["setups"], symbol)
+    except Exception:  # noqa: BLE001 - the brief stands without it
+        standing = None
+    _render_brief(brief, standing)
 
 
-def _render_brief(b: dict) -> None:
-    st.header(b["symbol"])
-    st.caption(f"Sector: {b['sector']}" if b["sector"] else "Sector: unknown")
+def _render_brief(b: dict, standing: dict | None = None) -> None:
+    from engines import brief_html as bh
+    from engines import company_names
+    from engines import dashboard_html as ui
+
+    st.markdown(ui.CSS, unsafe_allow_html=True)
+    st.markdown(bh.header(b, company_names.official_name(b["symbol"])), unsafe_allow_html=True)
     p = b["price"]
     if p:
-        c1, c2, c3, c4 = st.columns(4)
-        fmt = lambda v: "n/a" if v is None else f"{v:+.1f}%"  # noqa: E731
-        c1.metric(f"Close ({p['date']})", f"{p['close']:g}")
-        c2.metric("1 day", fmt(p["change_1d"]))
-        c3.metric("5 days", fmt(p["change_5d"]))
-        c4.metric("20 days", fmt(p["change_20d"]))
-        st.line_chart({d: c for d, c in p["series"]}, height=220)
-    st.subheader("Notable moves and what may explain them")
-    if not b["moves"]:
-        st.write("No notable move (5% or more, or heavy volume) in the last 30 days.")
-    for m in b["moves"]:
-        vol = f", volume {m['volume_x']:.1f}x" if m.get("volume_x") else ""
-        st.markdown(f"**{m['day']}: {m['move']:+.1f}%{vol}** - {m['verdict']}")
-        for e in m["evidence"]:
-            st.markdown(f"- [{e['kind']}] {e['text']} ({e['date']}; {e['source']})")
-        for c in m.get("macro_context", []):
-            st.markdown(f"- market context (not shown to cause this move): {c}")
-    st.subheader("Results")
-    if b["eps_change"] and b["eps_change"].get("pct") is not None:
+        st.line_chart({d: c for d, c in p["series"]}, height=200)
+    st.markdown(bh.standing(standing), unsafe_allow_html=True)
+    names = ["Results", "News and filings", "Moves", "Technical", "Fundamentals"]
+    overview, filings, moves_tab, tech, fund = st.tabs(names)
+    with overview:
         c = b["eps_change"]
-        st.write(f"Like-for-like EPS, {c['label']}: {c['prev']:g} -> {c['cur']:g} ({c['pct']:+.0f}%)")
-    for f in b["results"]:
-        st.markdown(f"- {f['event_date']}: {f['fact_text']}")
-    st.subheader("Corporate actions (last 12 months)")
-    for f in b["actions"]:
-        st.markdown(f"- {f['event_date']}: {f['fact_text']}")
-    st.subheader("Announcements (last month)")
-    shown = [x for x in b["announcements"] if x["weight"] != "routine"]
-    for x in shown:
-        tag = f"size: {x['tier']}" if x["weight"] == "material" else "scheduled notice"
-        st.markdown(f"- {x['date']} [{x['label']}, {tag}] {x['text']} ({x['source']})")
-        for line in x.get("basis") or []:
-            st.caption(f"basis: {line}")
-    routine = len(b["announcements"]) - len(shown)
-    if routine:
-        st.caption(f"{routine} routine filings not listed (transmissions, briefings, insiders).")
-    if not b["announcements"]:
-        st.write("No announcements on file for the last month.")
-    st.subheader("News (last month)")
-    for r in b["news"]:
-        link = f" ([link]({r['top_url']}))" if r.get("top_url") else ""
-        st.markdown(f"- {r['day']}: {r['stories']} stories; {str(r['top_title'] or '')[:160]}{link}")
-    st.subheader("Technical engine signals (heuristics, not probabilities)")
-    for f in b["technical"]:
-        st.markdown(f"- {f['event_date']}: {f['fact_text']}")
-    st.subheader("Fundamentals snapshot")
-    for f in b["fundamentals"]:
-        st.markdown(f"- {f['text']} (as of {f['as_of']}; {f['source']})")
+        if c and c.get("pct") is not None:
+            st.markdown(
+                f"**Like-for-like EPS, {c['label']}:** {c['prev']:g} to {c['cur']:g} ({c['pct']:+.0f}%)"
+            )
+        st.markdown("**Results**")
+        st.markdown(bh.facts(b["results"], "No results on file."), unsafe_allow_html=True)
+        st.markdown("**Corporate actions (last 12 months)**")
+        st.markdown(bh.facts(b["actions"], "No corporate actions on file."), unsafe_allow_html=True)
+    with filings:
+        st.markdown("**Announcements (last month)**")
+        st.markdown(bh.announcements(b["announcements"]), unsafe_allow_html=True)
+        st.markdown("**News (last month)**")
+        st.markdown(bh.news(b["news"]), unsafe_allow_html=True)
+    with moves_tab:
+        st.caption("Notable moves and what the evidence on file may explain: candidates, not proof.")
+        st.markdown(bh.moves(b["moves"]), unsafe_allow_html=True)
+    with tech:
+        st.caption("The technical engine's heuristics, not probabilities.")
+        st.markdown(bh.facts(b["technical"], "No technical-engine signals on file."), unsafe_allow_html=True)
+    with fund:
+        rows = bh.facts(b["fundamentals"], "No fundamentals snapshot on file.", "as_of")
+        st.markdown(rows, unsafe_allow_html=True)
     with st.expander("What we do not know"):
         for u in b["unknown"] or ["Nothing flagged."]:
             st.write(f"- {u}")
