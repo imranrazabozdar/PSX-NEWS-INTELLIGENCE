@@ -715,3 +715,7 @@ Order (one phase at a time, each stops at an owner gate):
 
 ## Council remediation, second round (owner review, 2026-11-19) - IMPLEMENTED (dry run only)
 - Independence corrected (Gemma removed, NVIDIA primary for macro), model families recorded, per-analyst availability table, `INSUFFICIENT_ANALYST_COVERAGE` instead of a made-up consensus; rule 9 stages incl. withdrawn; extended benchmark plus an empty holdout; GATI by context; Mettis read-only correction layer; Performance tracker page (needs the owner's read-only token). Details: `docs/COUNCIL_REMEDIATION_2026-11-19.md`.
+
+## Investify scheduled reads: trigger fixed (2026-11-20) - IMPLEMENTED
+- GitHub's cron fired once on 20 Nov (13:56 UTC, outside the window) and never in 05:07-10:37 UTC, so no scheduled read happened; announcements from 19 and 20 Nov were therefore not captured, and cannot be recovered (the page lists only the newest 25 and the consent allows the latest page only).
+- Fix: `investify_library.yml` now also starts when the externally-timed "News collector" completes (every 30 minutes), only for completions in 05:00-10:59 UTC (other hours never start a job), still gated in code (window, 15-minute floor, ceilings, calendar, robots). The cron stays as a backup. Next window: Monday 23 Nov, 10:00 PKT.
