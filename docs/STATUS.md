@@ -719,3 +719,6 @@ Order (one phase at a time, each stops at an owner gate):
 ## Investify scheduled reads: trigger fixed (2026-11-20) - IMPLEMENTED
 - GitHub's cron fired once on 20 Nov (13:56 UTC, outside the window) and never in 05:07-10:37 UTC, so no scheduled read happened; announcements from 19 and 20 Nov were therefore not captured, and cannot be recovered (the page lists only the newest 25 and the consent allows the latest page only).
 - Fix: `investify_library.yml` now also starts when the externally-timed "News collector" completes (every 30 minutes), only for completions in 05:00-10:59 UTC (other hours never start a job), still gated in code (window, 15-minute floor, ceilings, calendar, robots). The cron stays as a backup. Next window: Monday 23 Nov, 10:00 PKT.
+
+## Company page redesigned, phone-first (owner "go ahead", 2026-11-20) - IMPLEMENTED
+- The Company brief now uses the dashboard's cards: header (close and 1/5/20-day change), price line, where the company stands in the setups rankings (technical, fundamental, combined with ranks, or why it is not scored), and tabs Results / News and filings / Moves / Technical / Fundamentals, with tap-to-open announcements (size tier and basis) and moves (plain cause labels). "Check a stock" on the dashboard has an "Open the company page" button. `engines/brief_html.py`; read only; no advice wording.
