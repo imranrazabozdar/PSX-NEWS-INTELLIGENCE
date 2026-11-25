@@ -1,10 +1,10 @@
 {
  "schema_version": 1,
  "method": "Each weekday the live top 10 of every ranking is recorded with the whole eligible group. A snapshot is scored against the next 1, 5 and 10 sessions: top-10 average return minus group average return. Scoring weights are not changed while the tracker runs.",
- "generated_utc": "2026-11-24T22:43:36Z",
- "snapshots": 4,
+ "generated_utc": "2026-11-25T21:57:40Z",
+ "snapshots": 5,
  "first_day": "2026-11-19",
- "last_day": "2026-11-24",
+ "last_day": "2026-11-25",
  "checkpoints": {
   "initial": 20,
   "early": 30,
@@ -15,11 +15,11 @@
   {
    "track": "technical",
    "horizon": 1,
-   "snapshots_scored": 3,
-   "top_avg": -0.425,
-   "group_avg": 0.302,
-   "avg_excess": -0.727,
-   "beat_rate": 0.333
+   "snapshots_scored": 4,
+   "top_avg": -0.468,
+   "group_avg": 0.127,
+   "avg_excess": -0.595,
+   "beat_rate": 0.25
   },
   {
    "track": "technical",
@@ -42,11 +42,11 @@
   {
    "track": "fundamental",
    "horizon": 1,
-   "snapshots_scored": 3,
-   "top_avg": 0.029,
-   "group_avg": 0.302,
-   "avg_excess": -0.273,
-   "beat_rate": 0.0
+   "snapshots_scored": 4,
+   "top_avg": 0.048,
+   "group_avg": 0.127,
+   "avg_excess": -0.078,
+   "beat_rate": 0.25
   },
   {
    "track": "fundamental",
@@ -69,11 +69,11 @@
   {
    "track": "combined",
    "horizon": 1,
-   "snapshots_scored": 3,
-   "top_avg": 0.765,
-   "group_avg": 0.302,
-   "avg_excess": 0.462,
-   "beat_rate": 0.667
+   "snapshots_scored": 4,
+   "top_avg": 0.455,
+   "group_avg": 0.127,
+   "avg_excess": 0.328,
+   "beat_rate": 0.5
   },
   {
    "track": "combined",
@@ -125,6 +125,7 @@
   "2026-11-19",
   "2026-11-20",
   "2026-11-23",
-  "2026-11-24"
+  "2026-11-24",
+  "2026-11-25"
  ]
 }
