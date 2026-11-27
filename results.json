@@ -1,10 +1,10 @@
 {
  "schema_version": 1,
  "method": "Each weekday the live top 10 of every ranking is recorded with the whole eligible group. A snapshot is scored against the next 1, 5 and 10 sessions: top-10 average return minus group average return. Scoring weights are not changed while the tracker runs.",
- "generated_utc": "2026-11-26T21:53:06Z",
- "snapshots": 6,
+ "generated_utc": "2026-11-27T21:36:12Z",
+ "snapshots": 7,
  "first_day": "2026-11-19",
- "last_day": "2026-11-26",
+ "last_day": "2026-11-27",
  "checkpoints": {
   "initial": 20,
   "early": 30,
@@ -15,19 +15,19 @@
   {
    "track": "technical",
    "horizon": 1,
-   "snapshots_scored": 5,
-   "top_avg": -0.361,
-   "group_avg": 0.248,
-   "avg_excess": -0.609,
-   "beat_rate": 0.2
+   "snapshots_scored": 6,
+   "top_avg": -0.262,
+   "group_avg": 0.156,
+   "avg_excess": -0.418,
+   "beat_rate": 0.333
   },
   {
    "track": "technical",
    "horizon": 5,
-   "snapshots_scored": 1,
-   "top_avg": -3.312,
-   "group_avg": 1.318,
-   "avg_excess": -4.63,
+   "snapshots_scored": 2,
+   "top_avg": -3.502,
+   "group_avg": 1.117,
+   "avg_excess": -4.619,
    "beat_rate": 0.0
   },
   {
@@ -42,19 +42,19 @@
   {
    "track": "fundamental",
    "horizon": 1,
-   "snapshots_scored": 5,
-   "top_avg": 0.116,
-   "group_avg": 0.248,
-   "avg_excess": -0.132,
-   "beat_rate": 0.2
+   "snapshots_scored": 6,
+   "top_avg": -0.045,
+   "group_avg": 0.156,
+   "avg_excess": -0.201,
+   "beat_rate": 0.167
   },
   {
    "track": "fundamental",
    "horizon": 5,
-   "snapshots_scored": 1,
-   "top_avg": 0.348,
-   "group_avg": 1.318,
-   "avg_excess": -0.97,
+   "snapshots_scored": 2,
+   "top_avg": 0.448,
+   "group_avg": 1.117,
+   "avg_excess": -0.669,
    "beat_rate": 0.0
   },
   {
@@ -69,20 +69,20 @@
   {
    "track": "combined",
    "horizon": 1,
-   "snapshots_scored": 5,
-   "top_avg": 0.367,
-   "group_avg": 0.248,
-   "avg_excess": 0.119,
-   "beat_rate": 0.4
+   "snapshots_scored": 6,
+   "top_avg": 0.207,
+   "group_avg": 0.156,
+   "avg_excess": 0.051,
+   "beat_rate": 0.333
   },
   {
    "track": "combined",
    "horizon": 5,
-   "snapshots_scored": 1,
-   "top_avg": 1.189,
-   "group_avg": 1.318,
-   "avg_excess": -0.129,
-   "beat_rate": 0.0
+   "snapshots_scored": 2,
+   "top_avg": 1.227,
+   "group_avg": 1.117,
+   "avg_excess": 0.109,
+   "beat_rate": 0.5
   },
   {
    "track": "combined",
@@ -96,19 +96,19 @@
   {
    "track": "technical_novol",
    "horizon": 1,
-   "snapshots_scored": 5,
-   "top_avg": 1.178,
-   "group_avg": 0.248,
-   "avg_excess": 0.93,
+   "snapshots_scored": 6,
+   "top_avg": 1.065,
+   "group_avg": 0.156,
+   "avg_excess": 0.908,
    "beat_rate": 1.0
   },
   {
    "track": "technical_novol",
    "horizon": 5,
-   "snapshots_scored": 1,
-   "top_avg": 5.912,
-   "group_avg": 1.318,
-   "avg_excess": 4.595,
+   "snapshots_scored": 2,
+   "top_avg": 6.571,
+   "group_avg": 1.117,
+   "avg_excess": 5.454,
    "beat_rate": 1.0
   },
   {
@@ -127,6 +127,7 @@
   "2026-11-23",
   "2026-11-24",
   "2026-11-25",
-  "2026-11-26"
+  "2026-11-26",
+  "2026-11-27"
  ]
 }
